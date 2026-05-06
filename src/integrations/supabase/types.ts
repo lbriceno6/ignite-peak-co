@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart_items: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -115,6 +139,84 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          badge: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          faqs: Json
+          flavor: string | null
+          gallery_images: Json
+          goal: string | null
+          id: string
+          ingredients: string | null
+          is_active: boolean
+          main_image: string | null
+          main_ingredient: string | null
+          name: string
+          nutrition_facts: Json | null
+          price: number
+          sale_price: number | null
+          short_description: string | null
+          size: string | null
+          slug: string
+          stock: number
+          updated_at: string
+          usage_instructions: string | null
+        }
+        Insert: {
+          badge?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          faqs?: Json
+          flavor?: string | null
+          gallery_images?: Json
+          goal?: string | null
+          id?: string
+          ingredients?: string | null
+          is_active?: boolean
+          main_image?: string | null
+          main_ingredient?: string | null
+          name: string
+          nutrition_facts?: Json | null
+          price?: number
+          sale_price?: number | null
+          short_description?: string | null
+          size?: string | null
+          slug: string
+          stock?: number
+          updated_at?: string
+          usage_instructions?: string | null
+        }
+        Update: {
+          badge?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          faqs?: Json
+          flavor?: string | null
+          gallery_images?: Json
+          goal?: string | null
+          id?: string
+          ingredients?: string | null
+          is_active?: boolean
+          main_image?: string | null
+          main_ingredient?: string | null
+          name?: string
+          nutrition_facts?: Json | null
+          price?: number
+          sale_price?: number | null
+          short_description?: string | null
+          size?: string | null
+          slug?: string
+          stock?: number
+          updated_at?: string
+          usage_instructions?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
@@ -154,6 +256,33 @@ export type Database = {
         }
         Relationships: []
       }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          rating?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -171,6 +300,27 @@ export type Database = {
           created_at?: string
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wishlist: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string
           user_id?: string
         }
         Relationships: []

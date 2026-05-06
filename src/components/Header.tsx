@@ -11,7 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
 const UserMenu = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const navigate = useNavigate();
   if (!user) {
     return (
@@ -32,6 +32,7 @@ const UserMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => navigate("/my-profile")}><UserCircle size={14}/> My profile</DropdownMenuItem>
         <DropdownMenuItem onClick={() => navigate("/my-orders")}><Package size={14}/> My orders</DropdownMenuItem>
+        {isAdmin && <DropdownMenuItem onClick={() => navigate("/admin")}><Package size={14}/> Admin panel</DropdownMenuItem>}
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}><LogOut size={14}/> Sign out</DropdownMenuItem>
       </DropdownMenuContent>
