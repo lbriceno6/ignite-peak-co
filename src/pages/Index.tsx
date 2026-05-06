@@ -1,16 +1,232 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Link } from "react-router-dom";
+import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle, Star } from "lucide-react";
+import { Layout } from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { ProductCard } from "@/components/ProductCard";
+import { Stars } from "@/components/Stars";
+import { products, categories, goals, reviews, blogPosts } from "@/data/catalog";
+import heroImage from "@/assets/hero.jpg";
+import promoImage from "@/assets/promo-banner.jpg";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Home = () => {
+  const bestSellers = products.filter((p) => p.label === "Best Seller" || p.rating >= 4.7).slice(0, 4);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <Layout>
+      {/* HERO */}
+      <section className="relative overflow-hidden bg-surface-darker text-background">
+        <img
+          src={heroImage}
+          alt="Athlete training with Voltra supplements"
+          width={1536}
+          height={1024}
+          className="absolute inset-0 h-full w-full object-cover opacity-50"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/80 to-transparent" />
+        <div className="container-x relative grid min-h-[560px] items-center py-20 lg:min-h-[680px]">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent">
+              <Zap size={12} /> Engineered for performance
+            </span>
+            <h1 className="mt-6 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-8xl">
+              Take your<br />
+              performance to the<br />
+              <span className="text-accent">next level</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-base text-background/75 sm:text-lg">
+              Premium nutrition, supplements and healthy products designed to support your energy, strength, recovery and wellness.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button size="xl" variant="hero" asChild>
+                <Link to="/category/protein">Shop now <ArrowRight /></Link>
+              </Button>
+              <Button size="xl" variant="outline" asChild className="border-background/30 bg-background/5 text-background hover:bg-background hover:text-foreground">
+                <Link to="/category/best-sellers">View best sellers</Link>
+              </Button>
+            </div>
+            <div className="mt-10 flex items-center gap-4 text-sm text-background/70">
+              <div className="flex items-center gap-2">
+                <Stars rating={5} />
+                <span className="font-semibold text-background">4.9/5</span>
+              </div>
+              <span className="text-background/40">·</span>
+              <span>Trusted by 240k+ athletes worldwide</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CATEGORIES */}
+      <section className="container-x py-16">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h2 className="font-display text-3xl uppercase sm:text-4xl">Shop by category</h2>
+            <p className="mt-2 text-muted-foreground">Find exactly what fuels your goals.</p>
+          </div>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+          {categories.map((c) => (
+            <Link
+              key={c.slug}
+              to={`/category/${c.slug}`}
+              className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-5 text-center transition-smooth hover:border-accent hover:shadow-product hover:-translate-y-1"
+            >
+              <span className="text-3xl">{c.icon}</span>
+              <span className="text-sm font-bold uppercase tracking-wide group-hover:text-accent">{c.name}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* BEST SELLERS */}
+      <section className="bg-secondary/40 py-16">
+        <div className="container-x">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-accent">Customer favorites</span>
+              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Best sellers</h2>
+            </div>
+            <Link to="/category/protein" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+              View all <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* GOALS */}
+      <section className="container-x py-16">
+        <div className="text-center">
+          <span className="text-xs font-bold uppercase tracking-wider text-accent">Find your stack</span>
+          <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Shop by goal</h2>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+          {goals.map((g, i) => (
+            <Link
+              key={g.slug}
+              to={`/category/goal-${g.slug}`}
+              className="group relative flex h-44 flex-col justify-between overflow-hidden rounded-lg bg-surface-darker p-5 text-background transition-smooth hover:shadow-elevated"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
+              <span className="font-display text-6xl text-background/10">0{i + 1}</span>
+              <div className="relative">
+                <h3 className="font-display text-xl uppercase">{g.name}</h3>
+                <p className="mt-1 text-xs text-background/60">{g.desc}</p>
+                <ArrowRight size={16} className="mt-3 text-accent opacity-0 transition-smooth group-hover:opacity-100" />
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* PROMO BANNER */}
+      <section className="container-x">
+        <div className="relative overflow-hidden rounded-2xl bg-surface-darker text-background">
+          <img src={promoImage} alt="Promotional offer" loading="lazy" width={1536} height={768} className="absolute inset-0 h-full w-full object-cover opacity-60" />
+          <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/70 to-transparent" />
+          <div className="relative grid min-h-[340px] items-center p-8 sm:p-12 lg:p-16">
+            <div className="max-w-lg">
+              <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent-foreground">Limited time</span>
+              <h3 className="mt-4 font-display text-4xl uppercase leading-tight sm:text-5xl">Stack up. Save up to 30%.</h3>
+              <p className="mt-3 text-background/75">Bundle protein + creatine + pre-workout and get our biggest discount of the season.</p>
+              <Button size="lg" variant="hero" className="mt-6" asChild>
+                <Link to="/category/protein">Shop the bundle <ArrowRight /></Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ALL PRODUCTS GRID */}
+      <section className="container-x py-16">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-accent">Just dropped</span>
+          <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">More to fuel your training</h2>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {products.slice(0, 8).map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+      </section>
+
+      {/* REVIEWS */}
+      <section className="bg-surface-darker py-16 text-background">
+        <div className="container-x">
+          <div className="text-center">
+            <Stars rating={5} size={20} />
+            <h2 className="mt-3 font-display text-3xl uppercase sm:text-4xl">Loved by athletes</h2>
+            <p className="mt-2 text-background/60">Over 18,000 verified 5-star reviews.</p>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {reviews.map((r) => (
+              <div key={r.name} className="rounded-lg border border-background/10 bg-background/5 p-6">
+                <Stars rating={r.rating} />
+                <h4 className="mt-3 font-display text-lg">{r.title}</h4>
+                <p className="mt-2 text-sm text-background/70">{r.text}</p>
+                <div className="mt-4 flex items-center gap-2 text-xs text-background/60">
+                  <span className="font-semibold text-background">{r.name}</span>
+                  {r.verified && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-accent">Verified buyer</span>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* BLOG */}
+      <section className="container-x py-16">
+        <div className="flex items-end justify-between">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-accent">Knowledge</span>
+            <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Guides & insights</h2>
+          </div>
+          <Link to="/blog" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+            All articles <ArrowRight size={14} />
+          </Link>
+        </div>
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {blogPosts.map((post) => (
+            <Link key={post.slug} to={`/blog/${post.slug}`} className="group flex flex-col gap-3">
+              <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
+                <div className="grid h-full place-items-center text-6xl opacity-30 transition-smooth group-hover:scale-110">
+                  {post.category === "Nutrition" ? "🥗" : post.category === "Supplements" ? "💪" : "⚡"}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                <span className="text-accent font-bold">{post.category}</span>
+                <span>· {post.readTime} read</span>
+              </div>
+              <h3 className="font-display text-xl group-hover:text-accent transition-smooth">{post.title}</h3>
+              <p className="text-sm text-muted-foreground">{post.excerpt}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* TRUST */}
+      <section className="border-y border-border bg-secondary/40 py-12">
+        <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
+          {[
+            { icon: Truck, title: "Free shipping", desc: "On orders over €50" },
+            { icon: ShieldCheck, title: "Secure payment", desc: "100% encrypted checkout" },
+            { icon: Award, title: "Lab tested", desc: "Third-party verified quality" },
+            { icon: MessageCircle, title: "Real support", desc: "WhatsApp 7 days a week" },
+          ].map((t) => (
+            <div key={t.title} className="flex items-center gap-4">
+              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
+                <t.icon size={22} />
+              </div>
+              <div>
+                <p className="font-bold uppercase tracking-wide">{t.title}</p>
+                <p className="text-xs text-muted-foreground">{t.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </Layout>
   );
 };
 
-const Index = PlaceholderIndex;
-
-export default Index;
+export default Home;
