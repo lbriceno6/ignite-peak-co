@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState, useMemo } from "react";
-import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,24 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { products, categories, goals } from "@/data/catalog";
+import { Badge } from "@/components/ui/badge";
+import { products, categories, goals, type Product } from "@/data/catalog";
 
-const filterGroups = [
+type FilterState = {
+  type: string[];
+  goal: string[];
+  flavor: string[];
+  size: string[];
+  rating: string[];
+  brand: string[];
+  price: [number, number];
+};
+
+const emptyFilters: FilterState = {
+  type: [], goal: [], flavor: [], size: [], rating: [], brand: [], price: [0, 100],
+};
+
+const filterGroups: { key: keyof Omit<FilterState, "price">; title: string; options: string[] }[] = [
   { key: "type", title: "Product type", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
   { key: "goal", title: "Goal", options: goals.map((g) => g.name) },
   { key: "flavor", title: "Flavor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
@@ -19,37 +34,68 @@ const filterGroups = [
   { key: "brand", title: "Brand", options: ["VOLTRA"] },
 ];
 
-const Filters = () => (
-  <div className="space-y-4">
-    <div>
-      <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price (€)</h4>
-      <Slider defaultValue={[0, 60]} min={0} max={100} step={1} />
-      <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-        <span>€0</span><span>€100</span>
+const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
+const ratingMin = (r: string) => (r.startsWith("4.8") ? 4.8 : r.startsWith("4.5") ? 4.5 : 4);
+
+const FiltersPanel = ({
+  filters, setFilters,
+}: {
+  filters: FilterState;
+  setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
+}) => {
+  const toggle = (key: keyof Omit<FilterState, "price">, value: string) => {
+    setFilters((f) => {
+      const current = f[key];
+      return {
+        ...f,
+        [key]: current.includes(value) ? current.filter((v) => v !== value) : [...current, value],
+      };
+    });
+  };
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price (€)</h4>
+        <Slider
+          value={filters.price}
+          min={0} max={100} step={1}
+          onValueChange={(v) => setFilters((f) => ({ ...f, price: [v[0], v[1]] as [number, number] }))}
+        />
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+          <span>€{filters.price[0]}</span><span>€{filters.price[1]}</span>
+        </div>
       </div>
+      <Accordion type="multiple" defaultValue={["type", "goal"]}>
+        {filterGroups.map((g) => (
+          <AccordionItem key={g.key} value={g.key}>
+            <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
+            <AccordionContent>
+              <div className="space-y-2.5">
+                {g.options.map((o) => (
+                  <label key={o} className="flex cursor-pointer items-center gap-2 text-sm">
+                    <Checkbox
+                      checked={filters[g.key].includes(o)}
+                      onCheckedChange={() => toggle(g.key, o)}
+                    />
+                    <span>{o}</span>
+                  </label>
+                ))}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
     </div>
-    <Accordion type="multiple" defaultValue={["type", "goal"]}>
-      {filterGroups.map((g) => (
-        <AccordionItem key={g.key} value={g.key}>
-          <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
-          <AccordionContent>
-            <div className="space-y-2.5">
-              {g.options.map((o) => (
-                <label key={o} className="flex cursor-pointer items-center gap-2 text-sm">
-                  <Checkbox /> <span>{o}</span>
-                </label>
-              ))}
-            </div>
-          </AccordionContent>
-        </AccordionItem>
-      ))}
-    </Accordion>
-  </div>
-);
+  );
+};
+
+const matchesType = (p: Product, types: string[]) =>
+  types.length === 0 || types.some((t) => p.category.toLowerCase() === t.toLowerCase());
 
 const Category = () => {
   const { slug = "" } = useParams();
   const [sort, setSort] = useState("popular");
+  const [filters, setFilters] = useState<FilterState>(emptyFilters);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
@@ -60,15 +106,40 @@ const Category = () => {
     return c?.name ?? "All products";
   }, [slug]);
 
-  const filtered = useMemo(() => {
+  const baseList = useMemo(() => {
     if (slug.startsWith("goal-")) {
       const goal = slug.replace("goal-", "");
       return products.filter((p) => p.goal.includes(goal));
     }
     const c = categories.find((x) => x.slug === slug);
     if (!c) return products;
-    return products.filter((p) => p.category.toLowerCase().includes(c.name.toLowerCase().split(" ")[0].toLowerCase()));
+    return products.filter((p) =>
+      p.category.toLowerCase().includes(c.name.toLowerCase().split(" ")[0].toLowerCase())
+    );
   }, [slug]);
+
+  const filtered = useMemo(() => {
+    return baseList.filter((p) => {
+      if (p.price < filters.price[0] || p.price > filters.price[1]) return false;
+      if (!matchesType(p, filters.type)) return false;
+      if (filters.goal.length > 0) {
+        const slugs = filters.goal.map(goalNameToSlug);
+        if (!slugs.some((g) => p.goal.includes(g))) return false;
+      }
+      if (filters.flavor.length > 0) {
+        if (!p.flavors || !filters.flavor.some((f) => p.flavors!.includes(f))) return false;
+      }
+      if (filters.size.length > 0) {
+        if (!p.sizes || !filters.size.some((s) => p.sizes!.includes(s))) return false;
+      }
+      if (filters.rating.length > 0) {
+        const min = Math.min(...filters.rating.map(ratingMin));
+        if (p.rating < min) return false;
+      }
+      if (filters.brand.length > 0 && !filters.brand.includes(p.brand)) return false;
+      return true;
+    });
+  }, [baseList, filters]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -77,6 +148,20 @@ const Category = () => {
     else if (sort === "rating") arr.sort((a, b) => b.rating - a.rating);
     return arr;
   }, [filtered, sort]);
+
+  const activeChips = useMemo(() => {
+    const chips: { key: keyof Omit<FilterState, "price">; value: string }[] = [];
+    (Object.keys(filters) as (keyof FilterState)[]).forEach((k) => {
+      if (k === "price") return;
+      filters[k].forEach((v) => chips.push({ key: k, value: v }));
+    });
+    return chips;
+  }, [filters]);
+
+  const removeChip = (key: keyof Omit<FilterState, "price">, value: string) =>
+    setFilters((f) => ({ ...f, [key]: f[key].filter((v) => v !== value) }));
+
+  const clearAll = () => setFilters(emptyFilters);
 
   return (
     <Layout>
@@ -92,8 +177,15 @@ const Category = () => {
 
       <div className="container-x grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
-          <h3 className="mb-4 font-display text-xl uppercase">Filters</h3>
-          <Filters />
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-display text-xl uppercase">Filters</h3>
+            {activeChips.length > 0 && (
+              <button onClick={clearAll} className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">
+                Clear
+              </button>
+            )}
+          </div>
+          <FiltersPanel filters={filters} setFilters={setFilters} />
         </aside>
 
         <div>
@@ -106,7 +198,7 @@ const Category = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-80 overflow-y-auto">
                 <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
-                <div className="mt-6"><Filters /></div>
+                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} /></div>
               </SheetContent>
             </Sheet>
 
@@ -128,9 +220,29 @@ const Category = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-            {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
-          </div>
+          {activeChips.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              {activeChips.map((c) => (
+                <Badge key={`${c.key}-${c.value}`} variant="secondary" className="gap-1">
+                  {c.value}
+                  <button onClick={() => removeChip(c.key, c.value)} className="ml-1">
+                    <X size={12} />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {sorted.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border py-16 text-center">
+              <p className="text-muted-foreground">No products match your filters.</p>
+              <Button variant="outline" className="mt-4" onClick={clearAll}>Clear filters</Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          )}
         </div>
       </div>
     </Layout>
