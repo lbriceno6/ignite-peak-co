@@ -1,12 +1,43 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCart, cartTotals } from "@/store/cart";
 import { categories } from "@/data/catalog";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+
+const UserMenu = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  if (!user) {
+    return (
+      <Button variant="ghost" size="icon" aria-label="Account" onClick={() => navigate("/auth")}>
+        <User />
+      </Button>
+    );
+  }
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Account">
+          <UserCircle />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => navigate("/my-profile")}><UserCircle size={14}/> My profile</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/my-orders")}><Package size={14}/> My orders</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => signOut()}><LogOut size={14}/> Sign out</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 export const Header = () => {
   const { items, setOpen, wishlist } = useCart();
@@ -85,9 +116,7 @@ export const Header = () => {
               )}
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Account">
-            <User />
-          </Button>
+          <UserMenu />
           <Button variant="ghost" size="icon" className="relative" aria-label="Cart" onClick={() => setOpen(true)}>
             <ShoppingBag />
             {count > 0 && (
