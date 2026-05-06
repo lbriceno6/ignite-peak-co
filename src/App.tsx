@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
+import { AdminLayout } from "@/components/admin/AdminLayout";
 import Index from "./pages/Index.tsx";
 import Category from "./pages/Category.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
@@ -21,6 +23,16 @@ import MyProfile from "./pages/MyProfile.tsx";
 import MyOrders from "./pages/MyOrders.tsx";
 import OrderDetail from "./pages/OrderDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminProducts from "./pages/admin/AdminProducts.tsx";
+import ProductForm from "./pages/admin/ProductForm.tsx";
+import AdminOrders from "./pages/admin/AdminOrders.tsx";
+import AdminOrderDetail from "./pages/admin/AdminOrderDetail.tsx";
+import AdminCustomers from "./pages/admin/AdminCustomers.tsx";
+import Shipping from "./pages/policies/Shipping.tsx";
+import Returns from "./pages/policies/Returns.tsx";
+import Terms from "./pages/policies/Terms.tsx";
+import Privacy from "./pages/policies/Privacy.tsx";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +60,22 @@ const App = () => (
             <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
             <Route path="/my-orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+
+            <Route path="/shipping-policies" element={<Shipping />} />
+            <Route path="/returns-policies" element={<Returns />} />
+            <Route path="/terms-and-conditions" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="products" element={<AdminProducts />} />
+              <Route path="products/new" element={<ProductForm />} />
+              <Route path="products/:id/edit" element={<ProductForm />} />
+              <Route path="orders" element={<AdminOrders />} />
+              <Route path="orders/:id" element={<AdminOrderDetail />} />
+              <Route path="customers" element={<AdminCustomers />} />
+            </Route>
+
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
