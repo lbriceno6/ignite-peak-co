@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,16 @@ export const Header = () => {
   const { items, setOpen, wishlist } = useCart();
   const { count } = cartTotals(items);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearchOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
@@ -45,13 +55,15 @@ export const Header = () => {
         </Link>
 
         <div className="ml-6 hidden flex-1 lg:block">
-          <div className="relative max-w-xl">
+          <form onSubmit={submitSearch} className="relative max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Search proteins, creatine, vitamins..."
               className="h-11 pl-10 bg-secondary border-transparent focus-visible:bg-background"
             />
-          </div>
+          </form>
         </div>
 
         <div className="ml-auto flex items-center gap-1">
@@ -89,10 +101,16 @@ export const Header = () => {
 
       {searchOpen && (
         <div className="border-t border-border p-3 lg:hidden">
-          <div className="relative">
+          <form onSubmit={submitSearch} className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input placeholder="Search products..." className="h-11 pl-10 bg-secondary" autoFocus />
-          </div>
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products..."
+              className="h-11 pl-10 bg-secondary"
+              autoFocus
+            />
+          </form>
         </div>
       )}
 

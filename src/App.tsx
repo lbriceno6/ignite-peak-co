@@ -12,6 +12,7 @@ import About from "./pages/About.tsx";
 import Blog from "./pages/Blog.tsx";
 import Contact from "./pages/Contact.tsx";
 import Wishlist from "./pages/Wishlist.tsx";
+import Search from "./pages/Search.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/search" element={<Search />} />
           <Route path="/about" element={<About />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<Blog />} />
