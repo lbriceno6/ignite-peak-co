@@ -85,9 +85,7 @@ export const Header = () => {
               )}
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" aria-label="Account">
-            <User />
-          </Button>
+          <UserMenu />
           <Button variant="ghost" size="icon" className="relative" aria-label="Cart" onClick={() => setOpen(true)}>
             <ShoppingBag />
             {count > 0 && (
