@@ -29,6 +29,8 @@ import ProductForm from "./pages/admin/ProductForm.tsx";
 import AdminOrders from "./pages/admin/AdminOrders.tsx";
 import AdminOrderDetail from "./pages/admin/AdminOrderDetail.tsx";
 import AdminCustomers from "./pages/admin/AdminCustomers.tsx";
+import AdminBlog from "./pages/admin/AdminBlog.tsx";
+import BlogForm from "./pages/admin/BlogForm.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -74,6 +76,9 @@ const App = () => (
               <Route path="orders" element={<AdminOrders />} />
               <Route path="orders/:id" element={<AdminOrderDetail />} />
               <Route path="customers" element={<AdminCustomers />} />
+              <Route path="blog" element={<AdminBlog />} />
+              <Route path="blog/new" element={<BlogForm />} />
+              <Route path="blog/:id/edit" element={<BlogForm />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
