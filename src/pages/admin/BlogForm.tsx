@@ -94,7 +94,12 @@ export default function BlogForm() {
         <Field label="Excerpt"><Textarea rows={2} value={f.excerpt ?? ""} onChange={(e) => set("excerpt", e.target.value)} /></Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Category"><Input placeholder="Nutrition / Supplements / …" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} /></Field>
+          <Field label="Category">
+            <Input list="blog-categories" placeholder="Nutrition / Supplements / …" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
+            <datalist id="blog-categories">
+              {categories.map((c) => <option key={c.slug} value={c.name} />)}
+            </datalist>
+          </Field>
           <Field label="Read time"><Input placeholder="5 min" value={f.read_time ?? ""} onChange={(e) => set("read_time", e.target.value)} /></Field>
         </div>
 
