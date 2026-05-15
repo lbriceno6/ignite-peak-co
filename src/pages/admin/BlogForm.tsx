@@ -24,7 +24,15 @@ export default function BlogForm() {
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("categories").select("name, slug").eq("type", "blog").order("sort_order");
+      setCategories(data ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -86,7 +94,12 @@ export default function BlogForm() {
         <Field label="Excerpt"><Textarea rows={2} value={f.excerpt ?? ""} onChange={(e) => set("excerpt", e.target.value)} /></Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Category"><Input placeholder="Nutrition / Supplements / …" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} /></Field>
+          <Field label="Category">
+            <Input list="blog-categories" placeholder="Nutrition / Supplements / …" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
+            <datalist id="blog-categories">
+              {categories.map((c) => <option key={c.slug} value={c.name} />)}
+            </datalist>
+          </Field>
           <Field label="Read time"><Input placeholder="5 min" value={f.read_time ?? ""} onChange={(e) => set("read_time", e.target.value)} /></Field>
         </div>
 

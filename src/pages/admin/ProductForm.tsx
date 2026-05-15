@@ -26,6 +26,14 @@ export default function ProductForm() {
   const nav = useNavigate();
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("categories").select("name, slug").eq("type", "product").order("sort_order");
+      setCategories(data ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -84,7 +92,12 @@ export default function ProductForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Price"><Input type="number" step="0.01" value={f.price} onChange={(e) => set("price", e.target.value)} /></Field>
           <Field label="Sale price"><Input type="number" step="0.01" value={f.sale_price ?? ""} onChange={(e) => set("sale_price", e.target.value)} /></Field>
-          <Field label="Category"><Input value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} /></Field>
+          <Field label="Category">
+            <Input list="product-categories" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
+            <datalist id="product-categories">
+              {categories.map((c) => <option key={c.slug} value={c.name} />)}
+            </datalist>
+          </Field>
           <Field label="Badge"><Input placeholder="new / best-seller / sale" value={f.badge ?? ""} onChange={(e) => set("badge", e.target.value)} /></Field>
           <Field label="Main ingredient"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
           <Field label="Goal"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>

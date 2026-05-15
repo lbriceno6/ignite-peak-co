@@ -83,6 +83,42 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          type: Database["public"]["Enums"]["category_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          type: Database["public"]["Enums"]["category_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          type?: Database["public"]["Enums"]["category_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
@@ -385,6 +421,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "client"
+      category_type: "product" | "blog"
       order_status:
         | "pending"
         | "confirmed"
@@ -520,6 +557,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "client"],
+      category_type: ["product", "blog"],
       order_status: [
         "pending",
         "confirmed",
