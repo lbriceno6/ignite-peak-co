@@ -24,7 +24,15 @@ export default function BlogForm() {
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("categories").select("name, slug").eq("type", "blog").order("sort_order");
+      setCategories(data ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
