@@ -26,6 +26,14 @@ export default function ProductForm() {
   const nav = useNavigate();
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from("categories").select("name, slug").eq("type", "product").order("sort_order");
+      setCategories(data ?? []);
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isEdit) return;
