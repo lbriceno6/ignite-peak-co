@@ -67,6 +67,9 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/orders/")) return "Order detail";
   if (p.startsWith("/admin/orders")) return "Orders";
   if (p.startsWith("/admin/customers")) return "Customers";
+  if (p.startsWith("/admin/blog/new")) return "New post";
+  if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Edit post";
+  if (p.startsWith("/admin/blog")) return "Blog posts";
   return "Admin";
 };
 
