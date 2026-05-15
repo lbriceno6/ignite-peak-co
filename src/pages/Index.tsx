@@ -1,15 +1,84 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle, Star } from "lucide-react";
+import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { Stars } from "@/components/Stars";
-import { products, categories, goals, reviews, blogPosts } from "@/data/catalog";
+import { goals, reviews, type Product } from "@/data/catalog";
+import { supabase } from "@/integrations/supabase/client";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
+import productPlaceholder from "@/assets/product-protein.jpg";
+
+type DbProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  short_description: string | null;
+  price: number;
+  sale_price: number | null;
+  category: string | null;
+  main_image: string | null;
+  badge: string | null;
+};
+
+type DbCategory = { name: string; slug: string; icon: string | null; sort_order: number };
+type DbPost = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  category: string | null;
+  read_time: string | null;
+  cover_image: string | null;
+  published_at: string;
+};
+
+const toCardProduct = (p: DbProduct): Product => {
+  const label = (["Best Seller", "New", "Offer"] as const).find(
+    (l) => l.toLowerCase() === (p.badge ?? "").toLowerCase(),
+  );
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    shortBenefit: p.short_description ?? "",
+    price: Number(p.sale_price ?? p.price),
+    oldPrice: p.sale_price ? Number(p.price) : undefined,
+    rating: 4.8,
+    reviews: 0,
+    label,
+    image: p.main_image || productPlaceholder,
+    category: p.category ?? "",
+    goal: [],
+    brand: "VOLTRA",
+  };
+};
 
 const Home = () => {
-  const bestSellers = products.filter((p) => p.label === "Best Seller" || p.rating >= 4.7).slice(0, 4);
+  const [products, setProducts] = useState<DbProduct[]>([]);
+  const [categories, setCategories] = useState<DbCategory[]>([]);
+  const [posts, setPosts] = useState<DbPost[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const [p, c, b] = await Promise.all([
+        supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
+        supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+        supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
+      ]);
+      setProducts((p.data as DbProduct[]) ?? []);
+      setCategories((c.data as DbCategory[]) ?? []);
+      setPosts((b.data as DbPost[]) ?? []);
+    })();
+  }, []);
+
+  const bestSellers = products
+    .filter((p) => (p.badge ?? "").toLowerCase() === "best seller")
+    .slice(0, 4);
+  const bestSellersDisplay = (bestSellers.length ? bestSellers : products.slice(0, 4)).map(toCardProduct);
+  const moreProducts = products.slice(0, 8).map(toCardProduct);
 
   return (
     <Layout>
@@ -57,44 +126,48 @@ const Home = () => {
       </section>
 
       {/* CATEGORIES */}
-      <section className="container-x py-16">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-3xl uppercase sm:text-4xl">Shop by category</h2>
-            <p className="mt-2 text-muted-foreground">Find exactly what fuels your goals.</p>
-          </div>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
-          {categories.map((c) => (
-            <Link
-              key={c.slug}
-              to={`/category/${c.slug}`}
-              className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-5 text-center transition-smooth hover:border-accent hover:shadow-product hover:-translate-y-1"
-            >
-              <span className="text-3xl">{c.icon}</span>
-              <span className="text-sm font-bold uppercase tracking-wide group-hover:text-accent">{c.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* BEST SELLERS */}
-      <section className="bg-secondary/40 py-16">
-        <div className="container-x">
+      {categories.length > 0 && (
+        <section className="container-x py-16">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-accent">Customer favorites</span>
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Best sellers</h2>
+              <h2 className="font-display text-3xl uppercase sm:text-4xl">Shop by category</h2>
+              <p className="mt-2 text-muted-foreground">Find exactly what fuels your goals.</p>
             </div>
-            <Link to="/category/protein" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
-              View all <ArrowRight size={14} />
-            </Link>
           </div>
-          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {bestSellers.map((p) => <ProductCard key={p.id} product={p} />)}
+          <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+            {categories.map((c) => (
+              <Link
+                key={c.slug}
+                to={`/category/${c.slug}`}
+                className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-5 text-center transition-smooth hover:border-accent hover:shadow-product hover:-translate-y-1"
+              >
+                <span className="text-3xl">{c.icon || "🏷️"}</span>
+                <span className="text-sm font-bold uppercase tracking-wide group-hover:text-accent">{c.name}</span>
+              </Link>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* BEST SELLERS */}
+      {bestSellersDisplay.length > 0 && (
+        <section className="bg-secondary/40 py-16">
+          <div className="container-x">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-accent">Customer favorites</span>
+                <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Best sellers</h2>
+              </div>
+              <Link to="/category/protein" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+                View all <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              {bestSellersDisplay.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* GOALS */}
       <section className="container-x py-16">
@@ -140,15 +213,17 @@ const Home = () => {
       </section>
 
       {/* ALL PRODUCTS GRID */}
-      <section className="container-x py-16">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-accent">Just dropped</span>
-          <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">More to fuel your training</h2>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {products.slice(0, 8).map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      {moreProducts.length > 0 && (
+        <section className="container-x py-16">
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-accent">Just dropped</span>
+            <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">More to fuel your training</h2>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {moreProducts.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      )}
 
       {/* REVIEWS */}
       <section className="bg-surface-darker py-16 text-background">
@@ -175,34 +250,42 @@ const Home = () => {
       </section>
 
       {/* BLOG */}
-      <section className="container-x py-16">
-        <div className="flex items-end justify-between">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-accent">Knowledge</span>
-            <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Guides & insights</h2>
-          </div>
-          <Link to="/blog" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
-            All articles <ArrowRight size={14} />
-          </Link>
-        </div>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {blogPosts.map((post) => (
-            <Link key={post.slug} to={`/blog/${post.slug}`} className="group flex flex-col gap-3">
-              <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
-                <div className="grid h-full place-items-center text-6xl opacity-30 transition-smooth group-hover:scale-110">
-                  {post.category === "Nutrition" ? "🥗" : post.category === "Supplements" ? "💪" : "⚡"}
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                <span className="text-accent font-bold">{post.category}</span>
-                <span>· {post.readTime} read</span>
-              </div>
-              <h3 className="font-display text-xl group-hover:text-accent transition-smooth">{post.title}</h3>
-              <p className="text-sm text-muted-foreground">{post.excerpt}</p>
+      {posts.length > 0 && (
+        <section className="container-x py-16">
+          <div className="flex items-end justify-between">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-accent">Knowledge</span>
+              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Guides & insights</h2>
+            </div>
+            <Link to="/blog" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+              All articles <ArrowRight size={14} />
             </Link>
-          ))}
-        </div>
-      </section>
+          </div>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {posts.map((post) => (
+              <Link key={post.id} to={`/blog/${post.slug}`} className="group flex flex-col gap-3">
+                <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
+                  {post.cover_image ? (
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center text-6xl opacity-30">📝</div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  {post.category && <span className="text-accent font-bold">{post.category}</span>}
+                  {post.read_time && <span>· {post.read_time} read</span>}
+                </div>
+                <h3 className="font-display text-xl group-hover:text-accent transition-smooth">{post.title}</h3>
+                {post.excerpt && <p className="text-sm text-muted-foreground">{post.excerpt}</p>}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* TRUST */}
       <section className="border-y border-border bg-secondary/40 py-12">
