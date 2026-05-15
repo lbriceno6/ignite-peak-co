@@ -21,6 +21,7 @@ const Blog = () => {
   const { slug } = useParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [post, setPost] = useState<Post | null>(null);
+  const [cats, setCats] = useState<{ name: string; icon: string | null; description: string | null }[]>([]);
   const [q, setQ] = useState("");
   const [activeCat, setActiveCat] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -32,18 +33,28 @@ const Blog = () => {
         const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
         setPost(data as Post | null);
       } else {
-        const { data } = await supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false });
-        setPosts((data as Post[]) ?? []);
+        const [postsRes, catsRes] = await Promise.all([
+          supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false }),
+          supabase.from("categories").select("name,icon,description,sort_order").eq("type", "blog").order("sort_order").order("name"),
+        ]);
+        setPosts((postsRes.data as Post[]) ?? []);
+        setCats((catsRes.data as any[]) ?? []);
       }
       setLoading(false);
     })();
   }, [slug]);
 
   const categories = useMemo(() => {
-    const set = new Set<string>();
-    posts.forEach((p) => p.category && set.add(p.category));
-    return ["All", ...Array.from(set)];
-  }, [posts]);
+    const fromDb = cats.map((c) => c.name);
+    const fromPosts = posts.map((p) => p.category).filter(Boolean) as string[];
+    return ["All", ...Array.from(new Set([...fromDb, ...fromPosts]))];
+  }, [posts, cats]);
+
+  const catMeta = useMemo(() => {
+    const m = new Map<string, { icon: string | null; description: string | null }>();
+    cats.forEach((c) => m.set(c.name, { icon: c.icon, description: c.description }));
+    return m;
+  }, [cats]);
 
   const filtered = posts.filter((p) => {
     const matchCat = activeCat === "All" || p.category === activeCat;
