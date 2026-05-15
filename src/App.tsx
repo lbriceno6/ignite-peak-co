@@ -80,6 +80,7 @@ const App = () => (
               <Route path="blog" element={<AdminBlog />} />
               <Route path="blog/new" element={<BlogForm />} />
               <Route path="blog/:id/edit" element={<BlogForm />} />
+              <Route path="categories" element={<AdminCategories />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
