@@ -21,6 +21,7 @@ const Blog = () => {
   const { slug } = useParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [post, setPost] = useState<Post | null>(null);
+  const [cats, setCats] = useState<{ name: string; icon: string | null; description: string | null }[]>([]);
   const [q, setQ] = useState("");
   const [activeCat, setActiveCat] = useState("All");
   const [loading, setLoading] = useState(true);
@@ -32,18 +33,28 @@ const Blog = () => {
         const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
         setPost(data as Post | null);
       } else {
-        const { data } = await supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false });
-        setPosts((data as Post[]) ?? []);
+        const [postsRes, catsRes] = await Promise.all([
+          supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false }),
+          supabase.from("categories").select("name,icon,description,sort_order").eq("type", "blog").order("sort_order").order("name"),
+        ]);
+        setPosts((postsRes.data as Post[]) ?? []);
+        setCats((catsRes.data as any[]) ?? []);
       }
       setLoading(false);
     })();
   }, [slug]);
 
   const categories = useMemo(() => {
-    const set = new Set<string>();
-    posts.forEach((p) => p.category && set.add(p.category));
-    return ["All", ...Array.from(set)];
-  }, [posts]);
+    const fromDb = cats.map((c) => c.name);
+    const fromPosts = posts.map((p) => p.category).filter(Boolean) as string[];
+    return ["All", ...Array.from(new Set([...fromDb, ...fromPosts]))];
+  }, [posts, cats]);
+
+  const catMeta = useMemo(() => {
+    const m = new Map<string, { icon: string | null; description: string | null }>();
+    cats.forEach((c) => m.set(c.name, { icon: c.icon, description: c.description }));
+    return m;
+  }, [cats]);
 
   const filtered = posts.filter((p) => {
     const matchCat = activeCat === "All" || p.category === activeCat;
@@ -107,18 +118,27 @@ const Blog = () => {
 
       <section className="container-x py-12">
         <div className="flex flex-wrap gap-2">
-          {categories.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveCat(t)}
-              className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${
-                activeCat === t ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+          {categories.map((t) => {
+            const meta = catMeta.get(t);
+            return (
+              <button
+                key={t}
+                onClick={() => setActiveCat(t)}
+                title={meta?.description ?? undefined}
+                className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${
+                  activeCat === t ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"
+                }`}
+              >
+                {meta?.icon && <span className="mr-1">{meta.icon}</span>}
+                {t}
+              </button>
+            );
+          })}
         </div>
+
+        {activeCat !== "All" && catMeta.get(activeCat)?.description && (
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{catMeta.get(activeCat)?.description}</p>
+        )}
 
         {loading ? (
           <p className="mt-10 text-muted-foreground">Loading articles…</p>
