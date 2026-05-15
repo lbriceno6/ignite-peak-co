@@ -5,6 +5,7 @@ import {
   Package,
   ShoppingBag,
   Users,
+  FileText,
   Plus,
   ArrowLeft,
   Menu,
