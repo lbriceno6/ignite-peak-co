@@ -1,48 +1,157 @@
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { blogPosts } from "@/data/catalog";
+import { supabase } from "@/integrations/supabase/client";
 
-const Blog = () => (
-  <Layout>
-    <section className="bg-surface-darker py-16 text-background">
-      <div className="container-x">
-        <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Knowledge hub</span>
-        <h1 className="mt-3 font-display text-5xl uppercase sm:text-6xl">Guides & insights</h1>
-        <p className="mt-3 max-w-xl text-background/70">Practical advice from our nutritionists, coaches and athletes — no fluff.</p>
-        <div className="mt-6 flex max-w-md gap-2">
-          <Input placeholder="Search articles..." className="bg-background/10 border-background/20 text-background placeholder:text-background/50" />
-          <Button variant="accent">Search</Button>
-        </div>
-      </div>
-    </section>
+type Post = {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  category: string | null;
+  read_time: string | null;
+  cover_image: string | null;
+  content: string | null;
+  published_at: string;
+};
 
-    <section className="container-x py-12">
-      <div className="flex flex-wrap gap-2">
-        {["All", "Nutrition", "Supplements", "Performance", "Recovery", "Wellness"].map((t, i) => (
-          <button key={t} className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${i === 0 ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"}`}>{t}</button>
-        ))}
-      </div>
+const Blog = () => {
+  const { slug } = useParams();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [post, setPost] = useState<Post | null>(null);
+  const [q, setQ] = useState("");
+  const [activeCat, setActiveCat] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-      <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-        {[...blogPosts, ...blogPosts].map((post, i) => (
-          <Link key={i} to={`/blog/${post.slug}`} className="group flex flex-col gap-3">
-            <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
-              <div className="grid h-full place-items-center text-7xl opacity-30 transition-smooth group-hover:scale-110">
-                {post.category === "Nutrition" ? "🥗" : post.category === "Supplements" ? "💪" : "⚡"}
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      if (slug) {
+        const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
+        setPost(data as Post | null);
+      } else {
+        const { data } = await supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false });
+        setPosts((data as Post[]) ?? []);
+      }
+      setLoading(false);
+    })();
+  }, [slug]);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    posts.forEach((p) => p.category && set.add(p.category));
+    return ["All", ...Array.from(set)];
+  }, [posts]);
+
+  const filtered = posts.filter((p) => {
+    const matchCat = activeCat === "All" || p.category === activeCat;
+    const matchQ = !q || p.title.toLowerCase().includes(q.toLowerCase()) || (p.excerpt ?? "").toLowerCase().includes(q.toLowerCase());
+    return matchCat && matchQ;
+  });
+
+  // Single post view
+  if (slug) {
+    return (
+      <Layout>
+        <article className="container-x py-12">
+          <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">← Back to all articles</Link>
+          {loading ? (
+            <p className="mt-10 text-muted-foreground">Loading…</p>
+          ) : !post ? (
+            <p className="mt-10 text-muted-foreground">Article not found.</p>
+          ) : (
+            <>
+              <div className="mt-6 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                {post.category && <span className="font-bold text-accent">{post.category}</span>}
+                {post.read_time && <span>· {post.read_time} read</span>}
+                <span>· {new Date(post.published_at).toLocaleDateString()}</span>
               </div>
-            </div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-              <span className="font-bold text-accent">{post.category}</span>· {post.readTime} read
-            </div>
-            <h2 className="font-display text-xl group-hover:text-accent transition-smooth">{post.title}</h2>
-            <p className="text-sm text-muted-foreground">{post.excerpt}</p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  </Layout>
-);
+              <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{post.title}</h1>
+              {post.excerpt && <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{post.excerpt}</p>}
+              {post.cover_image && (
+                <img src={post.cover_image} alt={post.title} className="mt-8 aspect-[16/9] w-full rounded-lg object-cover" />
+              )}
+              {post.content && (
+                <div className="prose prose-neutral mt-8 max-w-2xl whitespace-pre-wrap text-base leading-relaxed">
+                  {post.content}
+                </div>
+              )}
+            </>
+          )}
+        </article>
+      </Layout>
+    );
+  }
+
+  // List view
+  return (
+    <Layout>
+      <section className="bg-surface-darker py-16 text-background">
+        <div className="container-x">
+          <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Knowledge hub</span>
+          <h1 className="mt-3 font-display text-5xl uppercase sm:text-6xl">Guides & insights</h1>
+          <p className="mt-3 max-w-xl text-background/70">Practical advice from our nutritionists, coaches and athletes — no fluff.</p>
+          <div className="mt-6 flex max-w-md gap-2">
+            <Input
+              placeholder="Search articles..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="bg-background/10 border-background/20 text-background placeholder:text-background/50"
+            />
+            <Button variant="accent">Search</Button>
+          </div>
+        </div>
+      </section>
+
+      <section className="container-x py-12">
+        <div className="flex flex-wrap gap-2">
+          {categories.map((t) => (
+            <button
+              key={t}
+              onClick={() => setActiveCat(t)}
+              className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${
+                activeCat === t ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+
+        {loading ? (
+          <p className="mt-10 text-muted-foreground">Loading articles…</p>
+        ) : filtered.length === 0 ? (
+          <p className="mt-10 text-muted-foreground">No articles yet. Check back soon.</p>
+        ) : (
+          <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((post) => (
+              <Link key={post.id} to={`/blog/${post.slug}`} className="group flex flex-col gap-3">
+                <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
+                  {post.cover_image ? (
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center text-7xl opacity-30">📝</div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  {post.category && <span className="font-bold text-accent">{post.category}</span>}
+                  {post.read_time && <span>· {post.read_time} read</span>}
+                </div>
+                <h2 className="font-display text-xl transition-smooth group-hover:text-accent">{post.title}</h2>
+                {post.excerpt && <p className="text-sm text-muted-foreground">{post.excerpt}</p>}
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </Layout>
+  );
+};
 
 export default Blog;
