@@ -50,6 +50,13 @@ const sections = [
       { to: "/admin/customers", label: "Customers", icon: Users },
     ],
   },
+  {
+    label: "Content",
+    items: [
+      { to: "/admin/blog", label: "Blog posts", icon: FileText },
+      { to: "/admin/blog/new", label: "New post", icon: Plus },
+    ],
+  },
 ];
 
 const titleFromPath = (p: string) => {
