@@ -118,18 +118,27 @@ const Blog = () => {
 
       <section className="container-x py-12">
         <div className="flex flex-wrap gap-2">
-          {categories.map((t) => (
-            <button
-              key={t}
-              onClick={() => setActiveCat(t)}
-              className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${
-                activeCat === t ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
+          {categories.map((t) => {
+            const meta = catMeta.get(t);
+            return (
+              <button
+                key={t}
+                onClick={() => setActiveCat(t)}
+                title={meta?.description ?? undefined}
+                className={`rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-smooth ${
+                  activeCat === t ? "border-accent bg-accent text-accent-foreground" : "border-border hover:border-foreground"
+                }`}
+              >
+                {meta?.icon && <span className="mr-1">{meta.icon}</span>}
+                {t}
+              </button>
+            );
+          })}
         </div>
+
+        {activeCat !== "All" && catMeta.get(activeCat)?.description && (
+          <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{catMeta.get(activeCat)?.description}</p>
+        )}
 
         {loading ? (
           <p className="mt-10 text-muted-foreground">Loading articles…</p>
