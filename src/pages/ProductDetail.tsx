@@ -69,11 +69,11 @@ const ProductDetail = () => {
           <p className="mt-4 text-muted-foreground">{product.shortBenefit}</p>
 
           <div className="mt-6 flex items-baseline gap-3">
-            <span className="font-display text-4xl">€{product.price.toFixed(2)}</span>
+            <span className="font-display text-4xl">{format(product.price)}</span>
             {product.oldPrice && (
               <>
-                <span className="text-lg text-muted-foreground line-through">€{product.oldPrice.toFixed(2)}</span>
-                <Badge className="bg-destructive text-destructive-foreground">Save €{(product.oldPrice - product.price).toFixed(2)}</Badge>
+                <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
+                <Badge className="bg-destructive text-destructive-foreground">Save {format(product.oldPrice - product.price)}</Badge>
               </>
             )}
           </div>
