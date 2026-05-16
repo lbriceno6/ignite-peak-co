@@ -19,6 +19,7 @@ const labelClass = (label?: string) => {
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { add, toggleWish, wishlist } = useCart();
+  const { format } = useCurrency();
   const wished = wishlist.includes(product.id);
   const discount = product.oldPrice
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
