@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Order = any;
 type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
