@@ -131,7 +131,7 @@ export default function AdminHome() {
             The currency new visitors will see by default. Users can still switch it from the header.
           </p>
         </header>
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-4">
           <div className="w-full max-w-xs space-y-1.5">
             <Label>Currency</Label>
             <Select value={currency} onValueChange={(v) => set(DEFAULT_CURRENCY_KEY, v)}>
@@ -145,8 +145,37 @@ export default function AdminHome() {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label className="block mb-2">Exchange rates (base: 1 EUR =)</Label>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => {
+                const disabled = c === "EUR";
+                return (
+                  <div key={c} className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {CURRENCIES[c].flag} {c} ({CURRENCIES[c].symbol})
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      min="0"
+                      disabled={disabled}
+                      value={disabled ? "1" : (values[rateKey(c)] ?? "")}
+                      onChange={(e) => set(rateKey(c), e.target.value)}
+                      placeholder={String(CURRENCIES[c].rate)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Example: if 1 EUR = 4.05 PEN, enter <strong>4.05</strong> in PEN. EUR is fixed at 1.
+            </p>
+          </div>
+
           <Button variant="dark" onClick={saveCurrency} disabled={saving || !currencyDirty}>
-            {saving ? "Saving…" : "Save currency"}
+            {saving ? "Saving…" : "Save currency settings"}
           </Button>
         </div>
       </section>
