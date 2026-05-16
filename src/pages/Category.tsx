@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { products, categories, goals, type Product } from "@/data/catalog";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type FilterState = {
   type: string[];
