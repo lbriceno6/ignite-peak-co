@@ -21,6 +21,7 @@ const Step = ({ num, label, active, done }: { num: number; label: string; active
 const Checkout = () => {
   const { items } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
+  const { format } = useCurrency();
   const [step, setStep] = useState(1);
 
   return (
