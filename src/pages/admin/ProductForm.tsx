@@ -132,6 +132,25 @@ export default function ProductForm() {
           <Label>Active</Label>
         </div>
 
+        <div className="space-y-4 rounded-md border bg-secondary/30 p-4">
+          <div className="flex items-center gap-3">
+            <Switch checked={!!f.subscription_enabled} onCheckedChange={(v) => set("subscription_enabled", v)} />
+            <Label>Enable recurring purchase (Subscribe & save)</Label>
+          </div>
+          {f.subscription_enabled && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Discount %">
+                <Input type="number" step="1" min={0} max={90} value={f.subscription_discount_percent}
+                  onChange={(e) => set("subscription_discount_percent", e.target.value)} />
+              </Field>
+              <Field label="Intervals in days (comma-separated)">
+                <Input placeholder="30,60,90" value={f.subscription_intervals}
+                  onChange={(e) => set("subscription_intervals", e.target.value)} />
+              </Field>
+            </div>
+          )}
+        </div>
+
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={() => nav("/admin/products")}>Cancel</Button>
           <Button variant="dark" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save product"}</Button>
