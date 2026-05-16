@@ -3,10 +3,12 @@ import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
   const { subtotal, shipping, total, count } = cartTotals(items);
+  const { format } = useCurrency();
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
@@ -56,7 +58,7 @@ export const CartDrawer = () => {
                           <Plus size={12} />
                         </button>
                       </div>
-                      <span className="font-display">€{(item.product.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-display">{format(item.product.price * item.quantity)}</span>
                     </div>
                   </div>
                 </div>
@@ -66,15 +68,15 @@ export const CartDrawer = () => {
             <div className="border-t bg-secondary/40 p-5 space-y-3">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">€{subtotal.toFixed(2)}</span>
+                <span className="font-medium">{format(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
-                <span className="font-medium">{shipping === 0 ? "Free" : `€${shipping.toFixed(2)}`}</span>
+                <span className="font-medium">{shipping === 0 ? "Free" : format(shipping)}</span>
               </div>
               <div className="flex justify-between border-t pt-3 font-display text-lg">
                 <span>Total</span>
-                <span>€{total.toFixed(2)}</span>
+                <span>{format(total)}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 pt-2">
                 <Button variant="outline" asChild onClick={() => setOpen(false)}>

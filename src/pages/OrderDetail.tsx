@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Order = any;
 type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
@@ -17,6 +18,7 @@ const OrderDetail = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const { format } = useCurrency();
 
   useEffect(() => {
     (async () => {
@@ -53,7 +55,7 @@ const OrderDetail = () => {
                     {it.variant && <p className="text-xs text-muted-foreground">{it.variant}</p>}
                     <p className="text-xs text-muted-foreground">Qty: {it.quantity}</p>
                   </div>
-                  <p className="font-semibold">€{(it.unit_price * it.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">{format(it.unit_price * it.quantity)}</p>
                 </li>
               ))}
               {items.length === 0 && <li className="px-5 py-6 text-sm text-muted-foreground">No items</li>}
@@ -63,9 +65,9 @@ const OrderDetail = () => {
           <aside className="space-y-6">
             <div className="rounded-lg border border-border p-5">
               <h3 className="font-display uppercase mb-3">Summary</h3>
-              <div className="flex justify-between text-sm"><span>Subtotal</span><span>€{Number(order.subtotal).toFixed(2)}</span></div>
-              <div className="flex justify-between text-sm mt-1"><span>Shipping</span><span>€{Number(order.shipping).toFixed(2)}</span></div>
-              <div className="flex justify-between font-bold mt-3 pt-3 border-t border-border"><span>Total</span><span>€{Number(order.total).toFixed(2)}</span></div>
+              <div className="flex justify-between text-sm"><span>Subtotal</span><span>{format(Number(order.subtotal))}</span></div>
+              <div className="flex justify-between text-sm mt-1"><span>Shipping</span><span>{format(Number(order.shipping))}</span></div>
+              <div className="flex justify-between font-bold mt-3 pt-3 border-t border-border"><span>Total</span><span>{format(Number(order.total))}</span></div>
               <p className="mt-3 text-xs text-muted-foreground capitalize">Payment: {order.payment_method}</p>
             </div>
             <div className="rounded-lg border border-border p-5 text-sm">

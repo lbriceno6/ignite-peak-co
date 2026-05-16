@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Stars } from "./Stars";
 import { useCart } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 import type { Product } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
@@ -18,6 +19,7 @@ const labelClass = (label?: string) => {
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { add, toggleWish, wishlist } = useCart();
+  const { format } = useCurrency();
   const wished = wishlist.includes(product.id);
   const discount = product.oldPrice
     ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
@@ -74,9 +76,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
           <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl">€{product.price.toFixed(2)}</span>
+            <span className="font-display text-2xl">{format(product.price)}</span>
             {product.oldPrice && (
-              <span className="text-sm text-muted-foreground line-through">€{product.oldPrice.toFixed(2)}</span>
+              <span className="text-sm text-muted-foreground line-through">{format(product.oldPrice)}</span>
             )}
           </div>
           <Button

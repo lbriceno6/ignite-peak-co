@@ -4,10 +4,12 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
+  const { format } = useCurrency();
 
   if (items.length === 0) {
     return (
@@ -41,7 +43,7 @@ const Cart = () => {
                   <div>
                     <Link to={`/product/${i.product.slug}`} className="font-semibold hover:text-accent">{i.product.name}</Link>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
-                    <p className="mt-1 text-sm font-medium md:hidden">€{i.product.price.toFixed(2)}</p>
+                    <p className="mt-1 text-sm font-medium md:hidden">{format(i.product.price)}</p>
                   </div>
                 </div>
                 <div className="flex items-center rounded-md border w-fit">
@@ -49,7 +51,7 @@ const Cart = () => {
                   <span className="w-8 text-center text-sm font-semibold">{i.quantity}</span>
                   <button onClick={() => setQty(i.product.id, i.quantity + 1)} className="p-2 hover:bg-secondary"><Plus size={12} /></button>
                 </div>
-                <span className="text-right font-display text-lg">€{(i.product.price * i.quantity).toFixed(2)}</span>
+                <span className="text-right font-display text-lg">{format(i.product.price * i.quantity)}</span>
                 <button onClick={() => remove(i.product.id)} className="justify-self-end text-muted-foreground hover:text-destructive" aria-label="Remove">
                   <Trash2 size={16} />
                 </button>
@@ -61,12 +63,12 @@ const Cart = () => {
             <div className="rounded-lg border p-5">
               <h3 className="font-display text-xl uppercase">Order summary</h3>
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">€{subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shipping === 0 ? "Free" : `€${shipping.toFixed(2)}`}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{format(subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shipping === 0 ? "Free" : format(shipping)}</span></div>
                 {shipping === 0 && <p className="text-xs text-success">🎉 You qualify for free shipping</p>}
               </div>
               <div className="mt-4 flex justify-between border-t pt-4 font-display text-2xl">
-                <span>Total</span><span>€{total.toFixed(2)}</span>
+                <span>Total</span><span>{format(total)}</span>
               </div>
               <Button size="lg" variant="accent" className="mt-5 w-full" asChild>
                 <Link to="/checkout">Checkout <ArrowRight /></Link>

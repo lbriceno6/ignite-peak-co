@@ -8,7 +8,33 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { useCart, cartTotals } from "@/store/cart";
 import { categories } from "@/data/catalog";
 import { useAuth } from "@/context/AuthContext";
+import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
+
+const CurrencySwitcher = () => {
+  const { currency, setCurrency } = useCurrency();
+  const meta = CURRENCIES[currency];
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="hidden md:inline-flex gap-1.5 px-2 text-xs font-semibold uppercase tracking-wide" aria-label="Currency">
+          <span>{meta.flag}</span> {currency}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel>Currency</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+          <DropdownMenuItem key={code} onClick={() => setCurrency(code)} className={cn(code === currency && "bg-secondary")}>
+            <span className="mr-1">{CURRENCIES[code].flag}</span>
+            <span className="font-semibold">{code}</span>
+            <span className="text-muted-foreground text-xs ml-auto">{CURRENCIES[code].symbol}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const UserMenu = () => {
   const { user, signOut, isAdmin } = useAuth();
@@ -117,6 +143,7 @@ export const Header = () => {
               )}
             </Link>
           </Button>
+          <CurrencySwitcher />
           <UserMenu />
           <Button variant="ghost" size="icon" className="relative" aria-label="Cart" onClick={() => setOpen(true)}>
             <ShoppingBag />

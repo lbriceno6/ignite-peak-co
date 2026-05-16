@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
   <div className="flex items-center gap-2">
@@ -20,6 +21,7 @@ const Step = ({ num, label, active, done }: { num: number; label: string; active
 const Checkout = () => {
   const { items } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
+  const { format } = useCurrency();
   const [step, setStep] = useState(1);
 
   return (
@@ -60,8 +62,8 @@ const Checkout = () => {
               <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Shipping method</h3>
               <RadioGroup defaultValue="standard" className="mt-4 space-y-2">
                 {[
-                  { v: "standard", t: "Standard delivery", d: "2–3 business days", p: "Free over €50" },
-                  { v: "express", t: "Express delivery", d: "Next business day", p: "€7.90" },
+                  { v: "standard", t: "Standard delivery", d: "2–3 business days", p: `Free over ${format(50)}` },
+                  { v: "express", t: "Express delivery", d: "Next business day", p: format(7.9) },
                 ].map((o) => (
                   <label key={o.v} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
                     <RadioGroupItem value={o.v} />
@@ -93,7 +95,7 @@ const Checkout = () => {
             </section>
 
             <Button size="xl" variant="accent" className="w-full" onClick={() => setStep(Math.min(3, step + 1))}>
-              <Lock size={16} /> Pay €{total.toFixed(2)} securely
+              <Lock size={16} /> Pay {format(total)} securely
             </Button>
           </div>
 
@@ -110,15 +112,15 @@ const Checkout = () => {
                     <p className="font-medium leading-tight">{i.product.name}</p>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
                   </div>
-                  <span className="font-semibold">€{(i.product.price * i.quantity).toFixed(2)}</span>
+                  <span className="font-semibold">{format(i.product.price * i.quantity)}</span>
                 </div>
               ))}
               {items.length === 0 && <p className="text-sm text-muted-foreground">Your cart is empty. <Link to="/" className="underline">Shop now</Link></p>}
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>€{subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? "Free" : `€${shipping.toFixed(2)}`}</span></div>
-              <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>€{total.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? "Free" : format(shipping)}</span></div>
+              <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
           </aside>
         </div>

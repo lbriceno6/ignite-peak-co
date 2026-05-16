@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Order = {
   id: string;
@@ -33,6 +34,7 @@ const MyOrders = () => {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const { format } = useCurrency();
 
   useEffect(() => {
     if (!user) return;
@@ -77,7 +79,7 @@ const MyOrders = () => {
                       <Badge className={statusVariant[o.status] ?? ""} variant="secondary">{statusLabel[o.status] ?? o.status}</Badge>
                     </td>
                     <td className="px-4 py-3 capitalize">{o.payment_method}</td>
-                    <td className="px-4 py-3 text-right font-semibold">€{Number(o.total).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right font-semibold">{format(Number(o.total))}</td>
                     <td className="px-4 py-3 text-right">
                       <Button asChild size="sm" variant="outline"><Link to={`/my-orders/${o.id}`}>View details</Link></Button>
                     </td>
