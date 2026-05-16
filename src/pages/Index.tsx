@@ -9,6 +9,7 @@ import { goals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { resolveProductImage } from "@/lib/productImage";
+import { useCurrency } from "@/context/CurrencyContext";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
@@ -67,6 +68,7 @@ const GUIDES_KEYS = [
 ];
 
 const Home = () => {
+  const { format } = useCurrency();
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
@@ -329,7 +331,7 @@ const Home = () => {
       <section className="border-y border-border bg-secondary/40 py-12">
         <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
           {[
-            { icon: Truck, title: "Free shipping", desc: "On orders over €50" },
+            { icon: Truck, title: "Free shipping", desc: `On orders over ${format(50)}` },
             { icon: ShieldCheck, title: "Secure payment", desc: "100% encrypted checkout" },
             { icon: Award, title: "Lab tested", desc: "Third-party verified quality" },
             { icon: MessageCircle, title: "Real support", desc: "WhatsApp 7 days a week" },

@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { products, categories, goals, type Product } from "@/data/catalog";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type FilterState = {
   type: string[];
@@ -43,6 +44,7 @@ const FiltersPanel = ({
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
 }) => {
+  const { format, symbol } = useCurrency();
   const toggle = (key: keyof Omit<FilterState, "price">, value: string) => {
     setFilters((f) => {
       const current = f[key];
@@ -55,14 +57,14 @@ const FiltersPanel = ({
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price (€)</h4>
+        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price ({symbol})</h4>
         <Slider
           value={filters.price}
           min={0} max={100} step={1}
           onValueChange={(v) => setFilters((f) => ({ ...f, price: [v[0], v[1]] as [number, number] }))}
         />
         <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-          <span>€{filters.price[0]}</span><span>€{filters.price[1]}</span>
+          <span>{format(filters.price[0])}</span><span>{format(filters.price[1])}</span>
         </div>
       </div>
       <Accordion type="multiple" defaultValue={["type", "goal"]}>
