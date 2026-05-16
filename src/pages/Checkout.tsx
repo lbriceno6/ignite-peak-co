@@ -112,15 +112,15 @@ const Checkout = () => {
                     <p className="font-medium leading-tight">{i.product.name}</p>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
                   </div>
-                  <span className="font-semibold">€{(i.product.price * i.quantity).toFixed(2)}</span>
+                  <span className="font-semibold">{format(i.product.price * i.quantity)}</span>
                 </div>
               ))}
               {items.length === 0 && <p className="text-sm text-muted-foreground">Your cart is empty. <Link to="/" className="underline">Shop now</Link></p>}
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>€{subtotal.toFixed(2)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? "Free" : `€${shipping.toFixed(2)}`}</span></div>
-              <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>€{total.toFixed(2)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? "Free" : format(shipping)}</span></div>
+              <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
           </aside>
         </div>
