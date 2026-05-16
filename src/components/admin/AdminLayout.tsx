@@ -55,6 +55,7 @@ const sections = [
   {
     label: "Content",
     items: [
+      { to: "/admin/home", label: "Home content", icon: Home },
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
     ],
@@ -73,6 +74,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/blog/new")) return "New post";
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Edit post";
   if (p.startsWith("/admin/blog")) return "Blog posts";
+  if (p.startsWith("/admin/home")) return "Home content";
   return "Admin";
 };
 

@@ -105,7 +105,13 @@ export default function BlogForm() {
 
         <Field label="Cover image">
           <div className="space-y-3">
-            {f.cover_image && <img src={f.cover_image} alt="" className="h-40 w-full rounded-md object-cover" />}
+            {f.cover_image ? (
+              <img src={f.cover_image} alt="" className="h-40 w-full rounded-md object-cover" />
+            ) : (
+              <div className="rounded-md border border-dashed border-amber-500/50 bg-amber-50 p-3 text-xs text-amber-700 dark:bg-amber-950/30">
+                ⚠️ No cover image. The home and blog cards will show an emoji placeholder. Upload one for a polished look.
+              </div>
+            )}
             <div className="flex gap-2">
               <Input value={f.cover_image ?? ""} placeholder="Image URL or upload" onChange={(e) => set("cover_image", e.target.value)} />
               <input

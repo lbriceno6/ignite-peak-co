@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { Stars } from "@/components/Stars";
 import { goals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
+import { useSiteContent } from "@/hooks/useSiteContent";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
@@ -56,21 +57,41 @@ const toCardProduct = (p: DbProduct): Product => {
   };
 };
 
+const GUIDES_KEYS = [
+  "home.guides.eyebrow",
+  "home.guides.title",
+  "home.guides.subtitle",
+  "home.guides.cta_label",
+  "home.guides.cta_href",
+];
+
 const Home = () => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
+  const { content } = useSiteContent(GUIDES_KEYS, {
+    "home.guides.eyebrow": "Knowledge",
+    "home.guides.title": "Guides & insights",
+    "home.guides.subtitle": "",
+    "home.guides.cta_label": "All articles",
+    "home.guides.cta_href": "/blog",
+  });
 
   useEffect(() => {
     (async () => {
-      const [p, c, b] = await Promise.all([
+      const [p, c, featured, recent] = await Promise.all([
         supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+        supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
         supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
       ]);
       setProducts((p.data as DbProduct[]) ?? []);
       setCategories((c.data as DbCategory[]) ?? []);
-      setPosts((b.data as DbPost[]) ?? []);
+      const f = (featured.data as DbPost[]) ?? [];
+      const r = (recent.data as DbPost[]) ?? [];
+      const ids = new Set(f.map((x) => x.id));
+      const merged = [...f, ...r.filter((x) => !ids.has(x.id))].slice(0, 3);
+      setPosts(merged);
     })();
   }, []);
 
@@ -254,11 +275,14 @@ const Home = () => {
         <section className="container-x py-16">
           <div className="flex items-end justify-between">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-accent">Knowledge</span>
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">Guides & insights</h2>
+              <span className="text-xs font-bold uppercase tracking-wider text-accent">{content["home.guides.eyebrow"]}</span>
+              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{content["home.guides.title"]}</h2>
+              {content["home.guides.subtitle"] && (
+                <p className="mt-2 max-w-xl text-muted-foreground">{content["home.guides.subtitle"]}</p>
+              )}
             </div>
-            <Link to="/blog" className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
-              All articles <ArrowRight size={14} />
+            <Link to={content["home.guides.cta_href"] || "/blog"} className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+              {content["home.guides.cta_label"]} <ArrowRight size={14} />
             </Link>
           </div>
           <div className="mt-8 grid gap-6 md:grid-cols-3">
