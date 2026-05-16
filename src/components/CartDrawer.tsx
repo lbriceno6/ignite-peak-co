@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom";
-import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag, Repeat } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useCart, cartTotals } from "@/store/cart";
+import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 
 export const CartDrawer = () => {
@@ -48,6 +48,11 @@ export const CartDrawer = () => {
                     <p className="text-xs text-muted-foreground">
                       {[item.flavor, item.size].filter(Boolean).join(" · ") || item.product.category}
                     </p>
+                    {item.subscription && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Repeat size={10} /> Every {item.subscription.intervalDays}d · −{item.subscription.discountPercent}%
+                      </p>
+                    )}
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center rounded-md border">
                         <button className="p-1.5 hover:bg-secondary" onClick={() => setQty(item.product.id, item.quantity - 1)} aria-label="Decrease">
@@ -58,7 +63,7 @@ export const CartDrawer = () => {
                           <Plus size={12} />
                         </button>
                       </div>
-                      <span className="font-display">{format(item.product.price * item.quantity)}</span>
+                      <span className="font-display">{format(lineSubtotal(item))}</span>
                     </div>
                   </div>
                 </div>

@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag, Repeat } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCart, cartTotals } from "@/store/cart";
+import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 
 const Cart = () => {
