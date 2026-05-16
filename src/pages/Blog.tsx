@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
-import { SEO } from "@/components/SEO";
+import { SEO, toAbsoluteUrl, DEFAULT_OG_IMAGE } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -71,7 +71,7 @@ const Blog = () => {
           "@type": "Article",
           headline: post.title,
           description: post.excerpt ?? undefined,
-          image: post.cover_image ?? undefined,
+          image: toAbsoluteUrl(post.cover_image) ?? DEFAULT_OG_IMAGE,
           datePublished: post.published_at,
           articleSection: post.category ?? undefined,
           mainEntityOfPage: `https://ignite-peak-co.lovable.app/blog/${post.slug}`,
@@ -132,7 +132,7 @@ const Blog = () => {
       headline: p.title,
       url: `https://ignite-peak-co.lovable.app/blog/${p.slug}`,
       datePublished: p.published_at,
-      image: p.cover_image ?? undefined,
+      image: toAbsoluteUrl(p.cover_image) ?? DEFAULT_OG_IMAGE,
     })),
   };
   return (
