@@ -51,7 +51,7 @@ const toCardProduct = (p: DbProduct): Product => {
     rating: 4.8,
     reviews: 0,
     label,
-    image: p.main_image || productPlaceholder,
+    image: resolveProductImage(p.main_image, productPlaceholder),
     category: p.category ?? "",
     goal: [],
     brand: "VOLTRA",
