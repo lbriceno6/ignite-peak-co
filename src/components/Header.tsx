@@ -143,6 +143,7 @@ export const Header = () => {
               )}
             </Link>
           </Button>
+          <CurrencySwitcher />
           <UserMenu />
           <Button variant="ghost" size="icon" className="relative" aria-label="Cart" onClick={() => setOpen(true)}>
             <ShoppingBag />
