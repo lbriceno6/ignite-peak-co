@@ -48,7 +48,12 @@ const Blog = () => {
   const categories = useMemo(() => {
     const fromDb = cats.map((c) => c.name);
     const fromPosts = posts.map((p) => p.category).filter(Boolean) as string[];
-    return ["All", ...Array.from(new Set([...fromDb, ...fromPosts]))];
+    const seen = new Map<string, string>();
+    [...fromDb, ...fromPosts].forEach((n) => {
+      const k = n.trim().toLowerCase();
+      if (k && !seen.has(k)) seen.set(k, n.trim());
+    });
+    return ["All", ...seen.values()];
   }, [posts, cats]);
 
   const catMeta = useMemo(() => {
@@ -57,8 +62,9 @@ const Blog = () => {
     return m;
   }, [cats]);
 
+  const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
   const filtered = posts.filter((p) => {
-    const matchCat = activeCat === "All" || p.category === activeCat;
+    const matchCat = activeCat === "All" || norm(p.category) === norm(activeCat);
     const matchQ = !q || p.title.toLowerCase().includes(q.toLowerCase()) || (p.excerpt ?? "").toLowerCase().includes(q.toLowerCase());
     return matchCat && matchQ;
   });
