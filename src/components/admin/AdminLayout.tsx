@@ -214,6 +214,7 @@ export const AdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-1">
+            <AdminCurrencySwitcher />
             <Button variant="ghost" size="icon" className="relative">
               <Bell size={16} />
               <Badge className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full p-0 px-1 text-[10px]">
