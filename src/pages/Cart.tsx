@@ -4,10 +4,12 @@ import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
+  const { format } = useCurrency();
 
   if (items.length === 0) {
     return (
