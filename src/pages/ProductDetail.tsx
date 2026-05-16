@@ -10,12 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { products } from "@/data/catalog";
 import { useCart } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 
 const ProductDetail = () => {
   const { slug } = useParams();
   const product = products.find((p) => p.slug === slug) ?? products[0];
   const { add, toggleWish, wishlist } = useCart();
+  const { format } = useCurrency();
   const [flavor, setFlavor] = useState(product.flavors?.[0]);
   const [size, setSize] = useState(product.sizes?.[0]);
   const [qty, setQty] = useState(1);
