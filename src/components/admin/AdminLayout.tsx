@@ -31,6 +31,38 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/AuthContext";
+import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
+import { cn } from "@/lib/utils";
+
+const AdminCurrencySwitcher = () => {
+  const { currency, setCurrency } = useCurrency();
+  const meta = CURRENCIES[currency];
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="sm" className="gap-1.5 px-2 text-xs font-semibold uppercase tracking-wide" aria-label="Currency">
+          <span>{meta.flag}</span> {currency}
+          <ChevronDown size={12} className="text-muted-foreground" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel>Display currency</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
+          <DropdownMenuItem
+            key={code}
+            onClick={() => setCurrency(code)}
+            className={cn(code === currency && "bg-secondary")}
+          >
+            <span className="mr-1">{CURRENCIES[code].flag}</span>
+            <span className="font-semibold">{code}</span>
+            <span className="ml-auto text-xs text-muted-foreground">{CURRENCIES[code].symbol}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const sections = [
   {
