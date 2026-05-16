@@ -11,12 +11,17 @@ export const CURRENCIES: Record<CurrencyCode, { label: string; symbol: string; f
 };
 
 export const DEFAULT_CURRENCY_KEY = "site.currency.default";
+export const RATE_KEY_PREFIX = "site.currency.rate.";
+export const rateKey = (c: CurrencyCode) => `${RATE_KEY_PREFIX}${c}`;
 export const FALLBACK_CURRENCY: CurrencyCode = "PEN";
+
+type Rates = Record<CurrencyCode, number>;
 
 type Ctx = {
   currency: CurrencyCode;
   setCurrency: (c: CurrencyCode) => void;
   symbol: string;
+  rates: Rates;
   format: (eurAmount: number) => string;
   convert: (eurAmount: number) => number;
 };
@@ -25,25 +30,39 @@ const CurrencyContext = createContext<Ctx | null>(null);
 const STORAGE_KEY = "voltra.currency";
 const USER_CHOSE_KEY = "voltra.currency.userChose";
 
+const defaultRates = (): Rates => ({
+  EUR: CURRENCIES.EUR.rate,
+  USD: CURRENCIES.USD.rate,
+  PEN: CURRENCIES.PEN.rate,
+});
+
 export const CurrencyProvider = ({ children }: { children: React.ReactNode }) => {
   const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
     if (typeof window === "undefined") return FALLBACK_CURRENCY;
     const saved = localStorage.getItem(STORAGE_KEY) as CurrencyCode | null;
     return saved && CURRENCIES[saved] ? saved : FALLBACK_CURRENCY;
   });
+  const [rates, setRates] = useState<Rates>(defaultRates);
 
-  // Load admin-configured default currency. Only override if the user hasn't
-  // manually selected a currency yet (so user choice persists across reloads).
   useEffect(() => {
     let alive = true;
     (async () => {
       const { data } = await supabase
         .from("site_content")
-        .select("value")
-        .eq("key", DEFAULT_CURRENCY_KEY)
-        .maybeSingle();
-      if (!alive) return;
-      const adminDefault = (data?.value ?? "").toUpperCase() as CurrencyCode;
+        .select("key,value")
+        .or(`key.eq.${DEFAULT_CURRENCY_KEY},key.like.${RATE_KEY_PREFIX}%`);
+      if (!alive || !data) return;
+      const map: Record<string, string> = {};
+      data.forEach((r: any) => { map[r.key] = r.value ?? ""; });
+
+      const next = defaultRates();
+      (Object.keys(next) as CurrencyCode[]).forEach((c) => {
+        const v = parseFloat(map[rateKey(c)] ?? "");
+        if (Number.isFinite(v) && v > 0) next[c] = v;
+      });
+      setRates(next);
+
+      const adminDefault = (map[DEFAULT_CURRENCY_KEY] ?? "").toUpperCase() as CurrencyCode;
       if (CURRENCIES[adminDefault] && localStorage.getItem(USER_CHOSE_KEY) !== "1") {
         setCurrencyState(adminDefault);
       }
@@ -62,14 +81,14 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
 
   const value = useMemo<Ctx>(() => {
     const meta = CURRENCIES[currency];
-    const convert = (eur: number) => eur * meta.rate;
+    const rate = rates[currency] ?? meta.rate;
+    const convert = (eur: number) => eur * rate;
     const format = (eur: number) => {
-      const v = convert(eur);
-      const n = v.toFixed(2);
+      const n = convert(eur).toFixed(2);
       return currency === "PEN" ? `${meta.symbol} ${n}` : `${meta.symbol}${n}`;
     };
-    return { currency, setCurrency, symbol: meta.symbol, format, convert };
-  }, [currency, setCurrency]);
+    return { currency, setCurrency, symbol: meta.symbol, rates, format, convert };
+  }, [currency, rates, setCurrency]);
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>;
 };

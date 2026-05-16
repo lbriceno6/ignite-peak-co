@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CURRENCIES, DEFAULT_CURRENCY_KEY, type CurrencyCode } from "@/context/CurrencyContext";
+import { CURRENCIES, DEFAULT_CURRENCY_KEY, rateKey, type CurrencyCode } from "@/context/CurrencyContext";
 import { toast } from "sonner";
 
 type Field = { key: string; label: string; help?: string; multiline?: boolean };
@@ -87,16 +87,29 @@ export default function AdminHome() {
   const v = (k: string) => values[k] ?? "";
 
   const currency = (values[DEFAULT_CURRENCY_KEY] as CurrencyCode) || "PEN";
-  const currencyDirty = (values[DEFAULT_CURRENCY_KEY] ?? "") !== (savedValues[DEFAULT_CURRENCY_KEY] ?? "");
+  const currencyKeys = [DEFAULT_CURRENCY_KEY, ...(Object.keys(CURRENCIES) as CurrencyCode[]).map(rateKey)];
+  const currencyDirty = currencyKeys.some((k) => (values[k] ?? "") !== (savedValues[k] ?? ""));
 
   const saveCurrency = async () => {
     setSaving(true);
     try {
+      const rows: { key: string; value: string }[] = [
+        { key: DEFAULT_CURRENCY_KEY, value: currency },
+      ];
+      (Object.keys(CURRENCIES) as CurrencyCode[]).forEach((c) => {
+        const raw = (values[rateKey(c)] ?? "").trim();
+        const num = parseFloat(raw);
+        if (c === "EUR") {
+          rows.push({ key: rateKey(c), value: "1" });
+        } else if (Number.isFinite(num) && num > 0) {
+          rows.push({ key: rateKey(c), value: String(num) });
+        }
+      });
       const { error } = await supabase
         .from("site_content")
-        .upsert([{ key: DEFAULT_CURRENCY_KEY, value: currency }], { onConflict: "key" });
+        .upsert(rows, { onConflict: "key" });
       if (error) throw error;
-      toast.success("Default currency updated");
+      toast.success("Currency settings updated");
       load();
     } catch (e: any) {
       toast.error(e.message);
@@ -118,7 +131,7 @@ export default function AdminHome() {
             The currency new visitors will see by default. Users can still switch it from the header.
           </p>
         </header>
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-4">
           <div className="w-full max-w-xs space-y-1.5">
             <Label>Currency</Label>
             <Select value={currency} onValueChange={(v) => set(DEFAULT_CURRENCY_KEY, v)}>
@@ -132,8 +145,37 @@ export default function AdminHome() {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Label className="block mb-2">Exchange rates (base: 1 EUR =)</Label>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => {
+                const disabled = c === "EUR";
+                return (
+                  <div key={c} className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">
+                      {CURRENCIES[c].flag} {c} ({CURRENCIES[c].symbol})
+                    </Label>
+                    <Input
+                      type="number"
+                      step="0.0001"
+                      min="0"
+                      disabled={disabled}
+                      value={disabled ? "1" : (values[rateKey(c)] ?? "")}
+                      onChange={(e) => set(rateKey(c), e.target.value)}
+                      placeholder={String(CURRENCIES[c].rate)}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Example: if 1 EUR = 4.05 PEN, enter <strong>4.05</strong> in PEN. EUR is fixed at 1.
+            </p>
+          </div>
+
           <Button variant="dark" onClick={saveCurrency} disabled={saving || !currencyDirty}>
-            {saving ? "Saving…" : "Save currency"}
+            {saving ? "Saving…" : "Save currency settings"}
           </Button>
         </div>
       </section>
