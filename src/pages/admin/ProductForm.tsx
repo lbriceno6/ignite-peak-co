@@ -16,6 +16,9 @@ const empty = {
   is_active: true, badge: "",
   usage_instructions: "", ingredients: "",
   nutrition_facts: "", faqs: "",
+  subscription_enabled: false,
+  subscription_discount_percent: 10,
+  subscription_intervals: "30,60,90",
 };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -45,6 +48,7 @@ export default function ProductForm() {
           gallery_images: (data.gallery_images as any[] ?? []).join("\n"),
           nutrition_facts: data.nutrition_facts ? JSON.stringify(data.nutrition_facts, null, 2) : "",
           faqs: data.faqs ? JSON.stringify(data.faqs, null, 2) : "",
+          subscription_intervals: (data.subscription_intervals as number[] ?? [30, 60, 90]).join(","),
         });
       }
     })();
@@ -66,6 +70,11 @@ export default function ProductForm() {
           : f.gallery_images,
         nutrition_facts: f.nutrition_facts ? safeJson(f.nutrition_facts) : null,
         faqs: f.faqs ? safeJson(f.faqs) : [],
+        subscription_enabled: !!f.subscription_enabled,
+        subscription_discount_percent: Number(f.subscription_discount_percent) || 0,
+        subscription_intervals: typeof f.subscription_intervals === "string"
+          ? f.subscription_intervals.split(",").map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n) && n > 0)
+          : f.subscription_intervals,
       };
       delete payload.created_at; delete payload.updated_at; delete payload.id;
       const res = isEdit
