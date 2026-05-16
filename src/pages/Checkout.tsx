@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
   <div className="flex items-center gap-2">
