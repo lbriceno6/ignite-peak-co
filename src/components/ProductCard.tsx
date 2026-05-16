@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Stars } from "./Stars";
 import { useCart } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 import type { Product } from "@/data/catalog";
 import { cn } from "@/lib/utils";
 
