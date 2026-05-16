@@ -57,8 +57,9 @@ const Blog = () => {
     return m;
   }, [cats]);
 
+  const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
   const filtered = posts.filter((p) => {
-    const matchCat = activeCat === "All" || p.category === activeCat;
+    const matchCat = activeCat === "All" || norm(p.category) === norm(activeCat);
     const matchQ = !q || p.title.toLowerCase().includes(q.toLowerCase()) || (p.excerpt ?? "").toLowerCase().includes(q.toLowerCase());
     return matchCat && matchQ;
   });
