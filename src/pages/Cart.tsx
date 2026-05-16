@@ -43,7 +43,7 @@ const Cart = () => {
                   <div>
                     <Link to={`/product/${i.product.slug}`} className="font-semibold hover:text-accent">{i.product.name}</Link>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
-                    <p className="mt-1 text-sm font-medium md:hidden">€{i.product.price.toFixed(2)}</p>
+                    <p className="mt-1 text-sm font-medium md:hidden">{format(i.product.price)}</p>
                   </div>
                 </div>
                 <div className="flex items-center rounded-md border w-fit">
