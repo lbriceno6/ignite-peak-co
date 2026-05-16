@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,8 +65,32 @@ const Blog = () => {
 
   // Single post view
   if (slug) {
+    const articleJsonLd = post
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.excerpt ?? undefined,
+          image: post.cover_image ?? undefined,
+          datePublished: post.published_at,
+          articleSection: post.category ?? undefined,
+          mainEntityOfPage: `https://ignite-peak-co.lovable.app/blog/${post.slug}`,
+          publisher: { "@type": "Organization", name: "Voltra Nutrition" },
+        }
+      : undefined;
     return (
       <Layout>
+        {post && (
+          <SEO
+            title={`${post.title} | Voltra Nutrition Blog`}
+            description={post.excerpt ?? undefined}
+            path={`/blog/${post.slug}`}
+            image={post.cover_image ?? undefined}
+            type="article"
+            publishedTime={post.published_at}
+            jsonLd={articleJsonLd}
+          />
+        )}
         <article className="container-x py-12">
           <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">← Back to all articles</Link>
           {loading ? (
@@ -97,8 +122,28 @@ const Blog = () => {
   }
 
   // List view
+  const blogJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: "Voltra Nutrition — Guides & Insights",
+    url: "https://ignite-peak-co.lovable.app/blog",
+    blogPost: posts.slice(0, 20).map((p) => ({
+      "@type": "BlogPosting",
+      headline: p.title,
+      url: `https://ignite-peak-co.lovable.app/blog/${p.slug}`,
+      datePublished: p.published_at,
+      image: p.cover_image ?? undefined,
+    })),
+  };
   return (
     <Layout>
+      <SEO
+        title="Guides & Insights | Voltra Nutrition Blog"
+        description="Practical advice from our nutritionists, coaches and athletes — supplement guides, training tips and recovery insights."
+        path="/blog"
+        type="website"
+        jsonLd={blogJsonLd}
+      />
       <section className="bg-surface-darker py-16 text-background">
         <div className="container-x">
           <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Knowledge hub</span>
