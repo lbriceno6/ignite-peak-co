@@ -72,10 +72,11 @@ export default function AdminBlog() {
     if (!swap) return;
     const a = post.featured_order ?? idx + 1;
     const b = swap.featured_order ?? idx + 1 + dir;
-    const { error } = await supabase.from("blog_posts").upsert([
-      { id: post.id, featured_order: b },
-      { id: swap.id, featured_order: a },
+    const [r1, r2] = await Promise.all([
+      supabase.from("blog_posts").update({ featured_order: b }).eq("id", post.id),
+      supabase.from("blog_posts").update({ featured_order: a }).eq("id", swap.id),
     ]);
+    const error = r1.error || r2.error;
     if (error) return toast.error(error.message);
     load();
   };
