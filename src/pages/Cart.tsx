@@ -43,7 +43,12 @@ const Cart = () => {
                   <div>
                     <Link to={`/product/${i.product.slug}`} className="font-semibold hover:text-accent">{i.product.name}</Link>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
-                    <p className="mt-1 text-sm font-medium md:hidden">{format(i.product.price)}</p>
+                    {i.subscription && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Repeat size={10} /> Every {i.subscription.intervalDays}d · −{i.subscription.discountPercent}%
+                      </p>
+                    )}
+                    <p className="mt-1 text-sm font-medium md:hidden">{format(lineUnitPrice(i))}</p>
                   </div>
                 </div>
                 <div className="flex items-center rounded-md border w-fit">
@@ -51,7 +56,7 @@ const Cart = () => {
                   <span className="w-8 text-center text-sm font-semibold">{i.quantity}</span>
                   <button onClick={() => setQty(i.product.id, i.quantity + 1)} className="p-2 hover:bg-secondary"><Plus size={12} /></button>
                 </div>
-                <span className="text-right font-display text-lg">{format(i.product.price * i.quantity)}</span>
+                <span className="text-right font-display text-lg">{format(lineSubtotal(i))}</span>
                 <button onClick={() => remove(i.product.id)} className="justify-self-end text-muted-foreground hover:text-destructive" aria-label="Remove">
                   <Trash2 size={16} />
                 </button>
