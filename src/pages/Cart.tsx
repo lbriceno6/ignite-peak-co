@@ -63,12 +63,12 @@ const Cart = () => {
             <div className="rounded-lg border p-5">
               <h3 className="font-display text-xl uppercase">Order summary</h3>
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">€{subtotal.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shipping === 0 ? "Free" : `€${shipping.toFixed(2)}`}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{format(subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shipping === 0 ? "Free" : format(shipping)}</span></div>
                 {shipping === 0 && <p className="text-xs text-success">🎉 You qualify for free shipping</p>}
               </div>
               <div className="mt-4 flex justify-between border-t pt-4 font-display text-2xl">
-                <span>Total</span><span>€{total.toFixed(2)}</span>
+                <span>Total</span><span>{format(total)}</span>
               </div>
               <Button size="lg" variant="accent" className="mt-5 w-full" asChild>
                 <Link to="/checkout">Checkout <ArrowRight /></Link>
