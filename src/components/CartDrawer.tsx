@@ -58,7 +58,7 @@ export const CartDrawer = () => {
                           <Plus size={12} />
                         </button>
                       </div>
-                      <span className="font-display">€{(item.product.price * item.quantity).toFixed(2)}</span>
+                      <span className="font-display">{format(item.product.price * item.quantity)}</span>
                     </div>
                   </div>
                 </div>
