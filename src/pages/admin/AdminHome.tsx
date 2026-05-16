@@ -86,12 +86,57 @@ export default function AdminHome() {
 
   const v = (k: string) => values[k] ?? "";
 
+  const currency = (values[DEFAULT_CURRENCY_KEY] as CurrencyCode) || "PEN";
+  const currencyDirty = (values[DEFAULT_CURRENCY_KEY] ?? "") !== (savedValues[DEFAULT_CURRENCY_KEY] ?? "");
+
+  const saveCurrency = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("site_content")
+        .upsert([{ key: DEFAULT_CURRENCY_KEY, value: currency }], { onConflict: "key" });
+      if (error) throw error;
+      toast.success("Default currency updated");
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally { setSaving(false); }
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
         <h1 className="font-display text-3xl">Home content</h1>
         <p className="text-muted-foreground">Edit the texts that appear on the home page.</p>
       </div>
+
+      {/* Currency settings */}
+      <section className="rounded-lg border bg-background p-6">
+        <header className="mb-4">
+          <h2 className="font-display text-xl">Default currency</h2>
+          <p className="text-sm text-muted-foreground">
+            The currency new visitors will see by default. Users can still switch it from the header.
+          </p>
+        </header>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-full max-w-xs space-y-1.5">
+            <Label>Currency</Label>
+            <Select value={currency} onValueChange={(v) => set(DEFAULT_CURRENCY_KEY, v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {(Object.keys(CURRENCIES) as CurrencyCode[]).map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {CURRENCIES[c].flag} {CURRENCIES[c].label} ({CURRENCIES[c].symbol})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button variant="dark" onClick={saveCurrency} disabled={saving || !currencyDirty}>
+            {saving ? "Saving…" : "Save currency"}
+          </Button>
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Editor */}
