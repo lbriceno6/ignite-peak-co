@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
-import { ShoppingCart, MessageCircle, Heart, Truck, ShieldCheck, Award, Minus, Plus, Check } from "lucide-react";
+import { ShoppingCart, MessageCircle, Heart, Truck, ShieldCheck, Award, Minus, Plus, Check, Repeat } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Stars } from "@/components/Stars";
@@ -22,6 +22,15 @@ const ProductDetail = () => {
   const [size, setSize] = useState(product.sizes?.[0]);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
+
+  const subIntervals = product.subscriptionIntervals ?? [30, 60, 90];
+  const subDiscount = product.subscriptionDiscountPercent ?? 10;
+  const subEnabled = !!product.subscriptionEnabled;
+  const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
+  const [interval, setInterval] = useState<number>(subIntervals[0] ?? 30);
+  const effectivePrice = purchaseMode === "subscription"
+    ? +(product.price * (1 - subDiscount / 100)).toFixed(2)
+    : product.price;
 
   const gallery = [product.image, product.image, product.image, product.image];
   const related = products.filter((p) => p.id !== product.id).slice(0, 4);
@@ -69,14 +78,65 @@ const ProductDetail = () => {
           <p className="mt-4 text-muted-foreground">{product.shortBenefit}</p>
 
           <div className="mt-6 flex items-baseline gap-3">
-            <span className="font-display text-4xl">{format(product.price)}</span>
-            {product.oldPrice && (
+            <span className="font-display text-4xl">{format(effectivePrice)}</span>
+            {purchaseMode === "subscription" && (
+              <>
+                <span className="text-lg text-muted-foreground line-through">{format(product.price)}</span>
+                <Badge className="bg-accent text-accent-foreground">−{subDiscount}%</Badge>
+              </>
+            )}
+            {purchaseMode === "one_time" && product.oldPrice && (
               <>
                 <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
                 <Badge className="bg-destructive text-destructive-foreground">Save {format(product.oldPrice - product.price)}</Badge>
               </>
             )}
           </div>
+
+          {subEnabled && (
+            <div className="mt-6 space-y-2">
+              <p className="text-sm font-bold uppercase tracking-wider">Purchase</p>
+              <label className={cn(
+                "flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-smooth",
+                purchaseMode === "one_time" ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
+              )}>
+                <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "one_time"} onChange={() => setPurchaseMode("one_time")} />
+                <div className="flex-1">
+                  <p className="font-semibold">One-time purchase</p>
+                  <p className="text-xs text-muted-foreground">{format(product.price)}</p>
+                </div>
+              </label>
+              <label className={cn(
+                "flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-smooth",
+                purchaseMode === "subscription" ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
+              )}>
+                <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "subscription"} onChange={() => setPurchaseMode("subscription")} />
+                <div className="flex-1">
+                  <p className="font-semibold flex items-center gap-2">
+                    <Repeat size={14} className="text-accent" /> Subscribe & save {subDiscount}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · cancel anytime</p>
+                  {purchaseMode === "subscription" && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {subIntervals.map((d) => (
+                        <button
+                          key={d}
+                          type="button"
+                          onClick={() => setInterval(d)}
+                          className={cn(
+                            "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
+                            interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
+                          )}
+                        >
+                          Every {d} days
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </label>
+            </div>
+          )}
 
           {product.flavors && (
             <div className="mt-6">
@@ -124,8 +184,11 @@ const ProductDetail = () => {
               <span className="w-10 text-center font-display text-lg">{qty}</span>
               <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(product, { flavor, size, quantity: qty })}>
-              <ShoppingCart /> Add to cart
+            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(product, {
+              flavor, size, quantity: qty,
+              subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
+            })}>
+              <ShoppingCart /> {purchaseMode === "subscription" ? `Subscribe · ${format(effectivePrice)}` : "Add to cart"}
             </Button>
             <Button size="lg" variant="outline" onClick={() => toggleWish(product.id)} aria-label="Wishlist">
               <Heart className={wished ? "fill-accent text-accent" : ""} />

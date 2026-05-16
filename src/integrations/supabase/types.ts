@@ -133,7 +133,9 @@ export type Database = {
           product_image: string | null
           product_name: string
           product_slug: string
+          purchase_type: string
           quantity: number
+          subscription_interval_days: number | null
           unit_price: number
           variant: string | null
         }
@@ -144,7 +146,9 @@ export type Database = {
           product_image?: string | null
           product_name: string
           product_slug: string
+          purchase_type?: string
           quantity?: number
+          subscription_interval_days?: number | null
           unit_price: number
           variant?: string | null
         }
@@ -155,7 +159,9 @@ export type Database = {
           product_image?: string | null
           product_name?: string
           product_slug?: string
+          purchase_type?: string
           quantity?: number
+          subscription_interval_days?: number | null
           unit_price?: number
           variant?: string | null
         }
@@ -249,6 +255,9 @@ export type Database = {
           size: string | null
           slug: string
           stock: number
+          subscription_discount_percent: number
+          subscription_enabled: boolean
+          subscription_intervals: number[]
           updated_at: string
           usage_instructions: string | null
         }
@@ -274,6 +283,9 @@ export type Database = {
           size?: string | null
           slug: string
           stock?: number
+          subscription_discount_percent?: number
+          subscription_enabled?: boolean
+          subscription_intervals?: number[]
           updated_at?: string
           usage_instructions?: string | null
         }
@@ -299,6 +311,9 @@ export type Database = {
           size?: string | null
           slug?: string
           stock?: number
+          subscription_discount_percent?: number
+          subscription_enabled?: boolean
+          subscription_intervals?: number[]
           updated_at?: string
           usage_instructions?: string | null
         }

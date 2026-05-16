@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useCart, cartTotals } from "@/store/cart";
+import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 
 const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
@@ -110,9 +110,12 @@ const Checkout = () => {
                   </div>
                   <div className="flex-1 text-sm">
                     <p className="font-medium leading-tight">{i.product.name}</p>
-                    <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {[i.flavor, i.size].filter(Boolean).join(" · ")}
+                      {i.subscription && ` · 🔁 every ${i.subscription.intervalDays}d (−${i.subscription.discountPercent}%)`}
+                    </p>
                   </div>
-                  <span className="font-semibold">{format(i.product.price * i.quantity)}</span>
+                  <span className="font-semibold">{format(lineSubtotal(i))}</span>
                 </div>
               ))}
               {items.length === 0 && <p className="text-sm text-muted-foreground">Your cart is empty. <Link to="/" className="underline">Shop now</Link></p>}

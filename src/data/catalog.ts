@@ -22,6 +22,9 @@ export type Product = {
   flavors?: string[];
   sizes?: string[];
   brand: string;
+  subscriptionEnabled?: boolean;
+  subscriptionDiscountPercent?: number;
+  subscriptionIntervals?: number[]; // days
 };
 
 export const products: Product[] = [
@@ -30,12 +33,14 @@ export const products: Product[] = [
     price: 49.9, oldPrice: 64.9, rating: 4.9, reviews: 1284, label: "Best Seller",
     image: protein, category: "Protein", goal: ["build-muscle", "recovery"],
     flavors: ["Chocolate", "Vanilla", "Cookies & Cream", "Strawberry"], sizes: ["900g", "2kg", "4kg"], brand: "VOLTRA",
+    subscriptionEnabled: true, subscriptionDiscountPercent: 15, subscriptionIntervals: [30, 60, 90],
   },
   {
     id: "2", slug: "creatine-monohydrate", name: "Creatine Monohydrate", shortBenefit: "Pure micronized · explosive strength",
     price: 24.9, rating: 4.8, reviews: 932, label: "Best Seller",
     image: creatine, category: "Creatine", goal: ["build-muscle", "energy"],
     sizes: ["300g", "500g", "1kg"], brand: "VOLTRA",
+    subscriptionEnabled: true, subscriptionDiscountPercent: 10, subscriptionIntervals: [30, 60, 90],
   },
   {
     id: "3", slug: "ignite-pre-workout", name: "Ignite Pre-Workout", shortBenefit: "300mg caffeine · zero crash formula",
@@ -48,6 +53,7 @@ export const products: Product[] = [
     price: 19.9, rating: 4.6, reviews: 421, label: "New",
     image: vitamins, category: "Vitamins", goal: ["wellness"],
     sizes: ["60 caps", "120 caps"], brand: "VOLTRA",
+    subscriptionEnabled: true, subscriptionDiscountPercent: 12, subscriptionIntervals: [30, 60, 90],
   },
   {
     id: "5", slug: "protein-bar-crunch", name: "Protein Bar Crunch", shortBenefit: "20g protein · only 2g sugar",
