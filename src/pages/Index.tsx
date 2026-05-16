@@ -68,6 +68,7 @@ const GUIDES_KEYS = [
 ];
 
 const Home = () => {
+  const { format } = useCurrency();
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
