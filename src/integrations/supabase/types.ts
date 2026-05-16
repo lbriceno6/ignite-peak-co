@@ -21,7 +21,9 @@ export type Database = {
           cover_image: string | null
           created_at: string
           excerpt: string | null
+          featured_order: number | null
           id: string
+          is_featured: boolean
           is_published: boolean
           published_at: string
           read_time: string | null
@@ -35,7 +37,9 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           excerpt?: string | null
+          featured_order?: number | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           published_at?: string
           read_time?: string | null
@@ -49,7 +53,9 @@ export type Database = {
           cover_image?: string | null
           created_at?: string
           excerpt?: string | null
+          featured_order?: number | null
           id?: string
+          is_featured?: boolean
           is_published?: boolean
           published_at?: string
           read_time?: string | null
@@ -361,6 +367,24 @@ export type Database = {
           product_id?: string
           rating?: number
           user_id?: string
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
         }
         Relationships: []
       }
