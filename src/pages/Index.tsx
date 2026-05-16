@@ -77,22 +77,35 @@ const Home = () => {
     "home.guides.cta_href": "/blog",
   });
 
+  const loadAll = async () => {
+    const [p, c, featured, recent] = await Promise.all([
+      supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
+      supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+      supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
+      supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
+    ]);
+    setProducts((p.data as DbProduct[]) ?? []);
+    setCategories((c.data as DbCategory[]) ?? []);
+    const f = (featured.data as DbPost[]) ?? [];
+    const r = (recent.data as DbPost[]) ?? [];
+    const ids = new Set(f.map((x) => x.id));
+    const merged = [...f, ...r.filter((x) => !ids.has(x.id))].slice(0, 3);
+    setPosts(merged);
+  };
+
   useEffect(() => {
-    (async () => {
-      const [p, c, featured, recent] = await Promise.all([
-        supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
-        supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
-        supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
-        supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
-      ]);
-      setProducts((p.data as DbProduct[]) ?? []);
-      setCategories((c.data as DbCategory[]) ?? []);
-      const f = (featured.data as DbPost[]) ?? [];
-      const r = (recent.data as DbPost[]) ?? [];
-      const ids = new Set(f.map((x) => x.id));
-      const merged = [...f, ...r.filter((x) => !ids.has(x.id))].slice(0, 3);
-      setPosts(merged);
-    })();
+    loadAll();
+    const channel = supabase
+      .channel("home-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "blog_posts" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "site_content" }, () => loadAll())
+      .subscribe();
+    const onFocus = () => loadAll();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   const bestSellers = products
