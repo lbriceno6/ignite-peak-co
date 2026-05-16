@@ -44,6 +44,27 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
   });
   const [rates, setRates] = useState<Rates>(defaultRates);
 
+  const applySettings = useCallback((rows: { key: string; value: string | null }[]) => {
+    const map: Record<string, string> = {};
+    rows.forEach((r) => { map[r.key] = r.value ?? ""; });
+
+    setRates((prev) => {
+      const next = { ...prev };
+      (Object.keys(CURRENCIES) as CurrencyCode[]).forEach((c) => {
+        if (map[rateKey(c)] != null) {
+          const v = parseFloat(map[rateKey(c)]);
+          if (Number.isFinite(v) && v > 0) next[c] = v;
+        }
+      });
+      return next;
+    });
+
+    const adminDefault = (map[DEFAULT_CURRENCY_KEY] ?? "").toUpperCase() as CurrencyCode;
+    if (CURRENCIES[adminDefault] && localStorage.getItem(USER_CHOSE_KEY) !== "1") {
+      setCurrencyState(adminDefault);
+    }
+  }, []);
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -52,23 +73,30 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
         .select("key,value")
         .or(`key.eq.${DEFAULT_CURRENCY_KEY},key.like.${RATE_KEY_PREFIX}%`);
       if (!alive || !data) return;
-      const map: Record<string, string> = {};
-      data.forEach((r: any) => { map[r.key] = r.value ?? ""; });
-
-      const next = defaultRates();
-      (Object.keys(next) as CurrencyCode[]).forEach((c) => {
-        const v = parseFloat(map[rateKey(c)] ?? "");
-        if (Number.isFinite(v) && v > 0) next[c] = v;
-      });
-      setRates(next);
-
-      const adminDefault = (map[DEFAULT_CURRENCY_KEY] ?? "").toUpperCase() as CurrencyCode;
-      if (CURRENCIES[adminDefault] && localStorage.getItem(USER_CHOSE_KEY) !== "1") {
-        setCurrencyState(adminDefault);
-      }
+      applySettings(data as any);
     })();
-    return () => { alive = false; };
-  }, []);
+
+    // Realtime: refresh currency settings as soon as the admin updates them
+    const channel = supabase
+      .channel("currency-settings")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "site_content" },
+        (payload: any) => {
+          const row = (payload.new ?? payload.old) as { key?: string; value?: string } | undefined;
+          if (!row?.key) return;
+          if (row.key === DEFAULT_CURRENCY_KEY || row.key.startsWith(RATE_KEY_PREFIX)) {
+            applySettings([{ key: row.key, value: (payload.new as any)?.value ?? "" }]);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      alive = false;
+      supabase.removeChannel(channel);
+    };
+  }, [applySettings]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, currency);
