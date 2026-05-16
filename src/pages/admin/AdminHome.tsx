@@ -87,16 +87,29 @@ export default function AdminHome() {
   const v = (k: string) => values[k] ?? "";
 
   const currency = (values[DEFAULT_CURRENCY_KEY] as CurrencyCode) || "PEN";
-  const currencyDirty = (values[DEFAULT_CURRENCY_KEY] ?? "") !== (savedValues[DEFAULT_CURRENCY_KEY] ?? "");
+  const currencyKeys = [DEFAULT_CURRENCY_KEY, ...(Object.keys(CURRENCIES) as CurrencyCode[]).map(rateKey)];
+  const currencyDirty = currencyKeys.some((k) => (values[k] ?? "") !== (savedValues[k] ?? ""));
 
   const saveCurrency = async () => {
     setSaving(true);
     try {
+      const rows: { key: string; value: string }[] = [
+        { key: DEFAULT_CURRENCY_KEY, value: currency },
+      ];
+      (Object.keys(CURRENCIES) as CurrencyCode[]).forEach((c) => {
+        const raw = (values[rateKey(c)] ?? "").trim();
+        const num = parseFloat(raw);
+        if (c === "EUR") {
+          rows.push({ key: rateKey(c), value: "1" });
+        } else if (Number.isFinite(num) && num > 0) {
+          rows.push({ key: rateKey(c), value: String(num) });
+        }
+      });
       const { error } = await supabase
         .from("site_content")
-        .upsert([{ key: DEFAULT_CURRENCY_KEY, value: currency }], { onConflict: "key" });
+        .upsert(rows, { onConflict: "key" });
       if (error) throw error;
-      toast.success("Default currency updated");
+      toast.success("Currency settings updated");
       load();
     } catch (e: any) {
       toast.error(e.message);
