@@ -331,7 +331,7 @@ const Home = () => {
       <section className="border-y border-border bg-secondary/40 py-12">
         <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
           {[
-            { icon: Truck, title: "Free shipping", desc: "On orders over €50" },
+            { icon: Truck, title: "Free shipping", desc: `On orders over ${format(50)}` },
             { icon: ShieldCheck, title: "Secure payment", desc: "100% encrypted checkout" },
             { icon: Award, title: "Lab tested", desc: "Third-party verified quality" },
             { icon: MessageCircle, title: "Real support", desc: "WhatsApp 7 days a week" },
