@@ -138,7 +138,7 @@ const ProductDetail = () => {
           </Button>
 
           <ul className="mt-6 grid gap-2 rounded-lg border bg-secondary/40 p-4 text-sm">
-            <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Free shipping over €50 · delivery 1–3 days</li>
+            <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Free shipping over {format(50)} · delivery 1–3 days</li>
             <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-accent" /> 30-day money-back guarantee</li>
             <li className="flex items-center gap-2"><Award size={16} className="text-accent" /> Lab-tested · GMP certified</li>
           </ul>
