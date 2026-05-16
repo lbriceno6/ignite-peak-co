@@ -8,6 +8,7 @@ import { Stars } from "@/components/Stars";
 import { goals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { resolveProductImage } from "@/lib/productImage";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
@@ -50,7 +51,7 @@ const toCardProduct = (p: DbProduct): Product => {
     rating: 4.8,
     reviews: 0,
     label,
-    image: p.main_image || productPlaceholder,
+    image: resolveProductImage(p.main_image, productPlaceholder),
     category: p.category ?? "",
     goal: [],
     brand: "VOLTRA",
