@@ -51,7 +51,7 @@ const Cart = () => {
                   <span className="w-8 text-center text-sm font-semibold">{i.quantity}</span>
                   <button onClick={() => setQty(i.product.id, i.quantity + 1)} className="p-2 hover:bg-secondary"><Plus size={12} /></button>
                 </div>
-                <span className="text-right font-display text-lg">€{(i.product.price * i.quantity).toFixed(2)}</span>
+                <span className="text-right font-display text-lg">{format(i.product.price * i.quantity)}</span>
                 <button onClick={() => remove(i.product.id)} className="justify-self-end text-muted-foreground hover:text-destructive" aria-label="Remove">
                   <Trash2 size={16} />
                 </button>
