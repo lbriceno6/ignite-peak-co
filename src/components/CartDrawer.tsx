@@ -3,10 +3,12 @@ import { X, Plus, Minus, Trash2, ShoppingBag } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, cartTotals } from "@/store/cart";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
   const { subtotal, shipping, total, count } = cartTotals(items);
+  const { format } = useCurrency();
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
