@@ -95,7 +95,7 @@ const Checkout = () => {
             </section>
 
             <Button size="xl" variant="accent" className="w-full" onClick={() => setStep(Math.min(3, step + 1))}>
-              <Lock size={16} /> Pay €{total.toFixed(2)} securely
+              <Lock size={16} /> Pay {format(total)} securely
             </Button>
           </div>
 
