@@ -194,11 +194,26 @@ const ProductDetail = () => {
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
-          <Button asChild size="lg" variant="dark" className="mt-3 w-full">
-            <a href={`https://wa.me/14155552671?text=Hi!%20I'm%20interested%20in%20${encodeURIComponent(product.name)}`} target="_blank" rel="noopener noreferrer">
-              <MessageCircle /> Buy by WhatsApp
-            </a>
-          </Button>
+          {(() => {
+            const lines = [
+              `Hi! I'm interested in ${product.name}`,
+              flavor && `Flavor: ${flavor}`,
+              size && `Size: ${size}`,
+              `Quantity: ${qty}`,
+              purchaseMode === "subscription"
+                ? `Purchase type: subscription (every ${interval} days, -${subDiscount}% discount)`
+                : `Purchase type: one-time`,
+              `Unit price: ${format(effectivePrice)}`,
+              `Total: ${format(effectivePrice * qty)}`,
+            ].filter(Boolean).join("\n");
+            return (
+              <Button asChild size="lg" variant="dark" className="mt-3 w-full">
+                <a href={`https://wa.me/14155552671?text=${encodeURIComponent(lines)}`} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle /> Buy by WhatsApp
+                </a>
+              </Button>
+            );
+          })()}
 
           <ul className="mt-6 grid gap-2 rounded-lg border bg-secondary/40 p-4 text-sm">
             <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Free shipping over {format(50)} · delivery 1–3 days</li>
