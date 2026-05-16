@@ -62,8 +62,8 @@ const Checkout = () => {
               <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Shipping method</h3>
               <RadioGroup defaultValue="standard" className="mt-4 space-y-2">
                 {[
-                  { v: "standard", t: "Standard delivery", d: "2–3 business days", p: "Free over €50" },
-                  { v: "express", t: "Express delivery", d: "Next business day", p: "€7.90" },
+                  { v: "standard", t: "Standard delivery", d: "2–3 business days", p: `Free over ${format(50)}` },
+                  { v: "express", t: "Express delivery", d: "Next business day", p: format(7.9) },
                 ].map((o) => (
                   <label key={o.v} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
                     <RadioGroupItem value={o.v} />
