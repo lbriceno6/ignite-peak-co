@@ -9,6 +9,7 @@ import { goals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { resolveProductImage } from "@/lib/productImage";
+import { useCurrency } from "@/context/CurrencyContext";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
