@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CURRENCIES, DEFAULT_CURRENCY_KEY, type CurrencyCode } from "@/context/CurrencyContext";
+import { CURRENCIES, DEFAULT_CURRENCY_KEY, rateKey, type CurrencyCode } from "@/context/CurrencyContext";
 import { toast } from "sonner";
 
 type Field = { key: string; label: string; help?: string; multiline?: boolean };
