@@ -99,9 +99,3 @@ export const reviews = [
   { name: "David R.", rating: 5, title: "Insane pumps", text: "Ignite Pre-Workout gives me focused energy without any jitters. New PR every week.", verified: true },
   { name: "Lena M.", rating: 4, title: "Great taste", text: "Vegan protein that actually tastes good. Finally!", verified: true },
 ];
-
-export const blogPosts = [
-  { slug: "protein-timing", title: "When is the best time to take protein?", excerpt: "The science behind protein timing for maximum muscle growth and recovery.", category: "Nutrition", readTime: "5 min" },
-  { slug: "creatine-myths", title: "5 myths about creatine, debunked", excerpt: "Is creatine safe? Does it cause water retention? We answer the most common questions.", category: "Supplements", readTime: "7 min" },
-  { slug: "pre-workout-guide", title: "How to choose the right pre-workout", excerpt: "Stimulants, pumps, focus — find the formula that matches your training style.", category: "Performance", readTime: "6 min" },
-];
