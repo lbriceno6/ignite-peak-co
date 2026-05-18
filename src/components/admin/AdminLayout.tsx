@@ -109,6 +109,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/blog/new")) return "New post";
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Edit post";
   if (p.startsWith("/admin/blog")) return "Blog posts";
+  if (p.startsWith("/admin/home-blocks")) return "Home sections";
   if (p.startsWith("/admin/home")) return "Home content";
   if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
   return "Admin";
