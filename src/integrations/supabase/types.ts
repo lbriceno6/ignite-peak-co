@@ -125,6 +125,54 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_slides: {
+        Row: {
+          created_at: string
+          eyebrow: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          primary_href: string | null
+          primary_label: string | null
+          secondary_href: string | null
+          secondary_label: string | null
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          primary_href?: string | null
+          primary_label?: string | null
+          secondary_href?: string | null
+          secondary_label?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          primary_href?: string | null
+          primary_label?: string | null
+          secondary_href?: string | null
+          secondary_label?: string | null
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
