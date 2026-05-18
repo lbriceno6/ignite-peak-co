@@ -35,6 +35,7 @@ import BlogForm from "./pages/admin/BlogForm.tsx";
 import AdminCategories from "./pages/admin/AdminCategories.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
+import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="categories" element={<AdminCategories />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
+              <Route path="home-blocks" element={<AdminHomeBlocks />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
