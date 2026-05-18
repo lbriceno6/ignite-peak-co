@@ -88,6 +88,7 @@ const sections = [
     label: "Content",
     items: [
       { to: "/admin/home", label: "Home content", icon: Home },
+      { to: "/admin/hero-slides", label: "Hero carousel", icon: GalleryHorizontal },
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
     ],
