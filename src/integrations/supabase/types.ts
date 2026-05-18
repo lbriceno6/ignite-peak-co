@@ -173,6 +173,60 @@ export type Database = {
         }
         Relationships: []
       }
+      home_blocks: {
+        Row: {
+          block_key: string
+          block_type: string
+          created_at: string
+          cta_href: string | null
+          cta_label: string | null
+          cta2_href: string | null
+          cta2_label: string | null
+          eyebrow: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          sort_order: number
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_key: string
+          block_type: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          cta2_href?: string | null
+          cta2_label?: string | null
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_key?: string
+          block_type?: string
+          created_at?: string
+          cta_href?: string | null
+          cta_label?: string | null
+          cta2_href?: string | null
+          cta2_label?: string | null
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
