@@ -86,6 +86,7 @@ const App = () => (
               <Route path="blog/:id/edit" element={<BlogForm />} />
               <Route path="categories" element={<AdminCategories />} />
               <Route path="home" element={<AdminHome />} />
+              <Route path="hero-slides" element={<AdminHeroSlides />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
