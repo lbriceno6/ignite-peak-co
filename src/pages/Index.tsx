@@ -86,6 +86,10 @@ const Home = () => {
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const autoplay = useRef(Autoplay({ delay: 6000, stopOnInteraction: false, stopOnMouseEnter: true }));
   const { content } = useSiteContent(GUIDES_KEYS, {
     "home.guides.eyebrow": "Knowledge",
     "home.guides.title": "Guides & insights",
@@ -95,11 +99,12 @@ const Home = () => {
   });
 
   const loadAll = async () => {
-    const [p, c, featured, recent] = await Promise.all([
+    const [p, c, featured, recent, hero] = await Promise.all([
       supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
       supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
+      supabase.from("hero_slides").select("id,eyebrow,title,subtitle,image_url,primary_label,primary_href,secondary_label,secondary_href").eq("is_active", true).order("sort_order").order("created_at"),
     ]);
     setProducts((p.data as DbProduct[]) ?? []);
     setCategories((c.data as DbCategory[]) ?? []);
@@ -108,6 +113,7 @@ const Home = () => {
     const ids = new Set(f.map((x) => x.id));
     const merged = [...f, ...r.filter((x) => !ids.has(x.id))].slice(0, 3);
     setPosts(merged);
+    setSlides((hero.data as HeroSlide[]) ?? []);
   };
 
   useEffect(() => {
@@ -116,6 +122,7 @@ const Home = () => {
       .channel("home-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "blog_posts" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "site_content" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "hero_slides" }, () => loadAll())
       .subscribe();
     const onFocus = () => loadAll();
     window.addEventListener("focus", onFocus);
@@ -124,6 +131,15 @@ const Home = () => {
       window.removeEventListener("focus", onFocus);
     };
   }, []);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => setCurrentSlide(carouselApi.selectedScrollSnap());
+    onSelect();
+    carouselApi.on("select", onSelect);
+    carouselApi.on("reInit", onSelect);
+    return () => { carouselApi.off("select", onSelect); };
+  }, [carouselApi]);
 
   const bestSellers = products
     .filter((p) => (p.badge ?? "").toLowerCase() === "best seller")
