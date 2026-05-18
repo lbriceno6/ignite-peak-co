@@ -34,6 +34,7 @@ import AdminBlog from "./pages/admin/AdminBlog.tsx";
 import BlogForm from "./pages/admin/BlogForm.tsx";
 import AdminCategories from "./pages/admin/AdminCategories.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
+import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
