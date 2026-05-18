@@ -16,6 +16,7 @@ import {
   User,
   Home,
   Tags,
+  GalleryHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,6 +88,7 @@ const sections = [
     label: "Content",
     items: [
       { to: "/admin/home", label: "Home content", icon: Home },
+      { to: "/admin/hero-slides", label: "Hero carousel", icon: GalleryHorizontal },
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
     ],
@@ -106,6 +108,7 @@ const titleFromPath = (p: string) => {
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Edit post";
   if (p.startsWith("/admin/blog")) return "Blog posts";
   if (p.startsWith("/admin/home")) return "Home content";
+  if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
   return "Admin";
 };
 
