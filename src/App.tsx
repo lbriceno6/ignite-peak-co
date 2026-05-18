@@ -88,6 +88,7 @@ const App = () => (
               <Route path="categories" element={<AdminCategories />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
+              <Route path="home-blocks" element={<AdminHomeBlocks />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
