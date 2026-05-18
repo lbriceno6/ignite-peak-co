@@ -149,48 +149,101 @@ const Home = () => {
 
   return (
     <Layout>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-surface-darker text-background">
-        <img
-          src={heroImage}
-          alt="Athlete training with Voltra supplements"
-          width={1536}
-          height={1024}
-          className="absolute inset-0 h-full w-full object-cover opacity-50"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/80 to-transparent" />
-        <div className="container-x relative grid min-h-[560px] items-center py-20 lg:min-h-[680px]">
-          <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent">
-              <Zap size={12} /> Engineered for performance
-            </span>
-            <h1 className="mt-6 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-8xl">
-              Take your<br />
-              performance to the<br />
-              <span className="text-accent">next level</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-base text-background/75 sm:text-lg">
-              Premium nutrition, supplements and healthy products designed to support your energy, strength, recovery and wellness.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button size="xl" variant="hero" asChild>
-                <Link to="/category/protein">Shop now <ArrowRight /></Link>
-              </Button>
-              <Button size="xl" variant="outline" asChild className="border-background/30 bg-background/5 text-background hover:bg-background hover:text-foreground">
-                <Link to="/category/best-sellers">View best sellers</Link>
-              </Button>
-            </div>
-            <div className="mt-10 flex items-center gap-4 text-sm text-background/70">
-              <div className="flex items-center gap-2">
-                <Stars rating={5} />
-                <span className="font-semibold text-background">4.9/5</span>
-              </div>
-              <span className="text-background/40">·</span>
-              <span>Trusted by 240k+ athletes worldwide</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* HERO CAROUSEL */}
+      {(() => {
+        const displaySlides: HeroSlide[] = slides.length
+          ? slides
+          : [{
+              id: "fallback",
+              eyebrow: "Engineered for performance",
+              title: "Take your performance to the next level",
+              subtitle: "Premium nutrition, supplements and healthy products designed to support your energy, strength, recovery and wellness.",
+              image_url: null,
+              primary_label: "Shop now",
+              primary_href: "/category/protein",
+              secondary_label: "View best sellers",
+              secondary_href: "/category/best-sellers",
+            }];
+        return (
+          <section className="relative bg-surface-darker text-background">
+            <Carousel
+              opts={{ loop: displaySlides.length > 1 }}
+              plugins={displaySlides.length > 1 ? [autoplay.current] : []}
+              setApi={setCarouselApi}
+              className="relative"
+            >
+              <CarouselContent className="ml-0">
+                {displaySlides.map((s) => (
+                  <CarouselItem key={s.id} className="pl-0">
+                    <div className="relative overflow-hidden">
+                      <img
+                        src={s.image_url || heroImage}
+                        alt={s.title}
+                        className="absolute inset-0 h-full w-full object-cover opacity-50"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/80 to-transparent" />
+                      <div className="container-x relative grid min-h-[560px] items-center py-20 lg:min-h-[680px]">
+                        <div className="max-w-2xl">
+                          {s.eyebrow && (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent">
+                              <Zap size={12} /> {s.eyebrow}
+                            </span>
+                          )}
+                          <h1 className="mt-6 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-7xl">
+                            {s.title}
+                          </h1>
+                          {s.subtitle && (
+                            <p className="mt-6 max-w-xl text-base text-background/75 sm:text-lg">
+                              {s.subtitle}
+                            </p>
+                          )}
+                          <div className="mt-8 flex flex-wrap gap-3">
+                            {s.primary_label && s.primary_href && (
+                              <Button size="xl" variant="hero" asChild>
+                                <Link to={s.primary_href}>{s.primary_label} <ArrowRight /></Link>
+                              </Button>
+                            )}
+                            {s.secondary_label && s.secondary_href && (
+                              <Button size="xl" variant="outline" asChild className="border-background/30 bg-background/5 text-background hover:bg-background hover:text-foreground">
+                                <Link to={s.secondary_href}>{s.secondary_label}</Link>
+                              </Button>
+                            )}
+                          </div>
+                          <div className="mt-10 flex items-center gap-4 text-sm text-background/70">
+                            <div className="flex items-center gap-2">
+                              <Stars rating={5} />
+                              <span className="font-semibold text-background">4.9/5</span>
+                            </div>
+                            <span className="text-background/40">·</span>
+                            <span>Trusted by 240k+ athletes worldwide</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {displaySlides.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
+                  {displaySlides.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      aria-label={`Go to slide ${i + 1}`}
+                      onClick={() => carouselApi?.scrollTo(i)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === currentSlide ? "w-8 bg-accent" : "w-4 bg-background/40 hover:bg-background/70"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </Carousel>
+          </section>
+        );
+      })()}
+
 
       {/* CATEGORIES */}
       {categories.length > 0 && (
