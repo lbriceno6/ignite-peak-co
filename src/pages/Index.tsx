@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle } from "lucide-react";
+import Autoplay from "embla-carousel-autoplay";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/ProductCard";
 import { Stars } from "@/components/Stars";
 import { goals, reviews, type Product } from "@/data/catalog";
@@ -13,6 +15,18 @@ import { useCurrency } from "@/context/CurrencyContext";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
+
+type HeroSlide = {
+  id: string;
+  eyebrow: string | null;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  primary_label: string | null;
+  primary_href: string | null;
+  secondary_label: string | null;
+  secondary_href: string | null;
+};
 
 type DbProduct = {
   id: string;
