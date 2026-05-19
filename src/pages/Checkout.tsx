@@ -87,6 +87,50 @@ const Checkout = () => {
 
   const selected = method || methods[0]?.k || "card";
   const wa = (pay["pay.confirm_whatsapp"] || "").replace(/[^0-9]/g, "");
+
+  const buildPayDetails = (m: string) => {
+    if (m === "yape" || m === "plin") {
+      const p = m === "yape" ? "pay.yape" : "pay.plin";
+      return [
+        pay[`${p}.holder`] && `Titular: ${pay[`${p}.holder`]}`,
+        pay[`${p}.phone`] && `Celular: ${pay[`${p}.phone`]}`,
+      ].filter(Boolean).join("\n");
+    }
+    if (m === "bank") {
+      return [
+        pay["pay.bank.bank_name"] && `Banco: ${pay["pay.bank.bank_name"]}`,
+        pay["pay.bank.account_number"] && `Cuenta: ${pay["pay.bank.account_number"]}`,
+        pay["pay.bank.cci"] && `CCI: ${pay["pay.bank.cci"]}`,
+        pay["pay.bank.holder"] && `Titular: ${pay["pay.bank.holder"]}`,
+      ].filter(Boolean).join("\n");
+    }
+    return "";
+  };
+
+  const buildWaMessage = (orderCode: string) => {
+    const lines = items.map((i) => `• ${i.quantity}x ${i.product.name}${[i.flavor, i.size].filter(Boolean).length ? ` (${[i.flavor, i.size].filter(Boolean).join(" · ")})` : ""} — ${format(lineSubtotal(i))}`).join("\n");
+    const det = buildPayDetails(selected);
+    const meta = METHOD_META[selected]?.l ?? selected.toUpperCase();
+    return [
+      `¡Hola! Acabo de generar el pedido *${orderCode}*.`,
+      ``,
+      `*Productos:*`,
+      lines,
+      ``,
+      `Subtotal: ${format(subtotal)}`,
+      `Envío: ${shipping === 0 ? "Gratis" : format(shipping)}`,
+      `*Total: ${format(total)}*`,
+      ``,
+      `*Método de pago:* ${meta}`,
+      det && `\n${det}`,
+      ``,
+      `Cliente: ${form.firstName} ${form.lastName} — ${form.phone}`,
+      `Envío a: ${form.address}, ${form.city}`,
+      ``,
+      `Procederé con el pago y te enviaré el comprobante. ¡Gracias!`,
+    ].filter(Boolean).join("\n");
+  };
+
   const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`¡Hola! Acabo de realizar un pago por ${format(total)} con ${selected.toUpperCase()}. Te envío el comprobante.`)}` : "";
 
   const validate = () => {
@@ -168,6 +212,15 @@ const Checkout = () => {
 
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+
+      if (wa) {
+        const msg = buildWaMessage(order.order_code);
+        const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        toast.message("Configura un WhatsApp en administración para envío automático");
+      }
+
       navigate(`/my-orders/${order.id}`);
     } catch (e: any) {
       toast.error(e?.message ?? "No se pudo procesar el pago");
