@@ -46,6 +46,8 @@ const ResubmitForm = ({ onSubmitted }: { onSubmitted: () => void }) => {
     }).eq("id", row.id);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
+    const { notifySupplierEvent } = await import("@/lib/notifySupplier");
+    notifySupplierEvent("resubmit", row.id);
     toast.success("Solicitud reenviada. Te avisaremos cuando la revisemos.");
     await refreshSupplier();
     onSubmitted();
