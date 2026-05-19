@@ -228,6 +228,29 @@ const ProductDetail = () => {
             )}
           </div>
 
+          {variants.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-bold uppercase tracking-wider">Presentación</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {variants.map((v, i) => (
+                  <button
+                    key={`${v.label}-${i}`}
+                    type="button"
+                    onClick={() => setSelectedVariant(i)}
+                    className={cn(
+                      "rounded-md border px-4 py-2 text-sm font-semibold transition-smooth",
+                      selectedVariant === i ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
+                    )}
+                  >
+                    {v.label} · {format(v.price)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+
+
           {subEnabled && (
             <div className="mt-6 space-y-2">
               <p className="text-sm font-bold uppercase tracking-wider">Compra</p>
