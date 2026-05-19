@@ -1216,6 +1216,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      supplier_owns_order: { Args: { _order_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "client"
