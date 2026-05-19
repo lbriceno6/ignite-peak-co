@@ -51,6 +51,8 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
     setRates((prev) => {
       const next = { ...prev };
       (Object.keys(CURRENCIES) as CurrencyCode[]).forEach((c) => {
+        // PEN is the base currency; its rate is always 1 and cannot be overridden.
+        if (c === "PEN") { next.PEN = 1; return; }
         if (map[rateKey(c)] != null) {
           const v = parseFloat(map[rateKey(c)]);
           if (Number.isFinite(v) && v > 0) next[c] = v;
@@ -109,7 +111,7 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
 
   const value = useMemo<Ctx>(() => {
     const meta = CURRENCIES[currency];
-    const rate = rates[currency] ?? meta.rate;
+    const rate = currency === "PEN" ? 1 : (rates[currency] ?? meta.rate);
     // Base amounts are stored in PEN (soles). Convert PEN -> selected currency.
     const convert = (penAmount: number) => penAmount * rate;
     const format = (penAmount: number) => {
