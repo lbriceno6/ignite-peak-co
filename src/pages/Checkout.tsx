@@ -57,6 +57,7 @@ const CopyableRow = ({ label, value }: { label: string; value: string }) => {
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, clear } = useCart();
+  useShippingSettings();
   const { subtotal, shipping, total } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
