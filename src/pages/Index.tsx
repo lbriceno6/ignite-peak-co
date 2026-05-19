@@ -322,7 +322,22 @@ const Home = () => {
           </section>
         );
 
-      case "goals":
+      case "goals": {
+        const displayGoals = goalCards.length
+          ? goalCards.map((g) => ({
+              key: g.id,
+              name: g.name,
+              desc: g.description ?? "",
+              href: g.cta_href || `/category/goal-${g.slug}`,
+              ctaLabel: g.cta_label,
+            }))
+          : fallbackGoals.map((g) => ({
+              key: g.slug,
+              name: g.name,
+              desc: g.desc,
+              href: `/category/goal-${g.slug}`,
+              ctaLabel: null as string | null,
+            }));
         return (
           <section key={b.id} className="container-x py-16">
             <div className="text-center">
@@ -331,24 +346,27 @@ const Home = () => {
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-10 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {goals.map((g, i) => (
+              {displayGoals.map((g, i) => (
                 <Link
-                  key={g.slug}
-                  to={`/category/goal-${g.slug}`}
+                  key={g.key}
+                  to={g.href}
                   className="group relative flex h-44 flex-col justify-between overflow-hidden rounded-lg bg-surface-darker p-5 text-background transition-smooth hover:shadow-elevated"
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
                   <span className="font-display text-6xl text-background/10">0{i + 1}</span>
                   <div className="relative">
                     <h3 className="font-display text-xl uppercase">{g.name}</h3>
-                    <p className="mt-1 text-xs text-background/60">{g.desc}</p>
-                    <ArrowRight size={16} className="mt-3 text-accent opacity-0 transition-smooth group-hover:opacity-100" />
+                    {g.desc && <p className="mt-1 text-xs text-background/60">{g.desc}</p>}
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent opacity-0 transition-smooth group-hover:opacity-100">
+                      {g.ctaLabel || "Shop"} <ArrowRight size={14} />
+                    </span>
                   </div>
                 </Link>
               ))}
             </div>
           </section>
         );
+      }
 
       case "promo":
         return (
