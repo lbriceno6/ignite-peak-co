@@ -143,6 +143,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/payments")) return get("payments", "Métodos de pago");
   if (p.startsWith("/admin/shipping")) return get("shipping", "Envíos");
   if (p.startsWith("/admin/subscription")) return get("subscription", "Suscríbete y ahorra");
+  if (p.startsWith("/admin/email")) return get("email", "Email y notificaciones");
   if (p.startsWith("/admin/blog/new")) return get("blog-new", "Nueva entrada");
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");
