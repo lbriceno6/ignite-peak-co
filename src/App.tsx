@@ -9,6 +9,18 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { ReferralTracker } from "@/components/ReferralTracker";
+import { ResellerRoute } from "@/components/ResellerRoute";
+import { ResellerLayout } from "@/components/reseller/ResellerLayout";
+import ResellerProgram from "./pages/ResellerProgram.tsx";
+import ResellerDashboard from "./pages/reseller/ResellerDashboard.tsx";
+import ResellerLink from "./pages/reseller/ResellerLink.tsx";
+import ResellerSales from "./pages/reseller/ResellerSales.tsx";
+import ResellerPayouts from "./pages/reseller/ResellerPayouts.tsx";
+import ResellerSettings from "./pages/reseller/ResellerSettings.tsx";
+import AdminResellers from "./pages/admin/AdminResellers.tsx";
+import AdminResellerTiers from "./pages/admin/AdminResellerTiers.tsx";
+import AdminResellerPayouts from "./pages/admin/AdminResellerPayouts.tsx";
 import Index from "./pages/Index.tsx";
 import Category from "./pages/Category.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
@@ -81,6 +93,7 @@ const App = () => (
           <CurrencyProvider>
           <ThemeProvider>
             <ScrollToTop />
+            <ReferralTracker />
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
@@ -135,6 +148,16 @@ const App = () => (
               <Route path="profile" element={<SupplierProfile />} />
             </Route>
 
+            {/* Reseller program */}
+            <Route path="/programa-revendedor" element={<ResellerProgram />} />
+            <Route path="/reseller" element={<ResellerRoute><ResellerLayout /></ResellerRoute>}>
+              <Route index element={<ResellerDashboard />} />
+              <Route path="link" element={<ResellerLink />} />
+              <Route path="sales" element={<ResellerSales />} />
+              <Route path="payouts" element={<ResellerPayouts />} />
+              <Route path="settings" element={<ResellerSettings />} />
+            </Route>
+
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
@@ -164,6 +187,9 @@ const App = () => (
               <Route path="subscription" element={<AdminSubscription />} />
               <Route path="email" element={<AdminEmail />} />
               <Route path="theme" element={<AdminTheme />} />
+              <Route path="resellers" element={<AdminResellers />} />
+              <Route path="reseller-tiers" element={<AdminResellerTiers />} />
+              <Route path="reseller-payouts" element={<AdminResellerPayouts />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

@@ -1,17 +1,34 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag, Repeat } from "lucide-react";
+import { toast } from "sonner";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag, Repeat, Check, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
+import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
   useShippingSettings();
-  const { subtotal, shipping, total } = cartTotals(items);
+  const { subtotal: rawSubtotal, shipping, total: rawTotal } = cartTotals(items);
   const { format } = useCurrency();
+  const [referral, setReferral] = useState<StoredReferral | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  useEffect(() => { setReferral(getStoredReferral()); }, []);
+  const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
+  const subtotal = rawSubtotal - discount;
+  const total = rawTotal - discount;
+
+  const apply = async () => {
+    const r = await applyReferralCode(codeInput);
+    if (!r) return toast.error("Código no válido");
+    setReferral(r); setCodeInput("");
+    toast.success(`¡${r.customer_discount_percent}% de descuento aplicado!`);
+  };
+  const clear = () => { clearReferral(); setReferral(null); toast.message("Código removido"); };
 
   if (items.length === 0) {
     return (

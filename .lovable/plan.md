@@ -1,91 +1,102 @@
-Convertiré la tienda en un **marketplace multi-vendedor** con auto-registro de proveedores (con aprobación), publicación directa, pedido único con comisión, y vista pública por proveedor.
+# Plan: Módulo Revendedor
 
-## 1. Base de datos (migración)
+Sistema híbrido (link de afiliado + código de descuento), auto-registro inmediato, comisión por niveles (Bronce/Plata/Oro) y pago a elección (efectivo o saldo en tienda).
 
-**Rol nuevo y suppliers ampliado**
-- Añadir valor `'supplier'` al enum `public.app_role`.
-- Ampliar tabla `suppliers` con: `user_id uuid UNIQUE` (vincula al usuario auth), `slug text UNIQUE`, `status text` (`pending` / `approved` / `suspended`, default `pending`), `logo_url`, `description text`, `commission_percent numeric default 15`, `payout_method text`, `payout_account text`, `tax_id text`.
-- Crear "Proveedor casa" Nutribatidos (`is_house=true`) y reasignar todos los productos sin proveedor a este registro.
+## 1. Base de datos
 
-**Productos**
-- Mantener `supplier_id` (ya existe). Hacerlo `NOT NULL` tras la migración de datos.
-- Reescribir RLS de `products`:
-  - Público: ver activos cuyo supplier esté `approved`.
-  - Admin: todo.
-  - Supplier aprobado: CRUD sobre filas con su `supplier_id` (via security-definer `current_supplier_id()`).
+**Nuevas tablas:**
+- `reseller_tiers`: `name`, `min_sales` (umbral $), `commission_percent`, `customer_discount_percent` (descuento que da el código al cliente), `sort_order`. Seed inicial: Bronce 0$/5%, Plata 500$/8%, Oro 2000$/12%.
+- `resellers`: `user_id` (UNIQUE), `code` (UNIQUE, generado), `link_slug` (UNIQUE), `tier_id`, `total_sales` (acum.), `balance_cash` (a pagar), `balance_credit` (saldo tienda), `payout_method` ('cash'|'credit'|'choose'), `payout_account` (banco/wallet), `is_active`.
+- `reseller_referrals`: `reseller_id`, `order_id`, `source` ('link'|'code'), `subtotal`, `commission_percent`, `commission_amount`, `status` ('pending'|'approved'|'paid'|'cancelled').
+- `reseller_payouts`: `reseller_id`, `amount`, `method` ('cash'|'credit'), `status` ('requested'|'approved'|'paid'|'rejected'), `notes`, `processed_by`, `processed_at`.
 
-**Order items con comisión**
-- Añadir a `order_items`: `supplier_id uuid`, `commission_percent numeric`, `commission_amount numeric`, `supplier_payout numeric`, `fulfillment_status text default 'pending'` (`pending` / `shipped` / `delivered`), `tracking_number text`.
-- Al insertar un item se calcula y se persiste comisión (vía trigger BEFORE INSERT que toma `commission_percent` actual del supplier).
-- RLS: supplier puede `SELECT` y `UPDATE fulfillment_status / tracking_number` de items con su `supplier_id`. Admin lo ve todo.
+**Cambios a tablas existentes:**
+- `orders`: agregar `reseller_id`, `referral_source`, `reseller_discount_applied`, `store_credit_used`.
 
-**Funciones de seguridad**
-- `current_supplier_id()` SECURITY DEFINER → devuelve el `suppliers.id` aprobado del `auth.uid()` actual.
-- `is_supplier()` helper.
-- `handle_new_user` no cambia (todos siguen creándose como `client`; el rol `supplier` se asigna al aprobar).
+**Funciones/triggers:**
+- `recalc_reseller_tier(reseller_id)`: recalcula tier según `total_sales`.
+- Trigger en `orders` cuando `status` pasa a `confirmed`/`delivered`: crea fila en `reseller_referrals` con la comisión, suma a `total_sales`, recalcula tier, acumula `balance_cash` o `balance_credit` según `payout_method`.
+- Función `apply_reseller_code(code)`: devuelve descuento aplicable.
 
-## 2. Auth y rutas
+**RLS:**
+- `resellers`: el dueño ve/edita lo suyo; admin todo.
+- `reseller_referrals`: dueño ve las suyas; admin todo.
+- `reseller_payouts`: dueño crea solicitudes y ve las suyas; admin aprueba.
+- `reseller_tiers`: lectura pública (para mostrar la tabla); escritura admin.
 
-- `useAuth`: añadir `isSupplier`, `supplierId`, `supplierStatus`.
-- Nuevo guard `SupplierRoute` (requiere rol `supplier` y status `approved`; si está `pending` muestra pantalla "Tu cuenta está en revisión").
-- Rutas nuevas en `App.tsx`:
-  - `/supplier/signup` — formulario público (email, password, business_name, contact_name, phone). Crea usuario + fila en `suppliers` con `status='pending'` y `user_id`.
-  - `/supplier` (layout con sidebar) → dashboard
-  - `/supplier/products`, `/supplier/products/new`, `/supplier/products/:id/edit`
-  - `/supplier/orders` (lista de items vendidos)
-  - `/supplier/profile` (logo, descripción, slug, datos bancarios/fiscales)
-  - `/proveedor/:slug` — escaparate público
+## 2. Auto-registro (cliente)
 
-## 3. Panel del proveedor (UI)
+- Botón **"Activar plan revendedor"** en `MyProfile` → llama RPC que crea fila en `resellers` con código aleatorio (6 chars) y `link_slug` (uuid corto).
+- Nuevo `useReseller()` hook expone `reseller`, `isReseller`.
 
-- `SupplierLayout` similar a `AdminLayout` con sidebar: Dashboard, Productos, Pedidos, Perfil.
-- **Dashboard**: ventas del mes, comisión pagada, pedidos pendientes de envío, productos publicados.
-- **Productos**: tabla CRUD reutilizando los componentes existentes de `AdminProducts` adaptados (sin selector de supplier — fijado a su propio id).
-- **Pedidos**: tabla de `order_items` con info del cliente (nombre/dirección), botón "Marcar enviado" + campo tracking. Notificación email cuando entra un pedido nuevo (reusa infraestructura `enqueue_email`).
-- **Perfil**: edita logo (upload a bucket `supplier-logos` público), descripción, slug, datos de pago, datos fiscales.
+## 3. Panel del revendedor
 
-## 4. Admin
+Nueva ruta `/reseller` (protegida, sólo si tiene fila en `resellers`) con sidebar similar a supplier:
 
-- Mejorar `/admin/suppliers`:
-  - Columna `status` con acciones **Aprobar** / **Suspender** / **Rechazar**.
-  - Aprobar = `status='approved'` + insertar `user_roles(role='supplier')` para el `user_id`.
-  - Editar `commission_percent` por proveedor.
-- `/admin/orders`: mostrar columna "proveedor" en items y resumen de comisión.
+- **Dashboard**: tarjetas con tier actual, próximo tier (con barra de progreso), ventas acumuladas, comisión total ganada, balance disponible.
+- **Mi link y código**: muestra link `https://.../?ref=LINK_SLUG`, código `CODE` con botones copiar/compartir (WhatsApp, X, FB). QR del link.
+- **Ventas**: tabla de `reseller_referrals` con pedido, fecha, fuente, comisión, estado.
+- **Pagos**: botón "Solicitar retiro" (elige monto y método cash/credit), historial de `reseller_payouts`.
+- **Configuración**: método de pago preferido y datos bancarios/wallet.
 
-## 5. Vista pública
+## 4. Tracking en la tienda
 
-- **`/proveedor/:slug`** — hero con logo + descripción + grid de sus productos activos.
-- **Badge "Vendido por X"** en `ProductCard` y `ProductDetail` (link a la página del proveedor).
-- **Filtro "Vendido por"** en `Category` y `Search` (chips/Select con proveedores que tengan productos en el set).
-- Añadir link al footer "¿Eres marca? Vende con nosotros" → `/supplier/signup`.
+- Componente `ReferralTracker` montado en App.tsx: lee `?ref=` de la URL, lo guarda en `localStorage` (cookie 30 días).
+- Componente `ResellerCodeInput` en `Cart`/`Checkout`: el cliente puede pegar un código manualmente.
+- En `Checkout`, al crear la orden:
+  - Si hay `ref` válido (link o código) → `orders.reseller_id`, `referral_source`, y aplica `customer_discount_percent` si es código.
+  - Si el cliente tiene `balance_credit` propio (es revendedor también) → opción "Usar mi saldo en tienda" descuenta hasta el total.
 
-## 6. Checkout y emails
+## 5. Admin
 
-- En `Checkout`, al crear `order_items`, completar `supplier_id` desde `products.supplier_id`. El trigger calcula comisión.
-- Email transaccional al proveedor cuando un pedido contiene sus productos (encolar tras crear el pedido). Reutiliza `enqueue_email` con un nuevo template `supplier_new_order`.
+- `/admin/resellers`: tabla con todos, filtros por tier, búsqueda, ver detalle (ventas, balance, ajustar tier manual).
+- `/admin/reseller-tiers`: CRUD de niveles (umbral, % comisión, % descuento).
+- `/admin/reseller-payouts`: bandeja de solicitudes, aprobar/rechazar/marcar pagado. Al aprobar 'credit' acredita `balance_credit` y descuenta `balance_cash` automáticamente.
+- Sidebar admin: nueva sección **"Revendedores"** agrupando estas 3 vistas.
 
-## 7. Storage
+## 6. Vista pública / marketing
 
-- Nuevo bucket público `supplier-logos`. RLS: lectura pública, escritura solo por el supplier dueño (o admin) — path `{supplier_id}/...`.
+- Página `/programa-revendedor` (landing): cómo funciona, tabla de niveles dinámica desde `reseller_tiers`, CTA "Activar mi plan" (lleva a auth si no logueado, sino a `/reseller`).
+- Link en footer "Gana con nosotros".
+
+## Detalles técnicos
+
+**Cálculo de comisión** (en trigger):
+```
+commission = subtotal * tier.commission_percent / 100
+```
+El descuento del cliente con código se aplica sobre `subtotal` antes de comisión, así no se canibalizan.
+
+**Distribución del balance**:
+- `payout_method='cash'` → todo a `balance_cash`
+- `payout_method='credit'` → todo a `balance_credit`
+- `payout_method='choose'` → queda en `balance_cash` y el revendedor decide al solicitar
+
+**Uso de saldo en tienda** (`balance_credit`): se descuenta al confirmar el pedido vía trigger.
+
+**Códigos únicos**: generados con `substring(md5(random()::text), 1, 6)` reintentando si choca.
 
 ## Archivos a crear/tocar
 
-- `supabase/migrations/...` — todo el bloque schema + RLS + bucket + seed Nutribatidos
-- `src/context/AuthContext.tsx` — exponer `isSupplier`, `supplierId`, `supplierStatus`
-- `src/components/SupplierRoute.tsx` (nuevo)
-- `src/components/supplier/SupplierLayout.tsx` (nuevo)
-- `src/pages/supplier/SupplierSignup.tsx`, `SupplierDashboard.tsx`, `SupplierProducts.tsx`, `SupplierProductForm.tsx`, `SupplierOrders.tsx`, `SupplierProfile.tsx`, `SupplierPending.tsx` (nuevos)
-- `src/pages/SupplierStorefront.tsx` (nuevo, ruta `/proveedor/:slug`)
-- `src/pages/admin/AdminSuppliers.tsx` — añadir acciones aprobar/suspender + comisión
-- `src/pages/Category.tsx`, `src/pages/Search.tsx` — filtro "Vendido por"
-- `src/components/ProductCard.tsx`, `src/pages/ProductDetail.tsx` — badge proveedor
-- `src/pages/Checkout.tsx` — propagar `supplier_id` al insertar items
-- `src/App.tsx` — registrar nuevas rutas
-- `src/components/Footer.tsx` — link "Vende con nosotros"
+- `supabase/migrations/..._reseller_module.sql` (todo el bloque)
+- `src/context/AuthContext.tsx` (exponer `isReseller`, `resellerId`)
+- `src/hooks/useReseller.ts` (nuevo)
+- `src/components/ResellerRoute.tsx` (nuevo)
+- `src/components/reseller/ResellerLayout.tsx` (nuevo)
+- `src/components/ReferralTracker.tsx` (nuevo, montado en App)
+- `src/pages/reseller/ResellerDashboard.tsx`, `ResellerLink.tsx`, `ResellerSales.tsx`, `ResellerPayouts.tsx`, `ResellerSettings.tsx` (nuevos)
+- `src/pages/ResellerProgram.tsx` (landing, nuevo)
+- `src/pages/admin/AdminResellers.tsx`, `AdminResellerTiers.tsx`, `AdminResellerPayouts.tsx` (nuevos)
+- `src/pages/MyProfile.tsx` (botón activar)
+- `src/pages/Checkout.tsx` (aplicar referido y saldo)
+- `src/pages/Cart.tsx` (input código)
+- `src/App.tsx` (rutas + ReferralTracker)
+- `src/components/admin/AdminLayout.tsx` (menú Revendedores)
+- `src/components/Footer.tsx` (link al programa)
 
-## Lo que NO entra en este sprint (avísame si lo quieres después)
+## Fuera de alcance (avísame si lo quieres después)
 
-- Payouts automáticos vía Stripe Connect (la liquidación es manual: el admin ve `supplier_payout` por pedido).
-- Chat cliente↔proveedor.
-- Devoluciones gestionadas por el proveedor.
-- Valoraciones/rating del proveedor.
+- Pagos automáticos a banco/Stripe Connect (el admin marca como pagado manualmente).
+- Sub-revendedores / multinivel (MLM).
+- Notificaciones email a revendedor por cada venta (se pueden agregar después con la infra existente de `enqueue_email`).
+- Productos exclusivos por tier.

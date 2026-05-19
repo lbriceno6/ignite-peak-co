@@ -104,6 +104,9 @@ const defaultSections = [
       { key: "shipping", to: "/admin/shipping", label: "Envíos", icon: Truck },
       { key: "subscription", to: "/admin/subscription", label: "Suscríbete y ahorra", icon: Repeat },
       { key: "email", to: "/admin/email", label: "Email y notificaciones", icon: Mail },
+      { key: "resellers", to: "/admin/resellers", label: "Revendedores", icon: Users },
+      { key: "reseller-tiers", to: "/admin/reseller-tiers", label: "Niveles revendedor", icon: Tags },
+      { key: "reseller-payouts", to: "/admin/reseller-payouts", label: "Pagos revendedor", icon: Wallet },
     ],
   },
   {
