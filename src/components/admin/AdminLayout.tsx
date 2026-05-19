@@ -27,6 +27,7 @@ import {
   Check,
   Wallet,
   Instagram,
+  Repeat,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +99,7 @@ const defaultSections = [
       { key: "customers", to: "/admin/customers", label: "Clientes", icon: Users },
       { key: "payments", to: "/admin/payments", label: "Métodos de pago", icon: Wallet },
       { key: "shipping", to: "/admin/shipping", label: "Envíos", icon: Truck },
+      { key: "subscription", to: "/admin/subscription", label: "Suscríbete y ahorra", icon: Repeat },
     ],
   },
   {
@@ -139,6 +141,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/customers")) return get("customers", "Clientes");
   if (p.startsWith("/admin/payments")) return get("payments", "Métodos de pago");
   if (p.startsWith("/admin/shipping")) return get("shipping", "Envíos");
+  if (p.startsWith("/admin/subscription")) return get("subscription", "Suscríbete y ahorra");
   if (p.startsWith("/admin/blog/new")) return get("blog-new", "Nueva entrada");
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");

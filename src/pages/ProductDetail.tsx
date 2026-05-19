@@ -13,6 +13,7 @@ import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
 import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
 
 type DbProduct = {
@@ -79,6 +80,7 @@ const ProductDetail = () => {
   const { slug } = useParams();
   const { add, toggleWish, wishlist } = useCart();
   const { format } = useCurrency();
+  const subSettings = useSubscriptionSettings();
   const [loading, setLoading] = useState(true);
   const [dbp, setDbp] = useState<DbProduct | null>(null);
   const [related, setRelated] = useState<DbProduct[]>([]);
@@ -140,9 +142,9 @@ const ProductDetail = () => {
   const mainImg = resolveProductImage(dbp.main_image);
   const galleryUrls = parseList(dbp.gallery_images).map((u) => resolveProductImage(u));
   const gallery = [mainImg, ...galleryUrls].filter(Boolean);
-  const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : [30, 60, 90]);
-  const subDiscount = Number(dbp.subscription_discount_percent ?? 10);
-  const subEnabled = !!dbp.subscription_enabled;
+  const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : subSettings.defaultIntervals);
+  const subDiscount = Number(dbp.subscription_discount_percent ?? subSettings.defaultDiscount) || subSettings.defaultDiscount;
+  const subEnabled = !!dbp.subscription_enabled && subSettings.enabled;
   const variants: { label: string; price: number }[] = Array.isArray(dbp.size_variants)
     ? (dbp.size_variants as any[])
         .map((v) => ({ label: String(v?.label ?? ""), price: Number(v?.price ?? 0) }))
@@ -271,25 +273,37 @@ const ProductDetail = () => {
                 <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "subscription"} onChange={() => setPurchaseMode("subscription")} />
                 <div className="flex-1">
                   <p className="font-semibold flex items-center gap-2">
-                    <Repeat size={14} className="text-accent" /> Suscríbete y ahorra {subDiscount}%
+                    <Repeat size={14} className="text-accent" /> {subSettings.label} {subDiscount}%
                   </p>
-                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · cancela cuando quieras</p>
+                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · {subSettings.cancelNote}</p>
                   {purchaseMode === "subscription" && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {subIntervals.map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => setIntervalDays(d)}
-                          className={cn(
-                            "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
-                            interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
-                          )}
-                        >
-                          Cada {d} días
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {subIntervals.map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setIntervalDays(d)}
+                            className={cn(
+                              "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
+                              interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
+                            )}
+                          >
+                            Cada {d} días
+                          </button>
+                        ))}
+                      </div>
+                      {subSettings.benefits.length > 0 && (
+                        <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                          {subSettings.benefits.map((b, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
                   )}
                 </div>
               </label>
