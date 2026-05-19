@@ -92,10 +92,17 @@ export const ProductCard = ({ product }: { product: Product }) => {
           <span>({product.reviews})</span>
         </div>
         <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div className="flex items-baseline gap-2">
-            <span className="font-display text-2xl">{format(product.price)}</span>
-            {product.oldPrice && (
-              <span className="text-sm text-muted-foreground line-through">{format(product.oldPrice)}</span>
+          <div className="flex flex-col">
+            {product.oldPrice ? (
+              <>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-display text-2xl">{format(product.price)}</span>
+                  <span className="text-sm text-muted-foreground line-through">{format(product.oldPrice)}</span>
+                </div>
+              </>
+            ) : (
+              <span className="font-display text-2xl">{format(product.price)}</span>
             )}
           </div>
           <Button
