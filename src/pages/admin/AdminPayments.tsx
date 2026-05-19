@@ -24,7 +24,7 @@ const KEYS = [
   "pay.plin.enabled", "pay.plin.holder", "pay.plin.phone", "pay.plin.qr_url", "pay.plin.note",
   "pay.bank.enabled", "pay.bank.bank_name", "pay.bank.account_type", "pay.bank.account_number",
   "pay.bank.cci", "pay.bank.holder", "pay.bank.document", "pay.bank.note",
-  "pay.card.enabled",
+  "pay.card.enabled", "pay.card.brands", "pay.card.provider", "pay.card.note",
   "pay.cod.enabled", "pay.cod.note",
   "pay.confirm_whatsapp",
 ] as const;
