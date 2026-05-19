@@ -269,6 +269,39 @@ export type Database = {
         }
         Relationships: []
       }
+      nav_links: {
+        Row: {
+          created_at: string
+          href: string
+          id: string
+          is_active: boolean
+          label: string
+          open_in_new_tab: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          href: string
+          id?: string
+          is_active?: boolean
+          label: string
+          open_in_new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          href?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          open_in_new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string
