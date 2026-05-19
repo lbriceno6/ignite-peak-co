@@ -65,6 +65,9 @@ const Checkout = () => {
   const { format } = useCurrency();
   const { user } = useAuth();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
+  const [matchedZone, setMatchedZone] = useState<ReturnType<typeof matchZone>>(null);
+  const shipping = computeZoneShipping(matchedZone, subtotal, shippingSettings);
+  const total = subtotal + shipping;
 
   const [form, setForm] = useState({
     email: user?.email ?? "",
