@@ -95,6 +95,7 @@ const defaultSections = [
     items: [
       { key: "orders", to: "/admin/orders", label: "Pedidos", icon: ShoppingBag },
       { key: "customers", to: "/admin/customers", label: "Clientes", icon: Users },
+      { key: "payments", to: "/admin/payments", label: "Métodos de pago", icon: Wallet },
     ],
   },
   {
