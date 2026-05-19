@@ -133,6 +133,41 @@ export default function AdminShipping() {
     toast.success("Eliminado"); loadAll();
   };
 
+  // --- Zone handlers ---
+  const openNewZ = () => { setEditingZ(null); setFz(emptyZ); setOpenZ(true); };
+  const openEditZ = (z: Zone) => { setEditingZ(z); setFz({ ...z, citiesText: (z.cities || []).join(", ") }); setOpenZ(true); };
+  const setZ = (k: string, v: any) => setFz((s: any) => ({ ...s, [k]: v }));
+
+  const saveZone = async () => {
+    if (!fz.name?.trim()) { toast.error("El nombre de la zona es obligatorio"); return; }
+    setSavingZ(true);
+    const cities = String(fz.citiesText ?? (fz.cities || []).join(","))
+      .split(",").map((c: string) => c.trim()).filter(Boolean);
+    const payload: any = {
+      name: fz.name,
+      cities,
+      cost: Number(fz.cost) || 0,
+      estimated_days: fz.estimated_days || null,
+      free_threshold: fz.free_threshold === "" || fz.free_threshold == null ? null : Number(fz.free_threshold),
+      sort_order: Number(fz.sort_order) || 0,
+      is_active: !!fz.is_active,
+    };
+    const res = editingZ
+      ? await sb.from("shipping_zones").update(payload).eq("id", editingZ.id)
+      : await sb.from("shipping_zones").insert(payload);
+    setSavingZ(false);
+    if (res.error) { toast.error(res.error.message); return; }
+    toast.success(editingZ ? "Zona actualizada" : "Zona creada");
+    setOpenZ(false); loadAll();
+  };
+
+  const removeZ = async (z: Zone) => {
+    if (!confirm(`¿Eliminar la zona "${z.name}"?`)) return;
+    const { error } = await sb.from("shipping_zones").delete().eq("id", z.id);
+    if (error) { toast.error(error.message); return; }
+    toast.success("Zona eliminada"); loadAll();
+  };
+
   const F = ({ k, label, area, type = "text" }: { k: string; label: string; area?: boolean; type?: string }) => (
     <div>
       <Label className="text-xs">{label}</Label>
