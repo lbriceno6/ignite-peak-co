@@ -9,8 +9,8 @@ type Order = any;
 type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
 
 const statusLabel: Record<string, string> = {
-  pending: "Pending", confirmed: "Confirmed", preparing: "In preparation",
-  shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled",
+  pending: "Pendiente", confirmed: "Confirmado", preparing: "En preparación",
+  shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
 };
 
 const OrderDetail = () => {
@@ -30,22 +30,22 @@ const OrderDetail = () => {
     })();
   }, [id]);
 
-  if (loading) return <Layout><div className="container-x py-20 text-center text-muted-foreground">Loading…</div></Layout>;
-  if (!order) return <Layout><div className="container-x py-20 text-center">Order not found. <Link to="/my-orders" className="text-accent">Back</Link></div></Layout>;
+  if (loading) return <Layout><div className="container-x py-20 text-center text-muted-foreground">Cargando…</div></Layout>;
+  if (!order) return <Layout><div className="container-x py-20 text-center">Pedido no encontrado. <Link to="/my-orders" className="text-accent">Volver</Link></div></Layout>;
 
   return (
     <Layout>
       <div className="container-x py-12 max-w-4xl">
-        <Link to="/my-orders" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">← All orders</Link>
+        <Link to="/my-orders" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">← Todos los pedidos</Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="font-display text-3xl uppercase">Order {order.order_code}</h1>
+          <h1 className="font-display text-3xl uppercase">Pedido {order.order_code}</h1>
           <Badge variant="secondary">{statusLabel[order.status] ?? order.status}</Badge>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">Placed on {new Date(order.created_at).toLocaleString()}</p>
+        <p className="text-sm text-muted-foreground mt-1">Realizado el {new Date(order.created_at).toLocaleString()}</p>
 
         <div className="grid gap-6 mt-8 lg:grid-cols-[1fr_320px]">
           <div className="rounded-lg border border-border">
-            <div className="border-b border-border px-5 py-3 font-display uppercase">Products</div>
+            <div className="border-b border-border px-5 py-3 font-display uppercase">Productos</div>
             <ul>
               {items.map((it) => (
                 <li key={it.id} className="flex items-center gap-4 px-5 py-4 border-b border-border last:border-0">
@@ -53,25 +53,25 @@ const OrderDetail = () => {
                   <div className="flex-1">
                     <p className="font-medium">{it.product_name}</p>
                     {it.variant && <p className="text-xs text-muted-foreground">{it.variant}</p>}
-                    <p className="text-xs text-muted-foreground">Qty: {it.quantity}</p>
+                    <p className="text-xs text-muted-foreground">Cant: {it.quantity}</p>
                   </div>
                   <p className="font-semibold">{format(it.unit_price * it.quantity)}</p>
                 </li>
               ))}
-              {items.length === 0 && <li className="px-5 py-6 text-sm text-muted-foreground">No items</li>}
+              {items.length === 0 && <li className="px-5 py-6 text-sm text-muted-foreground">Sin artículos</li>}
             </ul>
           </div>
 
           <aside className="space-y-6">
             <div className="rounded-lg border border-border p-5">
-              <h3 className="font-display uppercase mb-3">Summary</h3>
+              <h3 className="font-display uppercase mb-3">Resumen</h3>
               <div className="flex justify-between text-sm"><span>Subtotal</span><span>{format(Number(order.subtotal))}</span></div>
-              <div className="flex justify-between text-sm mt-1"><span>Shipping</span><span>{format(Number(order.shipping))}</span></div>
+              <div className="flex justify-between text-sm mt-1"><span>Envío</span><span>{format(Number(order.shipping))}</span></div>
               <div className="flex justify-between font-bold mt-3 pt-3 border-t border-border"><span>Total</span><span>{format(Number(order.total))}</span></div>
-              <p className="mt-3 text-xs text-muted-foreground capitalize">Payment: {order.payment_method}</p>
+              <p className="mt-3 text-xs text-muted-foreground capitalize">Pago: {order.payment_method}</p>
             </div>
             <div className="rounded-lg border border-border p-5 text-sm">
-              <h3 className="font-display uppercase mb-3">Shipping</h3>
+              <h3 className="font-display uppercase mb-3">Envío</h3>
               <p>{order.shipping_name}</p>
               <p>{order.shipping_address}</p>
               <p>{order.shipping_postal_code} {order.shipping_city}</p>

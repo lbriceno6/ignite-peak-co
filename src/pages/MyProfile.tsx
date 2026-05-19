@@ -49,45 +49,45 @@ const MyProfile = () => {
     if (error) return toast.error(error.message);
     setProfile({ ...(profile as Profile), ...form } as Profile);
     setEditing(false);
-    toast.success("Profile updated");
+    toast.success("Perfil actualizado");
   };
 
-  if (loading) return <Layout><div className="container-x py-20 text-center text-muted-foreground">Loading…</div></Layout>;
+  if (loading) return <Layout><div className="container-x py-20 text-center text-muted-foreground">Cargando…</div></Layout>;
 
   return (
     <Layout>
       <div className="container-x py-12 max-w-3xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="font-display text-4xl uppercase">My profile</h1>
+          <h1 className="font-display text-4xl uppercase">Mi perfil</h1>
           <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm"><Link to="/my-orders"><Package size={16}/> Orders</Link></Button>
-            <Button onClick={signOut} variant="ghost" size="sm"><LogOut size={16}/> Sign out</Button>
+            <Button asChild variant="outline" size="sm"><Link to="/my-orders"><Package size={16}/> Pedidos</Link></Button>
+            <Button onClick={signOut} variant="ghost" size="sm"><LogOut size={16}/> Cerrar sesión</Button>
           </div>
         </div>
 
         <div className="rounded-lg border border-border p-6 bg-card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="font-display text-xl uppercase">Personal information</h2>
+            <h2 className="font-display text-xl uppercase">Información personal</h2>
             {!editing ? (
-              <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil size={14}/> Edit</Button>
+              <Button size="sm" variant="outline" onClick={() => setEditing(true)}><Pencil size={14}/> Editar</Button>
             ) : (
               <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={() => { setForm(profile ?? {}); setEditing(false); }}><X size={14}/> Cancel</Button>
-                <Button size="sm" onClick={save}><Save size={14}/> Save</Button>
+                <Button size="sm" variant="ghost" onClick={() => { setForm(profile ?? {}); setEditing(false); }}><X size={14}/> Cancelar</Button>
+                <Button size="sm" onClick={save}><Save size={14}/> Guardar</Button>
               </div>
             )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Full name" value={form.full_name} editing={editing} onChange={(v) => setForm({ ...form, full_name: v })} />
-            <Field label="Email" value={profile?.email} editing={false} onChange={() => {}} />
-            <Field label="Phone" value={form.phone} editing={editing} onChange={(v) => setForm({ ...form, phone: v })} />
-            <Field label="Address" value={form.address} editing={editing} onChange={(v) => setForm({ ...form, address: v })} />
-            <Field label="City" value={form.city} editing={editing} onChange={(v) => setForm({ ...form, city: v })} />
-            <Field label="Postal code" value={form.postal_code} editing={editing} onChange={(v) => setForm({ ...form, postal_code: v })} />
-            <Field label="Country" value={form.country} editing={editing} onChange={(v) => setForm({ ...form, country: v })} />
+            <Field label="Nombre completo" value={form.full_name} editing={editing} onChange={(v) => setForm({ ...form, full_name: v })} />
+            <Field label="Correo" value={profile?.email} editing={false} onChange={() => {}} />
+            <Field label="Teléfono" value={form.phone} editing={editing} onChange={(v) => setForm({ ...form, phone: v })} />
+            <Field label="Dirección" value={form.address} editing={editing} onChange={(v) => setForm({ ...form, address: v })} />
+            <Field label="Ciudad" value={form.city} editing={editing} onChange={(v) => setForm({ ...form, city: v })} />
+            <Field label="Código postal" value={form.postal_code} editing={editing} onChange={(v) => setForm({ ...form, postal_code: v })} />
+            <Field label="País" value={form.country} editing={editing} onChange={(v) => setForm({ ...form, country: v })} />
             <div>
-              <Label className="text-xs text-muted-foreground uppercase">Member since</Label>
+              <Label className="text-xs text-muted-foreground uppercase">Miembro desde</Label>
               <p className="mt-1 font-medium">{profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : "—"}</p>
             </div>
           </div>

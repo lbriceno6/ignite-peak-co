@@ -27,43 +27,43 @@ const Checkout = () => {
   return (
     <Layout>
       <div className="container-x py-10">
-        <h1 className="font-display text-4xl uppercase sm:text-5xl">Checkout</h1>
+        <h1 className="font-display text-4xl uppercase sm:text-5xl">Pagar</h1>
         <div className="mt-6 flex flex-wrap items-center gap-6">
-          <Step num={1} label="Information" active={step === 1} done={step > 1} />
+          <Step num={1} label="Información" active={step === 1} done={step > 1} />
           <span className="hidden h-px w-10 bg-border sm:block" />
-          <Step num={2} label="Shipping" active={step === 2} done={step > 2} />
+          <Step num={2} label="Envío" active={step === 2} done={step > 2} />
           <span className="hidden h-px w-10 bg-border sm:block" />
-          <Step num={3} label="Payment" active={step === 3} done={step > 3} />
+          <Step num={3} label="Pago" active={step === 3} done={step > 3} />
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-6">
             <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase">Contact</h3>
+              <h3 className="font-display text-xl uppercase">Contacto</h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div><Label>Email</Label><Input type="email" placeholder="you@example.com" className="mt-1.5" /></div>
-                <div><Label>Phone</Label><Input type="tel" placeholder="+1 (555) 555-5555" className="mt-1.5" /></div>
+                <div><Label>Correo</Label><Input type="email" placeholder="tu@correo.com" className="mt-1.5" /></div>
+                <div><Label>Teléfono</Label><Input type="tel" placeholder="+51 999 999 999" className="mt-1.5" /></div>
               </div>
             </section>
 
             <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase">Shipping address</h3>
+              <h3 className="font-display text-xl uppercase">Dirección de envío</h3>
               <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div><Label>First name</Label><Input className="mt-1.5" /></div>
-                <div><Label>Last name</Label><Input className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>Address</Label><Input className="mt-1.5" /></div>
-                <div><Label>City</Label><Input className="mt-1.5" /></div>
-                <div><Label>Postal code</Label><Input className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>Country</Label><Input className="mt-1.5" defaultValue="Spain" /></div>
+                <div><Label>Nombre</Label><Input className="mt-1.5" /></div>
+                <div><Label>Apellido</Label><Input className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>Dirección</Label><Input className="mt-1.5" /></div>
+                <div><Label>Ciudad</Label><Input className="mt-1.5" /></div>
+                <div><Label>Código postal</Label><Input className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>País</Label><Input className="mt-1.5" defaultValue="Perú" /></div>
               </div>
             </section>
 
             <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Shipping method</h3>
+              <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Método de envío</h3>
               <RadioGroup defaultValue="standard" className="mt-4 space-y-2">
                 {[
-                  { v: "standard", t: "Standard delivery", d: "2–3 business days", p: `Free over ${format(50)}` },
-                  { v: "express", t: "Express delivery", d: "Next business day", p: format(7.9) },
+                  { v: "standard", t: "Envío estándar", d: "2–3 días hábiles", p: `Gratis sobre ${format(50)}` },
+                  { v: "express", t: "Envío exprés", d: "Siguiente día hábil", p: format(7.9) },
                 ].map((o) => (
                   <label key={o.v} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
                     <RadioGroupItem value={o.v} />
@@ -78,29 +78,29 @@ const Checkout = () => {
             </section>
 
             <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Payment</h3>
+              <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Pago</h3>
               <RadioGroup defaultValue="card" className="mt-4 space-y-2">
-                {["Card", "PayPal", "Apple Pay", "Bank transfer"].map((m) => (
-                  <label key={m} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
-                    <RadioGroupItem value={m.toLowerCase()} />
-                    <span className="font-medium">{m}</span>
+                {[{k:"card",l:"Tarjeta"},{k:"paypal",l:"PayPal"},{k:"apple",l:"Apple Pay"},{k:"bank",l:"Transferencia bancaria"}].map((m) => (
+                  <label key={m.k} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
+                    <RadioGroupItem value={m.k} />
+                    <span className="font-medium">{m.l}</span>
                   </label>
                 ))}
               </RadioGroup>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2"><Label>Card number</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
-                <div><Label>Expiry</Label><Input placeholder="MM/YY" className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
+                <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
                 <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
               </div>
             </section>
 
             <Button size="xl" variant="accent" className="w-full" onClick={() => setStep(Math.min(3, step + 1))}>
-              <Lock size={16} /> Pay {format(total)} securely
+              <Lock size={16} /> Pagar {format(total)} de forma segura
             </Button>
           </div>
 
           <aside className="rounded-lg border p-6 h-fit lg:sticky lg:top-24">
-            <h3 className="font-display text-xl uppercase">Your order</h3>
+            <h3 className="font-display text-xl uppercase">Tu pedido</h3>
             <div className="mt-4 space-y-3 max-h-72 overflow-y-auto">
               {items.map((i) => (
                 <div key={i.product.id} className="flex items-center gap-3">
@@ -112,17 +112,17 @@ const Checkout = () => {
                     <p className="font-medium leading-tight">{i.product.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {[i.flavor, i.size].filter(Boolean).join(" · ")}
-                      {i.subscription && ` · 🔁 every ${i.subscription.intervalDays}d (−${i.subscription.discountPercent}%)`}
+                      {i.subscription && ` · 🔁 cada ${i.subscription.intervalDays}d (−${i.subscription.discountPercent}%)`}
                     </p>
                   </div>
                   <span className="font-semibold">{format(lineSubtotal(i))}</span>
                 </div>
               ))}
-              {items.length === 0 && <p className="text-sm text-muted-foreground">Your cart is empty. <Link to="/" className="underline">Shop now</Link></p>}
+              {items.length === 0 && <p className="text-sm text-muted-foreground">Tu carrito está vacío. <Link to="/" className="underline">Comprar ahora</Link></p>}
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span>{shipping === 0 ? "Free" : format(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
           </aside>

@@ -118,10 +118,10 @@ const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 6000, stopOnInteraction: false, stopOnMouseEnter: true }));
   const { content } = useSiteContent(GUIDES_KEYS, {
-    "home.guides.eyebrow": "Knowledge",
-    "home.guides.title": "Guides & insights",
+    "home.guides.eyebrow": "Conocimiento",
+    "home.guides.title": "Guías y consejos",
     "home.guides.subtitle": "",
-    "home.guides.cta_label": "All articles",
+    "home.guides.cta_label": "Todos los artículos",
     "home.guides.cta_href": "/blog",
   });
 
@@ -187,13 +187,13 @@ const Home = () => {
           ? slides
           : [{
               id: "fallback",
-              eyebrow: "Engineered for performance",
-              title: "Take your performance to the next level",
-              subtitle: "Premium nutrition, supplements and healthy products designed to support your energy, strength, recovery and wellness.",
+              eyebrow: "Diseñado para el rendimiento",
+              title: "Lleva tu rendimiento al siguiente nivel",
+              subtitle: "Nutrición premium, suplementos y productos saludables diseñados para potenciar tu energía, fuerza, recuperación y bienestar.",
               image_url: null,
-              primary_label: "Shop now",
+              primary_label: "Comprar ahora",
               primary_href: "/category/protein",
-              secondary_label: "View best sellers",
+              secondary_label: "Ver más vendidos",
               secondary_href: "/category/best-sellers",
             }];
         return (
@@ -245,7 +245,7 @@ const Home = () => {
                               <span className="font-semibold text-background">4.9/5</span>
                             </div>
                             <span className="text-background/40">·</span>
-                            <span>Trusted by 240k+ athletes worldwide</span>
+                            <span>Confiado por más de 240k atletas en todo el mundo</span>
                           </div>
                         </div>
                       </div>
@@ -260,7 +260,7 @@ const Home = () => {
                     <button
                       key={i}
                       type="button"
-                      aria-label={`Go to slide ${i + 1}`}
+                      aria-label={`Ir a la diapositiva ${i + 1}`}
                       onClick={() => carouselApi?.scrollTo(i)}
                       className={`h-1.5 rounded-full transition-all ${
                         i === currentSlide ? "w-8 bg-accent" : "w-4 bg-background/40 hover:bg-background/70"
@@ -280,7 +280,7 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-3xl uppercase sm:text-4xl">{b.title || "Shop by category"}</h2>
+                <h2 className="font-display text-3xl uppercase sm:text-4xl">{b.title || "Comprar por categoría"}</h2>
                 {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
               </div>
             </div>
@@ -307,7 +307,7 @@ const Home = () => {
               <div className="flex items-end justify-between gap-4">
                 <div>
                   {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-                  <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Best sellers"}</h2>
+                  <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Más vendidos"}</h2>
                 </div>
                 {b.cta_label && b.cta_href && (
                   <Link to={b.cta_href} className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
@@ -342,7 +342,7 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div className="text-center">
               {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Shop by goal"}</h2>
+              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Comprar por objetivo"}</h2>
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-10 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -358,7 +358,7 @@ const Home = () => {
                     <h3 className="font-display text-xl uppercase">{g.name}</h3>
                     {g.desc && <p className="mt-1 text-xs text-background/60">{g.desc}</p>}
                     <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent opacity-0 transition-smooth group-hover:opacity-100">
-                      {g.ctaLabel || "Shop"} <ArrowRight size={14} />
+                      {g.ctaLabel || "Comprar"} <ArrowRight size={14} />
                     </span>
                   </div>
                 </Link>
@@ -374,7 +374,7 @@ const Home = () => {
             <div className="relative overflow-hidden rounded-2xl bg-surface-darker text-background">
               <img
                 src={b.image_url || promoImage}
-                alt={b.title || "Promotional offer"}
+                alt={b.title || "Oferta promocional"}
                 loading="lazy"
                 className="absolute inset-0 h-full w-full object-cover opacity-60"
               />
@@ -387,7 +387,7 @@ const Home = () => {
                     </span>
                   )}
                   <h3 className="mt-4 font-display text-4xl uppercase leading-tight sm:text-5xl">
-                    {b.title || "Stack up. Save up to 30%."}
+                    {b.title || "Combina y ahorra hasta 30%."}
                   </h3>
                   {b.subtitle && <p className="mt-3 text-background/75">{b.subtitle}</p>}
                   {b.cta_label && b.cta_href && (
@@ -407,7 +407,7 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div>
               {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "More to fuel your training"}</h2>
+              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Más para potenciar tu entrenamiento"}</h2>
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -422,7 +422,7 @@ const Home = () => {
             <div className="container-x">
               <div className="text-center">
                 <Stars rating={5} size={20} />
-                <h2 className="mt-3 font-display text-3xl uppercase sm:text-4xl">{b.title || "Loved by athletes"}</h2>
+                <h2 className="mt-3 font-display text-3xl uppercase sm:text-4xl">{b.title || "Amado por atletas"}</h2>
                 {b.subtitle && <p className="mt-2 text-background/60">{b.subtitle}</p>}
               </div>
               <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -433,7 +433,7 @@ const Home = () => {
                     <p className="mt-2 text-sm text-background/70">{r.text}</p>
                     <div className="mt-4 flex items-center gap-2 text-xs text-background/60">
                       <span className="font-semibold text-background">{r.name}</span>
-                      {r.verified && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-accent">Verified buyer</span>}
+                      {r.verified && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-accent">Comprador verificado</span>}
                     </div>
                   </div>
                 ))}
@@ -470,7 +470,7 @@ const Home = () => {
                   </div>
                   <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                     {post.category && <span className="text-accent font-bold">{post.category}</span>}
-                    {post.read_time && <span>· {post.read_time} read</span>}
+                    {post.read_time && <span>· {post.read_time} de lectura</span>}
                   </div>
                   <h3 className="font-display text-xl group-hover:text-accent transition-smooth">{post.title}</h3>
                   {post.excerpt && <p className="text-sm text-muted-foreground">{post.excerpt}</p>}
@@ -485,10 +485,10 @@ const Home = () => {
           <section key={b.id} className="border-y border-border bg-secondary/40 py-12">
             <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
-                { icon: Truck, title: "Free shipping", desc: `On orders over ${format(50)}` },
-                { icon: ShieldCheck, title: "Secure payment", desc: "100% encrypted checkout" },
-                { icon: Award, title: "Lab tested", desc: "Third-party verified quality" },
-                { icon: MessageCircle, title: "Real support", desc: "WhatsApp 7 days a week" },
+                { icon: Truck, title: "Envío gratis", desc: `En pedidos sobre ${format(50)}` },
+                { icon: ShieldCheck, title: "Pago seguro", desc: "Pago 100% encriptado" },
+                { icon: Award, title: "Probado en laboratorio", desc: "Calidad verificada por terceros" },
+                { icon: MessageCircle, title: "Soporte real", desc: "WhatsApp los 7 días" },
               ].map((t) => (
                 <div key={t.title} className="flex items-center gap-4">
                   <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
@@ -510,7 +510,7 @@ const Home = () => {
             <div className="grid overflow-hidden rounded-2xl border bg-card shadow-product md:grid-cols-2">
               <div className="relative min-h-[280px] bg-muted md:min-h-[420px]">
                 {b.image_url ? (
-                  <img src={b.image_url} alt={b.title || "Nutritional advisory"} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                  <img src={b.image_url} alt={b.title || "Asesoría nutricional"} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
                 ) : (
                   <div className="grid h-full place-items-center text-6xl opacity-30">🥗</div>
                 )}

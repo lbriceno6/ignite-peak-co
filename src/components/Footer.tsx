@@ -25,13 +25,13 @@ const KEYS = [
 
 const DEFAULTS: Record<string, string> = {
   logo_text: "VOLT", logo_accent: "RA", logo_image_url: "",
-  footer_description: "Premium nutrition and supplements engineered to fuel your training, recovery and everyday wellness.",
-  footer_newsletter_title: "Join the inner circle",
-  footer_newsletter_help: "Get 10% off your first order. No spam.",
-  footer_col1_title: "Shop",
-  footer_col2_title: "Company",
-  footer_col3_title: "Help",
-  footer_copyright: "© {year} Voltra Nutrition. All rights reserved.",
+  footer_description: "Nutrición y suplementos premium diseñados para potenciar tu entrenamiento, recuperación y bienestar diario.",
+  footer_newsletter_title: "Únete al círculo interno",
+  footer_newsletter_help: "Obtén 10% de descuento en tu primer pedido. Sin spam.",
+  footer_col1_title: "Tienda",
+  footer_col2_title: "Empresa",
+  footer_col3_title: "Ayuda",
+  footer_copyright: "© {year} Voltra Nutrition. Todos los derechos reservados.",
   footer_payment_badges: "VISA,MASTERCARD,AMEX,PAYPAL,APPLE PAY,G PAY",
 };
 
@@ -97,10 +97,10 @@ export const Footer = () => {
               <div className="mt-2 flex gap-2">
                 <Input
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="tu@correo.com"
                   className="bg-background/10 border-background/20 text-background placeholder:text-background/50"
                 />
-                <Button type="submit" variant="accent">Subscribe</Button>
+                <Button type="submit" variant="accent">Suscribirme</Button>
               </div>
               <p className="mt-2 text-xs text-background/50">{content.footer_newsletter_help}</p>
             </form>
