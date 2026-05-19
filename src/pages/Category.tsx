@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { products, categories, goals, type Product } from "@/data/catalog";
 import { useCurrency } from "@/context/CurrencyContext";
+import { PaginationBar } from "@/components/PaginationBar";
 
 type FilterState = {
   type: string[];
@@ -98,6 +99,8 @@ const Category = () => {
   const { slug = "" } = useParams();
   const [sort, setSort] = useState("popular");
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
@@ -150,6 +153,12 @@ const Category = () => {
     else if (sort === "rating") arr.sort((a, b) => b.rating - a.rating);
     return arr;
   }, [filtered, sort]);
+
+  useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize]);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paged = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
 
   const activeChips = useMemo(() => {
     const chips: { key: keyof Omit<FilterState, "price">; value: string }[] = [];
@@ -241,9 +250,18 @@ const Category = () => {
               <Button variant="outline" className="mt-4" onClick={clearAll}>Limpiar filtros</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {paged.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+              <PaginationBar
+                page={currentPage}
+                pageSize={pageSize}
+                total={sorted.length}
+                onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onPageSizeChange={setPageSize}
+              />
+            </>
           )}
         </div>
       </div>

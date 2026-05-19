@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
+import { PaginationBar } from "@/components/PaginationBar";
 
 export default function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const load = async () => {
     const { data } = await supabase
@@ -71,7 +74,13 @@ export default function AdminProducts() {
     load();
   };
 
-  const filtered = items.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+  const filtered = useMemo(
+    () => items.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())),
+    [items, q],
+  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -99,14 +108,16 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p, i) => (
+            {paged.map((p) => {
+              const globalIdx = filtered.findIndex((x) => x.id === p.id);
+              return (
               <tr key={p.id} className="border-t">
                 <td className="p-3">
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={i === 0} aria-label="Subir">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={globalIdx === 0} aria-label="Subir">
                       <ArrowUp size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={i === filtered.length - 1} aria-label="Bajar">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={globalIdx === filtered.length - 1} aria-label="Bajar">
                       <ArrowDown size={16} />
                     </Button>
                   </div>
@@ -144,11 +155,19 @@ export default function AdminProducts() {
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
           </tbody>
         </table>
       </div>
+      <PaginationBar
+        page={currentPage}
+        pageSize={pageSize}
+        total={filtered.length}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 }
