@@ -171,6 +171,7 @@ export default function AdminProducts() {
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3"><Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p.id, v)} /></td>
                 <td className="p-3 text-right whitespace-nowrap">
+                  <Button variant="ghost" size="icon" onClick={() => setReviewsFor({ id: p.id, name: p.name })} aria-label="Valoraciones" title="Valoraciones"><Star size={16} /></Button>
                   <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicar"><Copy size={16} /></Button>
                   <Button asChild variant="ghost" size="icon"><Link to={`/admin/products/${p.id}/edit`}><Pencil size={16} /></Link></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
