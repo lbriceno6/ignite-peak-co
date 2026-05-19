@@ -51,6 +51,8 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
     setRates((prev) => {
       const next = { ...prev };
       (Object.keys(CURRENCIES) as CurrencyCode[]).forEach((c) => {
+        // PEN is the base currency; its rate is always 1 and cannot be overridden.
+        if (c === "PEN") { next.PEN = 1; return; }
         if (map[rateKey(c)] != null) {
           const v = parseFloat(map[rateKey(c)]);
           if (Number.isFinite(v) && v > 0) next[c] = v;
