@@ -472,6 +472,7 @@ export type Database = {
           subscription_discount_percent: number
           subscription_enabled: boolean
           subscription_intervals: number[]
+          supplier_id: string | null
           updated_at: string
           usage_instructions: string | null
         }
@@ -501,6 +502,7 @@ export type Database = {
           subscription_discount_percent?: number
           subscription_enabled?: boolean
           subscription_intervals?: number[]
+          supplier_id?: string | null
           updated_at?: string
           usage_instructions?: string | null
         }
@@ -530,10 +532,19 @@ export type Database = {
           subscription_discount_percent?: number
           subscription_enabled?: boolean
           subscription_intervals?: number[]
+          supplier_id?: string | null
           updated_at?: string
           usage_instructions?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -616,6 +627,63 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          business_name: string
+          city: string | null
+          commercial_name: string | null
+          contact_name: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          tax_id: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name: string
+          city?: string | null
+          commercial_name?: string | null
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string
+          city?: string | null
+          commercial_name?: string | null
+          contact_name?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }

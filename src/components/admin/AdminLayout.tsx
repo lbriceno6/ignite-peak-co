@@ -21,6 +21,7 @@ import {
   PanelBottom,
   Mail,
   Info,
+  Truck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,7 @@ const sections = [
       { to: "/admin/products", label: "Products", icon: Package },
       { to: "/admin/products/new", label: "New product", icon: Plus },
       { to: "/admin/categories", label: "Categories", icon: Tags },
+      { to: "/admin/suppliers", label: "Suppliers", icon: Truck },
     ],
   },
   {
@@ -111,6 +113,7 @@ const titleFromPath = (p: string) => {
   if (p.includes("/admin/products/") && p.endsWith("/edit")) return "Edit product";
   if (p.startsWith("/admin/products")) return "Products";
   if (p.startsWith("/admin/categories")) return "Categories";
+  if (p.startsWith("/admin/suppliers")) return "Suppliers";
   if (p.startsWith("/admin/orders/")) return "Order detail";
   if (p.startsWith("/admin/orders")) return "Orders";
   if (p.startsWith("/admin/customers")) return "Customers";

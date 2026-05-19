@@ -32,6 +32,7 @@ const empty = {
   subscription_enabled: false,
   subscription_discount_percent: 10,
   subscription_intervals: "30,60,90",
+  supplier_id: null as string | null,
 };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -47,6 +48,7 @@ export default function ProductForm() {
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+  const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
 
   const uploadToBucket = async (file: File, prefix: string) => {
     const ext = file.name.split(".").pop();
@@ -95,6 +97,8 @@ export default function ProductForm() {
     (async () => {
       const { data } = await supabase.from("categories").select("name, slug").eq("type", "product").order("sort_order");
       setCategories(data ?? []);
+      const { data: sup } = await supabase.from("suppliers").select("id, business_name").eq("is_active", true).order("business_name");
+      setSuppliers(sup ?? []);
     })();
   }, []);
 
@@ -182,6 +186,17 @@ export default function ProductForm() {
           <Field label="Flavor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
           <Field label="Size"><Input value={f.size ?? ""} onChange={(e) => set("size", e.target.value)} /></Field>
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
+          <Field label="Supplier">
+            <Select value={f.supplier_id ?? "__none__"} onValueChange={(v) => set("supplier_id", v === "__none__" ? null : v)}>
+              <SelectTrigger><SelectValue placeholder="Select a supplier" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None</SelectItem>
+                {suppliers.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.business_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
 
         <Field label="Main image">

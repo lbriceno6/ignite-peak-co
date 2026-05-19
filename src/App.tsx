@@ -41,6 +41,7 @@ import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import AdminFooter from "./pages/admin/AdminFooter.tsx";
 import AdminContact from "./pages/admin/AdminContact.tsx";
 import AdminAbout from "./pages/admin/AdminAbout.tsx";
+import AdminSuppliers from "./pages/admin/AdminSuppliers.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="blog/new" element={<BlogForm />} />
               <Route path="blog/:id/edit" element={<BlogForm />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="suppliers" element={<AdminSuppliers />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="home-blocks" element={<AdminHomeBlocks />} />
