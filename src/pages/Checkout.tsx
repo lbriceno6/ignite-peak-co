@@ -208,7 +208,7 @@ const Checkout = () => {
       lines,
       ``,
       `Subtotal: ${format(subtotal)}`,
-      `Envío: ${shipping === 0 ? "Gratis" : format(shipping)}`,
+      `Envío${matchedZone ? ` (${matchedZone.name}${matchedZone.estimated_days ? `, ${matchedZone.estimated_days}` : ""})` : ""}: ${shipping === 0 ? "Gratis" : format(shipping)}`,
       `*Total: ${format(total)}*`,
       ``,
       `*Método de pago:* ${meta}`,
