@@ -41,17 +41,18 @@ export const ProductReviews = ({ productId }: { productId: string }) => {
     setLoading(true);
     const { data } = await supabase
       .from("reviews")
-      .select("*, author:profiles!reviews_user_id_fkey(full_name)")
+      .select("*")
       .eq("product_id", productId)
       .order("created_at", { ascending: false });
-    // Fallback in case the FK alias isn't recognized
-    let rows = (data ?? []) as any[];
-    if (!data) {
-      const { data: simple } = await supabase
-        .from("reviews").select("*").eq("product_id", productId).order("created_at", { ascending: false });
-      rows = simple ?? [];
+    const rows = (data ?? []) as Review[];
+    const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from("profiles").select("id, full_name").in("id", ids);
+      const map = new Map((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      rows.forEach((r) => { r.author = { full_name: map.get(r.user_id) ?? null }; });
     }
-    setList(rows as Review[]);
+    setList(rows);
     setLoading(false);
   };
 
