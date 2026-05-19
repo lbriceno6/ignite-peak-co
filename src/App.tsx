@@ -94,6 +94,7 @@ const App = () => (
               <Route path="home-blocks" element={<AdminHomeBlocks />} />
               <Route path="goal-cards" element={<AdminGoalCards />} />
               <Route path="navigation" element={<AdminNavigation />} />
+              <Route path="footer" element={<AdminFooter />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
