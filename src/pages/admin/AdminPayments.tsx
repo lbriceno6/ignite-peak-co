@@ -1,13 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { ArrowUp, ArrowDown, Smartphone, Landmark, Banknote, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 
+const METHODS = [
+  { id: "yape", label: "Yape", icon: Smartphone },
+  { id: "plin", label: "Plin", icon: Smartphone },
+  { id: "bank", label: "Transferencia / Depósito bancario", icon: Landmark },
+  { id: "cod", label: "Pago contra entrega", icon: Banknote },
+  { id: "card", label: "Tarjeta", icon: CreditCard },
+] as const;
+type MethodId = typeof METHODS[number]["id"];
+const DEFAULT_ORDER: MethodId[] = METHODS.map((m) => m.id);
+
 const KEYS = [
+  "pay.order",
   "pay.yape.enabled", "pay.yape.holder", "pay.yape.phone", "pay.yape.qr_url", "pay.yape.note",
   "pay.plin.enabled", "pay.plin.holder", "pay.plin.phone", "pay.plin.qr_url", "pay.plin.note",
   "pay.bank.enabled", "pay.bank.bank_name", "pay.bank.account_type", "pay.bank.account_number",
@@ -18,6 +30,13 @@ const KEYS = [
 ] as const;
 
 const sb: any = supabase;
+
+const parseOrder = (raw: string): MethodId[] => {
+  const ids = raw.split(",").map((s) => s.trim()).filter(Boolean) as MethodId[];
+  const valid = ids.filter((i) => DEFAULT_ORDER.includes(i));
+  DEFAULT_ORDER.forEach((i) => { if (!valid.includes(i)) valid.push(i); });
+  return valid;
+};
 
 export default function AdminPayments() {
   const [m, setM] = useState<Record<string, string>>({});
@@ -35,6 +54,16 @@ export default function AdminPayments() {
 
   const set = (k: string, v: string) => setM((p) => ({ ...p, [k]: v }));
   const dirty = KEYS.some((k) => (m[k] ?? "") !== (saved[k] ?? ""));
+
+  const order = useMemo(() => parseOrder(m["pay.order"] ?? ""), [m]);
+  const move = (id: MethodId, dir: -1 | 1) => {
+    const arr = [...order];
+    const i = arr.indexOf(id);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    set("pay.order", arr.join(","));
+  };
 
   const save = async () => {
     setSaving(true);
@@ -67,9 +96,34 @@ export default function AdminPayments() {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-lg border bg-background p-5 space-y-3">
+        <div>
+          <h2 className="font-display text-lg">Orden y activación</h2>
+          <p className="text-xs text-muted-foreground">Activa los métodos que quieres mostrar en el checkout y reordénalos con las flechas (arriba = primero).</p>
+        </div>
+        <div className="space-y-2">
+          {order.map((id, idx) => {
+            const meta = METHODS.find((x) => x.id === id)!;
+            const enabledKey = `pay.${id}.enabled`;
+            const enabled = (m[enabledKey] ?? "") === "1";
+            return (
+              <div key={id} className="flex items-center gap-2 rounded-md border bg-muted/30 p-3">
+                <div className="flex flex-col">
+                  <button type="button" onClick={() => move(id, -1)} disabled={idx === 0} className="rounded p-1 hover:bg-background disabled:opacity-30"><ArrowUp size={14} /></button>
+                  <button type="button" onClick={() => move(id, 1)} disabled={idx === order.length - 1} className="rounded p-1 hover:bg-background disabled:opacity-30"><ArrowDown size={14} /></button>
+                </div>
+                <meta.icon size={18} className="text-muted-foreground" />
+                <span className="flex-1 text-sm font-semibold">{meta.label}</span>
+                <span className="text-xs text-muted-foreground">{idx + 1}</span>
+                <Switch checked={enabled} onCheckedChange={(v) => set(enabledKey, v ? "1" : "0")} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Yape</h2>
-        <Toggle k="pay.yape.enabled" label="Habilitar Yape" />
         <div className="grid gap-4 sm:grid-cols-2">
           <F k="pay.yape.holder" label="Titular" placeholder="Nombre del titular" />
           <F k="pay.yape.phone" label="Número de celular" placeholder="9XX XXX XXX" />
@@ -80,7 +134,6 @@ export default function AdminPayments() {
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Plin</h2>
-        <Toggle k="pay.plin.enabled" label="Habilitar Plin" />
         <div className="grid gap-4 sm:grid-cols-2">
           <F k="pay.plin.holder" label="Titular" />
           <F k="pay.plin.phone" label="Número de celular" placeholder="9XX XXX XXX" />
@@ -91,7 +144,6 @@ export default function AdminPayments() {
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Transferencia / Depósito bancario</h2>
-        <Toggle k="pay.bank.enabled" label="Habilitar transferencia / depósito" />
         <div className="grid gap-4 sm:grid-cols-2">
           <F k="pay.bank.bank_name" label="Banco" placeholder="BCP / Interbank / BBVA…" />
           <F k="pay.bank.account_type" label="Tipo de cuenta" placeholder="Ahorros / Corriente — Soles" />
@@ -104,10 +156,12 @@ export default function AdminPayments() {
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
-        <h2 className="font-display text-lg">Otros</h2>
-        <Toggle k="pay.card.enabled" label="Habilitar pago con tarjeta" />
-        <Toggle k="pay.cod.enabled" label="Habilitar pago contra entrega" />
+        <h2 className="font-display text-lg">Pago contra entrega</h2>
         <F k="pay.cod.note" label="Nota de pago contra entrega" area />
+      </div>
+
+      <div className="rounded-lg border bg-background p-5 space-y-4">
+        <h2 className="font-display text-lg">General</h2>
         <F k="pay.confirm_whatsapp" label="WhatsApp para confirmar el pago" placeholder="51999999999 (sin + ni espacios)" />
       </div>
 
