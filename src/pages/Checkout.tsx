@@ -53,7 +53,6 @@ const Checkout = () => {
       .filter((id) => METHOD_META[id] && pay[`pay.${id}.enabled`] === "1")
       .map((id) => ({ k: id, l: METHOD_META[id].l, icon: METHOD_META[id].icon }));
   }, [pay]);
-  }, [pay]);
 
   const selected = method || methods[0]?.k || "card";
   const wa = (pay["pay.confirm_whatsapp"] || "").replace(/[^0-9]/g, "");
