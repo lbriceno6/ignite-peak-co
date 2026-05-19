@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Menu,
   Search,
-  Bell,
   ChevronDown,
   LogOut,
   User,
@@ -45,6 +44,7 @@ import {
 import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
+import { NotificationsBell } from "@/components/NotificationsBell";
 
 const AdminCurrencySwitcher = () => {
   const { currency, setCurrency } = useCurrency();
@@ -340,12 +340,7 @@ export const AdminLayout = () => {
 
           <div className="flex items-center gap-1">
             <AdminCurrencySwitcher />
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell size={16} />
-              <Badge className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full p-0 px-1 text-[10px]">
-                3
-              </Badge>
-            </Button>
+            <NotificationsBell />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 px-2">

@@ -425,6 +425,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           commission_amount: number
@@ -906,6 +939,7 @@ export type Database = {
           payout_method: string | null
           phone: string | null
           publish_mode: string
+          rejection_reason: string | null
           slug: string | null
           status: string
           tax_id: string | null
@@ -933,6 +967,7 @@ export type Database = {
           payout_method?: string | null
           phone?: string | null
           publish_mode?: string
+          rejection_reason?: string | null
           slug?: string | null
           status?: string
           tax_id?: string | null
@@ -960,6 +995,7 @@ export type Database = {
           payout_method?: string | null
           phone?: string | null
           publish_mode?: string
+          rejection_reason?: string | null
           slug?: string | null
           status?: string
           tax_id?: string | null
@@ -1113,6 +1149,20 @@ export type Database = {
           source_queue: string
         }
         Returns: number
+      }
+      notify_admins: {
+        Args: { _body: string; _link: string; _title: string; _type: string }
+        Returns: undefined
+      }
+      notify_user: {
+        Args: {
+          _body: string
+          _link: string
+          _title: string
+          _type: string
+          _user: string
+        }
+        Returns: undefined
       }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
