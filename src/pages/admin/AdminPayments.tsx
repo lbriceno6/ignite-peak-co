@@ -87,12 +87,14 @@ export default function AdminPayments() {
     <div>
       <Label className="text-xs">{label}</Label>
       {area ? (
-        <Textarea className="mt-1.5" rows={3} value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
+        <Textarea key={k} className="mt-1.5" rows={3} value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
       ) : (
-        <Input className="mt-1.5" value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
+        <Input key={k} className="mt-1.5" value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
       )}
     </div>
   );
+
+
 
   return (
     <div className="space-y-6">
