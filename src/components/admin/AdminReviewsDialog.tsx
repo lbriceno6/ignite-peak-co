@@ -18,6 +18,8 @@ type Review = {
   rating: number;
   comment: string | null;
   created_at: string;
+  is_published?: boolean;
+  helpful_count?: number;
   authorName?: string;
 };
 
