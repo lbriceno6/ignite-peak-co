@@ -504,7 +504,42 @@ const Home = () => {
           </section>
         );
 
-      default:
+      case "nutrition_advisory":
+        return (
+          <section key={b.id} className="container-x py-16">
+            <div className="grid overflow-hidden rounded-2xl border bg-card shadow-product md:grid-cols-2">
+              <div className="relative min-h-[280px] bg-muted md:min-h-[420px]">
+                {b.image_url ? (
+                  <img src={b.image_url} alt={b.title || "Nutritional advisory"} className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="grid h-full place-items-center text-6xl opacity-30">🥗</div>
+                )}
+              </div>
+              <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
+                {b.eyebrow && (
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-success">
+                    {b.eyebrow}
+                  </span>
+                )}
+                <h2 className="font-display text-3xl uppercase leading-tight sm:text-4xl lg:text-5xl">
+                  {b.title || "Nutribatidos + Asesoría nutricional"}
+                </h2>
+                {b.subtitle && <p className="text-muted-foreground sm:text-lg">{b.subtitle}</p>}
+                {b.cta_label && b.cta_href && (
+                  <Button
+                    size="xl"
+                    className="mt-2 w-fit gap-2 bg-success text-background hover:bg-success/90"
+                    asChild
+                  >
+                    <a href={b.cta_href} target="_blank" rel="noopener noreferrer">
+                      <MessageCircle size={20} /> {b.cta_label}
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </section>
+        );
         return null;
     }
   };
