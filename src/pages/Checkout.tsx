@@ -1,23 +1,16 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Lock, Check, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
+import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
-
-const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
-  <div className="flex items-center gap-2">
-    <span className={`grid h-8 w-8 place-items-center rounded-full text-sm font-bold ${done ? "bg-accent text-accent-foreground" : active ? "bg-foreground text-background" : "bg-secondary text-muted-foreground"}`}>
-      {done ? <Check size={14} /> : num}
-    </span>
-    <span className={`text-sm font-semibold uppercase tracking-wider ${active || done ? "text-foreground" : "text-muted-foreground"}`}>{label}</span>
-  </div>
-);
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const PAY_KEYS = [
   "pay.order",
@@ -29,22 +22,59 @@ const PAY_KEYS = [
   "pay.cod.enabled","pay.cod.note","pay.confirm_whatsapp",
 ];
 
-const METHOD_META: Record<string, { l: string; icon: any }> = {
-  yape: { l: "Yape", icon: Smartphone },
-  plin: { l: "Plin", icon: Smartphone },
-  bank: { l: "Transferencia / Depósito", icon: Landmark },
-  cod: { l: "Pago contra entrega", icon: Banknote },
-  card: { l: "Tarjeta", icon: CreditCard },
+const METHOD_META: Record<string, { l: string; icon: any; sub: string }> = {
+  yape: { l: "Yape", icon: Smartphone, sub: "Pago móvil instantáneo" },
+  plin: { l: "Plin", icon: Smartphone, sub: "Pago móvil instantáneo" },
+  bank: { l: "Transferencia", icon: Landmark, sub: "Depósito o transferencia bancaria" },
+  cod: { l: "Contra entrega", icon: Banknote, sub: "Paga en efectivo al recibir" },
+  card: { l: "Tarjeta", icon: CreditCard, sub: "Crédito o débito" },
 };
 const DEFAULT_ORDER = ["yape", "plin", "bank", "cod", "card"];
 
+const randomPassword = () => Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2).toUpperCase() + "!9";
+
+const CopyableRow = ({ label, value }: { label: string; value: string }) => {
+  const [done, setDone] = useState(false);
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-md bg-background/60 px-3 py-2">
+      <div className="min-w-0">
+        <p className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="truncate font-mono text-sm font-semibold">{value}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => { navigator.clipboard.writeText(value); setDone(true); setTimeout(() => setDone(false), 1500); }}
+        className="grid h-8 w-8 place-items-center rounded-md border hover:bg-secondary"
+        aria-label={`Copiar ${label}`}
+      >
+        {done ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+      </button>
+    </div>
+  );
+};
+
 const Checkout = () => {
-  const { items } = useCart();
+  const navigate = useNavigate();
+  const { items, clear } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
   const { format } = useCurrency();
+  const { user } = useAuth();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
-  const [step, setStep] = useState(1);
+
+  const [form, setForm] = useState({
+    email: user?.email ?? "",
+    phone: "",
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    postal: "",
+    country: "Perú",
+  });
   const [method, setMethod] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const methods = useMemo(() => {
     const stored = (pay["pay.order"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -52,163 +82,268 @@ const Checkout = () => {
     DEFAULT_ORDER.forEach((id) => { if (!order.includes(id)) order.push(id); });
     return order
       .filter((id) => METHOD_META[id] && pay[`pay.${id}.enabled`] === "1")
-      .map((id) => ({ k: id, l: METHOD_META[id].l, icon: METHOD_META[id].icon }));
+      .map((id) => ({ k: id, ...METHOD_META[id] }));
   }, [pay]);
 
   const selected = method || methods[0]?.k || "card";
   const wa = (pay["pay.confirm_whatsapp"] || "").replace(/[^0-9]/g, "");
   const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`¡Hola! Acabo de realizar un pago por ${format(total)} con ${selected.toUpperCase()}. Te envío el comprobante.`)}` : "";
 
+  const validate = () => {
+    if (items.length === 0) return "Tu carrito está vacío";
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Ingresa un correo válido";
+    if (form.phone.replace(/\D/g, "").length < 6) return "Ingresa un teléfono válido";
+    if (!form.firstName.trim() || !form.lastName.trim()) return "Ingresa tu nombre y apellido";
+    if (!form.address.trim() || !form.city.trim()) return "Completa la dirección de envío";
+    if (!selected) return "Selecciona un método de pago";
+    return null;
+  };
+
+  const ensureUser = async (): Promise<string | null> => {
+    if (user) return user.id;
+    const fullName = `${form.firstName} ${form.lastName}`.trim();
+    const pwd = randomPassword();
+    const { data, error } = await supabase.auth.signUp({
+      email: form.email,
+      password: pwd,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: { full_name: fullName, phone: form.phone },
+      },
+    });
+    if (error) {
+      if (error.message.toLowerCase().includes("registered") || error.message.toLowerCase().includes("exists")) {
+        toast.error("Ese correo ya tiene cuenta. Inicia sesión para continuar.", {
+          action: { label: "Iniciar sesión", onClick: () => navigate("/auth", { state: { from: "/checkout" } }) },
+        });
+      } else {
+        toast.error(error.message);
+      }
+      return null;
+    }
+    return data.user?.id ?? null;
+  };
+
+  const handleSubmit = async () => {
+    const err = validate();
+    if (err) return toast.error(err);
+    setSubmitting(true);
+    try {
+      const uid = await ensureUser();
+      if (!uid) return;
+
+      const { data: order, error: oErr } = await supabase
+        .from("orders")
+        .insert({
+          user_id: uid,
+          subtotal,
+          shipping,
+          total,
+          payment_method: selected,
+          status: "pending",
+          shipping_name: `${form.firstName} ${form.lastName}`.trim(),
+          shipping_phone: form.phone,
+          shipping_address: form.address,
+          shipping_city: form.city,
+          shipping_postal_code: form.postal,
+          shipping_country: form.country,
+        })
+        .select("id, order_code")
+        .single();
+      if (oErr || !order) throw oErr ?? new Error("No se pudo crear el pedido");
+
+      const itemsPayload = items.map((i) => ({
+        order_id: order.id,
+        product_slug: i.product.slug ?? i.product.id,
+        product_name: i.product.name,
+        product_image: i.product.image ?? null,
+        variant: [i.flavor, i.size].filter(Boolean).join(" · ") || null,
+        quantity: i.quantity,
+        unit_price: lineUnitPrice(i),
+        purchase_type: i.subscription ? "subscription" : "one_time",
+        subscription_interval_days: i.subscription?.intervalDays ?? null,
+      }));
+      const { error: iErr } = await supabase.from("order_items").insert(itemsPayload);
+      if (iErr) throw iErr;
+
+      toast.success(`Pedido ${order.order_code} creado correctamente`);
+      clear();
+      navigate(`/my-orders/${order.id}`);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo procesar el pago");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <Layout>
       <div className="container-x py-10">
-        <h1 className="font-display text-4xl uppercase sm:text-5xl">Pagar</h1>
-        <div className="mt-6 flex flex-wrap items-center gap-6">
-          <Step num={1} label="Información" active={step === 1} done={step > 1} />
-          <span className="hidden h-px w-10 bg-border sm:block" />
-          <Step num={2} label="Envío" active={step === 2} done={step > 2} />
-          <span className="hidden h-px w-10 bg-border sm:block" />
-          <Step num={3} label="Pago" active={step === 3} done={step > 3} />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="font-display text-4xl uppercase sm:text-5xl">Finalizar compra</h1>
+            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+              <ShieldCheck size={16} className="text-success" /> Pago seguro y datos protegidos
+            </p>
+          </div>
+          {!user && (
+            <p className="text-sm text-muted-foreground">
+              ¿Ya tienes cuenta? <Link to="/auth" state={{ from: "/checkout" }} className="font-semibold text-foreground underline">Inicia sesión</Link>
+            </p>
+          )}
         </div>
 
-        <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_400px]">
           <div className="space-y-6">
-            <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase">Contacto</h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div><Label>Correo</Label><Input type="email" placeholder="tu@correo.com" className="mt-1.5" /></div>
-                <div><Label>Teléfono</Label><Input type="tel" placeholder="+51 999 999 999" className="mt-1.5" /></div>
+            {/* Contact + shipping */}
+            <section className="rounded-xl border bg-card p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-xl uppercase">Tus datos</h3>
+                {!user && <span className="rounded-full bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-success">Cuenta creada al pagar</span>}
+              </div>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="sm:col-span-2"><Label>Correo electrónico *</Label><Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className="mt-1.5" disabled={!!user} /></div>
+                <div><Label>Nombre *</Label><Input value={form.firstName} onChange={set("firstName")} className="mt-1.5" /></div>
+                <div><Label>Apellido *</Label><Input value={form.lastName} onChange={set("lastName")} className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>Teléfono *</Label><Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>Dirección *</Label><Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className="mt-1.5" /></div>
+                <div><Label>Ciudad *</Label><Input value={form.city} onChange={set("city")} className="mt-1.5" /></div>
+                <div><Label>Código postal</Label><Input value={form.postal} onChange={set("postal")} className="mt-1.5" /></div>
+                <div className="sm:col-span-2"><Label>País</Label><Input value={form.country} onChange={set("country")} className="mt-1.5" /></div>
               </div>
             </section>
 
-            <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase">Dirección de envío</h3>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div><Label>Nombre</Label><Input className="mt-1.5" /></div>
-                <div><Label>Apellido</Label><Input className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>Dirección</Label><Input className="mt-1.5" /></div>
-                <div><Label>Ciudad</Label><Input className="mt-1.5" /></div>
-                <div><Label>Código postal</Label><Input className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>País</Label><Input className="mt-1.5" defaultValue="Perú" /></div>
+            {/* Payment */}
+            <section className="rounded-xl border bg-card p-6 shadow-sm">
+              <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Método de pago</h3>
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {methods.map((m) => {
+                  const active = selected === m.k;
+                  return (
+                    <button
+                      key={m.k}
+                      type="button"
+                      onClick={() => setMethod(m.k)}
+                      className={`group relative flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-all ${active ? "border-accent bg-accent/5 shadow-sm" : "border-border hover:border-foreground/30 hover:bg-secondary/40"}`}
+                    >
+                      <span className={`grid h-10 w-10 place-items-center rounded-md ${active ? "bg-accent text-accent-foreground" : "bg-secondary text-foreground"}`}>
+                        <m.icon size={18} />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold">{m.l}</p>
+                        <p className="truncate text-xs text-muted-foreground">{m.sub}</p>
+                      </div>
+                      {active && <span className="absolute right-3 top-3 grid h-5 w-5 place-items-center rounded-full bg-accent text-accent-foreground"><Check size={12} /></span>}
+                    </button>
+                  );
+                })}
+                {methods.length === 0 && (
+                  <p className="sm:col-span-2 rounded-md border border-dashed p-4 text-sm text-muted-foreground">No hay métodos de pago configurados. Contacta al administrador.</p>
+                )}
               </div>
-            </section>
 
-            <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Método de envío</h3>
-              <RadioGroup defaultValue="standard" className="mt-4 space-y-2">
-                {[
-                  { v: "standard", t: "Envío estándar", d: "2–3 días hábiles", p: `Gratis sobre ${format(50)}` },
-                  { v: "express", t: "Envío exprés", d: "Siguiente día hábil", p: format(7.9) },
-                ].map((o) => (
-                  <label key={o.v} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
-                    <RadioGroupItem value={o.v} />
-                    <div className="flex-1">
-                      <p className="font-semibold">{o.t}</p>
-                      <p className="text-xs text-muted-foreground">{o.d}</p>
-                    </div>
-                    <span className="font-display">{o.p}</span>
-                  </label>
-                ))}
-              </RadioGroup>
-            </section>
-
-            <section className="rounded-lg border p-6">
-              <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Pago</h3>
-              <RadioGroup value={selected} onValueChange={setMethod} className="mt-4 space-y-2">
-                {methods.map((m) => (
-                  <label key={m.k} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
-                    <RadioGroupItem value={m.k} />
-                    <m.icon size={18} className="text-muted-foreground" />
-                    <span className="font-medium">{m.l}</span>
-                  </label>
-                ))}
-              </RadioGroup>
-
-              {selected === "card" && (
-                <div className="mt-4 space-y-3">
-                  {(pay["pay.card.provider"] || pay["pay.card.brands"] || pay["pay.card.note"]) && (
-                    <div className="rounded-md border bg-secondary/40 p-3 text-sm space-y-1">
-                      {pay["pay.card.provider"] && <p><span className="text-muted-foreground">Procesador:</span> {pay["pay.card.provider"]}</p>}
-                      {pay["pay.card.brands"] && <p><span className="text-muted-foreground">Marcas:</span> {pay["pay.card.brands"]}</p>}
-                      {pay["pay.card.note"] && <p className="whitespace-pre-line text-muted-foreground">{pay["pay.card.note"]}</p>}
-                    </div>
-                  )}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
-                    <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
-                    <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
-                  </div>
-                </div>
-              )}
-
-              {(selected === "yape" || selected === "plin") && (() => {
-                const p = selected === "yape" ? "pay.yape" : "pay.plin";
-                const name = selected === "yape" ? "Yape" : "Plin";
-                return (
-                  <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm space-y-2">
-                    <p className="font-semibold">Paga con {name}</p>
-                    {pay[`${p}.holder`] && <p><span className="text-muted-foreground">Titular:</span> {pay[`${p}.holder`]}</p>}
-                    {pay[`${p}.phone`] && <p><span className="text-muted-foreground">Celular:</span> <span className="font-mono font-semibold">{pay[`${p}.phone`]}</span></p>}
-                    <p><span className="text-muted-foreground">Monto:</span> <span className="font-display text-base">{format(total)}</span></p>
-                    {pay[`${p}.qr_url`] && (
-                      <img src={pay[`${p}.qr_url`]} alt={`QR ${name}`} className="mt-2 h-40 w-40 rounded border bg-white object-contain p-2" />
+              {/* Details */}
+              <div className="mt-5">
+                {selected === "card" && (
+                  <div className="space-y-3">
+                    {(pay["pay.card.provider"] || pay["pay.card.brands"] || pay["pay.card.note"]) && (
+                      <div className="rounded-md border bg-secondary/40 p-3 text-sm space-y-1">
+                        {pay["pay.card.provider"] && <p><span className="text-muted-foreground">Procesador:</span> {pay["pay.card.provider"]}</p>}
+                        {pay["pay.card.brands"] && <p><span className="text-muted-foreground">Marcas:</span> {pay["pay.card.brands"]}</p>}
+                        {pay["pay.card.note"] && <p className="whitespace-pre-line text-muted-foreground">{pay["pay.card.note"]}</p>}
+                      </div>
                     )}
-                    {pay[`${p}.note`] && <p className="whitespace-pre-line text-muted-foreground">{pay[`${p}.note`]}</p>}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
+                      <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
+                      <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
+                    </div>
+                  </div>
+                )}
+
+                {(selected === "yape" || selected === "plin") && (() => {
+                  const p = selected === "yape" ? "pay.yape" : "pay.plin";
+                  const name = selected === "yape" ? "Yape" : "Plin";
+                  return (
+                    <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold">Paga con {name}</p>
+                        <span className="font-display text-lg">{format(total)}</span>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {pay[`${p}.holder`] && <CopyableRow label="Titular" value={pay[`${p}.holder`]} />}
+                        {pay[`${p}.phone`] && <CopyableRow label="Celular" value={pay[`${p}.phone`]} />}
+                      </div>
+                      {pay[`${p}.qr_url`] && (
+                        <div className="flex justify-center">
+                          <img src={pay[`${p}.qr_url`]} alt={`QR ${name}`} className="h-44 w-44 rounded-md border bg-white object-contain p-2" />
+                        </div>
+                      )}
+                      {pay[`${p}.note`] && <p className="whitespace-pre-line text-xs text-muted-foreground">{pay[`${p}.note`]}</p>}
+                      {waLink && (
+                        <Button asChild variant="dark" className="w-full">
+                          <a href={waLink} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Enviar comprobante por WhatsApp</a>
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
+
+                {selected === "bank" && (
+                  <div className="rounded-lg border bg-secondary/40 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold">Transferencia / Depósito</p>
+                      <span className="font-display text-lg">{format(total)}</span>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {pay["pay.bank.bank_name"] && <CopyableRow label="Banco" value={pay["pay.bank.bank_name"]} />}
+                      {pay["pay.bank.account_type"] && <CopyableRow label="Tipo" value={pay["pay.bank.account_type"]} />}
+                      {pay["pay.bank.account_number"] && <CopyableRow label="N° de cuenta" value={pay["pay.bank.account_number"]} />}
+                      {pay["pay.bank.cci"] && <CopyableRow label="CCI" value={pay["pay.bank.cci"]} />}
+                      {pay["pay.bank.holder"] && <CopyableRow label="Titular" value={pay["pay.bank.holder"]} />}
+                      {pay["pay.bank.document"] && <CopyableRow label="DNI/RUC" value={pay["pay.bank.document"]} />}
+                    </div>
+                    {pay["pay.bank.note"] && <p className="whitespace-pre-line text-xs text-muted-foreground">{pay["pay.bank.note"]}</p>}
                     {waLink && (
-                      <Button asChild variant="dark" className="mt-2 w-full">
+                      <Button asChild variant="dark" className="w-full">
                         <a href={waLink} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Enviar comprobante por WhatsApp</a>
                       </Button>
                     )}
                   </div>
-                );
-              })()}
+                )}
 
-              {selected === "bank" && (
-                <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm space-y-1.5">
-                  <p className="font-semibold">Transferencia / Depósito bancario</p>
-                  {pay["pay.bank.bank_name"] && <p><span className="text-muted-foreground">Banco:</span> {pay["pay.bank.bank_name"]}</p>}
-                  {pay["pay.bank.account_type"] && <p><span className="text-muted-foreground">Tipo:</span> {pay["pay.bank.account_type"]}</p>}
-                  {pay["pay.bank.account_number"] && <p><span className="text-muted-foreground">N° de cuenta:</span> <span className="font-mono font-semibold">{pay["pay.bank.account_number"]}</span></p>}
-                  {pay["pay.bank.cci"] && <p><span className="text-muted-foreground">CCI:</span> <span className="font-mono font-semibold">{pay["pay.bank.cci"]}</span></p>}
-                  {pay["pay.bank.holder"] && <p><span className="text-muted-foreground">Titular:</span> {pay["pay.bank.holder"]}</p>}
-                  {pay["pay.bank.document"] && <p><span className="text-muted-foreground">DNI/RUC:</span> {pay["pay.bank.document"]}</p>}
-                  <p><span className="text-muted-foreground">Monto:</span> <span className="font-display text-base">{format(total)}</span></p>
-                  {pay["pay.bank.note"] && <p className="mt-2 whitespace-pre-line text-muted-foreground">{pay["pay.bank.note"]}</p>}
-                  {waLink && (
-                    <Button asChild variant="dark" className="mt-3 w-full">
-                      <a href={waLink} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Enviar comprobante por WhatsApp</a>
-                    </Button>
-                  )}
-                </div>
-              )}
-
-              {selected === "cod" && (
-                <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm text-muted-foreground whitespace-pre-line">
-                  {pay["pay.cod.note"] || "Pagarás en efectivo al recibir tu pedido."}
-                </div>
-              )}
+                {selected === "cod" && (
+                  <div className="rounded-lg border bg-secondary/40 p-4 text-sm">
+                    <p className="font-semibold mb-1">Pago contra entrega</p>
+                    <p className="whitespace-pre-line text-muted-foreground">{pay["pay.cod.note"] || "Pagarás en efectivo al recibir tu pedido."}</p>
+                  </div>
+                )}
+              </div>
             </section>
 
-            <Button size="xl" variant="accent" className="w-full" onClick={() => setStep(Math.min(3, step + 1))}>
-              <Lock size={16} /> Pagar {format(total)} de forma segura
+            <Button size="xl" variant="accent" className="w-full" onClick={handleSubmit} disabled={submitting || items.length === 0}>
+              {submitting ? <><Loader2 size={16} className="animate-spin" /> Procesando…</> : <><Lock size={16} /> Confirmar pedido · {format(total)}</>}
             </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Al confirmar aceptas nuestros <Link to="/policies/terms" className="underline">Términos</Link> y <Link to="/policies/privacy" className="underline">Política de privacidad</Link>.
+            </p>
           </div>
 
-          <aside className="rounded-lg border p-6 h-fit lg:sticky lg:top-24">
-            <h3 className="font-display text-xl uppercase">Tu pedido</h3>
+          <aside className="rounded-xl border bg-card p-6 shadow-sm h-fit lg:sticky lg:top-24">
+            <h3 className="font-display text-xl uppercase flex items-center gap-2"><Truck size={18} /> Tu pedido</h3>
             <div className="mt-4 space-y-3 max-h-72 overflow-y-auto">
               {items.map((i) => (
-                <div key={i.product.id} className="flex items-center gap-3">
-                  <div className="relative">
+                <div key={i.product.id + (i.flavor ?? "") + (i.size ?? "")} className="flex items-center gap-3">
+                  <div className="relative shrink-0">
                     <img src={i.product.image} alt={i.product.name} className="h-14 w-14 rounded bg-secondary object-cover" />
                     <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-foreground text-[10px] font-bold text-background">{i.quantity}</span>
                   </div>
-                  <div className="flex-1 text-sm">
-                    <p className="font-medium leading-tight">{i.product.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex-1 text-sm min-w-0">
+                    <p className="truncate font-medium leading-tight">{i.product.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {[i.flavor, i.size].filter(Boolean).join(" · ")}
-                      {i.subscription && ` · 🔁 cada ${i.subscription.intervalDays}d (−${i.subscription.discountPercent}%)`}
+                      {i.subscription && ` · 🔁 ${i.subscription.intervalDays}d (−${i.subscription.discountPercent}%)`}
                     </p>
                   </div>
                   <span className="font-semibold">{format(lineSubtotal(i))}</span>
