@@ -151,12 +151,14 @@ export default function AdminTheme() {
     if (!loading) applyTheme(v as any);
   }, [v, loading]);
 
-  // Toggle dark class on root while editing dark tokens
+  // Toggle dark class on root while editing dark tokens; restore on unmount.
   useEffect(() => {
     if (loading) return;
     applyMode(editMode);
-    return () => { /* leave it as user picks; resets on unmount via stored pref */ };
   }, [editMode, loading]);
+  useEffect(() => {
+    return () => { applyMode(getStoredMode()); };
+  }, []);
 
   const set = (k: string, val: string) => setV((p) => ({ ...p, [k]: val }));
 
