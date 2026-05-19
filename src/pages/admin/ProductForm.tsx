@@ -167,7 +167,16 @@ export default function ProductForm() {
               {categories.map((c) => <option key={c.slug} value={c.name} />)}
             </datalist>
           </Field>
-          <Field label="Badge"><Input placeholder="new / best-seller / sale" value={f.badge ?? ""} onChange={(e) => set("badge", e.target.value)} /></Field>
+          <Field label="Badge">
+            <Select value={f.badge ?? ""} onValueChange={(v) => set("badge", v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Select a badge" /></SelectTrigger>
+              <SelectContent>
+                {BADGE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value || "__none__"} value={opt.value || "__none__"}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Main ingredient"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
           <Field label="Goal"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>
           <Field label="Flavor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
