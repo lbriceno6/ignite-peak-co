@@ -446,8 +446,8 @@ const Checkout = () => {
               </div>
             </section>
 
-            <Button size="xl" variant="accent" className="w-full" onClick={handleSubmit} disabled={submitting || items.length === 0}>
-              {submitting ? <><Loader2 size={16} className="animate-spin" /> Procesando…</> : <><Lock size={16} /> Confirmar pedido · {format(total)}</>}
+            <Button size="xl" variant="accent" className="w-full" onClick={handleSubmit} disabled={submitting || !isComplete}>
+              {submitting ? <><Loader2 size={16} className="animate-spin" /> Procesando…</> : !isComplete ? <><Lock size={16} /> Completa tus datos para continuar</> : <><Lock size={16} /> Confirmar pedido · {format(total)}</>}
             </Button>
             <p className="text-center text-xs text-muted-foreground">
               Al confirmar aceptas nuestros <Link to="/policies/terms" className="underline">Términos</Link> y <Link to="/policies/privacy" className="underline">Política de privacidad</Link>.
