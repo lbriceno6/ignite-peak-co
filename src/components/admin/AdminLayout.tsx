@@ -113,6 +113,7 @@ const titleFromPath = (p: string) => {
   if (p.includes("/admin/products/") && p.endsWith("/edit")) return "Edit product";
   if (p.startsWith("/admin/products")) return "Products";
   if (p.startsWith("/admin/categories")) return "Categories";
+  if (p.startsWith("/admin/suppliers")) return "Suppliers";
   if (p.startsWith("/admin/orders/")) return "Order detail";
   if (p.startsWith("/admin/orders")) return "Orders";
   if (p.startsWith("/admin/customers")) return "Customers";
