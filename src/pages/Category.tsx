@@ -104,18 +104,20 @@ const FiltersPanel = ({
       </div>
 
       <Accordion type="multiple" defaultValue={["type", "goal", "brand", "supplier"]}>
-        {staticFilterGroups.map((g) => (
+        {dynamicGroups.map((g) => (
           <AccordionItem key={g.key} value={g.key}>
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2.5">
-                {g.options.map((o) => (
-                  <label key={o} className="flex cursor-pointer items-center gap-2 text-sm">
+                {g.options.length === 0 ? (
+                  <p className="py-2 text-xs text-muted-foreground">Sin opciones</p>
+                ) : g.options.map((o) => (
+                  <label key={o.value} className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
-                      checked={filters[g.key].includes(o)}
-                      onCheckedChange={() => toggle(g.key, o)}
+                      checked={filters[g.key].includes(o.label)}
+                      onCheckedChange={() => toggle(g.key, o.label)}
                     />
-                    <span>{o}</span>
+                    <span>{o.label}</span>
                   </label>
                 ))}
               </div>
