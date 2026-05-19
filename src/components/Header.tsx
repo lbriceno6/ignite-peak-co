@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle, Sun, Moon, Monitor } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +11,30 @@ import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
+import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 
 type CategoryItem = { slug: string; name: string; icon: string | null };
 import { cn } from "@/lib/utils";
+
+const ModeSwitcher = () => {
+  const [mode, setMode] = useState<Mode>(() => getStoredMode());
+  const pick = (m: Mode) => { setMode(m); setStoredMode(m); applyMode(m); };
+  const Icon = mode === "dark" ? Moon : mode === "system" ? Monitor : Sun;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Tema claro u oscuro">
+          <Icon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuItem onClick={() => pick("light")} className={cn(mode === "light" && "bg-secondary")}><Sun size={14}/> Claro</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => pick("dark")} className={cn(mode === "dark" && "bg-secondary")}><Moon size={14}/> Oscuro</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => pick("system")} className={cn(mode === "system" && "bg-secondary")}><Monitor size={14}/> Sistema</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 type NavItem = { id: string; label: string; href: string; open_in_new_tab: boolean };
 
