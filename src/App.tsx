@@ -48,6 +48,7 @@ import AdminPayments from "./pages/admin/AdminPayments.tsx";
 import AdminTestimonials from "./pages/admin/AdminTestimonials.tsx";
 import AdminShipping from "./pages/admin/AdminShipping.tsx";
 import AdminSubscription from "./pages/admin/AdminSubscription.tsx";
+import AdminEmail from "./pages/admin/AdminEmail.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -127,6 +128,7 @@ const App = () => (
               <Route path="testimonials" element={<AdminTestimonials />} />
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="subscription" element={<AdminSubscription />} />
+              <Route path="email" element={<AdminEmail />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
