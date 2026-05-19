@@ -18,6 +18,7 @@ import {
   Tags,
   GalleryHorizontal,
   Layers,
+  PanelBottom,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,6 +96,7 @@ const sections = [
       { to: "/admin/goal-cards", label: "Goal cards", icon: Tags },
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
+      { to: "/admin/footer", label: "Footer", icon: PanelBottom },
     ],
   },
 ];
@@ -116,6 +118,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
   if (p.startsWith("/admin/goal-cards")) return "Goal cards";
   if (p.startsWith("/admin/navigation")) return "Logo & Menu";
+  if (p.startsWith("/admin/footer")) return "Footer";
   return "Admin";
 };
 
