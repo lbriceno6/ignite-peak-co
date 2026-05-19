@@ -126,10 +126,19 @@ const Checkout = () => {
               </RadioGroup>
 
               {selected === "card" && (
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
-                  <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
-                  <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
+                <div className="mt-4 space-y-3">
+                  {(pay["pay.card.provider"] || pay["pay.card.brands"] || pay["pay.card.note"]) && (
+                    <div className="rounded-md border bg-secondary/40 p-3 text-sm space-y-1">
+                      {pay["pay.card.provider"] && <p><span className="text-muted-foreground">Procesador:</span> {pay["pay.card.provider"]}</p>}
+                      {pay["pay.card.brands"] && <p><span className="text-muted-foreground">Marcas:</span> {pay["pay.card.brands"]}</p>}
+                      {pay["pay.card.note"] && <p className="whitespace-pre-line text-muted-foreground">{pay["pay.card.note"]}</p>}
+                    </div>
+                  )}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
+                    <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
+                    <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
+                  </div>
                 </div>
               )}
 
