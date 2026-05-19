@@ -552,6 +552,7 @@ export type Database = {
       }
       products: {
         Row: {
+          approval_status: string
           badge: string | null
           category: string | null
           created_at: string
@@ -568,6 +569,7 @@ export type Database = {
           name: string
           nutrition_facts: Json | null
           price: number
+          rejection_reason: string | null
           sale_price: number | null
           short_description: string | null
           size: string | null
@@ -583,6 +585,7 @@ export type Database = {
           usage_instructions: string | null
         }
         Insert: {
+          approval_status?: string
           badge?: string | null
           category?: string | null
           created_at?: string
@@ -599,6 +602,7 @@ export type Database = {
           name: string
           nutrition_facts?: Json | null
           price?: number
+          rejection_reason?: string | null
           sale_price?: number | null
           short_description?: string | null
           size?: string | null
@@ -614,6 +618,7 @@ export type Database = {
           usage_instructions?: string | null
         }
         Update: {
+          approval_status?: string
           badge?: string | null
           category?: string | null
           created_at?: string
@@ -630,6 +635,7 @@ export type Database = {
           name?: string
           nutrition_facts?: Json | null
           price?: number
+          rejection_reason?: string | null
           sale_price?: number | null
           short_description?: string | null
           size?: string | null
@@ -899,6 +905,7 @@ export type Database = {
           payout_account: string | null
           payout_method: string | null
           phone: string | null
+          publish_mode: string
           slug: string | null
           status: string
           tax_id: string | null
@@ -925,6 +932,7 @@ export type Database = {
           payout_account?: string | null
           payout_method?: string | null
           phone?: string | null
+          publish_mode?: string
           slug?: string | null
           status?: string
           tax_id?: string | null
@@ -951,6 +959,7 @@ export type Database = {
           payout_account?: string | null
           payout_method?: string | null
           phone?: string | null
+          publish_mode?: string
           slug?: string | null
           status?: string
           tax_id?: string | null
