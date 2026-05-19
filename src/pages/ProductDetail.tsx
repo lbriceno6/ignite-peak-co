@@ -13,6 +13,7 @@ import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
 import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
 
 type DbProduct = {
