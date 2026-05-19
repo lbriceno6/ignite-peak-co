@@ -49,6 +49,16 @@ const FiltersPanel = ({
   suppliers: { id: string; business_name: string }[];
 }) => {
   const { format, symbol } = useCurrency();
+  const [brandQuery, setBrandQuery] = useState("");
+  const [supplierQuery, setSupplierQuery] = useState("");
+  const filteredBrands = useMemo(
+    () => brands.filter((b) => b.toLowerCase().includes(brandQuery.trim().toLowerCase())),
+    [brands, brandQuery],
+  );
+  const filteredSuppliers = useMemo(
+    () => suppliers.filter((s) => s.business_name.toLowerCase().includes(supplierQuery.trim().toLowerCase())),
+    [suppliers, supplierQuery],
+  );
   const toggle = (key: "type" | "goal" | "flavor" | "size" | "brand" | "supplier", value: string) => {
     setFilters((f) => {
       const current = f[key];
@@ -74,7 +84,7 @@ const FiltersPanel = ({
 
       <div>
         <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Valoración mínima</h4>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="mb-2 flex flex-wrap gap-1.5">
           {[0, 3, 3.5, 4, 4.5].map((r) => (
             <Button
               key={r}
@@ -87,6 +97,26 @@ const FiltersPanel = ({
               {r === 0 ? "Todas" : `★ ${r}+`}
             </Button>
           ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            min={0}
+            max={5}
+            step={0.1}
+            value={filters.rating || ""}
+            onChange={(e) => {
+              const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
+              setFilters((f) => ({ ...f, rating: v }));
+            }}
+            placeholder="Personalizar (0–5)"
+            className="h-9"
+          />
+          {filters.rating > 0 && (
+            <Button type="button" variant="ghost" size="sm" className="h-9 px-2 text-xs" onClick={() => setFilters((f) => ({ ...f, rating: 0 }))}>
+              <X size={14} />
+            </Button>
+          )}
         </div>
       </div>
 
