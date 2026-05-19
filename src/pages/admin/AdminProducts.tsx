@@ -191,6 +191,12 @@ export default function AdminProducts() {
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
       />
+      <AdminReviewsDialog
+        open={!!reviewsFor}
+        onOpenChange={(v) => { if (!v) setReviewsFor(null); }}
+        productId={reviewsFor?.id ?? null}
+        productName={reviewsFor?.name}
+      />
     </div>
   );
 }
