@@ -14,6 +14,9 @@ import { useShippingZones, matchZone, computeZoneShipping } from "@/hooks/useShi
 import { shippingSettings } from "@/store/cart";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getStoredReferral, clearReferral, StoredReferral } from "@/components/ReferralTracker";
+import { useReseller } from "@/hooks/useReseller";
+import { Tag, Wallet } from "lucide-react";
 
 const PAY_KEYS = [
   "pay.order",
