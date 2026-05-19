@@ -49,6 +49,22 @@ export default function AdminEmail() {
   const [v, setV] = useState<Record<string, string>>(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testTo, setTestTo] = useState("");
+  const [testing, setTesting] = useState<null | "test" | "validate">(null);
+
+  const runTest = async (action: "test" | "validate") => {
+    setTesting(action);
+    try {
+      const { data, error } = await supabase.functions.invoke("email-test", {
+        body: { action, recipient: testTo || undefined },
+      });
+      if (error) throw error;
+      if (data?.ok) toast.success(data.message || "OK");
+      else throw new Error(data?.error || "Error");
+    } catch (e: any) {
+      toast.error(e.message || String(e));
+    } finally { setTesting(null); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -176,6 +192,21 @@ export default function AdminEmail() {
         <Field label="Texto de pie de página (opcional)">
           <Textarea rows={3} value={v["email.footer_note"]} onChange={(e) => set("email.footer_note", e.target.value)} placeholder="Nutribatidos · Lima, Perú" />
         </Field>
+      </Section>
+
+      <Section title="Probar configuración">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Guarda los cambios primero. Luego puedes validar credenciales o enviar un email de prueba a cualquier dirección.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          <Input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="destinatario@ejemplo.com" />
+          <Button variant="outline" onClick={() => runTest("validate")} disabled={!!testing}>
+            {testing === "validate" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Validar credenciales
+          </Button>
+          <Button variant="dark" onClick={() => runTest("test")} disabled={!!testing}>
+            {testing === "test" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Enviar email de prueba
+          </Button>
+        </div>
       </Section>
 
       <div className="flex justify-end">
