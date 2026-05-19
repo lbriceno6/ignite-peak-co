@@ -74,6 +74,15 @@ export default function SupplierDashboard() {
         </div>
       </div>
 
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm">
+        <div className="flex items-center gap-2 font-semibold text-emerald-600">
+          ● Cuenta aprobada
+        </div>
+        <p className="mt-1 text-muted-foreground">
+          Tu tienda está activa. Si te rechazaran un producto, recibirás una notificación con el motivo.
+        </p>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat icon={Package} label="Productos publicados" value={stats.products} />
         <Stat icon={ShoppingBag} label="Pedidos por enviar" value={stats.pending} />
