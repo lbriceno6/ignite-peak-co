@@ -187,6 +187,9 @@ const App = () => (
               <Route path="subscription" element={<AdminSubscription />} />
               <Route path="email" element={<AdminEmail />} />
               <Route path="theme" element={<AdminTheme />} />
+              <Route path="resellers" element={<AdminResellers />} />
+              <Route path="reseller-tiers" element={<AdminResellerTiers />} />
+              <Route path="reseller-payouts" element={<AdminResellerPayouts />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
