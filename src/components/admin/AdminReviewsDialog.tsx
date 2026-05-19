@@ -186,5 +186,3 @@ export const AdminReviewsDialog = ({
     </Dialog>
   );
 };
-
-export { Plus as _ };
