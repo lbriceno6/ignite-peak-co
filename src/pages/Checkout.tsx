@@ -340,7 +340,7 @@ const Checkout = () => {
                 <h3 className="font-display text-xl uppercase">Datos de envío</h3>
                 {!user && <span className="rounded-full bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-success">Cuenta creada al pagar</span>}
                 {hasCompleteProfile && !editData && (
-                  <button type="button" onClick={() => setEditData(true)} className="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">Editar</button>
+                  <button type="button" onClick={startEdit} className="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">Editar</button>
                 )}
               </div>
 
@@ -351,16 +351,65 @@ const Checkout = () => {
                   <p className="text-muted-foreground">{form.address}, {form.city}{form.postal ? `, ${form.postal}` : ""}, {form.country}</p>
                 </div>
               ) : (
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2"><Label>Correo electrónico *</Label><Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className="mt-1.5" disabled={!!user} /></div>
-                  <div><Label>Nombre *</Label><Input value={form.firstName} onChange={set("firstName")} className="mt-1.5" /></div>
-                  <div><Label>Apellido *</Label><Input value={form.lastName} onChange={set("lastName")} className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>Teléfono *</Label><Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>Dirección *</Label><Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className="mt-1.5" /></div>
-                  <div><Label>Ciudad *</Label><Input value={form.city} onChange={set("city")} className="mt-1.5" /></div>
-                  <div><Label>Código postal</Label><Input value={form.postal} onChange={set("postal")} className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>País</Label><Input value={form.country} onChange={set("country")} className="mt-1.5" /></div>
-                </div>
+                <>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    {(() => {
+                      const showErr = (k: string) => touched[k] && fieldErrors[k];
+                      const errCls = (k: string) => showErr(k) ? "mt-1.5 border-destructive focus-visible:ring-destructive" : "mt-1.5";
+                      const ErrMsg = ({ k }: { k: string }) => showErr(k) ? <p className="mt-1 text-xs text-destructive">{fieldErrors[k]}</p> : null;
+                      return (
+                        <>
+                          <div className="sm:col-span-2">
+                            <Label>Correo electrónico *</Label>
+                            <Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className={errCls("email")} disabled={!!user} maxLength={255} />
+                            <ErrMsg k="email" />
+                          </div>
+                          <div>
+                            <Label>Nombre *</Label>
+                            <Input value={form.firstName} onChange={set("firstName")} className={errCls("firstName")} maxLength={50} />
+                            <ErrMsg k="firstName" />
+                          </div>
+                          <div>
+                            <Label>Apellido *</Label>
+                            <Input value={form.lastName} onChange={set("lastName")} className={errCls("lastName")} maxLength={50} />
+                            <ErrMsg k="lastName" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>Teléfono *</Label>
+                            <Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className={errCls("phone")} maxLength={20} inputMode="tel" />
+                            <ErrMsg k="phone" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>Dirección *</Label>
+                            <Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className={errCls("address")} maxLength={200} />
+                            <ErrMsg k="address" />
+                          </div>
+                          <div>
+                            <Label>Ciudad *</Label>
+                            <Input value={form.city} onChange={set("city")} className={errCls("city")} maxLength={80} />
+                            <ErrMsg k="city" />
+                          </div>
+                          <div>
+                            <Label>Código postal</Label>
+                            <Input value={form.postal} onChange={set("postal")} className="mt-1.5" maxLength={15} />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>País</Label>
+                            <Input value={form.country} onChange={set("country")} className="mt-1.5" maxLength={60} />
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  {user && editData && (
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Button onClick={saveEdit} disabled={savingData || Object.keys(fieldErrors).length > 0} variant="accent">
+                        {savingData ? <><Loader2 size={14} className="animate-spin" /> Guardando…</> : "Guardar cambios"}
+                      </Button>
+                      <Button onClick={cancelEdit} variant="outline" disabled={savingData}>Cancelar</Button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
