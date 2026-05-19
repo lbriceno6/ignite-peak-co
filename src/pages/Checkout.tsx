@@ -88,6 +88,11 @@ const Checkout = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
+    setMatchedZone(matchZone(form.city, zones));
+  }, [form.city, zones]);
+
+
+  useEffect(() => {
     if (!user) { setProfileLoaded(true); return; }
     (async () => {
       const { data } = await supabase
