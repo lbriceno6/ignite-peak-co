@@ -209,6 +209,14 @@ export default function ProductForm() {
           </Field>
         </div>
 
+        <Field label="Presentaciones / variantes de peso (una por línea, formato: etiqueta|precio, ej. 1kg|49.90)">
+          <Textarea rows={4} placeholder={"500g|29.90\n1kg|49.90\n2kg|89.90"} value={f.size_variants}
+            onChange={(e) => set("size_variants", e.target.value)} />
+          <p className="text-xs text-muted-foreground mt-1">Si agregas variantes, el cliente podrá elegir y se cobrará el precio de la variante seleccionada.</p>
+        </Field>
+
+
+
         <Field label="Imagen principal">
           <div className="space-y-2">
             {f.main_image && (
