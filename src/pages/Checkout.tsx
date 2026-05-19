@@ -64,13 +64,21 @@ const Checkout = () => {
   const { items, clear } = useCart();
   useShippingSettings();
   const { zones } = useShippingZones();
-  const { subtotal } = cartTotals(items);
+  const { subtotal: rawSubtotal } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
+  const { reseller, refresh: refreshReseller } = useReseller();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
   const [matchedZone, setMatchedZone] = useState<ReturnType<typeof matchZone>>(null);
+  const [referral, setReferral] = useState<StoredReferral | null>(null);
+  const [useCredit, setUseCredit] = useState(false);
+  useEffect(() => { setReferral(getStoredReferral()); }, []);
+  const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
+  const subtotal = Math.max(0, rawSubtotal - discount);
   const shipping = computeZoneShipping(matchedZone, subtotal, shippingSettings);
-  const total = subtotal + shipping;
+  const availableCredit = reseller?.balance_credit ?? 0;
+  const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
+  const total = subtotal + shipping - creditApplied;
 
   const [form, setForm] = useState({
     email: user?.email ?? "",
