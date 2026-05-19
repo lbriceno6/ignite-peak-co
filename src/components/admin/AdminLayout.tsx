@@ -19,6 +19,7 @@ import {
   GalleryHorizontal,
   Layers,
   PanelBottom,
+  Link2,
   Mail,
   Info,
   Truck,
