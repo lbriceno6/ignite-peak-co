@@ -125,6 +125,15 @@ export default function AdminProducts() {
                     </div>
                   </div>
                 </td>
+                <td className="p-3">
+                  {p.supplier ? (
+                    <Link to={`/proveedor/${p.supplier.slug}`} className="text-xs hover:underline">
+                      {p.supplier.business_name}
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>
                 <td className="p-3">{p.category}</td>
                 <td className="p-3">S/ {Number(p.price).toFixed(2)}</td>
                 <td className="p-3">{p.stock}</td>
@@ -136,7 +145,7 @@ export default function AdminProducts() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
           </tbody>
         </table>
       </div>
