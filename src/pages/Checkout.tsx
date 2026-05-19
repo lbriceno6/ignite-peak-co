@@ -10,6 +10,8 @@ import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
+import { useShippingZones, matchZone, computeZoneShipping } from "@/hooks/useShippingZones";
+import { shippingSettings } from "@/store/cart";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,10 +60,14 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { items, clear } = useCart();
   useShippingSettings();
-  const { subtotal, shipping, total } = cartTotals(items);
+  const { zones } = useShippingZones();
+  const { subtotal } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
+  const [matchedZone, setMatchedZone] = useState<ReturnType<typeof matchZone>>(null);
+  const shipping = computeZoneShipping(matchedZone, subtotal, shippingSettings);
+  const total = subtotal + shipping;
 
   const [form, setForm] = useState({
     email: user?.email ?? "",
@@ -80,6 +86,11 @@ const Checkout = () => {
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [draft, setDraft] = useState<typeof form | null>(null);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setMatchedZone(matchZone(form.city, zones));
+  }, [form.city, zones]);
+
 
   useEffect(() => {
     if (!user) { setProfileLoaded(true); return; }
@@ -197,7 +208,7 @@ const Checkout = () => {
       lines,
       ``,
       `Subtotal: ${format(subtotal)}`,
-      `Envío: ${shipping === 0 ? "Gratis" : format(shipping)}`,
+      `Envío${matchedZone ? ` (${matchedZone.name}${matchedZone.estimated_days ? `, ${matchedZone.estimated_days}` : ""})` : ""}: ${shipping === 0 ? "Gratis" : format(shipping)}`,
       `*Total: ${format(total)}*`,
       ``,
       `*Método de pago:* ${meta}`,
@@ -403,6 +414,33 @@ const Checkout = () => {
                       );
                     })()}
                   </div>
+
+                  {/* Shipping zone estimate */}
+                  {form.city && (
+                    <div className={`mt-4 rounded-lg border p-3 text-sm ${matchedZone ? "border-success/40 bg-success/5" : "border-border bg-muted/40"}`}>
+                      <div className="flex items-start gap-2">
+                        <Truck size={16} className={matchedZone ? "mt-0.5 text-success" : "mt-0.5 text-muted-foreground"} />
+                        <div className="min-w-0 flex-1">
+                          {matchedZone ? (
+                            <>
+                              <p className="font-medium">
+                                Zona detectada: <span className="text-foreground">{matchedZone.name}</span>
+                              </p>
+                              <p className="text-muted-foreground">
+                                {shipping === 0 ? "Envío gratis" : `Envío: ${format(shipping)}`}
+                                {matchedZone.estimated_days ? ` · ${matchedZone.estimated_days}` : ""}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No reconocimos tu ciudad. Aplicaremos el costo estándar de envío ({shipping === 0 ? "gratis" : format(shipping)}). Confirmaremos el tiempo de entrega por WhatsApp.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {user && editData && (
                     <div className="mt-5 flex flex-wrap gap-2">
                       <Button onClick={saveEdit} disabled={savingData || Object.keys(fieldErrors).length > 0} variant="accent">
@@ -572,7 +610,10 @@ const Checkout = () => {
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Envío {matchedZone ? `· ${matchedZone.name}` : ""}</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
+              {matchedZone?.estimated_days && (
+                <div className="flex justify-between text-xs text-muted-foreground"><span>Entrega estimada</span><span>{matchedZone.estimated_days}</span></div>
+              )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
           </aside>
