@@ -220,6 +220,72 @@ export default function AdminShipping() {
       <div className="rounded-lg border bg-background">
         <div className="flex items-center justify-between p-5">
           <div>
+            <h2 className="font-display text-lg">Zonas de envío</h2>
+            <p className="text-sm text-muted-foreground">Define ciudades, costo y tiempo estimado por zona. Se calcula automáticamente al pagar.</p>
+          </div>
+          <Button variant="dark" onClick={openNewZ}><Plus size={16} /> Nueva zona</Button>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Zona</TableHead>
+              <TableHead>Ciudades</TableHead>
+              <TableHead>Costo</TableHead>
+              <TableHead>Tiempo</TableHead>
+              <TableHead>Envío gratis &gt;</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {zones.length === 0 ? (
+              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Aún no hay zonas.</TableCell></TableRow>
+            ) : zones.map((z) => (
+              <TableRow key={z.id}>
+                <TableCell className="font-medium">{z.name}</TableCell>
+                <TableCell className="max-w-xs truncate text-xs text-muted-foreground">{(z.cities || []).join(", ") || "—"}</TableCell>
+                <TableCell>S/ {Number(z.cost).toFixed(2)}</TableCell>
+                <TableCell>{z.estimated_days || "—"}</TableCell>
+                <TableCell>{z.free_threshold != null ? `S/ ${Number(z.free_threshold).toFixed(2)}` : "—"}</TableCell>
+                <TableCell><Badge variant={z.is_active ? "default" : "outline"}>{z.is_active ? "Activa" : "Inactiva"}</Badge></TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => openEditZ(z)}><Pencil size={14} /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => removeZ(z)}><Trash2 size={14} /></Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={openZ} onOpenChange={setOpenZ}>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{editingZ ? "Editar zona" : "Nueva zona"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2"><Label>Nombre *</Label><Input placeholder="Lima Metropolitana" value={fz.name ?? ""} onChange={(e) => setZ("name", e.target.value)} /></div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Ciudades (separadas por coma)</Label>
+              <Textarea rows={3} placeholder="lima, callao, miraflores, surco…" value={fz.citiesText ?? (fz.cities || []).join(", ")} onChange={(e) => setZ("citiesText", e.target.value)} />
+              <p className="text-xs text-muted-foreground">El sistema buscará coincidencias contra la ciudad ingresada por el cliente al pagar.</p>
+            </div>
+            <div className="space-y-1.5"><Label>Costo (S/)</Label><Input type="number" step="0.1" value={fz.cost ?? 0} onChange={(e) => setZ("cost", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Tiempo estimado</Label><Input placeholder="1–3 días hábiles" value={fz.estimated_days ?? ""} onChange={(e) => setZ("estimated_days", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Envío gratis a partir de (S/)</Label><Input type="number" step="0.1" placeholder="Vacío = usar predeterminado" value={fz.free_threshold ?? ""} onChange={(e) => setZ("free_threshold", e.target.value)} /></div>
+            <div className="space-y-1.5"><Label>Orden</Label><Input type="number" value={fz.sort_order ?? 0} onChange={(e) => setZ("sort_order", e.target.value)} /></div>
+            <div className="flex items-center gap-3 pt-2 sm:col-span-2"><Switch checked={!!fz.is_active} onCheckedChange={(v) => setZ("is_active", v)} /><Label>Activa</Label></div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenZ(false)}>Cancelar</Button>
+            <Button variant="dark" onClick={saveZone} disabled={savingZ}>{savingZ ? "Guardando…" : "Guardar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <div className="rounded-lg border bg-background">
+        <div className="flex items-center justify-between p-5">
+          <div>
             <h2 className="font-display text-lg">Transportistas de envío</h2>
             <p className="text-sm text-muted-foreground">Empresas o couriers con los que despachas pedidos.</p>
           </div>
