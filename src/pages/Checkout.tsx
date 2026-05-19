@@ -324,6 +324,23 @@ const Checkout = () => {
             <section className="rounded-xl border bg-card p-6 shadow-sm">
               <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Método de pago</h3>
 
+              {/* Compact shipping confirmation */}
+              <div className={`mt-4 rounded-lg border p-3 text-xs sm:text-sm ${isComplete ? "border-success/40 bg-success/5" : "border-dashed border-warning/50 bg-warning/5"}`}>
+                <div className="flex items-start gap-2">
+                  {isComplete ? <Check size={16} className="mt-0.5 shrink-0 text-success" /> : <ShieldCheck size={16} className="mt-0.5 shrink-0 text-warning" />}
+                  <div className="min-w-0 flex-1">
+                    {isComplete ? (
+                      <>
+                        <p className="font-semibold">Enviar a {form.firstName} {form.lastName} · {form.phone}</p>
+                        <p className="truncate text-muted-foreground">{form.address}, {form.city}{form.postal ? `, ${form.postal}` : ""}, {form.country}</p>
+                      </>
+                    ) : (
+                      <p className="font-semibold">Completa tus datos de envío para continuar con el pago.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {methods.map((m) => {
                   const active = selected === m.k;
