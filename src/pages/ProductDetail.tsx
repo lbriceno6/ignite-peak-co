@@ -302,10 +302,14 @@ const ProductDetail = () => {
               <span className="w-10 text-center font-display text-lg">{qty}</span>
               <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(product, {
-              quantity: qty,
-              subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
-            })}>
+            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(
+              { ...product, price: basePrice, oldPrice: undefined },
+              {
+                quantity: qty,
+                size: variant?.label,
+                subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
+              },
+            )}>
               <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
             </Button>
             <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
@@ -315,6 +319,7 @@ const ProductDetail = () => {
           {(() => {
             const lines = [
               `¡Hola! Estoy interesado en ${product.name}`,
+              variant ? `Presentación: ${variant.label}` : null,
               `Cantidad: ${qty}`,
               purchaseMode === "subscription"
                 ? `Tipo de compra: suscripción (cada ${interval} días, -${subDiscount}% de descuento)`
