@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Package, ShoppingBag, DollarSign, Wallet, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SupplierStatusTimeline } from "@/components/supplier/SupplierStatusTimeline";
 
 const Stat = ({ icon: Icon, label, value, hint }: any) => (
   <div className="rounded-xl border bg-card p-5">
