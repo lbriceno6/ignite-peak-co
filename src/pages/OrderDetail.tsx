@@ -30,12 +30,18 @@ const OrderDetail = () => {
   const [cancelling, setCancelling] = useState(false);
   const { format } = useCurrency();
 
+  const [resellerCode, setResellerCode] = useState<string | null>(null);
+
   useEffect(() => {
     (async () => {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
       const { data: it } = await supabase.from("order_items").select("*").eq("order_id", id);
       setOrder(o);
       setItems((it ?? []) as Item[]);
+      if (o?.reseller_id) {
+        const { data: r } = await (supabase as any).from("resellers").select("code").eq("id", o.reseller_id).maybeSingle();
+        setResellerCode(r?.code ?? null);
+      }
       setLoading(false);
     })();
   }, [id]);
@@ -87,9 +93,26 @@ const OrderDetail = () => {
             <div className="rounded-lg border border-border p-5">
               <h3 className="font-display uppercase mb-3">Resumen</h3>
               <div className="flex justify-between text-sm"><span>Subtotal</span><span>{format(Number(order.subtotal))}</span></div>
-              <div className="flex justify-between text-sm mt-1"><span>Envío</span><span>{format(Number(order.shipping))}</span></div>
+              {Number(order.reseller_discount_applied) > 0 && (
+                <div className="flex justify-between text-sm mt-1 text-accent">
+                  <span>Descuento revendedor{resellerCode ? ` (${resellerCode})` : ""}</span>
+                  <span>−{format(Number(order.reseller_discount_applied))}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm mt-1"><span>Envío</span><span>{Number(order.shipping) === 0 ? "Gratis" : format(Number(order.shipping))}</span></div>
+              {Number(order.store_credit_used) > 0 && (
+                <div className="flex justify-between text-sm mt-1 text-accent">
+                  <span>Saldo en tienda usado</span>
+                  <span>−{format(Number(order.store_credit_used))}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold mt-3 pt-3 border-t border-border"><span>Total</span><span>{format(Number(order.total))}</span></div>
               <p className="mt-3 text-xs text-muted-foreground capitalize">Pago: {order.payment_method}</p>
+              {order.reseller_id && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Atribuido a revendedor{resellerCode ? `: ${resellerCode}` : ""} · {order.referral_source === "code" ? "Código" : "Link"}
+                </p>
+              )}
             </div>
             <div className="rounded-lg border border-border p-5 text-sm">
               <h3 className="font-display uppercase mb-3">Envío</h3>

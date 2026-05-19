@@ -75,7 +75,7 @@ const Checkout = () => {
   useEffect(() => { setReferral(getStoredReferral()); }, []);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
   const subtotal = Math.max(0, rawSubtotal - discount);
-  const shipping = computeZoneShipping(matchedZone, subtotal, shippingSettings);
+  const shipping = computeZoneShipping(matchedZone, rawSubtotal, shippingSettings);
   const availableCredit = reseller?.balance_credit ?? 0;
   const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
   const total = subtotal + shipping - creditApplied;
