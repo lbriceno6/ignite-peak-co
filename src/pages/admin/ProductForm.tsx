@@ -42,7 +42,54 @@ export default function ProductForm() {
   const nav = useNavigate();
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const mainFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+
+  const uploadToBucket = async (file: File, prefix: string) => {
+    const ext = file.name.split(".").pop();
+    const path = `${prefix}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("blog-images").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return supabase.storage.from("blog-images").getPublicUrl(path).data.publicUrl;
+  };
+
+  const onUploadMain = async (file?: File) => {
+    if (!file) return;
+    setUploadingMain(true);
+    try {
+      const url = await uploadToBucket(file, "product-main");
+      set("main_image", url);
+      toast.success("Image uploaded");
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingMain(false); }
+  };
+
+  const onUploadGallery = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingGallery(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        urls.push(await uploadToBucket(file, "product-gallery"));
+      }
+      const current = typeof f.gallery_images === "string"
+        ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+        : (f.gallery_images ?? []);
+      set("gallery_images", [...current, ...urls].join("\n"));
+      toast.success(`${urls.length} image(s) uploaded`);
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingGallery(false); }
+  };
+
+  const removeGalleryAt = (idx: number) => {
+    const arr = typeof f.gallery_images === "string"
+      ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+      : (f.gallery_images ?? []);
+    arr.splice(idx, 1);
+    set("gallery_images", arr.join("\n"));
+  };
+
 
   useEffect(() => {
     (async () => {
