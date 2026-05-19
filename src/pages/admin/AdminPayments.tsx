@@ -24,7 +24,7 @@ const KEYS = [
   "pay.plin.enabled", "pay.plin.holder", "pay.plin.phone", "pay.plin.qr_url", "pay.plin.note",
   "pay.bank.enabled", "pay.bank.bank_name", "pay.bank.account_type", "pay.bank.account_number",
   "pay.bank.cci", "pay.bank.holder", "pay.bank.document", "pay.bank.note",
-  "pay.card.enabled",
+  "pay.card.enabled", "pay.card.brands", "pay.card.provider", "pay.card.note",
   "pay.cod.enabled", "pay.cod.note",
   "pay.confirm_whatsapp",
 ] as const;
@@ -156,6 +156,15 @@ export default function AdminPayments() {
           <Field k="pay.bank.document" label="DNI / RUC del titular" {...f("pay.bank.document")} />
         </div>
         <Field k="pay.bank.note" label="Instrucciones para el cliente" area placeholder="Envía el comprobante por WhatsApp para confirmar tu pedido." {...f("pay.bank.note")} />
+      </div>
+
+      <div className="rounded-lg border bg-background p-5 space-y-4">
+        <h2 className="font-display text-lg">Tarjeta</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field k="pay.card.provider" label="Procesador / pasarela" placeholder="Visa, Niubiz, Culqi, Mercado Pago…" {...f("pay.card.provider")} />
+          <Field k="pay.card.brands" label="Marcas aceptadas" placeholder="Visa, Mastercard, Amex, Diners" {...f("pay.card.brands")} />
+        </div>
+        <Field k="pay.card.note" label="Instrucciones para el cliente" area placeholder="Acepta tarjetas de crédito y débito. Pago 100% seguro." {...f("pay.card.note")} />
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
