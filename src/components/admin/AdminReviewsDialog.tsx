@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Loader2, Trash2, Pencil, Star, X, Save } from "lucide-react";
+import { Loader2, Trash2, Pencil, Star, X, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Stars } from "@/components/Stars";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
