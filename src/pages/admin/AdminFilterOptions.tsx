@@ -46,16 +46,33 @@ export default function AdminFilterOptions() {
   const [editing, setEditing] = useState<Partial<FilterOption>>(empty);
   const [loading, setLoading] = useState(false);
 
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
+
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("filter_options" as any)
-      .select("*")
-      .order("group")
-      .order("sort_order")
-      .order("label");
-    if (error) toast.error(error.message);
-    setItems(((data as any) ?? []) as FilterOption[]);
+    const [{ data: itemsData, error: itemsError }, { data: productsData, error: productsError }] = await Promise.all([
+      supabase
+        .from("filter_options" as any)
+        .select("*")
+        .order("group")
+        .order("sort_order")
+        .order("label"),
+      supabase
+        .from("products" as any)
+        .select("category, goal, flavor, size"),
+    ]);
+    if (itemsError) toast.error(itemsError.message);
+    if (productsError) toast.error(productsError.message);
+    setItems(((itemsData as any) ?? []) as FilterOption[]);
+
+    const counts: Record<string, number> = {};
+    (productsData as any)?.forEach((p: any) => {
+      if (p.category) counts[`type:${p.category}`] = (counts[`type:${p.category}`] || 0) + 1;
+      if (p.goal) counts[`goal:${p.goal}`] = (counts[`goal:${p.goal}`] || 0) + 1;
+      if (p.flavor) counts[`flavor:${p.flavor}`] = (counts[`flavor:${p.flavor}`] || 0) + 1;
+      if (p.size) counts[`size:${p.size}`] = (counts[`size:${p.size}`] || 0) + 1;
+    });
+    setProductCounts(counts);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
@@ -144,6 +161,7 @@ export default function AdminFilterOptions() {
                   <tr>
                     <th className="p-3">Etiqueta</th>
                     <th className="p-3">Valor</th>
+                    <th className="p-3 w-24 text-center">Productos</th>
                     <th className="p-3 w-20">Orden</th>
                     <th className="p-3 w-32">Habilitada</th>
                     <th className="p-3 text-right">Acciones</th>
@@ -154,6 +172,11 @@ export default function AdminFilterOptions() {
                     <tr key={o.id} className="border-t">
                       <td className="p-3 font-medium">{o.label}</td>
                       <td className="p-3 text-muted-foreground">{o.value}</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                          {productCounts[`${o.group}:${o.value}`] || 0}
+                        </span>
+                      </td>
                       <td className="p-3">{o.sort_order}</td>
                       <td className="p-3">
                         <Switch checked={o.is_enabled} onCheckedChange={() => toggleEnabled(o)} />
@@ -181,7 +204,7 @@ export default function AdminFilterOptions() {
                     </tr>
                   ))}
                   {!loading && filtered.length === 0 && (
-                    <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Sin opciones</td></tr>
+                    <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Sin opciones</td></tr>
                   )}
                 </tbody>
               </table>
