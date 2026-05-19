@@ -128,6 +128,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/goal-cards")) return "Goal cards";
   if (p.startsWith("/admin/navigation")) return "Logo & Menu";
   if (p.startsWith("/admin/footer")) return "Footer";
+  if (p.startsWith("/admin/site-links")) return "Site links";
   if (p.startsWith("/admin/about")) return "About page";
   if (p.startsWith("/admin/contact")) return "Contact page";
   return "Admin";
