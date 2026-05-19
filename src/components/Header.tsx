@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -9,7 +9,25 @@ import { useCart, cartTotals } from "@/store/cart";
 import { categories } from "@/data/catalog";
 import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
+import { useSiteContent } from "@/hooks/useSiteContent";
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+
+type NavItem = { id: string; label: string; href: string; open_in_new_tab: boolean };
+
+const Logo = ({ className }: { className?: string }) => {
+  const { content } = useSiteContent(["logo_text", "logo_accent", "logo_image_url"], {
+    logo_text: "VOLT", logo_accent: "RA", logo_image_url: "",
+  });
+  if (content.logo_image_url) {
+    return <img src={content.logo_image_url} alt="Logo" className={cn("h-8 w-auto object-contain lg:h-10", className)} />;
+  }
+  return (
+    <span className={cn("font-display text-2xl tracking-tight lg:text-3xl", className)}>
+      {content.logo_text}<span className="text-accent">{content.logo_accent}</span>
+    </span>
+  );
+};
 
 const CurrencySwitcher = () => {
   const { currency, setCurrency } = useCurrency();
