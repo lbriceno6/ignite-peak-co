@@ -87,7 +87,13 @@ const Cart = () => {
             <div className="rounded-lg border p-5">
               <h3 className="font-display text-xl uppercase">Resumen del pedido</h3>
               <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{format(subtotal)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{format(rawSubtotal)}</span></div>
+                {referral && discount > 0 && (
+                  <div className="flex justify-between text-accent">
+                    <span className="inline-flex items-center gap-1"><Tag size={12} /> Descuento revendedor ({referral.customer_discount_percent}%)</span>
+                    <span className="font-semibold">−{format(discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span className="font-semibold">{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
                 {shipping === 0 && <p className="text-xs text-success">🎉 Calificas para envío gratis</p>}
               </div>
@@ -99,11 +105,21 @@ const Cart = () => {
               </Button>
             </div>
             <div className="rounded-lg border p-5">
-              <p className="flex items-center gap-2 text-sm font-bold"><Tag size={14} className="text-accent" /> ¿Tienes un código promocional?</p>
-              <div className="mt-3 flex gap-2">
-                <Input placeholder="Ingresa el código" />
-                <Button variant="dark">Aplicar</Button>
-              </div>
+              <p className="flex items-center gap-2 text-sm font-bold"><Tag size={14} className="text-accent" /> Código de revendedor</p>
+              {referral ? (
+                <div className="mt-3 flex items-center justify-between rounded-md border border-accent/30 bg-accent/10 p-3">
+                  <div className="text-sm">
+                    <p className="font-bold inline-flex items-center gap-1"><Check size={14} className="text-accent" /> {referral.code ?? "Link aplicado"}</p>
+                    <p className="text-xs text-muted-foreground">−{referral.customer_discount_percent}% en tu compra</p>
+                  </div>
+                  <button onClick={clear} className="text-muted-foreground hover:text-destructive" aria-label="Quitar código"><X size={16} /></button>
+                </div>
+              ) : (
+                <div className="mt-3 flex gap-2">
+                  <Input placeholder="Ingresa el código" value={codeInput} onChange={(e) => setCodeInput(e.target.value.toUpperCase())} />
+                  <Button variant="dark" onClick={apply} disabled={!codeInput.trim()}>Aplicar</Button>
+                </div>
+              )}
             </div>
           </aside>
         </div>

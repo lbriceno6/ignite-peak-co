@@ -14,6 +14,9 @@ import { useShippingZones, matchZone, computeZoneShipping } from "@/hooks/useShi
 import { shippingSettings } from "@/store/cart";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { getStoredReferral, clearReferral, StoredReferral } from "@/components/ReferralTracker";
+import { useReseller } from "@/hooks/useReseller";
+import { Tag, Wallet } from "lucide-react";
 
 const PAY_KEYS = [
   "pay.order",
@@ -61,13 +64,21 @@ const Checkout = () => {
   const { items, clear } = useCart();
   useShippingSettings();
   const { zones } = useShippingZones();
-  const { subtotal } = cartTotals(items);
+  const { subtotal: rawSubtotal } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
+  const { reseller, refresh: refreshReseller } = useReseller();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
   const [matchedZone, setMatchedZone] = useState<ReturnType<typeof matchZone>>(null);
+  const [referral, setReferral] = useState<StoredReferral | null>(null);
+  const [useCredit, setUseCredit] = useState(false);
+  useEffect(() => { setReferral(getStoredReferral()); }, []);
+  const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
+  const subtotal = Math.max(0, rawSubtotal - discount);
   const shipping = computeZoneShipping(matchedZone, subtotal, shippingSettings);
-  const total = subtotal + shipping;
+  const availableCredit = reseller?.balance_credit ?? 0;
+  const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
+  const total = subtotal + shipping - creditApplied;
 
   const [form, setForm] = useState({
     email: user?.email ?? "",
@@ -280,6 +291,10 @@ const Checkout = () => {
           shipping_city: form.city,
           shipping_postal_code: form.postal,
           shipping_country: form.country,
+          reseller_id: referral?.reseller_id ?? null,
+          referral_source: referral?.source ?? null,
+          reseller_discount_applied: discount,
+          store_credit_used: creditApplied,
         })
         .select("id, order_code")
         .single();
@@ -337,6 +352,10 @@ const Checkout = () => {
 
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+      clearReferral();
+      if (creditApplied > 0) refreshReseller();
+
+
 
 
       if (wa) {
@@ -636,13 +655,34 @@ const Checkout = () => {
               {items.length === 0 && <p className="text-sm text-muted-foreground">Tu carrito está vacío. <Link to="/" className="underline">Comprar ahora</Link></p>}
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(rawSubtotal)}</span></div>
+              {referral && discount > 0 && (
+                <div className="flex justify-between text-accent">
+                  <span className="inline-flex items-center gap-1"><Tag size={12} /> Descuento {referral.code ? `(${referral.code})` : ""} −{referral.customer_discount_percent}%</span>
+                  <span>−{format(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span className="text-muted-foreground">Envío {matchedZone ? `· ${matchedZone.name}` : ""}</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
               {matchedZone?.estimated_days && (
                 <div className="flex justify-between text-xs text-muted-foreground"><span>Entrega estimada</span><span>{matchedZone.estimated_days}</span></div>
               )}
+              {creditApplied > 0 && (
+                <div className="flex justify-between text-accent">
+                  <span className="inline-flex items-center gap-1"><Wallet size={12} /> Saldo en tienda</span>
+                  <span>−{format(creditApplied)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
+            {availableCredit > 0 && (
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-accent/40 bg-accent/5 p-3 text-sm">
+                <input type="checkbox" className="mt-0.5" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
+                <div className="flex-1">
+                  <p className="font-semibold inline-flex items-center gap-1"><Wallet size={14} className="text-accent" /> Usar mi saldo en tienda</p>
+                  <p className="text-xs text-muted-foreground">Disponible: {format(availableCredit)}</p>
+                </div>
+              </label>
+            )}
             {(() => {
               const subItems = items.filter((i) => i.subscription);
               if (!subItems.length) return null;
