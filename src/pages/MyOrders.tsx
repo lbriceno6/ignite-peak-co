@@ -26,8 +26,8 @@ const statusVariant: Record<string, string> = {
 };
 
 const statusLabel: Record<string, string> = {
-  pending: "Pending", confirmed: "Confirmed", preparing: "In preparation",
-  shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled",
+  pending: "Pendiente", confirmed: "Confirmado", preparing: "En preparación",
+  shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
 };
 
 const MyOrders = () => {
@@ -47,25 +47,25 @@ const MyOrders = () => {
   return (
     <Layout>
       <div className="container-x py-12">
-        <h1 className="font-display text-4xl uppercase mb-8">My orders</h1>
+        <h1 className="font-display text-4xl uppercase mb-8">Mis pedidos</h1>
 
         {loading ? (
-          <p className="text-muted-foreground">Loading…</p>
+          <p className="text-muted-foreground">Cargando…</p>
         ) : orders.length === 0 ? (
           <div className="rounded-lg border border-border p-10 text-center">
-            <p className="text-lg font-medium">No orders yet</p>
-            <p className="mt-2 text-sm text-muted-foreground">Start fueling your training.</p>
-            <Button asChild className="mt-4"><Link to="/">Shop now</Link></Button>
+            <p className="text-lg font-medium">Aún no tienes pedidos</p>
+            <p className="mt-2 text-sm text-muted-foreground">Empieza a potenciar tu entrenamiento.</p>
+            <Button asChild className="mt-4"><Link to="/">Comprar ahora</Link></Button>
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead className="bg-secondary/40 text-xs uppercase tracking-wider">
                 <tr>
-                  <th className="px-4 py-3 text-left">Order</th>
-                  <th className="px-4 py-3 text-left">Date</th>
-                  <th className="px-4 py-3 text-left">Status</th>
-                  <th className="px-4 py-3 text-left">Payment</th>
+                  <th className="px-4 py-3 text-left">Pedido</th>
+                  <th className="px-4 py-3 text-left">Fecha</th>
+                  <th className="px-4 py-3 text-left">Estado</th>
+                  <th className="px-4 py-3 text-left">Pago</th>
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -81,7 +81,7 @@ const MyOrders = () => {
                     <td className="px-4 py-3 capitalize">{o.payment_method}</td>
                     <td className="px-4 py-3 text-right font-semibold">{format(Number(o.total))}</td>
                     <td className="px-4 py-3 text-right">
-                      <Button asChild size="sm" variant="outline"><Link to={`/my-orders/${o.id}`}>View details</Link></Button>
+                      <Button asChild size="sm" variant="outline"><Link to={`/my-orders/${o.id}`}>Ver detalles</Link></Button>
                     </td>
                   </tr>
                 ))}

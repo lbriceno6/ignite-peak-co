@@ -16,10 +16,10 @@ const Cart = () => {
       <Layout>
         <div className="container-x py-24 text-center">
           <ShoppingBag className="mx-auto text-muted-foreground" size={48} />
-          <h1 className="mt-4 font-display text-4xl uppercase">Your cart is empty</h1>
-          <p className="mt-2 text-muted-foreground">Time to fuel your goals.</p>
+          <h1 className="mt-4 font-display text-4xl uppercase">Tu carrito está vacío</h1>
+          <p className="mt-2 text-muted-foreground">Es hora de potenciar tus objetivos.</p>
           <Button size="lg" variant="accent" className="mt-6" asChild>
-            <Link to="/">Continue shopping</Link>
+            <Link to="/">Seguir comprando</Link>
           </Button>
         </div>
       </Layout>
@@ -29,12 +29,12 @@ const Cart = () => {
   return (
     <Layout>
       <div className="container-x py-10">
-        <h1 className="font-display text-4xl uppercase sm:text-5xl">Your cart</h1>
+        <h1 className="font-display text-4xl uppercase sm:text-5xl">Tu carrito</h1>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="rounded-lg border">
             <div className="hidden grid-cols-[1fr_120px_120px_60px] gap-4 border-b bg-secondary/40 p-4 text-xs font-bold uppercase tracking-wider text-muted-foreground md:grid">
-              <span>Product</span><span>Quantity</span><span className="text-right">Subtotal</span><span></span>
+              <span>Producto</span><span>Cantidad</span><span className="text-right">Subtotal</span><span></span>
             </div>
             {items.map((i) => (
               <div key={i.product.id + (i.flavor ?? "") + (i.size ?? "")} className="grid items-center gap-4 border-b p-4 last:border-0 md:grid-cols-[1fr_120px_120px_60px]">
@@ -45,7 +45,7 @@ const Cart = () => {
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
                     {i.subscription && (
                       <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
-                        <Repeat size={10} /> Every {i.subscription.intervalDays}d · −{i.subscription.discountPercent}%
+                        <Repeat size={10} /> Cada {i.subscription.intervalDays}d · −{i.subscription.discountPercent}%
                       </p>
                     )}
                     <p className="mt-1 text-sm font-medium md:hidden">{format(lineUnitPrice(i))}</p>
@@ -57,7 +57,7 @@ const Cart = () => {
                   <button onClick={() => setQty(i.product.id, i.quantity + 1)} className="p-2 hover:bg-secondary"><Plus size={12} /></button>
                 </div>
                 <span className="text-right font-display text-lg">{format(lineSubtotal(i))}</span>
-                <button onClick={() => remove(i.product.id)} className="justify-self-end text-muted-foreground hover:text-destructive" aria-label="Remove">
+                <button onClick={() => remove(i.product.id)} className="justify-self-end text-muted-foreground hover:text-destructive" aria-label="Eliminar">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -66,24 +66,24 @@ const Cart = () => {
 
           <aside className="space-y-4">
             <div className="rounded-lg border p-5">
-              <h3 className="font-display text-xl uppercase">Order summary</h3>
+              <h3 className="font-display text-xl uppercase">Resumen del pedido</h3>
               <div className="mt-4 space-y-2 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span className="font-semibold">{format(subtotal)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Shipping</span><span className="font-semibold">{shipping === 0 ? "Free" : format(shipping)}</span></div>
-                {shipping === 0 && <p className="text-xs text-success">🎉 You qualify for free shipping</p>}
+                <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span className="font-semibold">{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
+                {shipping === 0 && <p className="text-xs text-success">🎉 Calificas para envío gratis</p>}
               </div>
               <div className="mt-4 flex justify-between border-t pt-4 font-display text-2xl">
                 <span>Total</span><span>{format(total)}</span>
               </div>
               <Button size="lg" variant="accent" className="mt-5 w-full" asChild>
-                <Link to="/checkout">Checkout <ArrowRight /></Link>
+                <Link to="/checkout">Pagar <ArrowRight /></Link>
               </Button>
             </div>
             <div className="rounded-lg border p-5">
-              <p className="flex items-center gap-2 text-sm font-bold"><Tag size={14} className="text-accent" /> Have a promo code?</p>
+              <p className="flex items-center gap-2 text-sm font-bold"><Tag size={14} className="text-accent" /> ¿Tienes un código promocional?</p>
               <div className="mt-3 flex gap-2">
-                <Input placeholder="Enter code" />
-                <Button variant="dark">Apply</Button>
+                <Input placeholder="Ingresa el código" />
+                <Button variant="dark">Aplicar</Button>
               </div>
             </div>
           </aside>

@@ -17,6 +17,15 @@ const labelClass = (label?: string) => {
   }
 };
 
+const labelText = (label?: string) => {
+  switch (label) {
+    case "Best Seller": return "Más vendido";
+    case "New": return "Nuevo";
+    case "Offer": return "Oferta";
+    default: return label;
+  }
+};
+
 export const ProductCard = ({ product }: { product: Product }) => {
   const { add, toggleWish, wishlist } = useCart();
   const { format } = useCurrency();
@@ -39,7 +48,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
           {product.label && (
             <Badge className={cn("text-[10px] font-bold uppercase tracking-wider", labelClass(product.label))}>
-              {product.label}
+              {labelText(product.label)}
             </Badge>
           )}
           {discount > 0 && (
@@ -50,7 +59,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
         <button
           onClick={() => toggleWish(product.id)}
-          aria-label="Add to wishlist"
+          aria-label="Añadir a favoritos"
           className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-background/90 backdrop-blur transition-smooth hover:bg-accent hover:text-accent-foreground"
         >
           <Heart size={16} className={wished ? "fill-accent text-accent" : ""} />
@@ -58,7 +67,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <div className="absolute inset-x-3 bottom-3 flex translate-y-2 gap-2 opacity-0 transition-smooth group-hover:translate-y-0 group-hover:opacity-100">
           <Button size="sm" variant="secondary" asChild className="flex-1">
             <Link to={`/producto/${product.slug}`}>
-              <Eye size={14} /> View
+              <Eye size={14} /> Ver
             </Link>
           </Button>
         </div>
@@ -85,7 +94,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
             size="sm"
             variant="accent"
             onClick={() => add(product)}
-            aria-label={`Add ${product.name} to cart`}
+            aria-label={`Añadir ${product.name} al carrito`}
           >
             <ShoppingCart size={14} />
           </Button>

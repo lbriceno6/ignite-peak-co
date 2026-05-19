@@ -37,12 +37,12 @@ const CurrencySwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="hidden md:inline-flex gap-1.5 px-2 text-xs font-semibold uppercase tracking-wide" aria-label="Currency">
+        <Button variant="ghost" size="sm" className="hidden md:inline-flex gap-1.5 px-2 text-xs font-semibold uppercase tracking-wide" aria-label="Moneda">
           <span>{meta.flag}</span> {currency}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuLabel>Currency</DropdownMenuLabel>
+        <DropdownMenuLabel>Moneda</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
           <DropdownMenuItem key={code} onClick={() => setCurrency(code)} className={cn(code === currency && "bg-secondary")}>
@@ -61,7 +61,7 @@ const UserMenu = () => {
   const navigate = useNavigate();
   if (!user) {
     return (
-      <Button variant="ghost" size="icon" aria-label="Account" onClick={() => navigate("/auth")}>
+      <Button variant="ghost" size="icon" aria-label="Cuenta" onClick={() => navigate("/auth")}>
         <User />
       </Button>
     );
@@ -69,18 +69,18 @@ const UserMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Account">
+        <Button variant="ghost" size="icon" aria-label="Cuenta">
           <UserCircle />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate("/my-profile")}><UserCircle size={14}/> My profile</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/my-orders")}><Package size={14}/> My orders</DropdownMenuItem>
-        {isAdmin && <DropdownMenuItem onClick={() => navigate("/admin")}><Package size={14}/> Admin panel</DropdownMenuItem>}
+        <DropdownMenuItem onClick={() => navigate("/my-profile")}><UserCircle size={14}/> Mi perfil</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/my-orders")}><Package size={14}/> Mis pedidos</DropdownMenuItem>
+        {isAdmin && <DropdownMenuItem onClick={() => navigate("/admin")}><Package size={14}/> Panel de administración</DropdownMenuItem>}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}><LogOut size={14}/> Sign out</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => signOut()}><LogOut size={14}/> Cerrar sesión</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -134,7 +134,7 @@ export const Header = () => {
       <div className="container-x flex h-16 items-center gap-4 lg:h-20">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu">
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menú">
               <Menu />
             </Button>
           </SheetTrigger>
@@ -164,14 +164,14 @@ export const Header = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search proteins, creatine, vitamins..."
+              placeholder="Buscar proteínas, creatina, vitaminas..."
               className="h-11 pl-10 bg-secondary border-transparent focus-visible:bg-background"
             />
           </form>
         </div>
 
         <div className="ml-auto flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSearchOpen((s) => !s)} aria-label="Search">
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSearchOpen((s) => !s)} aria-label="Buscar">
             {searchOpen ? <X /> : <Search />}
           </Button>
           <Button asChild variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="WhatsApp">
@@ -179,7 +179,7 @@ export const Header = () => {
               <MessageCircle className="text-success" />
             </a>
           </Button>
-          <Button variant="ghost" size="icon" className="hidden md:inline-flex relative" aria-label="Wishlist" asChild>
+          <Button variant="ghost" size="icon" className="hidden md:inline-flex relative" aria-label="Favoritos" asChild>
             <Link to="/wishlist">
               <Heart />
               {wishlist.length > 0 && (
@@ -191,7 +191,7 @@ export const Header = () => {
           </Button>
           <CurrencySwitcher />
           <UserMenu />
-          <Button variant="ghost" size="icon" className="relative" aria-label="Cart" onClick={() => setOpen(true)}>
+          <Button variant="ghost" size="icon" className="relative" aria-label="Carrito" onClick={() => setOpen(true)}>
             <ShoppingBag />
             {count > 0 && (
               <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[10px] font-bold text-accent-foreground">
@@ -209,7 +209,7 @@ export const Header = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products..."
+              placeholder="Buscar productos..."
               className="h-11 pl-10 bg-secondary"
               autoFocus
             />

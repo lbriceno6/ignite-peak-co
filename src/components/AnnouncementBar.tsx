@@ -4,10 +4,10 @@ import { useCurrency } from "@/context/CurrencyContext";
 export const AnnouncementBar = () => {
   const { format } = useCurrency();
   const items = [
-    { icon: Truck, text: `Free shipping on orders over ${format(50)}` },
-    { icon: ShieldCheck, text: "Secure payment · 100% protected" },
-    { icon: MessageCircle, text: "WhatsApp support 7 days a week" },
-    { icon: Tag, text: "Code FUEL10 — 10% off your first order" },
+    { icon: Truck, text: `Envío gratis en pedidos sobre ${format(50)}` },
+    { icon: ShieldCheck, text: "Pago seguro · 100% protegido" },
+    { icon: MessageCircle, text: "Soporte por WhatsApp los 7 días" },
+    { icon: Tag, text: "Código FUEL10 — 10% en tu primer pedido" },
   ];
   return (
     <div className="bg-foreground text-background overflow-hidden">

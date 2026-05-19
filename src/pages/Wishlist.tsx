@@ -13,13 +13,13 @@ const Wishlist = () => {
   return (
     <Layout>
       <div className="container-x py-12">
-        <h1 className="font-display text-4xl uppercase sm:text-5xl">Wishlist</h1>
+        <h1 className="font-display text-4xl uppercase sm:text-5xl">Favoritos</h1>
         {items.length === 0 ? (
           <div className="mt-12 rounded-lg border bg-secondary/40 py-20 text-center">
             <Heart className="mx-auto text-muted-foreground" size={40} />
-            <p className="mt-4 font-display text-2xl uppercase">No favorites yet</p>
-            <p className="mt-1 text-muted-foreground">Tap the heart on any product to save it here.</p>
-            <Button variant="accent" className="mt-6" asChild><Link to="/">Browse products</Link></Button>
+            <p className="mt-4 font-display text-2xl uppercase">Aún no tienes favoritos</p>
+            <p className="mt-1 text-muted-foreground">Toca el corazón en cualquier producto para guardarlo aquí.</p>
+            <Button variant="accent" className="mt-6" asChild><Link to="/">Ver productos</Link></Button>
           </div>
         ) : (
           <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
