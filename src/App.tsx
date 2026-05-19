@@ -38,6 +38,7 @@ import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
+import AdminFooter from "./pages/admin/AdminFooter.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
