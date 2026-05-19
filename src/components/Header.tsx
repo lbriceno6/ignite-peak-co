@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCart, cartTotals } from "@/store/cart";
-import { categories } from "@/data/catalog";
+import { categories as fallbackCategories } from "@/data/catalog";
 import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
+
+type CategoryItem = { slug: string; name: string; icon: string | null };
 import { cn } from "@/lib/utils";
 
 type NavItem = { id: string; label: string; href: string; open_in_new_tab: boolean };
