@@ -186,6 +186,17 @@ export default function ProductForm() {
           <Field label="Flavor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
           <Field label="Size"><Input value={f.size ?? ""} onChange={(e) => set("size", e.target.value)} /></Field>
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
+          <Field label="Supplier">
+            <Select value={f.supplier_id ?? "__none__"} onValueChange={(v) => set("supplier_id", v === "__none__" ? null : v)}>
+              <SelectTrigger><SelectValue placeholder="Select a supplier" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">None</SelectItem>
+                {suppliers.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.business_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
         </div>
 
         <Field label="Main image">
