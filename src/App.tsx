@@ -61,15 +61,29 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
+            <Route path="/categoria/:slug" element={<Category />} />
+            <Route path="/categorias/:slug" element={<Category />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/producto/:slug" element={<ProductDetail />} />
+            <Route path="/productos/:slug" element={<ProductDetail />} />
+            <Route path="/products" element={<Search />} />
+            <Route path="/productos" element={<Search />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/carrito" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/pagar" element={<Checkout />} />
             <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/favoritos" element={<Wishlist />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/buscar" element={<Search />} />
             <Route path="/about" element={<About />} />
+            <Route path="/sobre-nosotros" element={<About />} />
+            <Route path="/nosotros" element={<About />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<Blog />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/contactanos" element={<Contact />} />
+            <Route path="/contacto" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
