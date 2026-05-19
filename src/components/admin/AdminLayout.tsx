@@ -28,6 +28,7 @@ import {
   Wallet,
   Instagram,
   Repeat,
+  Palette,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -119,6 +120,7 @@ const defaultSections = [
       { key: "site-links", to: "/admin/site-links", label: "Enlaces del sitio", icon: Link2 },
       { key: "about", to: "/admin/about", label: "Página Sobre", icon: Info },
       { key: "contact", to: "/admin/contact", label: "Página Contacto", icon: Mail },
+      { key: "theme", to: "/admin/theme", label: "Paleta y tipografía", icon: Palette },
     ],
   },
 ];
@@ -156,6 +158,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/site-links")) return get("site-links", "Enlaces del sitio");
   if (p.startsWith("/admin/about")) return get("about", "Página Sobre");
   if (p.startsWith("/admin/contact")) return get("contact", "Página Contacto");
+  if (p.startsWith("/admin/theme")) return get("theme", "Paleta y tipografía");
   return "Admin";
 };
 

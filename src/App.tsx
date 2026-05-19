@@ -49,6 +49,8 @@ import AdminTestimonials from "./pages/admin/AdminTestimonials.tsx";
 import AdminShipping from "./pages/admin/AdminShipping.tsx";
 import AdminSubscription from "./pages/admin/AdminSubscription.tsx";
 import AdminEmail from "./pages/admin/AdminEmail.tsx";
+import AdminTheme from "./pages/admin/AdminTheme.tsx";
+import { ThemeProvider } from "./components/ThemeProvider";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -64,6 +66,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <CurrencyProvider>
+          <ThemeProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
@@ -129,10 +132,12 @@ const App = () => (
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="subscription" element={<AdminSubscription />} />
               <Route path="email" element={<AdminEmail />} />
+              <Route path="theme" element={<AdminTheme />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </ThemeProvider>
           </CurrencyProvider>
         </AuthProvider>
       </BrowserRouter>
