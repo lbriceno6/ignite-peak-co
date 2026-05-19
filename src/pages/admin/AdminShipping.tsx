@@ -41,6 +41,22 @@ const empty: Omit<Provider, "id"> = {
   is_active: true, sort_order: 0,
 };
 
+type Zone = {
+  id: string;
+  name: string;
+  cities: string[];
+  cost: number;
+  estimated_days: string | null;
+  free_threshold: number | null;
+  sort_order: number;
+  is_active: boolean;
+};
+
+const emptyZ: Omit<Zone, "id"> = {
+  name: "", cities: [], cost: 0, estimated_days: "", free_threshold: null,
+  sort_order: 0, is_active: true,
+};
+
 const sb: any = supabase;
 
 export default function AdminShipping() {
@@ -55,6 +71,13 @@ export default function AdminShipping() {
   const [editing, setEditing] = useState<Provider | null>(null);
   const [f, setF] = useState<any>(empty);
   const [savingP, setSavingP] = useState(false);
+
+  // --- Zones CRUD ---
+  const [zones, setZones] = useState<Zone[]>([]);
+  const [openZ, setOpenZ] = useState(false);
+  const [editingZ, setEditingZ] = useState<Zone | null>(null);
+  const [fz, setFz] = useState<any>(emptyZ);
+  const [savingZ, setSavingZ] = useState(false);
 
   const loadAll = async () => {
     const [{ data: kv }, { data: prov }] = await Promise.all([
