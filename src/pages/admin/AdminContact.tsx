@@ -45,7 +45,7 @@ export default function AdminContact() {
       const rows = KEYS.map((k) => ({ key: k, value: m[k] ?? "" }));
       const { error } = await sb.from("site_content").upsert(rows, { onConflict: "key" });
       if (error) throw error;
-      toast.success("Contact page saved");
+      toast.success("Página de contacto guardada");
       load();
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
   };
@@ -64,29 +64,29 @@ export default function AdminContact() {
   return (
     <div className="space-y-6">
       <div className="rounded-lg border bg-background p-5 space-y-4">
-        <h2 className="font-display text-lg">Header</h2>
-        <F k="contact_eyebrow" label="Eyebrow" />
-        <F k="contact_title" label="Title" />
-        <F k="contact_intro" label="Intro" area />
+        <h2 className="font-display text-lg">Encabezado</h2>
+        <F k="contact_eyebrow" label="Etiqueta" />
+        <F k="contact_title" label="Título" />
+        <F k="contact_intro" label="Introducción" area />
       </div>
 
       {[
         { t: "WhatsApp", v: "contact_whatsapp_value", n: "contact_whatsapp_note" },
-        { t: "Email", v: "contact_email_value", n: "contact_email_note" },
-        { t: "Address", v: "contact_address_value", n: "contact_address_note" },
-        { t: "Hours", v: "contact_hours_value", n: "contact_hours_note" },
+        { t: "Correo", v: "contact_email_value", n: "contact_email_note" },
+        { t: "Dirección", v: "contact_address_value", n: "contact_address_note" },
+        { t: "Horario", v: "contact_hours_value", n: "contact_hours_note" },
       ].map((c) => (
         <div key={c.t} className="rounded-lg border bg-background p-5 space-y-4">
           <h2 className="font-display text-lg">{c.t}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <F k={c.v} label="Value" />
-            <F k={c.n} label="Note" />
+            <F k={c.v} label="Valor" />
+            <F k={c.n} label="Nota" />
           </div>
         </div>
       ))}
 
       <div className="sticky bottom-4 flex justify-end">
-        <Button onClick={save} disabled={!dirty || saving} size="lg">{saving ? "Saving…" : "Save changes"}</Button>
+        <Button onClick={save} disabled={!dirty || saving} size="lg">{saving ? "Guardando…" : "Guardar cambios"}</Button>
       </div>
     </div>
   );
