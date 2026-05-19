@@ -34,6 +34,9 @@ export default function SupplierProductForm() {
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [publishMode, setPublishMode] = useState<"direct" | "review">("direct");
+  const [approvalStatus, setApprovalStatus] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
   const [cats, setCats] = useState<{ name: string; slug: string }[]>([]);
@@ -42,7 +45,11 @@ export default function SupplierProductForm() {
   useEffect(() => {
     supabase.from("categories").select("name,slug").eq("type", "product").order("sort_order")
       .then(({ data }) => setCats(data ?? []));
-  }, []);
+    if (supplierId) {
+      supabase.from("suppliers").select("publish_mode").eq("id", supplierId).maybeSingle()
+        .then(({ data }) => { if (data) setPublishMode(((data as any).publish_mode ?? "direct") as any); });
+    }
+  }, [supplierId]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -52,6 +59,8 @@ export default function SupplierProductForm() {
           ...data,
           gallery_images: ((data as any).gallery_images as any[] ?? []).join("\n"),
         });
+        setApprovalStatus(((data as any).approval_status ?? null));
+        setRejectionReason(((data as any).rejection_reason ?? null));
       }
     });
   }, [id, isEdit]);
