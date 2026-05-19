@@ -102,10 +102,10 @@ const Category = () => {
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
       const g = goals.find((x) => x.slug === slug.replace("goal-", ""));
-      return g?.name ?? "Goal";
+      return g?.name ?? "Objetivo";
     }
     const c = categories.find((x) => x.slug === slug);
-    return c?.name ?? "All products";
+    return c?.name ?? "Todos los productos";
   }, [slug]);
 
   const baseList = useMemo(() => {
