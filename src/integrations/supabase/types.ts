@@ -467,6 +467,7 @@ export type Database = {
           short_description: string | null
           size: string | null
           slug: string
+          sort_order: number
           stock: number
           subscription_discount_percent: number
           subscription_enabled: boolean
@@ -495,6 +496,7 @@ export type Database = {
           short_description?: string | null
           size?: string | null
           slug: string
+          sort_order?: number
           stock?: number
           subscription_discount_percent?: number
           subscription_enabled?: boolean
@@ -523,6 +525,7 @@ export type Database = {
           short_description?: string | null
           size?: string | null
           slug?: string
+          sort_order?: number
           stock?: number
           subscription_discount_percent?: number
           subscription_enabled?: boolean
