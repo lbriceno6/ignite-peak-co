@@ -32,6 +32,7 @@ const empty = {
   subscription_enabled: false,
   subscription_discount_percent: 10,
   subscription_intervals: "30,60,90",
+  size_variants: "" as any,
   supplier_id: null as string | null,
 };
 
