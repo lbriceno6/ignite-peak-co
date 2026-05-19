@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useReseller } from "@/hooks/useReseller";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -34,20 +35,21 @@ const ResellerSales = () => {
       <div className="overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr><th className="p-3">Fecha</th><th>Fuente</th><th>Subtotal</th><th>%</th><th>Comisión</th><th>Estado</th></tr>
+            <tr><th className="p-3">Fecha</th><th>Fuente</th><th>Subtotal</th><th>%</th><th>Comisión</th><th>Estado</th><th></th></tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t">
-                <td className="p-3">{new Date(r.created_at).toLocaleDateString()}</td>
+              <tr key={r.id} className="border-t hover:bg-muted/30">
+                <td className="p-3"><Link to={`/reseller/sales/${r.id}`} className="hover:text-accent">{new Date(r.created_at).toLocaleDateString()}</Link></td>
                 <td><Badge variant="outline">{r.source === "code" ? "Código" : "Link"}</Badge></td>
                 <td>{format(r.subtotal)}</td>
                 <td>{r.commission_percent}%</td>
                 <td className="font-semibold">{format(r.commission_amount)}</td>
                 <td><Badge variant={r.status === "paid" ? "default" : "secondary"}>{STATUS_LABEL[r.status] ?? r.status}</Badge></td>
+                <td className="p-3 text-right"><Link to={`/reseller/sales/${r.id}`} className="text-xs text-accent hover:underline">Ver →</Link></td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Aún no tienes ventas.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Aún no tienes ventas.</td></tr>}
           </tbody>
         </table>
       </div>

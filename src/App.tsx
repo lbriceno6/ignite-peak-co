@@ -37,6 +37,8 @@ import MyProfile from "./pages/MyProfile.tsx";
 import MyOrders from "./pages/MyOrders.tsx";
 import OrderDetail from "./pages/OrderDetail.tsx";
 import MySubscriptions from "./pages/MySubscriptions.tsx";
+import MyStoreCredit from "./pages/MyStoreCredit.tsx";
+import ResellerSaleDetail from "./pages/reseller/ResellerSaleDetail.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProducts from "./pages/admin/AdminProducts.tsx";
@@ -126,6 +128,7 @@ const App = () => (
             <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
             <Route path="/my-orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/my-subscriptions" element={<ProtectedRoute><MySubscriptions /></ProtectedRoute>} />
+            <Route path="/my-store-credit" element={<ProtectedRoute><MyStoreCredit /></ProtectedRoute>} />
 
             <Route path="/shipping-policies" element={<Shipping />} />
             <Route path="/returns-policies" element={<Returns />} />
@@ -154,6 +157,7 @@ const App = () => (
               <Route index element={<ResellerDashboard />} />
               <Route path="link" element={<ResellerLink />} />
               <Route path="sales" element={<ResellerSales />} />
+              <Route path="sales/:id" element={<ResellerSaleDetail />} />
               <Route path="payouts" element={<ResellerPayouts />} />
               <Route path="settings" element={<ResellerSettings />} />
             </Route>
