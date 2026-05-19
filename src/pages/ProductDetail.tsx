@@ -214,20 +214,25 @@ const ProductDetail = () => {
           </div>
           {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
 
-          <div className="mt-6 flex items-baseline gap-3">
-            <span className="font-display text-4xl">{format(effectivePrice)}</span>
-            {purchaseMode === "subscription" && (
-              <>
-                <span className="text-lg text-muted-foreground line-through">{format(basePrice)}</span>
-                <Badge className="bg-accent text-accent-foreground">−{subDiscount}%</Badge>
-              </>
-            )}
+          <div className="mt-6 flex flex-col gap-1">
             {purchaseMode === "one_time" && product.oldPrice && (
-              <>
-                <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
-                <Badge className="bg-destructive text-destructive-foreground">Ahorra {format(product.oldPrice - basePrice)}</Badge>
-              </>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
             )}
+            <div className="flex items-baseline gap-3">
+              <span className="font-display text-4xl">{format(effectivePrice)}</span>
+              {purchaseMode === "subscription" && (
+                <>
+                  <span className="text-lg text-muted-foreground line-through">{format(basePrice)}</span>
+                  <Badge className="bg-accent text-accent-foreground">−{subDiscount}%</Badge>
+                </>
+              )}
+              {purchaseMode === "one_time" && product.oldPrice && (
+                <>
+                  <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
+                  <Badge className="bg-destructive text-destructive-foreground">Ahorra {format(product.oldPrice - basePrice)}</Badge>
+                </>
+              )}
+            </div>
           </div>
 
           {variants.length > 0 && (
