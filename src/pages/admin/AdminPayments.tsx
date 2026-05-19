@@ -159,6 +159,15 @@ export default function AdminPayments() {
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
+        <h2 className="font-display text-lg">Tarjeta</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field k="pay.card.provider" label="Procesador / pasarela" placeholder="Visa, Niubiz, Culqi, Mercado Pago…" {...f("pay.card.provider")} />
+          <Field k="pay.card.brands" label="Marcas aceptadas" placeholder="Visa, Mastercard, Amex, Diners" {...f("pay.card.brands")} />
+        </div>
+        <Field k="pay.card.note" label="Instrucciones para el cliente" area placeholder="Acepta tarjetas de crédito y débito. Pago 100% seguro." {...f("pay.card.note")} />
+      </div>
+
+      <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Pago contra entrega</h2>
         <Field k="pay.cod.note" label="Nota de pago contra entrega" area {...f("pay.cod.note")} />
       </div>
