@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
