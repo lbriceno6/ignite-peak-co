@@ -80,7 +80,8 @@ const App = () => (
         <AuthProvider>
           <CurrencyProvider>
           <ThemeProvider>
-          <Routes>
+            <ScrollToTop />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
             <Route path="/categoria/:slug" element={<Category />} />
