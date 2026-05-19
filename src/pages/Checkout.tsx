@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock, Check, CreditCard, Truck } from "lucide-react";
+import { Lock, Check, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
   <div className="flex items-center gap-2">
