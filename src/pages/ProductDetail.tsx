@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShoppingCart, MessageCircle, Heart, Truck, ShieldCheck, Award, Minus, Plus, Check, Repeat } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -8,87 +8,214 @@ import { ProductCard } from "@/components/ProductCard";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { products } from "@/data/catalog";
+import { supabase } from "@/integrations/supabase/client";
+import { resolveProductImage } from "@/lib/productImage";
+import type { Product } from "@/data/catalog";
 import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { cn } from "@/lib/utils";
 
+type DbProduct = {
+  id: string;
+  slug: string;
+  name: string;
+  short_description: string | null;
+  description: string | null;
+  price: number;
+  sale_price: number | null;
+  category: string | null;
+  main_image: string | null;
+  gallery_images: any;
+  badge: string | null;
+  flavor: string | null;
+  size: string | null;
+  usage_instructions: string | null;
+  ingredients: string | null;
+  nutrition_facts: any;
+  faqs: any;
+  subscription_enabled: boolean;
+  subscription_discount_percent: number;
+  subscription_intervals: number[] | null;
+};
+
+const labelFromBadge = (badge: string | null): Product["label"] | undefined => {
+  const v = (badge ?? "").toLowerCase();
+  if (v === "best seller" || v === "best-seller") return "Best Seller";
+  if (v === "new") return "New";
+  if (v === "offer" || v === "sale") return "Offer";
+  return undefined;
+};
+
+const toCardProduct = (p: DbProduct): Product => ({
+  id: p.id,
+  slug: p.slug,
+  name: p.name,
+  shortBenefit: p.short_description ?? "",
+  price: Number(p.sale_price ?? p.price),
+  oldPrice: p.sale_price ? Number(p.price) : undefined,
+  rating: 4.8,
+  reviews: 0,
+  label: labelFromBadge(p.badge),
+  image: resolveProductImage(p.main_image),
+  category: p.category ?? "",
+  goal: [],
+  brand: "VOLTRA",
+});
+
+const parseList = (val: any): string[] => {
+  if (Array.isArray(val)) return val.filter(Boolean).map(String);
+  if (typeof val === "string") {
+    try {
+      const j = JSON.parse(val);
+      if (Array.isArray(j)) return j.filter(Boolean).map(String);
+    } catch {}
+    return val.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+};
+
 const ProductDetail = () => {
   const { slug } = useParams();
-  const product = products.find((p) => p.slug === slug) ?? products[0];
   const { add, toggleWish, wishlist } = useCart();
   const { format } = useCurrency();
-  const [flavor, setFlavor] = useState(product.flavors?.[0]);
-  const [size, setSize] = useState(product.sizes?.[0]);
+  const [loading, setLoading] = useState(true);
+  const [dbp, setDbp] = useState<DbProduct | null>(null);
+  const [related, setRelated] = useState<DbProduct[]>([]);
   const [qty, setQty] = useState(1);
   const [activeImg, setActiveImg] = useState(0);
-
-  const subIntervals = product.subscriptionIntervals ?? [30, 60, 90];
-  const subDiscount = product.subscriptionDiscountPercent ?? 10;
-  const subEnabled = !!product.subscriptionEnabled;
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
-  const [interval, setInterval] = useState<number>(subIntervals[0] ?? 30);
-  const effectivePrice = purchaseMode === "subscription"
-    ? +(product.price * (1 - subDiscount / 100)).toFixed(2)
-    : product.price;
+  const [interval, setIntervalDays] = useState<number>(30);
 
-  const gallery = [product.image, product.image, product.image, product.image];
-  const related = products.filter((p) => p.id !== product.id).slice(0, 4);
-  const wished = wishlist.includes(product.id);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .eq("slug", slug as string)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (!alive) return;
+      setDbp(data as DbProduct | null);
+      if (data) {
+        const intervals = (data as any).subscription_intervals as number[] | null;
+        if (intervals && intervals.length) setIntervalDays(intervals[0]);
+        const { data: rel } = await supabase
+          .from("products")
+          .select("id,slug,name,short_description,price,sale_price,category,main_image,badge")
+          .eq("is_active", true)
+          .neq("id", (data as any).id)
+          .limit(4);
+        if (alive) setRelated((rel as DbProduct[]) ?? []);
+      }
+      setLoading(false);
+    })();
+    return () => { alive = false; };
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container-x py-20 text-center text-muted-foreground">Loading…</div>
+      </Layout>
+    );
+  }
+
+  if (!dbp) {
+    return (
+      <Layout>
+        <div className="container-x py-20 text-center">
+          <h1 className="font-display text-3xl uppercase">Product not found</h1>
+          <p className="mt-2 text-muted-foreground">The product you're looking for is no longer available.</p>
+          <Button asChild variant="accent" className="mt-6"><Link to="/">Back to home</Link></Button>
+        </div>
+      </Layout>
+    );
+  }
+
+  const product = toCardProduct(dbp);
+  const mainImg = resolveProductImage(dbp.main_image);
+  const galleryUrls = parseList(dbp.gallery_images).map((u) => resolveProductImage(u));
+  const gallery = [mainImg, ...galleryUrls].filter(Boolean);
+  const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : [30, 60, 90]);
+  const subDiscount = Number(dbp.subscription_discount_percent ?? 10);
+  const subEnabled = !!dbp.subscription_enabled;
+  const basePrice = Number(dbp.sale_price ?? dbp.price);
+  const effectivePrice = purchaseMode === "subscription"
+    ? +(basePrice * (1 - subDiscount / 100)).toFixed(2)
+    : basePrice;
+  const wished = wishlist.includes(dbp.id);
+
+  const faqs: { q: string; a: string }[] = Array.isArray(dbp.faqs)
+    ? (dbp.faqs as any[]).map((f) => ({ q: String(f?.q ?? f?.question ?? ""), a: String(f?.a ?? f?.answer ?? "") })).filter((f) => f.q || f.a)
+    : [];
+
+  const nutrition: [string, string][] = (() => {
+    const n = dbp.nutrition_facts;
+    if (!n) return [];
+    if (Array.isArray(n)) return n.map((r: any) => [String(r?.label ?? r?.key ?? ""), String(r?.value ?? "")]) as [string, string][];
+    if (typeof n === "object") return Object.entries(n).map(([k, v]) => [k, String(v)]) as [string, string][];
+    return [];
+  })();
 
   return (
     <Layout>
       <div className="container-x py-6">
         <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-          <Link to="/" className="hover:text-accent">Home</Link> /{" "}
-          <Link to={`/category/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link> /{" "}
-          <span className="text-foreground">{product.name}</span>
+          <Link to="/" className="hover:text-accent">Home</Link>
+          {product.category && (<>
+            {" / "}
+            <Link to={`/category/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
+          </>)}
+          {" / "}<span className="text-foreground">{product.name}</span>
         </nav>
       </div>
 
       <section className="container-x grid gap-10 pb-12 lg:grid-cols-2">
         <div>
           <div className="overflow-hidden rounded-lg bg-secondary aspect-square">
-            <img src={gallery[activeImg]} alt={product.name} className="h-full w-full object-cover" />
+            <img src={gallery[activeImg] ?? mainImg} alt={product.name} className="h-full w-full object-cover" />
           </div>
-          <div className="mt-3 grid grid-cols-4 gap-3">
-            {gallery.map((g, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveImg(i)}
-                className={cn("overflow-hidden rounded-md border-2 bg-secondary aspect-square", activeImg === i ? "border-accent" : "border-transparent")}
-              >
-                <img src={g} alt="" className="h-full w-full object-cover" />
-              </button>
-            ))}
-          </div>
+          {gallery.length > 1 && (
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              {gallery.map((g, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImg(i)}
+                  className={cn("overflow-hidden rounded-md border-2 bg-secondary aspect-square", activeImg === i ? "border-accent" : "border-transparent")}
+                >
+                  <img src={g} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
           <div className="flex flex-wrap items-center gap-2">
             {product.label && <Badge className="bg-accent text-accent-foreground uppercase">{product.label}</Badge>}
-            <span className="text-xs uppercase tracking-wider text-muted-foreground">{product.brand} · {product.category}</span>
+            {dbp.category && <span className="text-xs uppercase tracking-wider text-muted-foreground">{dbp.category}</span>}
           </div>
           <h1 className="mt-3 font-display text-4xl uppercase leading-tight sm:text-5xl">{product.name}</h1>
           <div className="mt-3 flex items-center gap-2">
             <Stars rating={product.rating} size={16} />
             <span className="text-sm font-semibold">{product.rating}</span>
-            <a href="#reviews" className="text-sm text-muted-foreground hover:text-accent">({product.reviews} reviews)</a>
           </div>
-          <p className="mt-4 text-muted-foreground">{product.shortBenefit}</p>
+          {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
 
           <div className="mt-6 flex items-baseline gap-3">
             <span className="font-display text-4xl">{format(effectivePrice)}</span>
             {purchaseMode === "subscription" && (
               <>
-                <span className="text-lg text-muted-foreground line-through">{format(product.price)}</span>
+                <span className="text-lg text-muted-foreground line-through">{format(basePrice)}</span>
                 <Badge className="bg-accent text-accent-foreground">−{subDiscount}%</Badge>
               </>
             )}
             {purchaseMode === "one_time" && product.oldPrice && (
               <>
                 <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
-                <Badge className="bg-destructive text-destructive-foreground">Save {format(product.oldPrice - product.price)}</Badge>
+                <Badge className="bg-destructive text-destructive-foreground">Save {format(product.oldPrice - basePrice)}</Badge>
               </>
             )}
           </div>
@@ -103,7 +230,7 @@ const ProductDetail = () => {
                 <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "one_time"} onChange={() => setPurchaseMode("one_time")} />
                 <div className="flex-1">
                   <p className="font-semibold">One-time purchase</p>
-                  <p className="text-xs text-muted-foreground">{format(product.price)}</p>
+                  <p className="text-xs text-muted-foreground">{format(basePrice)}</p>
                 </div>
               </label>
               <label className={cn(
@@ -122,7 +249,7 @@ const ProductDetail = () => {
                         <button
                           key={d}
                           type="button"
-                          onClick={() => setInterval(d)}
+                          onClick={() => setIntervalDays(d)}
                           className={cn(
                             "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
                             interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
@@ -138,46 +265,6 @@ const ProductDetail = () => {
             </div>
           )}
 
-          {product.flavors && (
-            <div className="mt-6">
-              <p className="mb-2 text-sm font-bold uppercase tracking-wider">Flavor: <span className="text-muted-foreground font-normal normal-case">{flavor}</span></p>
-              <div className="flex flex-wrap gap-2">
-                {product.flavors.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFlavor(f)}
-                    className={cn(
-                      "rounded-md border px-4 py-2 text-sm font-medium transition-smooth",
-                      flavor === f ? "border-accent bg-accent/10 text-foreground" : "border-border hover:border-foreground",
-                    )}
-                  >
-                    {f}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {product.sizes && (
-            <div className="mt-5">
-              <p className="mb-2 text-sm font-bold uppercase tracking-wider">Size: <span className="text-muted-foreground font-normal normal-case">{size}</span></p>
-              <div className="flex flex-wrap gap-2">
-                {product.sizes.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSize(s)}
-                    className={cn(
-                      "rounded-md border px-4 py-2 text-sm font-medium transition-smooth",
-                      size === s ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
-                    )}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div className="mt-6 flex items-stretch gap-3">
             <div className="flex items-center rounded-md border">
               <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Minus size={14} /></button>
@@ -185,20 +272,18 @@ const ProductDetail = () => {
               <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
             <Button size="lg" variant="accent" className="flex-1" onClick={() => add(product, {
-              flavor, size, quantity: qty,
+              quantity: qty,
               subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
             })}>
               <ShoppingCart /> {purchaseMode === "subscription" ? `Subscribe · ${format(effectivePrice)}` : "Add to cart"}
             </Button>
-            <Button size="lg" variant="outline" onClick={() => toggleWish(product.id)} aria-label="Wishlist">
+            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Wishlist">
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
           {(() => {
             const lines = [
               `Hi! I'm interested in ${product.name}`,
-              flavor && `Flavor: ${flavor}`,
-              size && `Size: ${size}`,
               `Quantity: ${qty}`,
               purchaseMode === "subscription"
                 ? `Purchase type: subscription (every ${interval} days, -${subDiscount}% discount)`
@@ -223,73 +308,78 @@ const ProductDetail = () => {
         </div>
       </section>
 
-      {/* TABS */}
-      <section className="container-x pb-16">
-        <Tabs defaultValue="benefits">
-          <TabsList className="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
-            {["benefits", "description", "use", "ingredients", "nutrition"].map((t) => (
-              <TabsTrigger key={t} value={t} className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">
-                {t === "use" ? "How to use" : t === "nutrition" ? "Nutrition facts" : t}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="benefits" className="mt-6 grid gap-3 md:grid-cols-2">
-            {["Builds and preserves lean muscle mass", "Supports faster recovery between sessions", "Ultra-fast absorption (under 30 min)", "Low in fat & sugars", "Mixes instantly — no clumps", "Independently lab tested"].map((b) => (
-              <div key={b} className="flex items-start gap-2 rounded-md bg-secondary/40 p-3 text-sm">
-                <Check className="mt-0.5 text-accent shrink-0" size={16} /> {b}
-              </div>
-            ))}
-          </TabsContent>
-          <TabsContent value="description" className="mt-6 max-w-3xl text-muted-foreground leading-relaxed">
-            <p>{product.name} delivers a premium-grade formulation engineered for athletes who refuse to compromise on quality. Each serving is precision-dosed with clinically supported ingredients, sourced from trusted manufacturers and tested by independent labs for purity and potency.</p>
-            <p className="mt-3">Whether you train for performance, body composition or longevity, this product slots seamlessly into your daily routine — no fillers, no artificial colors, no shortcuts.</p>
-          </TabsContent>
-          <TabsContent value="use" className="mt-6 max-w-3xl text-muted-foreground">
-            Mix 1 scoop (30g) with 250–300ml of water or your favorite plant-based drink. Consume immediately after training or as a high-protein snack between meals. Can be combined with creatine and BCAAs.
-          </TabsContent>
-          <TabsContent value="ingredients" className="mt-6 max-w-3xl text-sm text-muted-foreground">
-            Whey protein isolate (90%), cocoa powder, natural flavoring, emulsifier (sunflower lecithin), thickener (xanthan gum), sweetener (sucralose), salt. <span className="block mt-2 text-xs">Allergens: milk. May contain traces of soy, egg, gluten.</span>
-          </TabsContent>
-          <TabsContent value="nutrition" className="mt-6">
-            <div className="max-w-md overflow-hidden rounded-lg border">
-              <div className="bg-foreground px-4 py-2 text-sm font-bold uppercase tracking-wider text-background">Per 30g serving</div>
-              <table className="w-full text-sm">
-                <tbody>
-                  {[["Energy", "118 kcal"], ["Protein", "27 g"], ["Carbohydrates", "1.5 g"], ["of which sugars", "0.8 g"], ["Fat", "0.5 g"], ["of which saturates", "0.2 g"], ["Salt", "0.1 g"], ["BCAAs", "5.6 g"]].map(([k, v]) => (
-                    <tr key={k} className="border-t"><td className="px-4 py-2 text-muted-foreground">{k}</td><td className="px-4 py-2 text-right font-semibold">{v}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </section>
+      {(dbp.description || dbp.usage_instructions || dbp.ingredients || nutrition.length > 0) && (
+        <section className="container-x pb-16">
+          <Tabs defaultValue={dbp.description ? "description" : dbp.usage_instructions ? "use" : dbp.ingredients ? "ingredients" : "nutrition"}>
+            <TabsList className="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
+              {dbp.description && (
+                <TabsTrigger value="description" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Description</TabsTrigger>
+              )}
+              {dbp.usage_instructions && (
+                <TabsTrigger value="use" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">How to use</TabsTrigger>
+              )}
+              {dbp.ingredients && (
+                <TabsTrigger value="ingredients" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Ingredients</TabsTrigger>
+              )}
+              {nutrition.length > 0 && (
+                <TabsTrigger value="nutrition" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Nutrition facts</TabsTrigger>
+              )}
+            </TabsList>
+            {dbp.description && (
+              <TabsContent value="description" className="mt-6 max-w-3xl whitespace-pre-line text-muted-foreground leading-relaxed">
+                {dbp.description}
+              </TabsContent>
+            )}
+            {dbp.usage_instructions && (
+              <TabsContent value="use" className="mt-6 max-w-3xl whitespace-pre-line text-muted-foreground">
+                {dbp.usage_instructions}
+              </TabsContent>
+            )}
+            {dbp.ingredients && (
+              <TabsContent value="ingredients" className="mt-6 max-w-3xl whitespace-pre-line text-sm text-muted-foreground">
+                {dbp.ingredients}
+              </TabsContent>
+            )}
+            {nutrition.length > 0 && (
+              <TabsContent value="nutrition" className="mt-6">
+                <div className="max-w-md overflow-hidden rounded-lg border">
+                  <div className="bg-foreground px-4 py-2 text-sm font-bold uppercase tracking-wider text-background">Nutrition facts</div>
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {nutrition.map(([k, v]) => (
+                        <tr key={k} className="border-t"><td className="px-4 py-2 text-muted-foreground">{k}</td><td className="px-4 py-2 text-right font-semibold">{v}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </TabsContent>
+            )}
+          </Tabs>
+        </section>
+      )}
 
-      {/* FAQ */}
-      <section className="container-x pb-16">
-        <h2 className="font-display text-3xl uppercase">FAQ</h2>
-        <Accordion type="single" collapsible className="mt-4 max-w-3xl">
-          {[
-            { q: "When should I take this product?", a: "Within 30 minutes after your workout for optimal recovery, or any time of day as a high-protein snack." },
-            { q: "Is it safe for daily use?", a: "Yes. All our products are formulated with safe, clinically researched dosages and are third-party tested." },
-            { q: "Can I combine it with creatine?", a: "Absolutely. Many of our customers stack this with creatine and a pre-workout for the best results." },
-            { q: "What is your return policy?", a: "We offer a 30-day money-back guarantee, even on opened tubs." },
-          ].map((f) => (
-            <AccordionItem key={f.q} value={f.q}>
-              <AccordionTrigger className="text-left font-semibold">{f.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{f.a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </section>
+      {faqs.length > 0 && (
+        <section className="container-x pb-16">
+          <h2 className="font-display text-3xl uppercase">FAQ</h2>
+          <Accordion type="single" collapsible className="mt-4 max-w-3xl">
+            {faqs.map((f, i) => (
+              <AccordionItem key={i} value={`faq-${i}`}>
+                <AccordionTrigger className="text-left font-semibold">{f.q}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground whitespace-pre-line">{f.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+      )}
 
-      {/* RELATED */}
-      <section className="container-x pb-20">
-        <h2 className="font-display text-3xl uppercase">You may also like</h2>
-        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {related.map((p) => <ProductCard key={p.id} product={p} />)}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="container-x pb-20">
+          <h2 className="font-display text-3xl uppercase">You may also like</h2>
+          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {related.map((p) => <ProductCard key={p.id} product={toCardProduct(p)} />)}
+          </div>
+        </section>
+      )}
     </Layout>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -180,9 +180,17 @@ const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => (
 export const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, signOut } = useAuth();
+  const { currency, setCurrency } = useCurrency();
   const location = useLocation();
   const title = titleFromPath(location.pathname);
   const initial = (user?.email ?? "A").charAt(0).toUpperCase();
+
+  // Default admin display currency to Peruvian Soles on entering the admin area.
+  useEffect(() => {
+    try { localStorage.removeItem("voltra.currency.userChose"); } catch {}
+    if (currency !== "PEN") setCurrency("PEN");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-muted/30">
