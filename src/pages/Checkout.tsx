@@ -352,6 +352,10 @@ const Checkout = () => {
 
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+      clearReferral();
+      if (creditApplied > 0) refreshReseller();
+
+
 
 
       if (wa) {
