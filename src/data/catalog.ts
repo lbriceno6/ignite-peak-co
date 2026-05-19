@@ -25,6 +25,7 @@ export type Product = {
   subscriptionEnabled?: boolean;
   subscriptionDiscountPercent?: number;
   subscriptionIntervals?: number[]; // days
+  supplier?: { slug: string; business_name: string; logo_url?: string | null } | null;
 };
 
 export const products: Product[] = [
