@@ -55,7 +55,7 @@ export default function AdminAbout() {
       const rows = KEYS.map((k) => ({ key: k, value: m[k] ?? "" }));
       const { error } = await sb.from("site_content").upsert(rows, { onConflict: "key" });
       if (error) throw error;
-      toast.success("About page saved");
+      toast.success("Página Sobre guardada");
       load();
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
   };
@@ -69,7 +69,7 @@ export default function AdminAbout() {
       if (error) throw error;
       const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
       set("about_hero_image", data.publicUrl);
-      toast.success("Image uploaded — remember to save");
+      toast.success("Imagen subida — recuerda guardar");
     } catch (e: any) { toast.error(e.message); } finally { setUploading(false); }
   };
 
@@ -88,14 +88,14 @@ export default function AdminAbout() {
     <div className="space-y-6">
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Hero</h2>
-        <F k="about_eyebrow" label="Eyebrow" />
+        <F k="about_eyebrow" label="Etiqueta" />
         <div className="grid gap-4 sm:grid-cols-3">
-          <F k="about_title_line1" label="Title line 1" />
-          <F k="about_title_line2" label="Accent line" />
-          <F k="about_title_line3" label="Title line 3" />
+          <F k="about_title_line1" label="Título línea 1" />
+          <F k="about_title_line2" label="Línea de acento" />
+          <F k="about_title_line3" label="Título línea 3" />
         </div>
         <div>
-          <Label className="text-xs">Hero image</Label>
+          <Label className="text-xs">Imagen del hero</Label>
           <div className="mt-1.5 relative aspect-[16/6] overflow-hidden rounded-md border bg-muted">
             {m.about_hero_image ? (
               <img src={m.about_hero_image} alt="" className="h-full w-full object-cover" />
@@ -108,38 +108,38 @@ export default function AdminAbout() {
           <div className="mt-2 flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading}>
               {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-              {uploading ? "Uploading…" : "Upload"}
+              {uploading ? "Subiendo…" : "Subir"}
             </Button>
             {m.about_hero_image && (
-              <Button type="button" variant="ghost" size="sm" onClick={() => set("about_hero_image", "")}>Remove</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => set("about_hero_image", "")}>Quitar</Button>
             )}
           </div>
         </div>
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
-        <h2 className="font-display text-lg">Our story</h2>
-        <F k="about_story_title" label="Title" />
-        <F k="about_story_p1" label="Paragraph 1" area />
-        <F k="about_story_p2" label="Paragraph 2" area />
+        <h2 className="font-display text-lg">Nuestra historia</h2>
+        <F k="about_story_title" label="Título" />
+        <F k="about_story_p1" label="Párrafo 1" area />
+        <F k="about_story_p2" label="Párrafo 2" area />
         <div className="grid gap-4 sm:grid-cols-4">
           {[1,2,3,4].map((i) => (
             <div key={i} className="rounded-md border p-3 space-y-2">
-              <F k={`about_stat${i}_n`} label={`Stat ${i} value`} />
-              <F k={`about_stat${i}_l`} label={`Stat ${i} label`} />
+              <F k={`about_stat${i}_n`} label={`Estadística ${i} valor`} />
+              <F k={`about_stat${i}_l`} label={`Estadística ${i} etiqueta`} />
             </div>
           ))}
         </div>
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
-        <h2 className="font-display text-lg">Principles</h2>
-        <F k="about_principles_title" label="Section title" />
+        <h2 className="font-display text-lg">Principios</h2>
+        <F k="about_principles_title" label="Título de sección" />
         <div className="grid gap-4 md:grid-cols-2">
           {[1,2,3,4].map((i) => (
             <div key={i} className="rounded-md border p-3 space-y-2">
-              <F k={`about_principle${i}_t`} label={`Principle ${i} title`} />
-              <F k={`about_principle${i}_d`} label="Description" area />
+              <F k={`about_principle${i}_t`} label={`Principio ${i} título`} />
+              <F k={`about_principle${i}_d`} label="Descripción" area />
             </div>
           ))}
         </div>
@@ -147,15 +147,15 @@ export default function AdminAbout() {
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">CTA</h2>
-        <F k="about_cta_title" label="Title" />
+        <F k="about_cta_title" label="Título" />
         <div className="grid gap-4 sm:grid-cols-2">
-          <F k="about_cta_label" label="Button label" />
-          <F k="about_cta_href" label="Button link" />
+          <F k="about_cta_label" label="Texto del botón" />
+          <F k="about_cta_href" label="Enlace del botón" />
         </div>
       </div>
 
       <div className="sticky bottom-4 flex justify-end">
-        <Button onClick={save} disabled={!dirty || saving} size="lg">{saving ? "Saving…" : "Save changes"}</Button>
+        <Button onClick={save} disabled={!dirty || saving} size="lg">{saving ? "Guardando…" : "Guardar cambios"}</Button>
       </div>
     </div>
   );
