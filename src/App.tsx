@@ -115,6 +115,7 @@ const App = () => (
             <Route path="/returns-policies" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Marketplace / Suppliers */}
             <Route path="/vende-con-nosotros" element={<SellWithUs />} />
