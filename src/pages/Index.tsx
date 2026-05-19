@@ -288,7 +288,7 @@ const Home = () => {
               {categories.map((c) => (
                 <Link
                   key={c.slug}
-                  to={`/category/${c.slug}`}
+                  to={`/categoria/${c.slug}`}
                   className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-5 text-center transition-smooth hover:border-accent hover:shadow-product hover:-translate-y-1"
                 >
                   <span className="text-3xl">{c.icon || "🏷️"}</span>

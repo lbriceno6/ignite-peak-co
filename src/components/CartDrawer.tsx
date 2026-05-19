@@ -29,7 +29,7 @@ export const CartDrawer = () => {
               <p className="mt-1 text-sm text-muted-foreground">Find something to fuel your goals.</p>
             </div>
             <Button variant="dark" onClick={() => setOpen(false)} asChild>
-              <Link to="/category/protein">Start shopping</Link>
+              <Link to="/categoria/protein">Start shopping</Link>
             </Button>
           </div>
         ) : (

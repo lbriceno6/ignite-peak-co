@@ -166,7 +166,7 @@ const ProductDetail = () => {
           <Link to="/" className="hover:text-accent">Home</Link>
           {product.category && (<>
             {" / "}
-            <Link to={`/category/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
+            <Link to={`/categoria/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
           </>)}
           {" / "}<span className="text-foreground">{product.name}</span>
         </nav>
