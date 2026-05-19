@@ -42,7 +42,7 @@ export default function SupplierOrders() {
 
   useEffect(() => { load(); }, [supplierId]);
 
-  const updateItem = async (id: string, patch: Record<string, any>) => {
+  const updateItem = async (id: string, patch: { fulfillment_status?: string; tracking_number?: string | null }) => {
     const { error } = await supabase.from("order_items").update(patch).eq("id", id);
     if (error) return toast.error(error.message);
     toast.success("Actualizado");
