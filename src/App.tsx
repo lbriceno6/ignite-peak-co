@@ -39,6 +39,8 @@ import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import AdminFooter from "./pages/admin/AdminFooter.tsx";
+import AdminContact from "./pages/admin/AdminContact.tsx";
+import AdminAbout from "./pages/admin/AdminAbout.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -95,6 +97,8 @@ const App = () => (
               <Route path="goal-cards" element={<AdminGoalCards />} />
               <Route path="navigation" element={<AdminNavigation />} />
               <Route path="footer" element={<AdminFooter />} />
+              <Route path="contact" element={<AdminContact />} />
+              <Route path="about" element={<AdminAbout />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
