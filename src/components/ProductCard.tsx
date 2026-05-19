@@ -78,6 +78,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <Link to={`/producto/${product.slug}`} className="font-display text-lg leading-tight hover:text-accent transition-smooth">
           {product.name}
         </Link>
+        {product.supplier?.slug && (
+          <Link
+            to={`/proveedor/${product.supplier.slug}`}
+            className="inline-flex w-fit items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-accent"
+          >
+            Vendido por <span className="font-semibold text-foreground">{product.supplier.business_name}</span>
+          </Link>
+        )}
         <p className="text-sm text-muted-foreground line-clamp-2">{product.shortBenefit}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Stars rating={product.rating} />

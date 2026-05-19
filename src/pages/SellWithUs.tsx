@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
+import { SupplierApplicationForm } from "@/components/supplier/SupplierApplicationForm";
 import {
   Rocket, TrendingUp, Users, ShieldCheck, Zap, BarChart3,
   Truck, Store, CheckCircle2, Sparkles, ArrowRight, Star,
@@ -31,7 +32,7 @@ const SellWithUs = () => {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild variant="accent" size="lg">
-                <Link to="/supplier/signup">Empezar a vender <ArrowRight size={16} /></Link>
+                <a href="#aplicar">Empezar a vender <ArrowRight size={16} /></a>
               </Button>
               <Button asChild variant="outline" size="lg" className="border-background/30 bg-transparent text-background hover:bg-background hover:text-foreground">
                 <a href="#como-funciona">Ver cómo funciona</a>
@@ -146,11 +147,11 @@ const SellWithUs = () => {
       </section>
 
       {/* ============== ACTION ============== */}
-      <section className="container-x py-20">
-        <div className="relative overflow-hidden rounded-3xl bg-foreground p-10 text-background md:p-16">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,hsl(var(--accent)/0.35),transparent_55%)]" />
-          <div className="relative grid items-center gap-8 md:grid-cols-[1.4fr,1fr]">
-            <div>
+      <section id="aplicar" className="container-x py-20">
+        <div className="grid gap-10 md:grid-cols-[1fr,1.1fr]">
+          <div className="relative overflow-hidden rounded-3xl bg-foreground p-10 text-background md:p-12">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_85%_15%,hsl(var(--accent)/0.35),transparent_55%)]" />
+            <div className="relative">
               <Rocket className="text-accent" />
               <h2 className="mt-3 font-display text-4xl uppercase leading-tight md:text-5xl">
                 Lanza tu marca <span className="text-accent">esta semana</span>
@@ -158,14 +159,22 @@ const SellWithUs = () => {
               <p className="mt-3 max-w-xl text-background/70">
                 Tu primer pedido puede entrar mañana. Activación gratis, sin permanencia, comisión solo por venta.
               </p>
+              <ul className="mt-6 space-y-2 text-sm text-background/80">
+                <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-accent" /> Aprobación en menos de 48 h</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-accent" /> Tu propio panel y página /proveedor/tu-marca</li>
+                <li className="flex items-center gap-2"><CheckCircle2 size={14} className="text-accent" /> Pagos y envíos integrados</li>
+              </ul>
             </div>
-            <div className="flex flex-col gap-3 md:items-end">
-              <Button asChild variant="accent" size="lg" className="w-full md:w-auto">
-                <Link to="/supplier/signup">Crear mi cuenta de proveedor <ArrowRight size={16} /></Link>
-              </Button>
-              <Link to="/auth" className="text-xs text-background/60 hover:text-accent">
-                Ya tengo cuenta · Iniciar sesión
-              </Link>
+          </div>
+
+          <div className="rounded-3xl border bg-card p-8 shadow-lg">
+            <span className="text-xs font-semibold uppercase tracking-widest text-accent">Aplica ahora</span>
+            <h3 className="mt-2 font-display text-3xl uppercase">Solicita tu cuenta de proveedor</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Completa el formulario y nuestro equipo revisará tu marca.
+            </p>
+            <div className="mt-6">
+              <SupplierApplicationForm compact />
             </div>
           </div>
         </div>
