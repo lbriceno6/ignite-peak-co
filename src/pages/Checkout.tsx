@@ -73,8 +73,38 @@ const Checkout = () => {
   });
   const [method, setMethod] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
+  const [editData, setEditData] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!user) { setProfileLoaded(true); return; }
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name,email,phone,address,city,postal_code,country")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (data) {
+        const [firstName, ...rest] = (data.full_name ?? "").trim().split(/\s+/);
+        setForm((f) => ({
+          ...f,
+          email: data.email ?? user.email ?? f.email,
+          phone: data.phone ?? f.phone,
+          firstName: firstName ?? f.firstName,
+          lastName: rest.join(" ") || f.lastName,
+          address: data.address ?? f.address,
+          city: data.city ?? f.city,
+          postal: data.postal_code ?? f.postal,
+          country: data.country ?? f.country,
+        }));
+      }
+      setProfileLoaded(true);
+    })();
+  }, [user]);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+
+  const hasCompleteProfile = !!(user && form.firstName && form.lastName && form.phone && form.address && form.city);
 
   const methods = useMemo(() => {
     const stored = (pay["pay.order"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
