@@ -427,7 +427,10 @@ export type Database = {
       }
       order_items: {
         Row: {
+          commission_amount: number
+          commission_percent: number
           created_at: string
+          fulfillment_status: string
           id: string
           order_id: string
           product_image: string | null
@@ -436,11 +439,17 @@ export type Database = {
           purchase_type: string
           quantity: number
           subscription_interval_days: number | null
+          supplier_id: string | null
+          supplier_payout: number
+          tracking_number: string | null
           unit_price: number
           variant: string | null
         }
         Insert: {
+          commission_amount?: number
+          commission_percent?: number
           created_at?: string
+          fulfillment_status?: string
           id?: string
           order_id: string
           product_image?: string | null
@@ -449,11 +458,17 @@ export type Database = {
           purchase_type?: string
           quantity?: number
           subscription_interval_days?: number | null
+          supplier_id?: string | null
+          supplier_payout?: number
+          tracking_number?: string | null
           unit_price: number
           variant?: string | null
         }
         Update: {
+          commission_amount?: number
+          commission_percent?: number
           created_at?: string
+          fulfillment_status?: string
           id?: string
           order_id?: string
           product_image?: string | null
@@ -462,6 +477,9 @@ export type Database = {
           purchase_type?: string
           quantity?: number
           subscription_interval_days?: number | null
+          supplier_id?: string | null
+          supplier_payout?: number
+          tracking_number?: string | null
           unit_price?: number
           variant?: string | null
         }
@@ -867,17 +885,25 @@ export type Database = {
           business_name: string
           city: string | null
           commercial_name: string | null
+          commission_percent: number
           contact_name: string | null
           country: string | null
           created_at: string
+          description: string | null
           email: string | null
           id: string
           is_active: boolean
+          logo_url: string | null
           notes: string | null
           payment_terms: string | null
+          payout_account: string | null
+          payout_method: string | null
           phone: string | null
+          slug: string | null
+          status: string
           tax_id: string | null
           updated_at: string
+          user_id: string | null
           website: string | null
         }
         Insert: {
@@ -885,17 +911,25 @@ export type Database = {
           business_name: string
           city?: string | null
           commercial_name?: string | null
+          commission_percent?: number
           contact_name?: string | null
           country?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           notes?: string | null
           payment_terms?: string | null
+          payout_account?: string | null
+          payout_method?: string | null
           phone?: string | null
+          slug?: string | null
+          status?: string
           tax_id?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Update: {
@@ -903,17 +937,25 @@ export type Database = {
           business_name?: string
           city?: string | null
           commercial_name?: string | null
+          commission_percent?: number
           contact_name?: string | null
           country?: string | null
           created_at?: string
+          description?: string | null
           email?: string | null
           id?: string
           is_active?: boolean
+          logo_url?: string | null
           notes?: string | null
           payment_terms?: string | null
+          payout_account?: string | null
+          payout_method?: string | null
           phone?: string | null
+          slug?: string | null
+          status?: string
           tax_id?: string | null
           updated_at?: string
+          user_id?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1037,6 +1079,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_supplier_id: { Args: never; Returns: string }
+      current_supplier_status: { Args: never; Returns: string }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
