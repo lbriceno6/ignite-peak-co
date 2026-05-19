@@ -65,6 +65,7 @@ import SupplierProducts from "./pages/supplier/SupplierProducts.tsx";
 import SupplierProductForm from "./pages/supplier/SupplierProductForm.tsx";
 import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
 import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 const queryClient = new QueryClient();
 
