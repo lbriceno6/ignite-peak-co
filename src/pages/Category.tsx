@@ -250,9 +250,18 @@ const Category = () => {
               <Button variant="outline" className="mt-4" onClick={clearAll}>Limpiar filtros</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-              {sorted.map((p) => <ProductCard key={p.id} product={p} />)}
-            </div>
+            <>
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {paged.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
+              <PaginationBar
+                page={currentPage}
+                pageSize={pageSize}
+                total={sorted.length}
+                onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                onPageSizeChange={setPageSize}
+              />
+            </>
           )}
         </div>
       </div>
