@@ -118,6 +118,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
   if (p.startsWith("/admin/goal-cards")) return "Goal cards";
   if (p.startsWith("/admin/navigation")) return "Logo & Menu";
+  if (p.startsWith("/admin/footer")) return "Footer";
   return "Admin";
 };
 
