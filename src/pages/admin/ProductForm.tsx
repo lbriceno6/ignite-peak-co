@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Upload, Loader2, X } from "lucide-react";
+
+const BADGE_OPTIONS = [
+  { value: "", label: "None" },
+  { value: "new", label: "New" },
+  { value: "best-seller", label: "Best seller" },
+  { value: "sale", label: "Sale" },
+  { value: "limited", label: "Limited" },
+  { value: "popular", label: "Popular" },
+  { value: "exclusive", label: "Exclusive" },
+];
+
 
 const empty = {
   name: "", slug: "", short_description: "", description: "",
