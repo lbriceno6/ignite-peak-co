@@ -97,6 +97,7 @@ const defaultSections = [
       { key: "orders", to: "/admin/orders", label: "Pedidos", icon: ShoppingBag },
       { key: "customers", to: "/admin/customers", label: "Clientes", icon: Users },
       { key: "payments", to: "/admin/payments", label: "Métodos de pago", icon: Wallet },
+      { key: "shipping", to: "/admin/shipping", label: "Envíos", icon: Truck },
     ],
   },
   {
@@ -137,6 +138,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/orders")) return get("orders", "Pedidos");
   if (p.startsWith("/admin/customers")) return get("customers", "Clientes");
   if (p.startsWith("/admin/payments")) return get("payments", "Métodos de pago");
+  if (p.startsWith("/admin/shipping")) return get("shipping", "Envíos");
   if (p.startsWith("/admin/blog/new")) return get("blog-new", "Nueva entrada");
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");

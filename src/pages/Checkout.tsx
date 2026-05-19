@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -56,6 +57,7 @@ const CopyableRow = ({ label, value }: { label: string; value: string }) => {
 const Checkout = () => {
   const navigate = useNavigate();
   const { items, clear } = useCart();
+  useShippingSettings();
   const { subtotal, shipping, total } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
