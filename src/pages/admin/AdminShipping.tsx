@@ -80,15 +80,17 @@ export default function AdminShipping() {
   const [savingZ, setSavingZ] = useState(false);
 
   const loadAll = async () => {
-    const [{ data: kv }, { data: prov }] = await Promise.all([
+    const [{ data: kv }, { data: prov }, { data: zns }] = await Promise.all([
       sb.from("site_content").select("key,value").in("key", KEYS as unknown as string[]),
       sb.from("shipping_providers").select("*").order("sort_order").order("name"),
+      sb.from("shipping_zones").select("*").order("sort_order").order("name"),
     ]);
     const next: Record<string, string> = {};
     KEYS.forEach((k) => (next[k] = ""));
     (kv ?? []).forEach((r: any) => { next[r.key] = r.value ?? ""; });
     setM(next); setSaved(next);
     setItems((prov as Provider[]) ?? []);
+    setZones((zns as Zone[]) ?? []);
   };
   useEffect(() => { loadAll(); }, []);
 
