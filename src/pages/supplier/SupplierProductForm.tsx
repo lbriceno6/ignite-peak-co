@@ -133,6 +133,23 @@ export default function SupplierProductForm() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="font-display text-3xl uppercase">{isEdit ? "Editar producto" : "Nuevo producto"}</h1>
+
+      {publishMode === "review" && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          <strong>Modo revisión:</strong> tu cuenta está configurada para que cada cambio sea aprobado por el administrador antes de publicarse.
+        </div>
+      )}
+      {isEdit && approvalStatus === "pending" && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          Este producto está <strong>pendiente de aprobación</strong> y no se muestra al público todavía.
+        </div>
+      )}
+      {isEdit && approvalStatus === "rejected" && (
+        <div className="rounded-lg border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+          Este producto fue <strong>rechazado</strong>{rejectionReason ? `: ${rejectionReason}` : ""}. Corrige y vuelve a guardar para reenviar a revisión.
+        </div>
+      )}
+
       <div className="grid gap-4 rounded-lg border bg-background p-6">
         <Fld label="Nombre *"><Input value={f.name ?? ""} onChange={(e) => set("name", e.target.value)} maxLength={120}/></Fld>
         <Fld label="Slug (URL)"><Input placeholder="se genera del nombre" value={f.slug ?? ""} onChange={(e) => set("slug", slugify(e.target.value))}/></Fld>
