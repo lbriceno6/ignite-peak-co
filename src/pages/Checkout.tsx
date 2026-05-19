@@ -19,11 +19,36 @@ const Step = ({ num, label, active, done }: { num: number; label: string; active
   </div>
 );
 
+const PAY_KEYS = [
+  "pay.yape.enabled","pay.yape.holder","pay.yape.phone","pay.yape.qr_url","pay.yape.note",
+  "pay.plin.enabled","pay.plin.holder","pay.plin.phone","pay.plin.qr_url","pay.plin.note",
+  "pay.bank.enabled","pay.bank.bank_name","pay.bank.account_type","pay.bank.account_number",
+  "pay.bank.cci","pay.bank.holder","pay.bank.document","pay.bank.note",
+  "pay.card.enabled","pay.cod.enabled","pay.cod.note","pay.confirm_whatsapp",
+];
+
 const Checkout = () => {
   const { items } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
   const { format } = useCurrency();
+  const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
   const [step, setStep] = useState(1);
+  const [method, setMethod] = useState<string>("");
+
+  const methods = useMemo(() => {
+    const list: { k: string; l: string; icon: any }[] = [];
+    if (pay["pay.yape.enabled"] === "1") list.push({ k: "yape", l: "Yape", icon: Smartphone });
+    if (pay["pay.plin.enabled"] === "1") list.push({ k: "plin", l: "Plin", icon: Smartphone });
+    if (pay["pay.bank.enabled"] === "1") list.push({ k: "bank", l: "Transferencia / Depósito", icon: Landmark });
+    if (pay["pay.cod.enabled"] === "1") list.push({ k: "cod", l: "Pago contra entrega", icon: Banknote });
+    if (pay["pay.card.enabled"] === "1" || list.length === 0) list.push({ k: "card", l: "Tarjeta", icon: CreditCard });
+    return list;
+  }, [pay]);
+
+  const selected = method || methods[0]?.k || "card";
+  const wa = (pay["pay.confirm_whatsapp"] || "").replace(/[^0-9]/g, "");
+  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`¡Hola! Acabo de realizar un pago por ${format(total)} con ${selected.toUpperCase()}. Te envío el comprobante.`)}` : "";
+
 
   return (
     <Layout>
