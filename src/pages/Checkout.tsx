@@ -173,6 +173,8 @@ const Checkout = () => {
     return null;
   };
 
+  const isComplete = items.length > 0 && validate() === null;
+
   const ensureUser = async (): Promise<string | null> => {
     if (user) return user.id;
     const fullName = `${form.firstName} ${form.lastName}`.trim();
