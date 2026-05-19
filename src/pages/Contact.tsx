@@ -15,22 +15,22 @@ const KEYS = [
 ];
 
 const DEFAULTS = {
-  contact_eyebrow: "Get in touch",
-  contact_title: "We're here to help",
-  contact_intro: "Questions about products, orders or your training plan? Our team replies within 24 hours.",
-  contact_whatsapp_value: "+1 (415) 555-2671", contact_whatsapp_note: "Fastest response",
-  contact_email_value: "support@voltra.com", contact_email_note: "Within 24h",
-  contact_address_value: "Carrer de la Marina 16, Barcelona", contact_address_note: "Spain",
-  contact_hours_value: "Mon–Sat · 9am – 8pm", contact_hours_note: "CET",
+  contact_eyebrow: "Contáctanos",
+  contact_title: "Estamos para ayudarte",
+  contact_intro: "¿Preguntas sobre productos, pedidos o tu plan de entrenamiento? Nuestro equipo responde en menos de 24 horas.",
+  contact_whatsapp_value: "+1 (415) 555-2671", contact_whatsapp_note: "Respuesta más rápida",
+  contact_email_value: "support@voltra.com", contact_email_note: "En menos de 24h",
+  contact_address_value: "Carrer de la Marina 16, Barcelona", contact_address_note: "España",
+  contact_hours_value: "Lun–Sáb · 9am – 8pm", contact_hours_note: "CET",
 };
 
 const Contact = () => {
   const { content: c } = useSiteContent(KEYS, DEFAULTS);
   const cards = [
     { icon: MessageCircle, t: "WhatsApp", d: c.contact_whatsapp_value, note: c.contact_whatsapp_note },
-    { icon: Mail, t: "Email", d: c.contact_email_value, note: c.contact_email_note },
-    { icon: MapPin, t: "Headquarters", d: c.contact_address_value, note: c.contact_address_note },
-    { icon: Clock, t: "Hours", d: c.contact_hours_value, note: c.contact_hours_note },
+    { icon: Mail, t: "Correo", d: c.contact_email_value, note: c.contact_email_note },
+    { icon: MapPin, t: "Sede", d: c.contact_address_value, note: c.contact_address_note },
+    { icon: Clock, t: "Horario", d: c.contact_hours_value, note: c.contact_hours_note },
   ];
   return (
     <Layout>
@@ -44,13 +44,14 @@ const Contact = () => {
         <div className="mt-12 grid gap-10 lg:grid-cols-[1fr_360px]">
           <form className="rounded-lg border p-6 space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div><Label>Name</Label><Input className="mt-1.5" /></div>
-              <div><Label>Email</Label><Input type="email" className="mt-1.5" /></div>
+              <div><Label>Nombre</Label><Input className="mt-1.5" /></div>
+              <div><Label>Correo</Label><Input type="email" className="mt-1.5" /></div>
             </div>
-            <div><Label>Subject</Label><Input className="mt-1.5" /></div>
-            <div><Label>Message</Label><Textarea rows={6} className="mt-1.5" /></div>
-            <Button size="lg" variant="accent" type="submit">Send message</Button>
+            <div><Label>Asunto</Label><Input className="mt-1.5" /></div>
+            <div><Label>Mensaje</Label><Textarea rows={6} className="mt-1.5" /></div>
+            <Button size="lg" variant="accent" type="submit">Enviar mensaje</Button>
           </form>
+
 
           <div className="space-y-4">
             {cards.map((card) => (
