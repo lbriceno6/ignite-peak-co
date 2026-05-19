@@ -212,10 +212,7 @@ const Checkout = () => {
 
   const validate = () => {
     if (items.length === 0) return "Tu carrito está vacío";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Ingresa un correo válido";
-    if (form.phone.replace(/\D/g, "").length < 6) return "Ingresa un teléfono válido";
-    if (!form.firstName.trim() || !form.lastName.trim()) return "Ingresa tu nombre y apellido";
-    if (!form.address.trim() || !form.city.trim()) return "Completa la dirección de envío";
+    if (Object.keys(fieldErrors).length > 0) return "Revisa los datos de envío";
     if (!selected) return "Selecciona un método de pago";
     return null;
   };
