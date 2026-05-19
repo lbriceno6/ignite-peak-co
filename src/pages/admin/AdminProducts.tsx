@@ -90,6 +90,7 @@ export default function AdminProducts() {
             <tr>
               <th className="p-3 w-24">Orden</th>
               <th className="p-3">Producto</th>
+              <th className="p-3">Proveedor</th>
               <th className="p-3">Categoría</th>
               <th className="p-3">Precio</th>
               <th className="p-3">Stock</th>
