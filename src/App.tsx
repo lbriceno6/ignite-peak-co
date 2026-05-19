@@ -37,6 +37,7 @@ import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
+import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -91,6 +92,7 @@ const App = () => (
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="home-blocks" element={<AdminHomeBlocks />} />
               <Route path="goal-cards" element={<AdminGoalCards />} />
+              <Route path="navigation" element={<AdminNavigation />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

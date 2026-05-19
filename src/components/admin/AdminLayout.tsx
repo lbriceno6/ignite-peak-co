@@ -88,6 +88,7 @@ const sections = [
   {
     label: "Content",
     items: [
+      { to: "/admin/navigation", label: "Logo & Menu", icon: Menu },
       { to: "/admin/home", label: "Home content", icon: Home },
       { to: "/admin/home-blocks", label: "Home sections", icon: Layers },
       { to: "/admin/hero-slides", label: "Hero carousel", icon: GalleryHorizontal },
@@ -114,6 +115,7 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/home")) return "Home content";
   if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
   if (p.startsWith("/admin/goal-cards")) return "Goal cards";
+  if (p.startsWith("/admin/navigation")) return "Logo & Menu";
   return "Admin";
 };
 
