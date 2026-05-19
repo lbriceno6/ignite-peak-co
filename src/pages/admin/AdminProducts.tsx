@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,7 @@ export default function AdminProducts() {
     () => items.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())),
     [items, q],
   );
+  useEffect(() => { setPage(1); }, [q, pageSize]);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
