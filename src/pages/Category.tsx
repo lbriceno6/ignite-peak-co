@@ -57,7 +57,7 @@ const FiltersPanel = ({
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price ({symbol})</h4>
+        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Precio ({symbol})</h4>
         <Slider
           value={filters.price}
           min={0} max={100} step={1}
