@@ -49,6 +49,7 @@ export default function SupplierStorefront() {
         .select("id,slug,name,short_description,price,sale_price,category,main_image,badge")
         .eq("supplier_id", (sup as any).id)
         .eq("is_active", true)
+        .eq("approval_status", "approved")
         .order("created_at", { ascending: false });
       setProducts(((prods as any[]) ?? []).map((p) => toCard(p, sup as Supplier)));
       setLoading(false);
