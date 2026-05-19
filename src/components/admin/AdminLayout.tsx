@@ -96,6 +96,7 @@ const sections = [
       { to: "/admin/goal-cards", label: "Goal cards", icon: Tags },
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
+      { to: "/admin/footer", label: "Footer", icon: PanelBottom },
     ],
   },
 ];
