@@ -34,6 +34,7 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   reviews:       { name: "Customer reviews",    desc: "Reviews carousel.",                            hasImage: false, hasCta: false, hasCta2: false },
   blog:          { name: "Guides & insights",   desc: "Featured blog posts.",                         hasImage: false, hasCta: false, hasCta2: false },
   trust:         { name: "Trust badges",        desc: "Shipping / payment / quality badges.",         hasImage: false, hasCta: false, hasCta2: false },
+  nutrition_advisory: { name: "Nutritional advisory", desc: "Section with image and WhatsApp CTA for nutritional advice.", hasImage: true, hasCta: true, hasCta2: false },
 };
 
 export default function AdminHomeBlocks() {
