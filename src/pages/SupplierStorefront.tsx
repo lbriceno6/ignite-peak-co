@@ -73,6 +73,20 @@ export default function SupplierStorefront() {
 
   return (
     <Layout>
+      <SEO
+        title={`${supplier.business_name} — Tienda oficial`}
+        description={supplier.description ?? `Catálogo oficial de ${supplier.business_name}. ${products.length} producto${products.length !== 1 ? "s" : ""} disponibles.`}
+        path={`/proveedor/${supplier.slug}`}
+        image={supplier.logo_url}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Store",
+          name: supplier.business_name,
+          description: supplier.description ?? undefined,
+          image: supplier.logo_url ?? undefined,
+          url: `https://ignite-peak-co.lovable.app/proveedor/${supplier.slug}`,
+        }}
+      />
       <section className="bg-gradient-to-b from-secondary/50 to-background">
         <div className="container-x flex flex-col items-start gap-6 py-12 sm:flex-row sm:items-center">
           {supplier.logo_url
