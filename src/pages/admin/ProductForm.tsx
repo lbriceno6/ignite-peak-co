@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Upload, Loader2, X } from "lucide-react";
+
+const BADGE_OPTIONS = [
+  { value: "", label: "None" },
+  { value: "new", label: "New" },
+  { value: "best-seller", label: "Best seller" },
+  { value: "sale", label: "Sale" },
+  { value: "limited", label: "Limited" },
+  { value: "popular", label: "Popular" },
+  { value: "exclusive", label: "Exclusive" },
+];
+
 
 const empty = {
   name: "", slug: "", short_description: "", description: "",
@@ -29,7 +42,54 @@ export default function ProductForm() {
   const nav = useNavigate();
   const [f, setF] = useState<any>(empty);
   const [saving, setSaving] = useState(false);
+  const [uploadingMain, setUploadingMain] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const mainFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
+
+  const uploadToBucket = async (file: File, prefix: string) => {
+    const ext = file.name.split(".").pop();
+    const path = `${prefix}-${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("blog-images").upload(path, file, { upsert: false });
+    if (error) throw error;
+    return supabase.storage.from("blog-images").getPublicUrl(path).data.publicUrl;
+  };
+
+  const onUploadMain = async (file?: File) => {
+    if (!file) return;
+    setUploadingMain(true);
+    try {
+      const url = await uploadToBucket(file, "product-main");
+      set("main_image", url);
+      toast.success("Image uploaded");
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingMain(false); }
+  };
+
+  const onUploadGallery = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadingGallery(true);
+    try {
+      const urls: string[] = [];
+      for (const file of Array.from(files)) {
+        urls.push(await uploadToBucket(file, "product-gallery"));
+      }
+      const current = typeof f.gallery_images === "string"
+        ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+        : (f.gallery_images ?? []);
+      set("gallery_images", [...current, ...urls].join("\n"));
+      toast.success(`${urls.length} image(s) uploaded`);
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingGallery(false); }
+  };
+
+  const removeGalleryAt = (idx: number) => {
+    const arr = typeof f.gallery_images === "string"
+      ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+      : (f.gallery_images ?? []);
+    arr.splice(idx, 1);
+    set("gallery_images", arr.join("\n"));
+  };
+
 
   useEffect(() => {
     (async () => {
@@ -107,7 +167,16 @@ export default function ProductForm() {
               {categories.map((c) => <option key={c.slug} value={c.name} />)}
             </datalist>
           </Field>
-          <Field label="Badge"><Input placeholder="new / best-seller / sale" value={f.badge ?? ""} onChange={(e) => set("badge", e.target.value)} /></Field>
+          <Field label="Badge">
+            <Select value={f.badge ?? ""} onValueChange={(v) => set("badge", v === "__none__" ? "" : v)}>
+              <SelectTrigger><SelectValue placeholder="Select a badge" /></SelectTrigger>
+              <SelectContent>
+                {BADGE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value || "__none__"} value={opt.value || "__none__"}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
           <Field label="Main ingredient"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
           <Field label="Goal"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>
           <Field label="Flavor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
@@ -115,8 +184,58 @@ export default function ProductForm() {
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
         </div>
 
-        <Field label="Main image URL"><Input value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} /></Field>
-        <Field label="Gallery image URLs (one per line)"><Textarea rows={3} value={f.gallery_images} onChange={(e) => set("gallery_images", e.target.value)} /></Field>
+        <Field label="Main image">
+          <div className="space-y-2">
+            {f.main_image && (
+              <img src={f.main_image} alt="Main" className="h-32 w-32 rounded-md object-cover border" />
+            )}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => mainFileRef.current?.click()} disabled={uploadingMain}>
+                {uploadingMain ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                {uploadingMain ? "Uploading…" : "Upload image"}
+              </Button>
+              {f.main_image && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => set("main_image", "")}>Remove</Button>
+              )}
+              <input ref={mainFileRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => onUploadMain(e.target.files?.[0])} />
+            </div>
+            <Input placeholder="Or paste image URL" value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} />
+          </div>
+        </Field>
+
+        <Field label="Gallery images">
+          <div className="space-y-2">
+            {(() => {
+              const list = typeof f.gallery_images === "string"
+                ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+                : (f.gallery_images ?? []);
+              return list.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {list.map((url: string, i: number) => (
+                    <div key={i} className="relative">
+                      <img src={url} alt={`Gallery ${i + 1}`} className="h-24 w-24 rounded-md object-cover border" />
+                      <button type="button" onClick={() => removeGalleryAt(i)}
+                        className="absolute -top-2 -right-2 rounded-full bg-destructive text-destructive-foreground p-1 shadow">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}>
+                {uploadingGallery ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                {uploadingGallery ? "Uploading…" : "Upload images"}
+              </Button>
+              <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden"
+                onChange={(e) => onUploadGallery(e.target.files)} />
+            </div>
+            <Textarea rows={3} placeholder="Or paste URLs (one per line)" value={f.gallery_images}
+              onChange={(e) => set("gallery_images", e.target.value)} />
+          </div>
+        </Field>
 
         <Field label="Usage instructions"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
         <Field label="Ingredients"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
