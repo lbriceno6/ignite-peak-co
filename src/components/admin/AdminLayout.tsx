@@ -231,11 +231,21 @@ const SidebarBody = ({
 
 export const AdminLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [editLabels, setEditLabels] = useState(false);
+  const [labels, setLabels] = useState<Record<string, string>>(() => loadLabels());
   const { user, signOut } = useAuth();
   const { currency, setCurrency } = useCurrency();
   const location = useLocation();
-  const title = titleFromPath(location.pathname);
+  const title = titleFromPath(location.pathname, labels);
   const initial = (user?.email ?? "A").charAt(0).toUpperCase();
+
+  const handleRename = (key: string, value: string) => {
+    setLabels((prev) => {
+      const next = { ...prev, [key]: value };
+      try { localStorage.setItem(LABELS_KEY, JSON.stringify(next)); } catch {}
+      return next;
+    });
+  };
 
   // Default admin display currency to Peruvian Soles on entering the admin area.
   useEffect(() => {
@@ -244,11 +254,21 @@ export const AdminLayout = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const sidebarProps = { labels, editMode: editLabels, onRename: handleRename };
+
   return (
     <div className="flex min-h-screen bg-muted/30">
       {/* Desktop sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r bg-background p-4 md:flex">
-        <SidebarBody />
+        <SidebarBody {...sidebarProps} />
+        <Button
+          variant={editLabels ? "dark" : "outline"}
+          size="sm"
+          className="mt-4 gap-1.5"
+          onClick={() => setEditLabels((v) => !v)}
+        >
+          {editLabels ? <><Check size={14} /> Listo</> : <><Pencil size={14} /> Renombrar enlaces</>}
+        </Button>
       </aside>
 
       {/* Mobile sidebar overlay */}
@@ -258,8 +278,16 @@ export const AdminLayout = () => {
             className="absolute inset-0 bg-foreground/40"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r bg-background p-4">
-            <SidebarBody onNavigate={() => setMobileOpen(false)} />
+          <aside className="absolute left-0 top-0 flex h-full w-64 flex-col border-r bg-background p-4 overflow-y-auto">
+            <SidebarBody {...sidebarProps} onNavigate={() => setMobileOpen(false)} />
+            <Button
+              variant={editLabels ? "dark" : "outline"}
+              size="sm"
+              className="mt-4 gap-1.5"
+              onClick={() => setEditLabels((v) => !v)}
+            >
+              {editLabels ? <><Check size={14} /> Listo</> : <><Pencil size={14} /> Renombrar enlaces</>}
+            </Button>
           </aside>
         </div>
       )}
