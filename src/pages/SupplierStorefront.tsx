@@ -6,6 +6,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
 import { Loader2, Globe, MapPin } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 type Supplier = {
   id: string; slug: string; business_name: string; commercial_name: string | null;
