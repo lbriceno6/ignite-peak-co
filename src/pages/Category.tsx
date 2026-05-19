@@ -43,12 +43,13 @@ const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
 const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? name;
 
 const FiltersPanel = ({
-  filters, setFilters, brands, suppliers,
+  filters, setFilters, brands, suppliers, dynamicGroups,
 }: {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   brands: string[];
   suppliers: { id: string; business_name: string }[];
+  dynamicGroups: DynamicGroup[];
 }) => {
   const { format, symbol } = useCurrency();
   const [brandQuery, setBrandQuery] = useState("");
