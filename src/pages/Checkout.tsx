@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock, Check, CreditCard, Truck } from "lucide-react";
+import { Lock, Check, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useSiteContent } from "@/hooks/useSiteContent";
 
 const Step = ({ num, label, active, done }: { num: number; label: string; active: boolean; done: boolean }) => (
   <div className="flex items-center gap-2">
@@ -18,11 +19,36 @@ const Step = ({ num, label, active, done }: { num: number; label: string; active
   </div>
 );
 
+const PAY_KEYS = [
+  "pay.yape.enabled","pay.yape.holder","pay.yape.phone","pay.yape.qr_url","pay.yape.note",
+  "pay.plin.enabled","pay.plin.holder","pay.plin.phone","pay.plin.qr_url","pay.plin.note",
+  "pay.bank.enabled","pay.bank.bank_name","pay.bank.account_type","pay.bank.account_number",
+  "pay.bank.cci","pay.bank.holder","pay.bank.document","pay.bank.note",
+  "pay.card.enabled","pay.cod.enabled","pay.cod.note","pay.confirm_whatsapp",
+];
+
 const Checkout = () => {
   const { items } = useCart();
   const { subtotal, shipping, total } = cartTotals(items);
   const { format } = useCurrency();
+  const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
   const [step, setStep] = useState(1);
+  const [method, setMethod] = useState<string>("");
+
+  const methods = useMemo(() => {
+    const list: { k: string; l: string; icon: any }[] = [];
+    if (pay["pay.yape.enabled"] === "1") list.push({ k: "yape", l: "Yape", icon: Smartphone });
+    if (pay["pay.plin.enabled"] === "1") list.push({ k: "plin", l: "Plin", icon: Smartphone });
+    if (pay["pay.bank.enabled"] === "1") list.push({ k: "bank", l: "Transferencia / Depósito", icon: Landmark });
+    if (pay["pay.cod.enabled"] === "1") list.push({ k: "cod", l: "Pago contra entrega", icon: Banknote });
+    if (pay["pay.card.enabled"] === "1" || list.length === 0) list.push({ k: "card", l: "Tarjeta", icon: CreditCard });
+    return list;
+  }, [pay]);
+
+  const selected = method || methods[0]?.k || "card";
+  const wa = (pay["pay.confirm_whatsapp"] || "").replace(/[^0-9]/g, "");
+  const waLink = wa ? `https://wa.me/${wa}?text=${encodeURIComponent(`¡Hola! Acabo de realizar un pago por ${format(total)} con ${selected.toUpperCase()}. Te envío el comprobante.`)}` : "";
+
 
   return (
     <Layout>
@@ -79,19 +105,70 @@ const Checkout = () => {
 
             <section className="rounded-lg border p-6">
               <h3 className="font-display text-xl uppercase flex items-center gap-2"><CreditCard size={18} /> Pago</h3>
-              <RadioGroup defaultValue="card" className="mt-4 space-y-2">
-                {[{k:"card",l:"Tarjeta"},{k:"paypal",l:"PayPal"},{k:"apple",l:"Apple Pay"},{k:"bank",l:"Transferencia bancaria"}].map((m) => (
+              <RadioGroup value={selected} onValueChange={setMethod} className="mt-4 space-y-2">
+                {methods.map((m) => (
                   <label key={m.k} className="flex cursor-pointer items-center gap-3 rounded-md border p-4 hover:bg-secondary/40">
                     <RadioGroupItem value={m.k} />
+                    <m.icon size={18} className="text-muted-foreground" />
                     <span className="font-medium">{m.l}</span>
                   </label>
                 ))}
               </RadioGroup>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
-                <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
-                <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
-              </div>
+
+              {selected === "card" && (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="sm:col-span-2"><Label>Número de tarjeta</Label><Input placeholder="1234 5678 9012 3456" className="mt-1.5" /></div>
+                  <div><Label>Vencimiento</Label><Input placeholder="MM/AA" className="mt-1.5" /></div>
+                  <div><Label>CVC</Label><Input placeholder="123" className="mt-1.5" /></div>
+                </div>
+              )}
+
+              {(selected === "yape" || selected === "plin") && (() => {
+                const p = selected === "yape" ? "pay.yape" : "pay.plin";
+                const name = selected === "yape" ? "Yape" : "Plin";
+                return (
+                  <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm space-y-2">
+                    <p className="font-semibold">Paga con {name}</p>
+                    {pay[`${p}.holder`] && <p><span className="text-muted-foreground">Titular:</span> {pay[`${p}.holder`]}</p>}
+                    {pay[`${p}.phone`] && <p><span className="text-muted-foreground">Celular:</span> <span className="font-mono font-semibold">{pay[`${p}.phone`]}</span></p>}
+                    <p><span className="text-muted-foreground">Monto:</span> <span className="font-display text-base">{format(total)}</span></p>
+                    {pay[`${p}.qr_url`] && (
+                      <img src={pay[`${p}.qr_url`]} alt={`QR ${name}`} className="mt-2 h-40 w-40 rounded border bg-white object-contain p-2" />
+                    )}
+                    {pay[`${p}.note`] && <p className="whitespace-pre-line text-muted-foreground">{pay[`${p}.note`]}</p>}
+                    {waLink && (
+                      <Button asChild variant="dark" className="mt-2 w-full">
+                        <a href={waLink} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Enviar comprobante por WhatsApp</a>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {selected === "bank" && (
+                <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm space-y-1.5">
+                  <p className="font-semibold">Transferencia / Depósito bancario</p>
+                  {pay["pay.bank.bank_name"] && <p><span className="text-muted-foreground">Banco:</span> {pay["pay.bank.bank_name"]}</p>}
+                  {pay["pay.bank.account_type"] && <p><span className="text-muted-foreground">Tipo:</span> {pay["pay.bank.account_type"]}</p>}
+                  {pay["pay.bank.account_number"] && <p><span className="text-muted-foreground">N° de cuenta:</span> <span className="font-mono font-semibold">{pay["pay.bank.account_number"]}</span></p>}
+                  {pay["pay.bank.cci"] && <p><span className="text-muted-foreground">CCI:</span> <span className="font-mono font-semibold">{pay["pay.bank.cci"]}</span></p>}
+                  {pay["pay.bank.holder"] && <p><span className="text-muted-foreground">Titular:</span> {pay["pay.bank.holder"]}</p>}
+                  {pay["pay.bank.document"] && <p><span className="text-muted-foreground">DNI/RUC:</span> {pay["pay.bank.document"]}</p>}
+                  <p><span className="text-muted-foreground">Monto:</span> <span className="font-display text-base">{format(total)}</span></p>
+                  {pay["pay.bank.note"] && <p className="mt-2 whitespace-pre-line text-muted-foreground">{pay["pay.bank.note"]}</p>}
+                  {waLink && (
+                    <Button asChild variant="dark" className="mt-3 w-full">
+                      <a href={waLink} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} /> Enviar comprobante por WhatsApp</a>
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {selected === "cod" && (
+                <div className="mt-4 rounded-md border bg-secondary/40 p-4 text-sm text-muted-foreground whitespace-pre-line">
+                  {pay["pay.cod.note"] || "Pagarás en efectivo al recibir tu pedido."}
+                </div>
+              )}
             </section>
 
             <Button size="xl" variant="accent" className="w-full" onClick={() => setStep(Math.min(3, step + 1))}>

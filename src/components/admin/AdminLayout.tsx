@@ -25,6 +25,7 @@ import {
   Truck,
   Pencil,
   Check,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,6 +95,7 @@ const defaultSections = [
     items: [
       { key: "orders", to: "/admin/orders", label: "Pedidos", icon: ShoppingBag },
       { key: "customers", to: "/admin/customers", label: "Clientes", icon: Users },
+      { key: "payments", to: "/admin/payments", label: "Métodos de pago", icon: Wallet },
     ],
   },
   {
@@ -132,6 +134,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/orders/")) return "Detalle del pedido";
   if (p.startsWith("/admin/orders")) return get("orders", "Pedidos");
   if (p.startsWith("/admin/customers")) return get("customers", "Clientes");
+  if (p.startsWith("/admin/payments")) return get("payments", "Métodos de pago");
   if (p.startsWith("/admin/blog/new")) return get("blog-new", "Nueva entrada");
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");

@@ -43,6 +43,7 @@ import AdminSiteLinks from "./pages/admin/AdminSiteLinks.tsx";
 import AdminContact from "./pages/admin/AdminContact.tsx";
 import AdminAbout from "./pages/admin/AdminAbout.tsx";
 import AdminSuppliers from "./pages/admin/AdminSuppliers.tsx";
+import AdminPayments from "./pages/admin/AdminPayments.tsx";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
@@ -117,6 +118,7 @@ const App = () => (
               <Route path="site-links" element={<AdminSiteLinks />} />
               <Route path="contact" element={<AdminContact />} />
               <Route path="about" element={<AdminAbout />} />
+              <Route path="payments" element={<AdminPayments />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
