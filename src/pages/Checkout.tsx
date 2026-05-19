@@ -414,6 +414,33 @@ const Checkout = () => {
                       );
                     })()}
                   </div>
+
+                  {/* Shipping zone estimate */}
+                  {form.city && (
+                    <div className={`mt-4 rounded-lg border p-3 text-sm ${matchedZone ? "border-success/40 bg-success/5" : "border-border bg-muted/40"}`}>
+                      <div className="flex items-start gap-2">
+                        <Truck size={16} className={matchedZone ? "mt-0.5 text-success" : "mt-0.5 text-muted-foreground"} />
+                        <div className="min-w-0 flex-1">
+                          {matchedZone ? (
+                            <>
+                              <p className="font-medium">
+                                Zona detectada: <span className="text-foreground">{matchedZone.name}</span>
+                              </p>
+                              <p className="text-muted-foreground">
+                                {shipping === 0 ? "Envío gratis" : `Envío: ${format(shipping)}`}
+                                {matchedZone.estimated_days ? ` · ${matchedZone.estimated_days}` : ""}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-muted-foreground">
+                              No reconocimos tu ciudad. Aplicaremos el costo estándar de envío ({shipping === 0 ? "gratis" : format(shipping)}). Confirmaremos el tiempo de entrega por WhatsApp.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {user && editData && (
                     <div className="mt-5 flex flex-wrap gap-2">
                       <Button onClick={saveEdit} disabled={savingData || Object.keys(fieldErrors).length > 0} variant="accent">
