@@ -140,9 +140,9 @@ const ProductDetail = () => {
   const mainImg = resolveProductImage(dbp.main_image);
   const galleryUrls = parseList(dbp.gallery_images).map((u) => resolveProductImage(u));
   const gallery = [mainImg, ...galleryUrls].filter(Boolean);
-  const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : [30, 60, 90]);
-  const subDiscount = Number(dbp.subscription_discount_percent ?? 10);
-  const subEnabled = !!dbp.subscription_enabled;
+  const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : subSettings.defaultIntervals);
+  const subDiscount = Number(dbp.subscription_discount_percent ?? subSettings.defaultDiscount) || subSettings.defaultDiscount;
+  const subEnabled = !!dbp.subscription_enabled && subSettings.enabled;
   const variants: { label: string; price: number }[] = Array.isArray(dbp.size_variants)
     ? (dbp.size_variants as any[])
         .map((v) => ({ label: String(v?.label ?? ""), price: Number(v?.price ?? 0) }))
