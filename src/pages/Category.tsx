@@ -31,22 +31,25 @@ const emptyFilters: FilterState = {
   type: [], goal: [], flavor: [], size: [], brand: [], supplier: [], rating: 0, price: [0, 100],
 };
 
-const staticFilterGroups: { key: "type" | "goal" | "flavor" | "size"; title: string; options: string[] }[] = [
-  { key: "type", title: "Tipo de producto", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
-  { key: "goal", title: "Objetivo", options: goals.map((g) => g.name) },
-  { key: "flavor", title: "Sabor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
-  { key: "size", title: "Tamaño", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
-];
+type DynamicGroup = { key: "type" | "goal" | "flavor" | "size"; title: string; options: { label: string; value: string }[] };
 
-const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
+const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
+  type: "Tipo de producto",
+  goal: "Objetivo",
+  flavor: "Sabor",
+  size: "Tamaño",
+};
+
+const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? name;
 
 const FiltersPanel = ({
-  filters, setFilters, brands, suppliers,
+  filters, setFilters, brands, suppliers, dynamicGroups,
 }: {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   brands: string[];
   suppliers: { id: string; business_name: string }[];
+  dynamicGroups: DynamicGroup[];
 }) => {
   const { format, symbol } = useCurrency();
   const [brandQuery, setBrandQuery] = useState("");
@@ -101,18 +104,20 @@ const FiltersPanel = ({
       </div>
 
       <Accordion type="multiple" defaultValue={["type", "goal", "brand", "supplier"]}>
-        {staticFilterGroups.map((g) => (
+        {dynamicGroups.map((g) => (
           <AccordionItem key={g.key} value={g.key}>
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2.5">
-                {g.options.map((o) => (
-                  <label key={o} className="flex cursor-pointer items-center gap-2 text-sm">
+                {g.options.length === 0 ? (
+                  <p className="py-2 text-xs text-muted-foreground">Sin opciones</p>
+                ) : g.options.map((o) => (
+                  <label key={o.value} className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
-                      checked={filters[g.key].includes(o)}
-                      onCheckedChange={() => toggle(g.key, o)}
+                      checked={filters[g.key].includes(o.label)}
+                      onCheckedChange={() => toggle(g.key, o.label)}
                     />
-                    <span>{o}</span>
+                    <span>{o.label}</span>
                   </label>
                 ))}
               </div>
@@ -226,6 +231,12 @@ const Category = () => {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const [dynamicGroups, setDynamicGroups] = useState<DynamicGroup[]>([
+    { key: "type", title: GROUP_TITLES.type, options: [] },
+    { key: "goal", title: GROUP_TITLES.goal, options: [] },
+    { key: "flavor", title: GROUP_TITLES.flavor, options: [] },
+    { key: "size", title: GROUP_TITLES.size, options: [] },
+  ]);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
@@ -257,6 +268,27 @@ const Category = () => {
       setSuppliers((sRows ?? []) as any);
     };
     loadFacets();
+  }, []);
+
+  // Load admin-managed filter options
+  useEffect(() => {
+    const loadOpts = async () => {
+      const { data } = await supabase
+        .from("filter_options" as any)
+        .select("group,label,value,sort_order,is_enabled")
+        .eq("is_enabled", true)
+        .order("sort_order");
+      const rows = ((data as any) ?? []) as { group: string; label: string; value: string }[];
+      const byGroup = (k: string) =>
+        rows.filter((r) => r.group === k).map((r) => ({ label: r.label, value: r.value }));
+      setDynamicGroups([
+        { key: "type", title: GROUP_TITLES.type, options: byGroup("type") },
+        { key: "goal", title: GROUP_TITLES.goal, options: byGroup("goal") },
+        { key: "flavor", title: GROUP_TITLES.flavor, options: byGroup("flavor") },
+        { key: "size", title: GROUP_TITLES.size, options: byGroup("size") },
+      ]);
+    };
+    loadOpts();
   }, []);
 
   useEffect(() => {
@@ -369,7 +401,7 @@ const Category = () => {
               </button>
             )}
           </div>
-          <FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} />
+          <FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} />
         </aside>
 
         <div>
@@ -382,7 +414,7 @@ const Category = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-80 overflow-y-auto">
                 <SheetHeader><SheetTitle>Filtros</SheetTitle></SheetHeader>
-                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} /></div>
+                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} /></div>
               </SheetContent>
             </Sheet>
 

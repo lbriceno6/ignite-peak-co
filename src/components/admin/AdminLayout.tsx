@@ -28,6 +28,7 @@ import {
   Instagram,
   Repeat,
   Palette,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,6 +90,7 @@ const defaultSections = [
       { key: "products", to: "/admin/products", label: "Productos", icon: Package },
       { key: "products-new", to: "/admin/products/new", label: "Nuevo producto", icon: Plus },
       { key: "categories", to: "/admin/categories", label: "Categorías", icon: Tags },
+      { key: "filter-options", to: "/admin/filter-options", label: "Opciones de filtro", icon: SlidersHorizontal },
       { key: "suppliers", to: "/admin/suppliers", label: "Proveedores", icon: Truck },
     ],
   },

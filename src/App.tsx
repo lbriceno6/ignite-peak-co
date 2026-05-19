@@ -34,6 +34,7 @@ import AdminCustomers from "./pages/admin/AdminCustomers.tsx";
 import AdminBlog from "./pages/admin/AdminBlog.tsx";
 import BlogForm from "./pages/admin/BlogForm.tsx";
 import AdminCategories from "./pages/admin/AdminCategories.tsx";
+import AdminFilterOptions from "./pages/admin/AdminFilterOptions.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
@@ -144,6 +145,7 @@ const App = () => (
               <Route path="blog/new" element={<BlogForm />} />
               <Route path="blog/:id/edit" element={<BlogForm />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="filter-options" element={<AdminFilterOptions />} />
               <Route path="suppliers" element={<AdminSuppliers />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
