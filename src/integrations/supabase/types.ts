@@ -587,6 +587,7 @@ export type Database = {
         Row: {
           approval_status: string
           badge: string | null
+          brand: string | null
           category: string | null
           created_at: string
           description: string | null
@@ -602,6 +603,7 @@ export type Database = {
           name: string
           nutrition_facts: Json | null
           price: number
+          rating: number
           rejection_reason: string | null
           sale_price: number | null
           short_description: string | null
@@ -620,6 +622,7 @@ export type Database = {
         Insert: {
           approval_status?: string
           badge?: string | null
+          brand?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -635,6 +638,7 @@ export type Database = {
           name: string
           nutrition_facts?: Json | null
           price?: number
+          rating?: number
           rejection_reason?: string | null
           sale_price?: number | null
           short_description?: string | null
@@ -653,6 +657,7 @@ export type Database = {
         Update: {
           approval_status?: string
           badge?: string | null
+          brand?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -668,6 +673,7 @@ export type Database = {
           name?: string
           nutrition_facts?: Json | null
           price?: number
+          rating?: number
           rejection_reason?: string | null
           sale_price?: number | null
           short_description?: string | null
