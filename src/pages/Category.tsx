@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { SlidersHorizontal, ChevronDown, X } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
@@ -11,6 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { products, categories, goals, type Product } from "@/data/catalog";
 import { useCurrency } from "@/context/CurrencyContext";
+import { PaginationBar } from "@/components/PaginationBar";
 
 type FilterState = {
   type: string[];
