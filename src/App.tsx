@@ -120,6 +120,7 @@ const App = () => (
               <Route path="contact" element={<AdminContact />} />
               <Route path="about" element={<AdminAbout />} />
               <Route path="payments" element={<AdminPayments />} />
+              <Route path="testimonials" element={<AdminTestimonials />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
