@@ -97,6 +97,8 @@ export default function ProductForm() {
     (async () => {
       const { data } = await supabase.from("categories").select("name, slug").eq("type", "product").order("sort_order");
       setCategories(data ?? []);
+      const { data: sup } = await supabase.from("suppliers").select("id, business_name").eq("is_active", true).order("business_name");
+      setSuppliers(sup ?? []);
     })();
   }, []);
 
