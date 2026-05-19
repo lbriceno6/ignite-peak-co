@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Pencil, Save, X, Package, LogOut } from "lucide-react";
+import { Pencil, Save, X, Package, LogOut, Repeat } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -59,8 +59,9 @@ const MyProfile = () => {
       <div className="container-x py-12 max-w-3xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-display text-4xl uppercase">Mi perfil</h1>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/my-orders"><Package size={16}/> Pedidos</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link to="/my-subscriptions"><Repeat size={16}/> Suscripciones</Link></Button>
             <Button onClick={signOut} variant="ghost" size="sm"><LogOut size={16}/> Cerrar sesión</Button>
           </div>
         </div>
