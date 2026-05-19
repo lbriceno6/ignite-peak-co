@@ -25,15 +25,15 @@ export default function AdminProducts() {
   const toggleActive = async (id: string, value: boolean) => {
     const { error } = await supabase.from("products").update({ is_active: value }).eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success(value ? "Product activated" : "Product deactivated");
+    toast.success(value ? "Producto activado" : "Producto desactivado");
     load();
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
+    if (!confirm("¿Eliminar este producto?")) return;
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("Product deleted");
+    toast.success("Producto eliminado");
     load();
   };
 
@@ -67,7 +67,7 @@ export default function AdminProducts() {
     const payload = { ...rest, slug: newSlug, name: `${src.name} (copy)`, is_active: false, sort_order: maxSort + 1 };
     const { error } = await supabase.from("products").insert(payload as any);
     if (error) return toast.error(error.message);
-    toast.success("Product duplicated");
+    toast.success("Producto duplicado");
     load();
   };
 
@@ -77,24 +77,24 @@ export default function AdminProducts() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-3xl">Products</h1>
-          <p className="text-muted-foreground">{items.length} total</p>
+          <h1 className="font-display text-3xl">Productos</h1>
+          <p className="text-muted-foreground">{items.length} en total</p>
         </div>
-        <Button asChild variant="dark"><Link to="/admin/products/new"><Plus size={16} /> New product</Link></Button>
+        <Button asChild variant="dark"><Link to="/admin/products/new"><Plus size={16} /> Nuevo producto</Link></Button>
       </div>
-      <Input placeholder="Search products…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
+      <Input placeholder="Buscar productos…" value={q} onChange={(e) => setQ(e.target.value)} className="max-w-sm" />
 
       <div className="overflow-x-auto rounded-lg border bg-background">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left">
             <tr>
-              <th className="p-3 w-24">Order</th>
-              <th className="p-3">Product</th>
-              <th className="p-3">Category</th>
-              <th className="p-3">Price</th>
+              <th className="p-3 w-24">Orden</th>
+              <th className="p-3">Producto</th>
+              <th className="p-3">Categoría</th>
+              <th className="p-3">Precio</th>
               <th className="p-3">Stock</th>
-              <th className="p-3">Active</th>
-              <th className="p-3 text-right">Actions</th>
+              <th className="p-3">Activo</th>
+              <th className="p-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -102,10 +102,10 @@ export default function AdminProducts() {
               <tr key={p.id} className="border-t">
                 <td className="p-3">
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={i === 0} aria-label="Move up">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={i === 0} aria-label="Subir">
                       <ArrowUp size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={i === filtered.length - 1} aria-label="Move down">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={i === filtered.length - 1} aria-label="Bajar">
                       <ArrowDown size={16} />
                     </Button>
                   </div>
@@ -129,13 +129,13 @@ export default function AdminProducts() {
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3"><Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p.id, v)} /></td>
                 <td className="p-3 text-right whitespace-nowrap">
-                  <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicate"><Copy size={16} /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicar"><Copy size={16} /></Button>
                   <Button asChild variant="ghost" size="icon"><Link to={`/admin/products/${p.id}/edit`}><Pencil size={16} /></Link></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">No products</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
           </tbody>
         </table>
       </div>
