@@ -544,7 +544,7 @@ const Home = () => {
     }
   };
 
-  return <Layout>{blocks.map(renderBlock)}</Layout>;
+  return <Layout>{blocks.map(renderBlock)}<InstagramTestimonials /></Layout>;
 };
 
 export default Home;
