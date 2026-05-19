@@ -23,6 +23,7 @@ import ResetPassword from "./pages/ResetPassword.tsx";
 import MyProfile from "./pages/MyProfile.tsx";
 import MyOrders from "./pages/MyOrders.tsx";
 import OrderDetail from "./pages/OrderDetail.tsx";
+import MySubscriptions from "./pages/MySubscriptions.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProducts from "./pages/admin/AdminProducts.tsx";
@@ -93,6 +94,7 @@ const App = () => (
             <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />
             <Route path="/my-orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
+            <Route path="/my-subscriptions" element={<ProtectedRoute><MySubscriptions /></ProtectedRoute>} />
 
             <Route path="/shipping-policies" element={<Shipping />} />
             <Route path="/returns-policies" element={<Returns />} />

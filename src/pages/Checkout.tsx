@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check } from "lucide-react";
+import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -309,8 +309,35 @@ const Checkout = () => {
       const { error: iErr } = await supabase.from("order_items").insert(itemsPayload);
       if (iErr) throw iErr;
 
+      // Persist active subscriptions for items marked as recurring
+      const subRows = items
+        .filter((i) => i.subscription)
+        .map((i) => {
+          const next = new Date();
+          next.setDate(next.getDate() + (i.subscription!.intervalDays));
+          return {
+            user_id: uid,
+            product_id: /^[0-9a-f-]{36}$/i.test(i.product.id) ? i.product.id : null,
+            product_slug: i.product.slug ?? i.product.id,
+            product_name: i.product.name,
+            product_image: i.product.image ?? null,
+            variant: [i.flavor, i.size].filter(Boolean).join(" · ") || null,
+            unit_price: lineUnitPrice(i),
+            quantity: i.quantity,
+            interval_days: i.subscription!.intervalDays,
+            discount_percent: i.subscription!.discountPercent,
+            status: "active" as const,
+            next_delivery_at: next.toISOString(),
+            last_order_id: order.id,
+          };
+        });
+      if (subRows.length) {
+        await (supabase as any).from("subscriptions").insert(subRows);
+      }
+
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+
 
       if (wa) {
         const msg = buildWaMessage(order.order_code);
@@ -616,7 +643,37 @@ const Checkout = () => {
               )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
+            {(() => {
+              const subItems = items.filter((i) => i.subscription);
+              if (!subItems.length) return null;
+              return (
+                <div className="mt-5 rounded-lg border border-accent/40 bg-accent/5 p-4">
+                  <p className="flex items-center gap-2 font-display text-sm uppercase tracking-wider">
+                    <Repeat size={14} className="text-accent" /> Tu plan de suscripción
+                  </p>
+                  <ul className="mt-3 space-y-3 text-xs">
+                    {subItems.map((i) => {
+                      const next = new Date();
+                      next.setDate(next.getDate() + i.subscription!.intervalDays);
+                      return (
+                        <li key={i.product.id + (i.flavor ?? "") + (i.size ?? "")} className="space-y-0.5">
+                          <p className="font-semibold text-foreground">{i.product.name}</p>
+                          <p className="text-muted-foreground">
+                            Cada {i.subscription!.intervalDays} días · −{i.subscription!.discountPercent}% · {format(lineSubtotal(i))}/envío
+                          </p>
+                          <p className="text-muted-foreground">
+                            Próxima entrega: <span className="font-medium text-foreground">{next.toLocaleDateString(undefined, { day: "numeric", month: "long" })}</span>
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-3 text-[11px] text-muted-foreground">Podrás pausar, cambiar la frecuencia o cancelar desde <span className="font-semibold text-foreground">Mi cuenta → Suscripciones</span>.</p>
+                </div>
+              );
+            })()}
           </aside>
+
         </div>
       </div>
     </Layout>

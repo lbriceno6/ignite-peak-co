@@ -714,6 +714,66 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          discount_percent: number
+          id: string
+          interval_days: number
+          last_order_id: string | null
+          last_processed_at: string | null
+          next_delivery_at: string
+          product_id: string | null
+          product_image: string | null
+          product_name: string
+          product_slug: string
+          quantity: number
+          status: Database["public"]["Enums"]["subscription_status"]
+          unit_price: number
+          updated_at: string
+          user_id: string
+          variant: string | null
+        }
+        Insert: {
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          interval_days?: number
+          last_order_id?: string | null
+          last_processed_at?: string | null
+          next_delivery_at?: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name: string
+          product_slug: string
+          quantity?: number
+          status?: Database["public"]["Enums"]["subscription_status"]
+          unit_price?: number
+          updated_at?: string
+          user_id: string
+          variant?: string | null
+        }
+        Update: {
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          interval_days?: number
+          last_order_id?: string | null
+          last_processed_at?: string | null
+          next_delivery_at?: string
+          product_id?: string | null
+          product_image?: string | null
+          product_name?: string
+          product_slug?: string
+          quantity?: number
+          status?: Database["public"]["Enums"]["subscription_status"]
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+          variant?: string | null
+        }
+        Relationships: []
+      }
       suppliers: {
         Row: {
           address: string | null
@@ -884,6 +944,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
+      subscription_status: "active" | "paused" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1021,6 +1082,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      subscription_status: ["active", "paused", "cancelled"],
     },
   },
 } as const
