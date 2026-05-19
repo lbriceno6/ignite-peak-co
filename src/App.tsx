@@ -100,6 +100,7 @@ const App = () => (
               <Route path="goal-cards" element={<AdminGoalCards />} />
               <Route path="navigation" element={<AdminNavigation />} />
               <Route path="footer" element={<AdminFooter />} />
+              <Route path="site-links" element={<AdminSiteLinks />} />
               <Route path="contact" element={<AdminContact />} />
               <Route path="about" element={<AdminAbout />} />
             </Route>
