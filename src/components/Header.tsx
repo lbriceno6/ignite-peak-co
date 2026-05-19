@@ -92,17 +92,19 @@ export const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>(fallbackCategories);
   const navigate = useNavigate();
 
   useEffect(() => {
     let alive = true;
     (async () => {
-      const { data } = await supabase
-        .from("nav_links")
-        .select("id,label,href,open_in_new_tab,is_active,sort_order")
-        .eq("is_active", true)
-        .order("sort_order");
-      if (alive) setNavItems((data as NavItem[]) ?? []);
+      const [navRes, catRes] = await Promise.all([
+        supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
+        supabase.from("categories").select("slug,name,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+      ]);
+      if (!alive) return;
+      setNavItems((navRes.data as NavItem[]) ?? []);
+      if (catRes.data && catRes.data.length) setCategories(catRes.data as CategoryItem[]);
     })();
     return () => { alive = false; };
   }, []);
