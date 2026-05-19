@@ -102,6 +102,7 @@ const sections = [
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
       { to: "/admin/footer", label: "Footer", icon: PanelBottom },
+      { to: "/admin/site-links", label: "Site links", icon: Link2 },
       { to: "/admin/about", label: "About page", icon: Info },
       { to: "/admin/contact", label: "Contact page", icon: Mail },
     ],
