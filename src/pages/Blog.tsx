@@ -157,12 +157,12 @@ const Blog = () => {
           <p className="mt-3 max-w-xl text-background/70">Practical advice from our nutritionists, coaches and athletes — no fluff.</p>
           <div className="mt-6 flex max-w-md gap-2">
             <Input
-              placeholder="Search articles..."
+              placeholder="Buscar artículos..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="bg-background/10 border-background/20 text-background placeholder:text-background/50"
             />
-            <Button variant="accent">Search</Button>
+            <Button variant="accent">Buscar</Button>
           </div>
         </div>
       </section>
