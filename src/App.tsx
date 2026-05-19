@@ -145,6 +145,7 @@ const App = () => (
               <Route path="blog/new" element={<BlogForm />} />
               <Route path="blog/:id/edit" element={<BlogForm />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="filter-options" element={<AdminFilterOptions />} />
               <Route path="suppliers" element={<AdminSuppliers />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
