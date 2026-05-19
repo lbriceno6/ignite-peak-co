@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import { ProductCard } from "@/components/ProductCard";
 import { Stars } from "@/components/Stars";
-import { goals, reviews, type Product } from "@/data/catalog";
+import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { resolveProductImage } from "@/lib/productImage";
@@ -68,6 +68,15 @@ type HomeBlock = {
   image_url: string | null;
 };
 
+type GoalCard = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  cta_label: string | null;
+  cta_href: string | null;
+};
+
 const toCardProduct = (p: DbProduct): Product => {
   const label = (["Best Seller", "New", "Offer"] as const).find(
     (l) => l.toLowerCase() === (p.badge ?? "").toLowerCase(),
@@ -104,6 +113,7 @@ const Home = () => {
   const [posts, setPosts] = useState<DbPost[]>([]);
   const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [blocks, setBlocks] = useState<HomeBlock[]>([]);
+  const [goalCards, setGoalCards] = useState<GoalCard[]>([]);
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 6000, stopOnInteraction: false, stopOnMouseEnter: true }));
@@ -116,13 +126,14 @@ const Home = () => {
   });
 
   const loadAll = async () => {
-    const [p, c, featured, recent, hero, blk] = await Promise.all([
+    const [p, c, featured, recent, hero, blk, gc] = await Promise.all([
       supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,badge").eq("is_active", true).order("created_at", { ascending: false }),
       supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
       supabase.from("hero_slides").select("id,eyebrow,title,subtitle,image_url,primary_label,primary_href,secondary_label,secondary_href").eq("is_active", true).order("sort_order").order("created_at"),
       supabase.from("home_blocks").select("*").eq("is_active", true).order("sort_order"),
+      supabase.from("goal_cards").select("id,slug,name,description,cta_label,cta_href").eq("is_active", true).order("sort_order").order("created_at"),
     ]);
     setProducts((p.data as DbProduct[]) ?? []);
     setCategories((c.data as DbCategory[]) ?? []);
@@ -133,6 +144,7 @@ const Home = () => {
     setPosts(merged);
     setSlides((hero.data as HeroSlide[]) ?? []);
     setBlocks((blk.data as HomeBlock[]) ?? []);
+    setGoalCards((gc.data as GoalCard[]) ?? []);
   };
 
   useEffect(() => {
@@ -143,6 +155,7 @@ const Home = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "site_content" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "hero_slides" }, () => loadAll())
       .on("postgres_changes", { event: "*", schema: "public", table: "home_blocks" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "goal_cards" }, () => loadAll())
       .subscribe();
     const onFocus = () => loadAll();
     window.addEventListener("focus", onFocus);
