@@ -161,6 +161,7 @@ export default function AdminFilterOptions() {
                   <tr>
                     <th className="p-3">Etiqueta</th>
                     <th className="p-3">Valor</th>
+                    <th className="p-3 w-24 text-center">Productos</th>
                     <th className="p-3 w-20">Orden</th>
                     <th className="p-3 w-32">Habilitada</th>
                     <th className="p-3 text-right">Acciones</th>
