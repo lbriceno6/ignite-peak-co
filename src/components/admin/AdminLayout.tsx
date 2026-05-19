@@ -100,6 +100,7 @@ const defaultSections = [
       { key: "payments", to: "/admin/payments", label: "Métodos de pago", icon: Wallet },
       { key: "shipping", to: "/admin/shipping", label: "Envíos", icon: Truck },
       { key: "subscription", to: "/admin/subscription", label: "Suscríbete y ahorra", icon: Repeat },
+      { key: "email", to: "/admin/email", label: "Email y notificaciones", icon: Mail },
     ],
   },
   {
