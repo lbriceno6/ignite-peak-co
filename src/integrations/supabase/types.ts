@@ -565,6 +565,9 @@ export type Database = {
           id: string
           order_code: string
           payment_method: string
+          referral_source: string | null
+          reseller_discount_applied: number
+          reseller_id: string | null
           shipping: number
           shipping_address: string | null
           shipping_city: string | null
@@ -573,6 +576,7 @@ export type Database = {
           shipping_phone: string | null
           shipping_postal_code: string | null
           status: Database["public"]["Enums"]["order_status"]
+          store_credit_used: number
           subtotal: number
           total: number
           updated_at: string
@@ -583,6 +587,9 @@ export type Database = {
           id?: string
           order_code?: string
           payment_method?: string
+          referral_source?: string | null
+          reseller_discount_applied?: number
+          reseller_id?: string | null
           shipping?: number
           shipping_address?: string | null
           shipping_city?: string | null
@@ -591,6 +598,7 @@ export type Database = {
           shipping_phone?: string | null
           shipping_postal_code?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          store_credit_used?: number
           subtotal?: number
           total?: number
           updated_at?: string
@@ -601,6 +609,9 @@ export type Database = {
           id?: string
           order_code?: string
           payment_method?: string
+          referral_source?: string | null
+          reseller_discount_applied?: number
+          reseller_id?: string | null
           shipping?: number
           shipping_address?: string | null
           shipping_city?: string | null
@@ -609,12 +620,21 @@ export type Database = {
           shipping_phone?: string | null
           shipping_postal_code?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          store_credit_used?: number
           subtotal?: number
           total?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       products: {
         Row: {
@@ -770,6 +790,195 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      reseller_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          notes: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reseller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          method: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reseller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          notes?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reseller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_payouts_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_referrals: {
+        Row: {
+          commission_amount: number
+          commission_percent: number
+          created_at: string
+          id: string
+          order_id: string
+          reseller_id: string
+          source: string
+          status: string
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          commission_amount?: number
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          order_id: string
+          reseller_id: string
+          source: string
+          status?: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          order_id?: string
+          reseller_id?: string
+          source?: string
+          status?: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reseller_referrals_reseller_id_fkey"
+            columns: ["reseller_id"]
+            isOneToOne: false
+            referencedRelation: "resellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reseller_tiers: {
+        Row: {
+          commission_percent: number
+          created_at: string
+          customer_discount_percent: number
+          id: string
+          is_active: boolean
+          min_sales: number
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          commission_percent?: number
+          created_at?: string
+          customer_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          min_sales?: number
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          commission_percent?: number
+          created_at?: string
+          customer_discount_percent?: number
+          id?: string
+          is_active?: boolean
+          min_sales?: number
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      resellers: {
+        Row: {
+          balance_cash: number
+          balance_credit: number
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          link_slug: string
+          payout_account: string | null
+          payout_method: string
+          tier_id: string | null
+          total_commission: number
+          total_sales: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance_cash?: number
+          balance_credit?: number
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link_slug: string
+          payout_account?: string | null
+          payout_method?: string
+          tier_id?: string | null
+          total_commission?: number
+          total_sales?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance_cash?: number
+          balance_credit?: number
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          link_slug?: string
+          payout_account?: string | null
+          payout_method?: string
+          tier_id?: string | null
+          total_commission?: number
+          total_sales?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resellers_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "reseller_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       review_helpful_votes: {
         Row: {
@@ -1236,6 +1445,31 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_reseller: {
+        Args: never
+        Returns: {
+          balance_cash: number
+          balance_credit: number
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          link_slug: string
+          payout_account: string | null
+          payout_method: string
+          tier_id: string | null
+          total_commission: number
+          total_sales: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "resellers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_supplier_id: { Args: never; Returns: string }
       current_supplier_status: { Args: never; Returns: string }
       delete_email: {
@@ -1282,6 +1516,20 @@ export type Database = {
           message: Json
           msg_id: number
           read_ct: number
+        }[]
+      }
+      recalc_reseller_tier: {
+        Args: { _reseller_id: string }
+        Returns: undefined
+      }
+      resolve_referral: {
+        Args: { _ref: string }
+        Returns: {
+          code: string
+          customer_discount_percent: number
+          link_slug: string
+          reseller_id: string
+          source: string
         }[]
       }
       supplier_owns_order: { Args: { _order_id: string }; Returns: boolean }
