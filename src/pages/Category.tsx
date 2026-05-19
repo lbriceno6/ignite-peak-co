@@ -401,7 +401,7 @@ const Category = () => {
               </button>
             )}
           </div>
-          <FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} />
+          <FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} />
         </aside>
 
         <div>
