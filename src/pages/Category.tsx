@@ -99,6 +99,8 @@ const Category = () => {
   const { slug = "" } = useParams();
   const [sort, setSort] = useState("popular");
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
