@@ -643,7 +643,37 @@ const Checkout = () => {
               )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
+            {(() => {
+              const subItems = items.filter((i) => i.subscription);
+              if (!subItems.length) return null;
+              return (
+                <div className="mt-5 rounded-lg border border-accent/40 bg-accent/5 p-4">
+                  <p className="flex items-center gap-2 font-display text-sm uppercase tracking-wider">
+                    <Repeat size={14} className="text-accent" /> Tu plan de suscripción
+                  </p>
+                  <ul className="mt-3 space-y-3 text-xs">
+                    {subItems.map((i) => {
+                      const next = new Date();
+                      next.setDate(next.getDate() + i.subscription!.intervalDays);
+                      return (
+                        <li key={i.product.id + (i.flavor ?? "") + (i.size ?? "")} className="space-y-0.5">
+                          <p className="font-semibold text-foreground">{i.product.name}</p>
+                          <p className="text-muted-foreground">
+                            Cada {i.subscription!.intervalDays} días · −{i.subscription!.discountPercent}% · {format(lineSubtotal(i))}/envío
+                          </p>
+                          <p className="text-muted-foreground">
+                            Próxima entrega: <span className="font-medium text-foreground">{next.toLocaleDateString(undefined, { day: "numeric", month: "long" })}</span>
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  <p className="mt-3 text-[11px] text-muted-foreground">Podrás pausar, cambiar la frecuencia o cancelar desde <span className="font-semibold text-foreground">Mi cuenta → Suscripciones</span>.</p>
+                </div>
+              );
+            })()}
           </aside>
+
         </div>
       </div>
     </Layout>
