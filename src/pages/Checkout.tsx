@@ -212,6 +212,15 @@ const Checkout = () => {
 
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+
+      if (wa) {
+        const msg = buildWaMessage(order.order_code);
+        const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank", "noopener,noreferrer");
+      } else {
+        toast.message("Configura un WhatsApp en administración para envío automático");
+      }
+
       navigate(`/my-orders/${order.id}`);
     } catch (e: any) {
       toast.error(e?.message ?? "No se pudo procesar el pago");
