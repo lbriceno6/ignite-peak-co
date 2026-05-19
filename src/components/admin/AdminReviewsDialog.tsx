@@ -165,17 +165,33 @@ export const AdminReviewsDialog = ({
           ) : (
             <ul className="space-y-2">
               {list.map((r) => (
-                <li key={r.id} className="rounded border bg-background p-3">
+                <li key={r.id} className={`rounded border bg-background p-3 ${r.is_published === false ? "opacity-60" : ""}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold">{r.authorName}</p>
+                      <p className="text-sm font-semibold flex items-center gap-2">
+                        {r.authorName}
+                        {r.is_published === false && <span className="text-xs text-muted-foreground">(oculta)</span>}
+                      </p>
                       <div className="mt-1 flex items-center gap-2">
                         <Stars rating={r.rating} size={14} />
                         <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
+                        <span className="text-xs text-muted-foreground">· Útil: {r.helpful_count ?? 0}</span>
                       </div>
                       {r.comment && <p className="mt-2 text-sm text-muted-foreground whitespace-pre-line">{r.comment}</p>}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1" title={r.is_published === false ? "Mostrar" : "Ocultar"}>
+                        {r.is_published === false ? <EyeOff size={14} /> : <Eye size={14} />}
+                        <Switch
+                          checked={r.is_published !== false}
+                          onCheckedChange={async (v) => {
+                            const { error } = await supabase.from("reviews").update({ is_published: v }).eq("id", r.id);
+                            if (error) return toast.error(error.message);
+                            toast.success(v ? "Reseña publicada" : "Reseña oculta");
+                            load();
+                          }}
+                        />
+                      </div>
                       <Button size="icon" variant="ghost" onClick={() => startEdit(r)}><Pencil size={14} /></Button>
                       <Button size="icon" variant="ghost" onClick={() => remove(r.id)}><Trash2 size={14} /></Button>
                     </div>
