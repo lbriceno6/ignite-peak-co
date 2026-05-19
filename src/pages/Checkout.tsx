@@ -291,6 +291,10 @@ const Checkout = () => {
           shipping_city: form.city,
           shipping_postal_code: form.postal,
           shipping_country: form.country,
+          reseller_id: referral?.reseller_id ?? null,
+          referral_source: referral?.source ?? null,
+          reseller_discount_applied: discount,
+          store_credit_used: creditApplied,
         })
         .select("id, order_code")
         .single();
