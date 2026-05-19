@@ -143,7 +143,13 @@ const ProductDetail = () => {
   const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : [30, 60, 90]);
   const subDiscount = Number(dbp.subscription_discount_percent ?? 10);
   const subEnabled = !!dbp.subscription_enabled;
-  const basePrice = Number(dbp.sale_price ?? dbp.price);
+  const variants: { label: string; price: number }[] = Array.isArray(dbp.size_variants)
+    ? (dbp.size_variants as any[])
+        .map((v) => ({ label: String(v?.label ?? ""), price: Number(v?.price ?? 0) }))
+        .filter((v) => v.label && v.price > 0)
+    : [];
+  const variant = variants[selectedVariant];
+  const basePrice = variant ? variant.price : Number(dbp.sale_price ?? dbp.price);
   const effectivePrice = purchaseMode === "subscription"
     ? +(basePrice * (1 - subDiscount / 100)).toFixed(2)
     : basePrice;
