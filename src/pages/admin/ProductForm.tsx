@@ -142,6 +142,13 @@ export default function ProductForm() {
         subscription_intervals: typeof f.subscription_intervals === "string"
           ? f.subscription_intervals.split(",").map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n) && n > 0)
           : f.subscription_intervals,
+        size_variants: typeof f.size_variants === "string"
+          ? f.size_variants.split("\n").map((line: string) => {
+              const [label, price] = line.split("|").map((s) => s.trim());
+              if (!label) return null;
+              return { label, price: Number(price) || 0 };
+            }).filter(Boolean)
+          : (f.size_variants ?? []),
       };
       delete payload.created_at; delete payload.updated_at; delete payload.id;
       const res = isEdit
