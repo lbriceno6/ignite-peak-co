@@ -27,12 +27,12 @@ const emptyFilters: FilterState = {
 };
 
 const filterGroups: { key: keyof Omit<FilterState, "price">; title: string; options: string[] }[] = [
-  { key: "type", title: "Product type", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
-  { key: "goal", title: "Goal", options: goals.map((g) => g.name) },
-  { key: "flavor", title: "Flavor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
-  { key: "size", title: "Size", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
-  { key: "rating", title: "Rating", options: ["4★ & up", "4.5★ & up", "4.8★ & up"] },
-  { key: "brand", title: "Brand", options: ["VOLTRA"] },
+  { key: "type", title: "Tipo de producto", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
+  { key: "goal", title: "Objetivo", options: goals.map((g) => g.name) },
+  { key: "flavor", title: "Sabor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
+  { key: "size", title: "Tamaño", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
+  { key: "rating", title: "Valoración", options: ["4★ y más", "4.5★ y más", "4.8★ y más"] },
+  { key: "brand", title: "Marca", options: ["VOLTRA"] },
 ];
 
 const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
@@ -57,7 +57,7 @@ const FiltersPanel = ({
   return (
     <div className="space-y-4">
       <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Price ({symbol})</h4>
+        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Precio ({symbol})</h4>
         <Slider
           value={filters.price}
           min={0} max={100} step={1}
@@ -102,10 +102,10 @@ const Category = () => {
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
       const g = goals.find((x) => x.slug === slug.replace("goal-", ""));
-      return g?.name ?? "Goal";
+      return g?.name ?? "Objetivo";
     }
     const c = categories.find((x) => x.slug === slug);
-    return c?.name ?? "All products";
+    return c?.name ?? "Todos los productos";
   }, [slug]);
 
   const baseList = useMemo(() => {
@@ -170,20 +170,20 @@ const Category = () => {
       <div className="bg-secondary/40 py-10">
         <div className="container-x">
           <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-            <Link to="/" className="hover:text-accent">Home</Link> / <span className="text-foreground">{title}</span>
+            <Link to="/" className="hover:text-accent">Inicio</Link> / <span className="text-foreground">{title}</span>
           </nav>
           <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{title}</h1>
-          <p className="mt-2 text-muted-foreground">{sorted.length} products</p>
+          <p className="mt-2 text-muted-foreground">{sorted.length} productos</p>
         </div>
       </div>
 
       <div className="container-x grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="font-display text-xl uppercase">Filters</h3>
+            <h3 className="font-display text-xl uppercase">Filtros</h3>
             {activeChips.length > 0 && (
               <button onClick={clearAll} className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">
-                Clear
+                Limpiar
               </button>
             )}
           </div>
@@ -195,27 +195,27 @@ const Category = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="lg:hidden">
-                  <SlidersHorizontal size={16} /> Filters
+                  <SlidersHorizontal size={16} /> Filtros
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80 overflow-y-auto">
-                <SheetHeader><SheetTitle>Filters</SheetTitle></SheetHeader>
+                <SheetHeader><SheetTitle>Filtros</SheetTitle></SheetHeader>
                 <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} /></div>
               </SheetContent>
             </Sheet>
 
             <div className="ml-auto flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Sort:</span>
+              <span className="text-muted-foreground">Ordenar:</span>
               <div className="relative">
                 <select
                   value={sort}
                   onChange={(e) => setSort(e.target.value)}
                   className="appearance-none rounded-md border border-border bg-background py-2 pl-3 pr-9 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="popular">Most popular</option>
-                  <option value="rating">Highest rated</option>
-                  <option value="price-low">Price: low to high</option>
-                  <option value="price-high">Price: high to low</option>
+                  <option value="popular">Más populares</option>
+                  <option value="rating">Mejor valorados</option>
+                  <option value="price-low">Precio: menor a mayor</option>
+                  <option value="price-high">Precio: mayor a menor</option>
                 </select>
                 <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               </div>
@@ -237,8 +237,8 @@ const Category = () => {
 
           {sorted.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border py-16 text-center">
-              <p className="text-muted-foreground">No products match your filters.</p>
-              <Button variant="outline" className="mt-4" onClick={clearAll}>Clear filters</Button>
+              <p className="text-muted-foreground">Ningún producto coincide con tus filtros.</p>
+              <Button variant="outline" className="mt-4" onClick={clearAll}>Limpiar filtros</Button>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

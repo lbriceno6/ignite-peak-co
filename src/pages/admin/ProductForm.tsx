@@ -11,13 +11,13 @@ import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
 
 const BADGE_OPTIONS = [
-  { value: "", label: "None" },
-  { value: "new", label: "New" },
-  { value: "best-seller", label: "Best seller" },
-  { value: "sale", label: "Sale" },
-  { value: "limited", label: "Limited" },
+  { value: "", label: "Ninguno" },
+  { value: "new", label: "Nuevo" },
+  { value: "best-seller", label: "Más vendido" },
+  { value: "sale", label: "Oferta" },
+  { value: "limited", label: "Limitado" },
   { value: "popular", label: "Popular" },
-  { value: "exclusive", label: "Exclusive" },
+  { value: "exclusive", label: "Exclusivo" },
 ];
 
 
@@ -64,7 +64,7 @@ export default function ProductForm() {
     try {
       const url = await uploadToBucket(file, "product-main");
       set("main_image", url);
-      toast.success("Image uploaded");
+      toast.success("Imagen subida");
     } catch (e: any) { toast.error(e.message); } finally { setUploadingMain(false); }
   };
 
@@ -80,7 +80,7 @@ export default function ProductForm() {
         ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
         : (f.gallery_images ?? []);
       set("gallery_images", [...current, ...urls].join("\n"));
-      toast.success(`${urls.length} image(s) uploaded`);
+      toast.success(`${urls.length} imagen(es) subida(s)`);
     } catch (e: any) { toast.error(e.message); } finally { setUploadingGallery(false); }
   };
 
@@ -145,7 +145,7 @@ export default function ProductForm() {
         ? await supabase.from("products").update(payload).eq("id", id!)
         : await supabase.from("products").insert(payload);
       if (res.error) throw res.error;
-      toast.success(isEdit ? "Product updated" : "Product created");
+      toast.success(isEdit ? "Producto actualizado" : "Producto creado");
       nav("/admin/products");
     } catch (e: any) {
       toast.error(e.message);
@@ -154,26 +154,26 @@ export default function ProductForm() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <h1 className="font-display text-3xl">{isEdit ? "Edit product" : "Create product"}</h1>
+      <h1 className="font-display text-3xl">{isEdit ? "Editar producto" : "Crear producto"}</h1>
 
       <div className="grid gap-4 rounded-lg border bg-background p-6">
-        <Field label="Name"><Input value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
-        <Field label="Slug"><Input value={f.slug} placeholder="auto from name" onChange={(e) => set("slug", e.target.value)} /></Field>
-        <Field label="Short description"><Input value={f.short_description ?? ""} onChange={(e) => set("short_description", e.target.value)} /></Field>
-        <Field label="Long description"><Textarea rows={5} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} /></Field>
+        <Field label="Nombre"><Input value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
+        <Field label="Slug"><Input value={f.slug} placeholder="se genera del nombre" onChange={(e) => set("slug", e.target.value)} /></Field>
+        <Field label="Descripción corta"><Input value={f.short_description ?? ""} onChange={(e) => set("short_description", e.target.value)} /></Field>
+        <Field label="Descripción larga"><Textarea rows={5} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} /></Field>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Price"><Input type="number" step="0.01" value={f.price} onChange={(e) => set("price", e.target.value)} /></Field>
-          <Field label="Sale price"><Input type="number" step="0.01" value={f.sale_price ?? ""} onChange={(e) => set("sale_price", e.target.value)} /></Field>
-          <Field label="Category">
+          <Field label="Precio"><Input type="number" step="0.01" value={f.price} onChange={(e) => set("price", e.target.value)} /></Field>
+          <Field label="Precio de oferta"><Input type="number" step="0.01" value={f.sale_price ?? ""} onChange={(e) => set("sale_price", e.target.value)} /></Field>
+          <Field label="Categoría">
             <Input list="product-categories" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
             <datalist id="product-categories">
               {categories.map((c) => <option key={c.slug} value={c.name} />)}
             </datalist>
           </Field>
-          <Field label="Badge">
+          <Field label="Etiqueta">
             <Select value={f.badge ?? ""} onValueChange={(v) => set("badge", v === "__none__" ? "" : v)}>
-              <SelectTrigger><SelectValue placeholder="Select a badge" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecciona una etiqueta" /></SelectTrigger>
               <SelectContent>
                 {BADGE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value || "__none__"} value={opt.value || "__none__"}>{opt.label}</SelectItem>
@@ -181,16 +181,16 @@ export default function ProductForm() {
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Main ingredient"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
-          <Field label="Goal"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>
-          <Field label="Flavor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
-          <Field label="Size"><Input value={f.size ?? ""} onChange={(e) => set("size", e.target.value)} /></Field>
+          <Field label="Ingrediente principal"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
+          <Field label="Objetivo"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>
+          <Field label="Sabor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
+          <Field label="Tamaño"><Input value={f.size ?? ""} onChange={(e) => set("size", e.target.value)} /></Field>
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
-          <Field label="Supplier">
+          <Field label="Proveedor">
             <Select value={f.supplier_id ?? "__none__"} onValueChange={(v) => set("supplier_id", v === "__none__" ? null : v)}>
-              <SelectTrigger><SelectValue placeholder="Select a supplier" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder="Selecciona un proveedor" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="__none__">None</SelectItem>
+                <SelectItem value="__none__">Ninguno</SelectItem>
                 {suppliers.map((s) => (
                   <SelectItem key={s.id} value={s.id}>{s.business_name}</SelectItem>
                 ))}
@@ -199,27 +199,27 @@ export default function ProductForm() {
           </Field>
         </div>
 
-        <Field label="Main image">
+        <Field label="Imagen principal">
           <div className="space-y-2">
             {f.main_image && (
-              <img src={f.main_image} alt="Main" className="h-32 w-32 rounded-md object-cover border" />
+              <img src={f.main_image} alt="Principal" className="h-32 w-32 rounded-md object-cover border" />
             )}
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => mainFileRef.current?.click()} disabled={uploadingMain}>
                 {uploadingMain ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
-                {uploadingMain ? "Uploading…" : "Upload image"}
+                {uploadingMain ? "Subiendo…" : "Subir imagen"}
               </Button>
               {f.main_image && (
-                <Button type="button" variant="ghost" size="sm" onClick={() => set("main_image", "")}>Remove</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => set("main_image", "")}>Quitar</Button>
               )}
               <input ref={mainFileRef} type="file" accept="image/*" className="hidden"
                 onChange={(e) => onUploadMain(e.target.files?.[0])} />
             </div>
-            <Input placeholder="Or paste image URL" value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} />
+            <Input placeholder="O pega la URL de la imagen" value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} />
           </div>
         </Field>
 
-        <Field label="Gallery images">
+        <Field label="Imágenes de galería">
           <div className="space-y-2">
             {(() => {
               const list = typeof f.gallery_images === "string"
@@ -229,7 +229,7 @@ export default function ProductForm() {
                 <div className="flex flex-wrap gap-2">
                   {list.map((url: string, i: number) => (
                     <div key={i} className="relative">
-                      <img src={url} alt={`Gallery ${i + 1}`} className="h-24 w-24 rounded-md object-cover border" />
+                      <img src={url} alt={`Galería ${i + 1}`} className="h-24 w-24 rounded-md object-cover border" />
                       <button type="button" onClick={() => removeGalleryAt(i)}
                         className="absolute -top-2 -right-2 rounded-full bg-destructive text-destructive-foreground p-1 shadow">
                         <X size={12} />
@@ -242,42 +242,42 @@ export default function ProductForm() {
             <div className="flex items-center gap-2">
               <Button type="button" variant="outline" size="sm" onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}>
                 {uploadingGallery ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
-                {uploadingGallery ? "Uploading…" : "Upload images"}
+                {uploadingGallery ? "Subiendo…" : "Subir imágenes"}
               </Button>
               <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden"
                 onChange={(e) => onUploadGallery(e.target.files)} />
             </div>
-            <Textarea rows={3} placeholder="Or paste URLs (one per line)" value={f.gallery_images}
+            <Textarea rows={3} placeholder="O pega URLs (una por línea)" value={f.gallery_images}
               onChange={(e) => set("gallery_images", e.target.value)} />
           </div>
         </Field>
 
-        <Field label="Usage instructions"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
-        <Field label="Ingredients"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
-        <Field label='Nutrition facts (JSON, e.g. {"protein":"24g"})'>
+        <Field label="Instrucciones de uso"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
+        <Field label="Ingredientes"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
+        <Field label='Información nutricional (JSON, ej. {"protein":"24g"})'>
           <Textarea rows={4} value={f.nutrition_facts} onChange={(e) => set("nutrition_facts", e.target.value)} />
         </Field>
-        <Field label='FAQs (JSON array, e.g. [{"q":"…","a":"…"}])'>
+        <Field label='Preguntas frecuentes (JSON, ej. [{"q":"…","a":"…"}])'>
           <Textarea rows={4} value={f.faqs} onChange={(e) => set("faqs", e.target.value)} />
         </Field>
 
         <div className="flex items-center gap-3">
           <Switch checked={f.is_active} onCheckedChange={(v) => set("is_active", v)} />
-          <Label>Active</Label>
+          <Label>Activo</Label>
         </div>
 
         <div className="space-y-4 rounded-md border bg-secondary/30 p-4">
           <div className="flex items-center gap-3">
             <Switch checked={!!f.subscription_enabled} onCheckedChange={(v) => set("subscription_enabled", v)} />
-            <Label>Enable recurring purchase (Subscribe & save)</Label>
+            <Label>Habilitar compra recurrente (Suscribir y ahorrar)</Label>
           </div>
           {f.subscription_enabled && (
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Discount %">
+              <Field label="Descuento %">
                 <Input type="number" step="1" min={0} max={90} value={f.subscription_discount_percent}
                   onChange={(e) => set("subscription_discount_percent", e.target.value)} />
               </Field>
-              <Field label="Intervals in days (comma-separated)">
+              <Field label="Intervalos en días (separados por coma)">
                 <Input placeholder="30,60,90" value={f.subscription_intervals}
                   onChange={(e) => set("subscription_intervals", e.target.value)} />
               </Field>
@@ -286,8 +286,8 @@ export default function ProductForm() {
         </div>
 
         <div className="flex justify-end gap-3 pt-4">
-          <Button variant="outline" onClick={() => nav("/admin/products")}>Cancel</Button>
-          <Button variant="dark" onClick={save} disabled={saving}>{saving ? "Saving…" : "Save product"}</Button>
+          <Button variant="outline" onClick={() => nav("/admin/products")}>Cancelar</Button>
+          <Button variant="dark" onClick={save} disabled={saving}>{saving ? "Guardando…" : "Guardar producto"}</Button>
         </div>
       </div>
     </div>
