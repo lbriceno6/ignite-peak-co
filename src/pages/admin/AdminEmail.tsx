@@ -49,6 +49,22 @@ export default function AdminEmail() {
   const [v, setV] = useState<Record<string, string>>(defaults);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [testTo, setTestTo] = useState("");
+  const [testing, setTesting] = useState<null | "test" | "validate">(null);
+
+  const runTest = async (action: "test" | "validate") => {
+    setTesting(action);
+    try {
+      const { data, error } = await supabase.functions.invoke("email-test", {
+        body: { action, recipient: testTo || undefined },
+      });
+      if (error) throw error;
+      if (data?.ok) toast.success(data.message || "OK");
+      else throw new Error(data?.error || "Error");
+    } catch (e: any) {
+      toast.error(e.message || String(e));
+    } finally { setTesting(null); }
+  };
 
   useEffect(() => {
     (async () => {
