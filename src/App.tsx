@@ -148,6 +148,16 @@ const App = () => (
               <Route path="profile" element={<SupplierProfile />} />
             </Route>
 
+            {/* Reseller program */}
+            <Route path="/programa-revendedor" element={<ResellerProgram />} />
+            <Route path="/reseller" element={<ResellerRoute><ResellerLayout /></ResellerRoute>}>
+              <Route index element={<ResellerDashboard />} />
+              <Route path="link" element={<ResellerLink />} />
+              <Route path="sales" element={<ResellerSales />} />
+              <Route path="payouts" element={<ResellerPayouts />} />
+              <Route path="settings" element={<ResellerSettings />} />
+            </Route>
+
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<AdminDashboard />} />
               <Route path="products" element={<AdminProducts />} />
