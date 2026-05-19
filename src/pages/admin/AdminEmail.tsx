@@ -178,6 +178,21 @@ export default function AdminEmail() {
         </Field>
       </Section>
 
+      <Section title="Probar configuración">
+        <p className="mb-3 text-xs text-muted-foreground">
+          Guarda los cambios primero. Luego puedes validar credenciales o enviar un email de prueba a cualquier dirección.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          <Input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="destinatario@ejemplo.com" />
+          <Button variant="outline" onClick={() => runTest("validate")} disabled={testing}>
+            {testing === "validate" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Validar credenciales
+          </Button>
+          <Button variant="dark" onClick={() => runTest("test")} disabled={testing}>
+            {testing === "test" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Enviar email de prueba
+          </Button>
+        </div>
+      </Section>
+
       <div className="flex justify-end">
         <Button variant="dark" onClick={save} disabled={saving}>{saving ? "Guardando…" : "Guardar configuración"}</Button>
       </div>
