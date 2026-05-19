@@ -80,6 +80,7 @@ const sections = [
       { to: "/admin/products", label: "Products", icon: Package },
       { to: "/admin/products/new", label: "New product", icon: Plus },
       { to: "/admin/categories", label: "Categories", icon: Tags },
+      { to: "/admin/suppliers", label: "Suppliers", icon: Truck },
     ],
   },
   {
