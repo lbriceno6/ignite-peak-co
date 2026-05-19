@@ -414,7 +414,7 @@ const Category = () => {
               </SheetTrigger>
               <SheetContent side="left" className="w-80 overflow-y-auto">
                 <SheetHeader><SheetTitle>Filtros</SheetTitle></SheetHeader>
-                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} /></div>
+                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} /></div>
               </SheetContent>
             </Sheet>
 
