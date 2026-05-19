@@ -92,9 +92,13 @@ export const lineUnitPrice = (item: CartItem) => {
 
 export const lineSubtotal = (item: CartItem) => lineUnitPrice(item) * item.quantity;
 
+// Shipping settings cache — updated by useShippingSettings() so cartTotals stays sync.
+export const shippingSettings = { freeThreshold: 50, baseCost: 4.9 };
+
 export const cartTotals = (items: CartItem[]) => {
   const subtotal = items.reduce((sum, i) => sum + lineSubtotal(i), 0);
-  const shipping = subtotal > 50 || subtotal === 0 ? 0 : 4.9;
+  const { freeThreshold, baseCost } = shippingSettings;
+  const shipping = subtotal === 0 || subtotal > freeThreshold ? 0 : baseCost;
   const total = subtotal + shipping;
   const count = items.reduce((sum, i) => sum + i.quantity, 0);
   return { subtotal, shipping, total, count };
