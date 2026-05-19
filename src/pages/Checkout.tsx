@@ -74,7 +74,10 @@ const Checkout = () => {
   const [method, setMethod] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [editData, setEditData] = useState(false);
+  const [savingData, setSavingData] = useState(false);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [draft, setDraft] = useState<typeof form | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!user) { setProfileLoaded(true); return; }
@@ -102,9 +105,53 @@ const Checkout = () => {
     })();
   }, [user]);
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((f) => ({ ...f, [k]: e.target.value }));
+    setTouched((t) => ({ ...t, [k]: true }));
+  };
 
-  const hasCompleteProfile = !!(user && form.firstName && form.lastName && form.phone && form.address && form.city);
+  // Field-level real-time validation
+  const fieldErrors = useMemo(() => {
+    const e: Record<string, string> = {};
+    if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Correo inválido";
+    if (!form.firstName.trim()) e.firstName = "Requerido";
+    if (!form.lastName.trim()) e.lastName = "Requerido";
+    const digits = form.phone.replace(/\D/g, "");
+    if (digits.length < 7) e.phone = "Mínimo 7 dígitos";
+    else if (digits.length > 15) e.phone = "Máximo 15 dígitos";
+    else if (!/^[+\d\s()-]+$/.test(form.phone)) e.phone = "Solo números y + ( ) -";
+    if (!form.address.trim()) e.address = "Requerido";
+    else if (form.address.trim().length < 5) e.address = "Mínimo 5 caracteres";
+    else if (form.address.length > 200) e.address = "Máximo 200 caracteres";
+    if (!form.city.trim()) e.city = "Requerido";
+    else if (form.city.trim().length < 2) e.city = "Mínimo 2 caracteres";
+    else if (!/^[\p{L}\s.'-]+$/u.test(form.city)) e.city = "Solo letras y espacios";
+    return e;
+  }, [form]);
+
+  const hasCompleteProfile = !!(user && form.firstName && form.lastName && form.phone && form.address && form.city && Object.keys(fieldErrors).length === 0);
+
+  const startEdit = () => { setDraft(form); setEditData(true); };
+  const cancelEdit = () => { if (draft) setForm(draft); setDraft(null); setEditData(false); setTouched({}); };
+  const saveEdit = async () => {
+    setTouched({ email: true, firstName: true, lastName: true, phone: true, address: true, city: true });
+    if (Object.keys(fieldErrors).length > 0) { toast.error("Corrige los datos marcados antes de guardar"); return; }
+    if (user) {
+      setSavingData(true);
+      const { error } = await supabase.from("profiles").update({
+        full_name: `${form.firstName} ${form.lastName}`.trim(),
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+        city: form.city.trim(),
+        postal_code: form.postal.trim(),
+        country: form.country.trim(),
+      }).eq("id", user.id);
+      setSavingData(false);
+      if (error) { toast.error("No se pudo guardar"); return; }
+      toast.success("Datos actualizados");
+    }
+    setDraft(null); setEditData(false);
+  };
 
   const methods = useMemo(() => {
     const stored = (pay["pay.order"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -165,10 +212,7 @@ const Checkout = () => {
 
   const validate = () => {
     if (items.length === 0) return "Tu carrito está vacío";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) return "Ingresa un correo válido";
-    if (form.phone.replace(/\D/g, "").length < 6) return "Ingresa un teléfono válido";
-    if (!form.firstName.trim() || !form.lastName.trim()) return "Ingresa tu nombre y apellido";
-    if (!form.address.trim() || !form.city.trim()) return "Completa la dirección de envío";
+    if (Object.keys(fieldErrors).length > 0) return "Revisa los datos de envío";
     if (!selected) return "Selecciona un método de pago";
     return null;
   };
@@ -296,7 +340,7 @@ const Checkout = () => {
                 <h3 className="font-display text-xl uppercase">Datos de envío</h3>
                 {!user && <span className="rounded-full bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-success">Cuenta creada al pagar</span>}
                 {hasCompleteProfile && !editData && (
-                  <button type="button" onClick={() => setEditData(true)} className="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">Editar</button>
+                  <button type="button" onClick={startEdit} className="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">Editar</button>
                 )}
               </div>
 
@@ -307,16 +351,65 @@ const Checkout = () => {
                   <p className="text-muted-foreground">{form.address}, {form.city}{form.postal ? `, ${form.postal}` : ""}, {form.country}</p>
                 </div>
               ) : (
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2"><Label>Correo electrónico *</Label><Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className="mt-1.5" disabled={!!user} /></div>
-                  <div><Label>Nombre *</Label><Input value={form.firstName} onChange={set("firstName")} className="mt-1.5" /></div>
-                  <div><Label>Apellido *</Label><Input value={form.lastName} onChange={set("lastName")} className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>Teléfono *</Label><Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>Dirección *</Label><Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className="mt-1.5" /></div>
-                  <div><Label>Ciudad *</Label><Input value={form.city} onChange={set("city")} className="mt-1.5" /></div>
-                  <div><Label>Código postal</Label><Input value={form.postal} onChange={set("postal")} className="mt-1.5" /></div>
-                  <div className="sm:col-span-2"><Label>País</Label><Input value={form.country} onChange={set("country")} className="mt-1.5" /></div>
-                </div>
+                <>
+                  <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    {(() => {
+                      const showErr = (k: string) => touched[k] && fieldErrors[k];
+                      const errCls = (k: string) => showErr(k) ? "mt-1.5 border-destructive focus-visible:ring-destructive" : "mt-1.5";
+                      const ErrMsg = ({ k }: { k: string }) => showErr(k) ? <p className="mt-1 text-xs text-destructive">{fieldErrors[k]}</p> : null;
+                      return (
+                        <>
+                          <div className="sm:col-span-2">
+                            <Label>Correo electrónico *</Label>
+                            <Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className={errCls("email")} disabled={!!user} maxLength={255} />
+                            <ErrMsg k="email" />
+                          </div>
+                          <div>
+                            <Label>Nombre *</Label>
+                            <Input value={form.firstName} onChange={set("firstName")} className={errCls("firstName")} maxLength={50} />
+                            <ErrMsg k="firstName" />
+                          </div>
+                          <div>
+                            <Label>Apellido *</Label>
+                            <Input value={form.lastName} onChange={set("lastName")} className={errCls("lastName")} maxLength={50} />
+                            <ErrMsg k="lastName" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>Teléfono *</Label>
+                            <Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className={errCls("phone")} maxLength={20} inputMode="tel" />
+                            <ErrMsg k="phone" />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>Dirección *</Label>
+                            <Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className={errCls("address")} maxLength={200} />
+                            <ErrMsg k="address" />
+                          </div>
+                          <div>
+                            <Label>Ciudad *</Label>
+                            <Input value={form.city} onChange={set("city")} className={errCls("city")} maxLength={80} />
+                            <ErrMsg k="city" />
+                          </div>
+                          <div>
+                            <Label>Código postal</Label>
+                            <Input value={form.postal} onChange={set("postal")} className="mt-1.5" maxLength={15} />
+                          </div>
+                          <div className="sm:col-span-2">
+                            <Label>País</Label>
+                            <Input value={form.country} onChange={set("country")} className="mt-1.5" maxLength={60} />
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                  {user && editData && (
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Button onClick={saveEdit} disabled={savingData || Object.keys(fieldErrors).length > 0} variant="accent">
+                        {savingData ? <><Loader2 size={14} className="animate-spin" /> Guardando…</> : "Guardar cambios"}
+                      </Button>
+                      <Button onClick={cancelEdit} variant="outline" disabled={savingData}>Cancelar</Button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
 
