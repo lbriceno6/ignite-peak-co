@@ -309,8 +309,35 @@ const Checkout = () => {
       const { error: iErr } = await supabase.from("order_items").insert(itemsPayload);
       if (iErr) throw iErr;
 
+      // Persist active subscriptions for items marked as recurring
+      const subRows = items
+        .filter((i) => i.subscription)
+        .map((i) => {
+          const next = new Date();
+          next.setDate(next.getDate() + (i.subscription!.intervalDays));
+          return {
+            user_id: uid,
+            product_id: /^[0-9a-f-]{36}$/i.test(i.product.id) ? i.product.id : null,
+            product_slug: i.product.slug ?? i.product.id,
+            product_name: i.product.name,
+            product_image: i.product.image ?? null,
+            variant: [i.flavor, i.size].filter(Boolean).join(" · ") || null,
+            unit_price: lineUnitPrice(i),
+            quantity: i.quantity,
+            interval_days: i.subscription!.intervalDays,
+            discount_percent: i.subscription!.discountPercent,
+            status: "active" as const,
+            next_delivery_at: next.toISOString(),
+            last_order_id: order.id,
+          };
+        });
+      if (subRows.length) {
+        await (supabase as any).from("subscriptions").insert(subRows);
+      }
+
       toast.success(`Pedido ${order.order_code} creado correctamente`);
       clear();
+
 
       if (wa) {
         const msg = buildWaMessage(order.order_code);
