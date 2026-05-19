@@ -273,25 +273,37 @@ const ProductDetail = () => {
                 <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "subscription"} onChange={() => setPurchaseMode("subscription")} />
                 <div className="flex-1">
                   <p className="font-semibold flex items-center gap-2">
-                    <Repeat size={14} className="text-accent" /> Suscríbete y ahorra {subDiscount}%
+                    <Repeat size={14} className="text-accent" /> {subSettings.label} {subDiscount}%
                   </p>
-                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · cancela cuando quieras</p>
+                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · {subSettings.cancelNote}</p>
                   {purchaseMode === "subscription" && (
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {subIntervals.map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => setIntervalDays(d)}
-                          className={cn(
-                            "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
-                            interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
-                          )}
-                        >
-                          Cada {d} días
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {subIntervals.map((d) => (
+                          <button
+                            key={d}
+                            type="button"
+                            onClick={() => setIntervalDays(d)}
+                            className={cn(
+                              "rounded-md border px-3 py-1.5 text-xs font-medium transition-smooth",
+                              interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
+                            )}
+                          >
+                            Cada {d} días
+                          </button>
+                        ))}
+                      </div>
+                      {subSettings.benefits.length > 0 && (
+                        <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+                          {subSettings.benefits.map((b, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
                   )}
                 </div>
               </label>
