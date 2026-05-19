@@ -15,6 +15,7 @@ import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
+import { ProductReviews } from "@/components/ProductReviews";
 
 type DbProduct = {
   id: string;
