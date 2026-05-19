@@ -200,10 +200,10 @@ export default function AdminEmail() {
         </p>
         <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
           <Input value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="destinatario@ejemplo.com" />
-          <Button variant="outline" onClick={() => runTest("validate")} disabled={testing}>
+          <Button variant="outline" onClick={() => runTest("validate")} disabled={!!testing}>
             {testing === "validate" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Validar credenciales
           </Button>
-          <Button variant="dark" onClick={() => runTest("test")} disabled={testing}>
+          <Button variant="dark" onClick={() => runTest("test")} disabled={!!testing}>
             {testing === "test" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Enviar email de prueba
           </Button>
         </div>
