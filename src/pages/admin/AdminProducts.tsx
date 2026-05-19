@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
+import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
 
 export default function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
