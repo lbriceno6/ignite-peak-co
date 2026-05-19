@@ -19,6 +19,8 @@ import {
   GalleryHorizontal,
   Layers,
   PanelBottom,
+  Mail,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +99,8 @@ const sections = [
       { to: "/admin/blog", label: "Blog posts", icon: FileText },
       { to: "/admin/blog/new", label: "New post", icon: Plus },
       { to: "/admin/footer", label: "Footer", icon: PanelBottom },
+      { to: "/admin/about", label: "About page", icon: Info },
+      { to: "/admin/contact", label: "Contact page", icon: Mail },
     ],
   },
 ];
@@ -119,6 +123,8 @@ const titleFromPath = (p: string) => {
   if (p.startsWith("/admin/goal-cards")) return "Goal cards";
   if (p.startsWith("/admin/navigation")) return "Logo & Menu";
   if (p.startsWith("/admin/footer")) return "Footer";
+  if (p.startsWith("/admin/about")) return "About page";
+  if (p.startsWith("/admin/contact")) return "Contact page";
   return "Admin";
 };
 
