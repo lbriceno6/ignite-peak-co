@@ -657,6 +657,45 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_zones: {
+        Row: {
+          cities: string[]
+          cost: number
+          created_at: string
+          estimated_days: string | null
+          free_threshold: number | null
+          id: string
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          cities?: string[]
+          cost?: number
+          created_at?: string
+          estimated_days?: string | null
+          free_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          cities?: string[]
+          cost?: number
+          created_at?: string
+          estimated_days?: string | null
+          free_threshold?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           key: string
