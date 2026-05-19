@@ -211,6 +211,7 @@ export const Header = () => {
             </Link>
           </Button>
           <CurrencySwitcher />
+          <ModeSwitcher />
           <UserMenu />
           <Button variant="ghost" size="icon" className="relative" aria-label="Carrito" onClick={() => setOpen(true)}>
             <ShoppingBag />
