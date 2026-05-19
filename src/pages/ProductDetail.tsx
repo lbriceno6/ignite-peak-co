@@ -56,7 +56,7 @@ const toCardProduct = (p: DbProduct): Product => ({
   shortBenefit: p.short_description ?? "",
   price: Number(p.sale_price ?? p.price),
   oldPrice: p.sale_price ? Number(p.price) : undefined,
-  rating: 4.8,
+  rating: Number(p.rating ?? 0),
   reviews: 0,
   label: labelFromBadge(p.badge),
   image: resolveProductImage(p.main_image),
