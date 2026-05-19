@@ -114,6 +114,8 @@ export default function ProductForm() {
           nutrition_facts: data.nutrition_facts ? JSON.stringify(data.nutrition_facts, null, 2) : "",
           faqs: data.faqs ? JSON.stringify(data.faqs, null, 2) : "",
           subscription_intervals: (data.subscription_intervals as number[] ?? [30, 60, 90]).join(","),
+          size_variants: ((data as any).size_variants as any[] ?? [])
+            .map((v: any) => `${v?.label ?? ""}|${v?.price ?? ""}`).join("\n"),
         });
       }
     })();
