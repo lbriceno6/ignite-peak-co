@@ -20,12 +20,22 @@ const Step = ({ num, label, active, done }: { num: number; label: string; active
 );
 
 const PAY_KEYS = [
+  "pay.order",
   "pay.yape.enabled","pay.yape.holder","pay.yape.phone","pay.yape.qr_url","pay.yape.note",
   "pay.plin.enabled","pay.plin.holder","pay.plin.phone","pay.plin.qr_url","pay.plin.note",
   "pay.bank.enabled","pay.bank.bank_name","pay.bank.account_type","pay.bank.account_number",
   "pay.bank.cci","pay.bank.holder","pay.bank.document","pay.bank.note",
   "pay.card.enabled","pay.cod.enabled","pay.cod.note","pay.confirm_whatsapp",
 ];
+
+const METHOD_META: Record<string, { l: string; icon: any }> = {
+  yape: { l: "Yape", icon: Smartphone },
+  plin: { l: "Plin", icon: Smartphone },
+  bank: { l: "Transferencia / Depósito", icon: Landmark },
+  cod: { l: "Pago contra entrega", icon: Banknote },
+  card: { l: "Tarjeta", icon: CreditCard },
+};
+const DEFAULT_ORDER = ["yape", "plin", "bank", "cod", "card"];
 
 const Checkout = () => {
   const { items } = useCart();
@@ -36,13 +46,12 @@ const Checkout = () => {
   const [method, setMethod] = useState<string>("");
 
   const methods = useMemo(() => {
-    const list: { k: string; l: string; icon: any }[] = [];
-    if (pay["pay.yape.enabled"] === "1") list.push({ k: "yape", l: "Yape", icon: Smartphone });
-    if (pay["pay.plin.enabled"] === "1") list.push({ k: "plin", l: "Plin", icon: Smartphone });
-    if (pay["pay.bank.enabled"] === "1") list.push({ k: "bank", l: "Transferencia / Depósito", icon: Landmark });
-    if (pay["pay.cod.enabled"] === "1") list.push({ k: "cod", l: "Pago contra entrega", icon: Banknote });
-    if (pay["pay.card.enabled"] === "1" || list.length === 0) list.push({ k: "card", l: "Tarjeta", icon: CreditCard });
-    return list;
+    const stored = (pay["pay.order"] ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+    const order = [...stored];
+    DEFAULT_ORDER.forEach((id) => { if (!order.includes(id)) order.push(id); });
+    return order
+      .filter((id) => METHOD_META[id] && pay[`pay.${id}.enabled`] === "1")
+      .map((id) => ({ k: id, l: METHOD_META[id].l, icon: METHOD_META[id].icon }));
   }, [pay]);
 
   const selected = method || methods[0]?.k || "card";
