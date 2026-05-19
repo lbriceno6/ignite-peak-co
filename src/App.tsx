@@ -55,6 +55,16 @@ import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
 import Terms from "./pages/policies/Terms.tsx";
 import Privacy from "./pages/policies/Privacy.tsx";
+import SellWithUs from "./pages/SellWithUs.tsx";
+import SupplierStorefront from "./pages/SupplierStorefront.tsx";
+import { SupplierRoute } from "./components/SupplierRoute";
+import { SupplierLayout } from "./components/supplier/SupplierLayout";
+import SupplierSignup from "./pages/supplier/SupplierSignup.tsx";
+import SupplierDashboard from "./pages/supplier/SupplierDashboard.tsx";
+import SupplierProducts from "./pages/supplier/SupplierProducts.tsx";
+import SupplierProductForm from "./pages/supplier/SupplierProductForm.tsx";
+import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
+import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 
 const queryClient = new QueryClient();
 
@@ -104,6 +114,21 @@ const App = () => (
             <Route path="/returns-policies" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+
+            {/* Marketplace / Suppliers */}
+            <Route path="/vende-con-nosotros" element={<SellWithUs />} />
+            <Route path="/vender-con-nosotros" element={<SellWithUs />} />
+            <Route path="/sell-with-us" element={<SellWithUs />} />
+            <Route path="/proveedor/:slug" element={<SupplierStorefront />} />
+            <Route path="/supplier/signup" element={<SupplierSignup />} />
+            <Route path="/supplier" element={<SupplierRoute><SupplierLayout /></SupplierRoute>}>
+              <Route index element={<SupplierDashboard />} />
+              <Route path="products" element={<SupplierProducts />} />
+              <Route path="products/new" element={<SupplierProductForm />} />
+              <Route path="products/:id/edit" element={<SupplierProductForm />} />
+              <Route path="orders" element={<SupplierOrders />} />
+              <Route path="profile" element={<SupplierProfile />} />
+            </Route>
 
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
               <Route index element={<AdminDashboard />} />
