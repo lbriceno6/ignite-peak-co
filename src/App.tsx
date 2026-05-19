@@ -39,6 +39,7 @@ import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import AdminFooter from "./pages/admin/AdminFooter.tsx";
+import AdminSiteLinks from "./pages/admin/AdminSiteLinks.tsx";
 import AdminContact from "./pages/admin/AdminContact.tsx";
 import AdminAbout from "./pages/admin/AdminAbout.tsx";
 import AdminSuppliers from "./pages/admin/AdminSuppliers.tsx";
