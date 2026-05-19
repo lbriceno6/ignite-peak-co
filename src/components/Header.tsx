@@ -89,7 +89,21 @@ export const Header = () => {
   const { count } = cartTotals(items);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [navItems, setNavItems] = useState<NavItem[]>([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data } = await supabase
+        .from("nav_links")
+        .select("id,label,href,open_in_new_tab,is_active,sort_order")
+        .eq("is_active", true)
+        .order("sort_order");
+      if (alive) setNavItems((data as NavItem[]) ?? []);
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,6 +111,18 @@ export const Header = () => {
     if (!q) return;
     navigate(`/search?q=${encodeURIComponent(q)}`);
     setSearchOpen(false);
+  };
+
+  const renderNavLink = (n: NavItem, className: string) => {
+    const isExternal = /^https?:\/\//.test(n.href);
+    if (isExternal || n.open_in_new_tab) {
+      return (
+        <a key={n.id} href={n.href} target={n.open_in_new_tab ? "_blank" : undefined} rel="noopener noreferrer" className={className}>
+          {n.label}
+        </a>
+      );
+    }
+    return <NavLink key={n.id} to={n.href} className={className}>{n.label}</NavLink>;
   };
 
   return (
@@ -109,8 +135,8 @@ export const Header = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="w-72">
-            <Link to="/" className="font-display text-2xl">
-              VOLT<span className="text-accent">RA</span>
+            <Link to="/">
+              <Logo className="text-2xl" />
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
               {categories.map((c) => (
@@ -118,16 +144,14 @@ export const Header = () => {
                   <span className="mr-2">{c.icon}</span> {c.name}
                 </Link>
               ))}
-              <hr className="my-3" />
-              <Link to="/about" className="rounded-md px-3 py-2.5 hover:bg-secondary">About us</Link>
-              <Link to="/blog" className="rounded-md px-3 py-2.5 hover:bg-secondary">Guides</Link>
-              <Link to="/contact" className="rounded-md px-3 py-2.5 hover:bg-secondary">Contact</Link>
+              {navItems.length > 0 && <hr className="my-3" />}
+              {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
           </SheetContent>
         </Sheet>
 
-        <Link to="/" className="font-display text-2xl tracking-tight lg:text-3xl">
-          VOLT<span className="text-accent">RA</span>
+        <Link to="/" className="flex items-center">
+          <Logo />
         </Link>
 
         <div className="ml-6 hidden flex-1 lg:block">
@@ -206,9 +230,7 @@ export const Header = () => {
             </NavLink>
           ))}
           <div className="ml-auto flex items-center gap-1">
-            <NavLink to="/blog" className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">Guides</NavLink>
-            <NavLink to="/about" className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">About</NavLink>
-            <NavLink to="/contact" className="px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground">Contact</NavLink>
+            {navItems.map((n) => renderNavLink(n, "px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"))}
           </div>
         </div>
       </nav>
