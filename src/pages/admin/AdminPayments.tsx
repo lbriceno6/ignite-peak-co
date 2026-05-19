@@ -95,25 +95,7 @@ export default function AdminPayments() {
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
   };
 
-  const Toggle = ({ k, label }: { k: string; label: string }) => (
-    <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
-      <span className="text-sm font-semibold">{label}</span>
-      <Switch checked={(m[k] ?? "") === "1"} onCheckedChange={(v) => set(k, v ? "1" : "0")} />
-    </div>
-  );
-
-  const F = ({ k, label, area, placeholder }: { k: string; label: string; area?: boolean; placeholder?: string }) => (
-    <div>
-      <Label className="text-xs">{label}</Label>
-      {area ? (
-        <Textarea key={k} className="mt-1.5" rows={3} value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
-      ) : (
-        <Input key={k} className="mt-1.5" value={m[k] ?? ""} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
-      )}
-    </div>
-  );
-
-
+  const f = (k: string) => ({ value: m[k] ?? "", onChange: (v: string) => set(k, v) });
 
   return (
     <div className="space-y-6">
@@ -146,44 +128,44 @@ export default function AdminPayments() {
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Yape</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <F k="pay.yape.holder" label="Titular" placeholder="Nombre del titular" />
-          <F k="pay.yape.phone" label="Número de celular" placeholder="9XX XXX XXX" />
-          <F k="pay.yape.qr_url" label="URL del QR (opcional)" placeholder="https://..." />
+          <Field k="pay.yape.holder" label="Titular" placeholder="Nombre del titular" {...f("pay.yape.holder")} />
+          <Field k="pay.yape.phone" label="Número de celular" placeholder="9XX XXX XXX" {...f("pay.yape.phone")} />
+          <Field k="pay.yape.qr_url" label="URL del QR (opcional)" placeholder="https://..." {...f("pay.yape.qr_url")} />
         </div>
-        <F k="pay.yape.note" label="Instrucciones para el cliente" area placeholder="Envía el comprobante por WhatsApp para confirmar tu pedido." />
+        <Field k="pay.yape.note" label="Instrucciones para el cliente" area placeholder="Envía el comprobante por WhatsApp para confirmar tu pedido." {...f("pay.yape.note")} />
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Plin</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <F k="pay.plin.holder" label="Titular" />
-          <F k="pay.plin.phone" label="Número de celular" placeholder="9XX XXX XXX" />
-          <F k="pay.plin.qr_url" label="URL del QR (opcional)" />
+          <Field k="pay.plin.holder" label="Titular" {...f("pay.plin.holder")} />
+          <Field k="pay.plin.phone" label="Número de celular" placeholder="9XX XXX XXX" {...f("pay.plin.phone")} />
+          <Field k="pay.plin.qr_url" label="URL del QR (opcional)" {...f("pay.plin.qr_url")} />
         </div>
-        <F k="pay.plin.note" label="Instrucciones para el cliente" area />
+        <Field k="pay.plin.note" label="Instrucciones para el cliente" area {...f("pay.plin.note")} />
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Transferencia / Depósito bancario</h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <F k="pay.bank.bank_name" label="Banco" placeholder="BCP / Interbank / BBVA…" />
-          <F k="pay.bank.account_type" label="Tipo de cuenta" placeholder="Ahorros / Corriente — Soles" />
-          <F k="pay.bank.account_number" label="Número de cuenta" />
-          <F k="pay.bank.cci" label="CCI (cuenta interbancaria)" />
-          <F k="pay.bank.holder" label="Titular" />
-          <F k="pay.bank.document" label="DNI / RUC del titular" />
+          <Field k="pay.bank.bank_name" label="Banco" placeholder="BCP / Interbank / BBVA…" {...f("pay.bank.bank_name")} />
+          <Field k="pay.bank.account_type" label="Tipo de cuenta" placeholder="Ahorros / Corriente — Soles" {...f("pay.bank.account_type")} />
+          <Field k="pay.bank.account_number" label="Número de cuenta" {...f("pay.bank.account_number")} />
+          <Field k="pay.bank.cci" label="CCI (cuenta interbancaria)" {...f("pay.bank.cci")} />
+          <Field k="pay.bank.holder" label="Titular" {...f("pay.bank.holder")} />
+          <Field k="pay.bank.document" label="DNI / RUC del titular" {...f("pay.bank.document")} />
         </div>
-        <F k="pay.bank.note" label="Instrucciones para el cliente" area placeholder="Envía el comprobante por WhatsApp para confirmar tu pedido." />
+        <Field k="pay.bank.note" label="Instrucciones para el cliente" area placeholder="Envía el comprobante por WhatsApp para confirmar tu pedido." {...f("pay.bank.note")} />
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">Pago contra entrega</h2>
-        <F k="pay.cod.note" label="Nota de pago contra entrega" area />
+        <Field k="pay.cod.note" label="Nota de pago contra entrega" area {...f("pay.cod.note")} />
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">
         <h2 className="font-display text-lg">General</h2>
-        <F k="pay.confirm_whatsapp" label="WhatsApp para confirmar el pago" placeholder="51999999999 (sin + ni espacios)" />
+        <Field k="pay.confirm_whatsapp" label="WhatsApp para confirmar el pago" placeholder="51999999999 (sin + ni espacios)" {...f("pay.confirm_whatsapp")} />
       </div>
 
       <div className="sticky bottom-4 flex justify-end">
