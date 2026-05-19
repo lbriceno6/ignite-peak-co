@@ -41,7 +41,7 @@ const Cart = () => {
                 <div className="flex gap-4">
                   <img src={i.product.image} alt={i.product.name} className="h-20 w-20 rounded bg-secondary object-cover" />
                   <div>
-                    <Link to={`/product/${i.product.slug}`} className="font-semibold hover:text-accent">{i.product.name}</Link>
+                    <Link to={`/producto/${i.product.slug}`} className="font-semibold hover:text-accent">{i.product.name}</Link>
                     <p className="text-xs text-muted-foreground">{[i.flavor, i.size].filter(Boolean).join(" · ")}</p>
                     {i.subscription && (
                       <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">

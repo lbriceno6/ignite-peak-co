@@ -28,7 +28,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-smooth hover:shadow-elevated hover:-translate-y-1">
       <div className="relative aspect-square overflow-hidden bg-secondary">
-        <Link to={`/product/${product.slug}`}>
+        <Link to={`/producto/${product.slug}`}>
           <img
             src={product.image}
             alt={product.name}
@@ -57,7 +57,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </button>
         <div className="absolute inset-x-3 bottom-3 flex translate-y-2 gap-2 opacity-0 transition-smooth group-hover:translate-y-0 group-hover:opacity-100">
           <Button size="sm" variant="secondary" asChild className="flex-1">
-            <Link to={`/product/${product.slug}`}>
+            <Link to={`/producto/${product.slug}`}>
               <Eye size={14} /> View
             </Link>
           </Button>
@@ -66,7 +66,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
       <div className="flex flex-1 flex-col gap-2 p-4">
         <div className="text-xs uppercase tracking-wider text-muted-foreground">{product.category}</div>
-        <Link to={`/product/${product.slug}`} className="font-display text-lg leading-tight hover:text-accent transition-smooth">
+        <Link to={`/producto/${product.slug}`} className="font-display text-lg leading-tight hover:text-accent transition-smooth">
           {product.name}
         </Link>
         <p className="text-sm text-muted-foreground line-clamp-2">{product.shortBenefit}</p>

@@ -144,7 +144,7 @@ export const Header = () => {
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
               {categories.map((c) => (
-                <Link key={c.slug} to={`/category/${c.slug}`} className="rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
+                <Link key={c.slug} to={`/categoria/${c.slug}`} className="rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
                   <span className="mr-2">{c.icon}</span> {c.name}
                 </Link>
               ))}
@@ -222,7 +222,7 @@ export const Header = () => {
           {categories.map((c) => (
             <NavLink
               key={c.slug}
-              to={`/category/${c.slug}`}
+              to={`/categoria/${c.slug}`}
               className={({ isActive }) =>
                 cn(
                   "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth",
