@@ -226,6 +226,16 @@ const Checkout = () => {
         .single();
       if (oErr || !order) throw oErr ?? new Error("No se pudo crear el pedido");
 
+      // Persist shipping data to profile for next purchases
+      await supabase.from("profiles").update({
+        full_name: `${form.firstName} ${form.lastName}`.trim(),
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        postal_code: form.postal,
+        country: form.country,
+      }).eq("id", uid);
+
       const itemsPayload = items.map((i) => ({
         order_id: order.id,
         product_slug: i.product.slug ?? i.product.id,
