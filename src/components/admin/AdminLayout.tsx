@@ -10,7 +10,6 @@ import {
   ArrowLeft,
   Menu,
   Search,
-  Bell,
   ChevronDown,
   LogOut,
   User,
