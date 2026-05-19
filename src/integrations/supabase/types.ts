@@ -212,6 +212,39 @@ export type Database = {
         }
         Relationships: []
       }
+      filter_options: {
+        Row: {
+          created_at: string
+          group: string
+          id: string
+          is_enabled: boolean
+          label: string
+          sort_order: number
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          group: string
+          id?: string
+          is_enabled?: boolean
+          label: string
+          sort_order?: number
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          group?: string
+          id?: string
+          is_enabled?: boolean
+          label?: string
+          sort_order?: number
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       footer_links: {
         Row: {
           column_index: number
