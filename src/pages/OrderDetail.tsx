@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/context/CurrencyContext";
+import { XCircle, Loader2 } from "lucide-react";
 
 type Order = any;
 type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
@@ -13,11 +20,14 @@ const statusLabel: Record<string, string> = {
   shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
 };
 
+const CANCELLABLE = new Set(["pending", "confirmed"]);
+
 const OrderDetail = () => {
   const { id = "" } = useParams();
   const [order, setOrder] = useState<Order | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(false);
   const { format } = useCurrency();
 
   useEffect(() => {
@@ -30,8 +40,19 @@ const OrderDetail = () => {
     })();
   }, [id]);
 
+  const handleCancel = async () => {
+    setCancelling(true);
+    const { error } = await supabase.from("orders").update({ status: "cancelled" }).eq("id", id);
+    setCancelling(false);
+    if (error) { toast.error("No se pudo cancelar: " + error.message); return; }
+    toast.success("Pedido cancelado");
+    setOrder({ ...order, status: "cancelled" });
+  };
+
   if (loading) return <Layout><div className="container-x py-20 text-center text-muted-foreground">Cargando…</div></Layout>;
   if (!order) return <Layout><div className="container-x py-20 text-center">Pedido no encontrado. <Link to="/my-orders" className="text-accent">Volver</Link></div></Layout>;
+
+  const canCancel = CANCELLABLE.has(order.status);
 
   return (
     <Layout>
@@ -39,7 +60,7 @@ const OrderDetail = () => {
         <Link to="/my-orders" className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">← Todos los pedidos</Link>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h1 className="font-display text-3xl uppercase">Pedido {order.order_code}</h1>
-          <Badge variant="secondary">{statusLabel[order.status] ?? order.status}</Badge>
+          <Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{statusLabel[order.status] ?? order.status}</Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-1">Realizado el {new Date(order.created_at).toLocaleString()}</p>
 
@@ -78,6 +99,33 @@ const OrderDetail = () => {
               <p>{order.shipping_country}</p>
               <p className="mt-2 text-muted-foreground">{order.shipping_phone}</p>
             </div>
+
+            {canCancel && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" className="w-full text-destructive hover:bg-destructive/5 hover:text-destructive" disabled={cancelling}>
+                    {cancelling ? <><Loader2 size={14} className="animate-spin" /> Cancelando…</> : <><XCircle size={14} /> Cancelar pedido</>}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>¿Cancelar este pedido?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Esta acción no se puede deshacer. El pedido {order.order_code} quedará marcado como cancelado y ya no será procesado.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Volver</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Sí, cancelar pedido
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            {!canCancel && order.status !== "cancelled" && (
+              <p className="text-xs text-muted-foreground text-center">Este pedido ya no puede cancelarse desde aquí. Contáctanos para asistencia.</p>
+            )}
           </aside>
         </div>
       </div>
