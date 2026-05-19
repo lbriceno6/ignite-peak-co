@@ -110,9 +110,10 @@ export const CurrencyProvider = ({ children }: { children: React.ReactNode }) =>
   const value = useMemo<Ctx>(() => {
     const meta = CURRENCIES[currency];
     const rate = rates[currency] ?? meta.rate;
-    const convert = (eur: number) => eur * rate;
-    const format = (eur: number) => {
-      const n = convert(eur).toFixed(2);
+    // Base amounts are stored in PEN (soles). Convert PEN -> selected currency.
+    const convert = (penAmount: number) => penAmount * rate;
+    const format = (penAmount: number) => {
+      const n = convert(penAmount).toFixed(2);
       return currency === "PEN" ? `${meta.symbol} ${n}` : `${meta.symbol}${n}`;
     };
     return { currency, setCurrency, symbol: meta.symbol, rates, format, convert };
