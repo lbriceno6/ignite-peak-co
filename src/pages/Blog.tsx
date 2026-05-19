@@ -24,7 +24,7 @@ const Blog = () => {
   const [post, setPost] = useState<Post | null>(null);
   const [cats, setCats] = useState<{ name: string; icon: string | null; description: string | null }[]>([]);
   const [q, setQ] = useState("");
-  const [activeCat, setActiveCat] = useState("All");
+  const [activeCat, setActiveCat] = useState("Todos");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const Blog = () => {
       const k = n.trim().toLowerCase();
       if (k && !seen.has(k)) seen.set(k, n.trim());
     });
-    return ["All", ...seen.values()];
+    return ["Todos", ...seen.values()];
   }, [posts, cats]);
 
   const catMeta = useMemo(() => {
@@ -64,7 +64,7 @@ const Blog = () => {
 
   const norm = (s: string | null | undefined) => (s ?? "").trim().toLowerCase();
   const filtered = posts.filter((p) => {
-    const matchCat = activeCat === "All" || norm(p.category) === norm(activeCat);
+    const matchCat = activeCat === "Todos" || norm(p.category) === norm(activeCat);
     const matchQ = !q || p.title.toLowerCase().includes(q.toLowerCase()) || (p.excerpt ?? "").toLowerCase().includes(q.toLowerCase());
     return matchCat && matchQ;
   });
@@ -98,16 +98,16 @@ const Blog = () => {
           />
         )}
         <article className="container-x py-12">
-          <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">← Back to all articles</Link>
+          <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">← Volver a todos los artículos</Link>
           {loading ? (
-            <p className="mt-10 text-muted-foreground">Loading…</p>
+            <p className="mt-10 text-muted-foreground">Cargando…</p>
           ) : !post ? (
-            <p className="mt-10 text-muted-foreground">Article not found.</p>
+            <p className="mt-10 text-muted-foreground">Artículo no encontrado.</p>
           ) : (
             <>
               <div className="mt-6 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                 {post.category && <span className="font-bold text-accent">{post.category}</span>}
-                {post.read_time && <span>· {post.read_time} read</span>}
+                {post.read_time && <span>· {post.read_time} de lectura</span>}
                 <span>· {new Date(post.published_at).toLocaleDateString()}</span>
               </div>
               <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{post.title}</h1>
@@ -187,14 +187,14 @@ const Blog = () => {
           })}
         </div>
 
-        {activeCat !== "All" && catMeta.get(activeCat)?.description && (
+        {activeCat !== "Todos" && catMeta.get(activeCat)?.description && (
           <p className="mt-4 max-w-2xl text-sm text-muted-foreground">{catMeta.get(activeCat)?.description}</p>
         )}
 
         {loading ? (
-          <p className="mt-10 text-muted-foreground">Loading articles…</p>
+          <p className="mt-10 text-muted-foreground">Cargando artículos…</p>
         ) : filtered.length === 0 ? (
-          <p className="mt-10 text-muted-foreground">No articles yet. Check back soon.</p>
+          <p className="mt-10 text-muted-foreground">Aún no hay artículos. Vuelve pronto.</p>
         ) : (
           <div className="mt-10 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((post) => (
@@ -212,7 +212,7 @@ const Blog = () => {
                 </div>
                 <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                   {post.category && <span className="font-bold text-accent">{post.category}</span>}
-                  {post.read_time && <span>· {post.read_time} read</span>}
+                  {post.read_time && <span>· {post.read_time} de lectura</span>}
                 </div>
                 <h2 className="font-display text-xl transition-smooth group-hover:text-accent">{post.title}</h2>
                 {post.excerpt && <p className="text-sm text-muted-foreground">{post.excerpt}</p>}

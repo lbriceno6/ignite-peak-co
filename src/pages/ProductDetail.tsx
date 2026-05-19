@@ -117,7 +117,7 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="container-x py-20 text-center text-muted-foreground">Loading…</div>
+        <div className="container-x py-20 text-center text-muted-foreground">Cargando…</div>
       </Layout>
     );
   }
@@ -126,9 +126,9 @@ const ProductDetail = () => {
     return (
       <Layout>
         <div className="container-x py-20 text-center">
-          <h1 className="font-display text-3xl uppercase">Product not found</h1>
-          <p className="mt-2 text-muted-foreground">The product you're looking for is no longer available.</p>
-          <Button asChild variant="accent" className="mt-6"><Link to="/">Back to home</Link></Button>
+          <h1 className="font-display text-3xl uppercase">Producto no encontrado</h1>
+          <p className="mt-2 text-muted-foreground">El producto que buscas ya no está disponible.</p>
+          <Button asChild variant="accent" className="mt-6"><Link to="/">Volver al inicio</Link></Button>
         </div>
       </Layout>
     );
@@ -163,7 +163,7 @@ const ProductDetail = () => {
     <Layout>
       <div className="container-x py-6">
         <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-          <Link to="/" className="hover:text-accent">Home</Link>
+          <Link to="/" className="hover:text-accent">Inicio</Link>
           {product.category && (<>
             {" / "}
             <Link to={`/categoria/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
@@ -194,7 +194,7 @@ const ProductDetail = () => {
 
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            {product.label && <Badge className="bg-accent text-accent-foreground uppercase">{product.label}</Badge>}
+            {product.label && <Badge className="bg-accent text-accent-foreground uppercase">{product.label === "Best Seller" ? "Más vendido" : product.label === "New" ? "Nuevo" : product.label === "Offer" ? "Oferta" : product.label}</Badge>}
             {dbp.category && <span className="text-xs uppercase tracking-wider text-muted-foreground">{dbp.category}</span>}
           </div>
           <h1 className="mt-3 font-display text-4xl uppercase leading-tight sm:text-5xl">{product.name}</h1>
@@ -215,21 +215,21 @@ const ProductDetail = () => {
             {purchaseMode === "one_time" && product.oldPrice && (
               <>
                 <span className="text-lg text-muted-foreground line-through">{format(product.oldPrice)}</span>
-                <Badge className="bg-destructive text-destructive-foreground">Save {format(product.oldPrice - basePrice)}</Badge>
+                <Badge className="bg-destructive text-destructive-foreground">Ahorra {format(product.oldPrice - basePrice)}</Badge>
               </>
             )}
           </div>
 
           {subEnabled && (
             <div className="mt-6 space-y-2">
-              <p className="text-sm font-bold uppercase tracking-wider">Purchase</p>
+              <p className="text-sm font-bold uppercase tracking-wider">Compra</p>
               <label className={cn(
                 "flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-smooth",
                 purchaseMode === "one_time" ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
               )}>
                 <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "one_time"} onChange={() => setPurchaseMode("one_time")} />
                 <div className="flex-1">
-                  <p className="font-semibold">One-time purchase</p>
+                  <p className="font-semibold">Compra única</p>
                   <p className="text-xs text-muted-foreground">{format(basePrice)}</p>
                 </div>
               </label>
@@ -240,9 +240,9 @@ const ProductDetail = () => {
                 <input type="radio" name="purchase" className="mt-1" checked={purchaseMode === "subscription"} onChange={() => setPurchaseMode("subscription")} />
                 <div className="flex-1">
                   <p className="font-semibold flex items-center gap-2">
-                    <Repeat size={14} className="text-accent" /> Subscribe & save {subDiscount}%
+                    <Repeat size={14} className="text-accent" /> Suscríbete y ahorra {subDiscount}%
                   </p>
-                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · cancel anytime</p>
+                  <p className="text-xs text-muted-foreground">{format(effectivePrice)} · cancela cuando quieras</p>
                   {purchaseMode === "subscription" && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {subIntervals.map((d) => (
@@ -255,7 +255,7 @@ const ProductDetail = () => {
                             interval === d ? "border-accent bg-background" : "border-border hover:border-foreground",
                           )}
                         >
-                          Every {d} days
+                          Cada {d} días
                         </button>
                       ))}
                     </div>
@@ -275,35 +275,35 @@ const ProductDetail = () => {
               quantity: qty,
               subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
             })}>
-              <ShoppingCart /> {purchaseMode === "subscription" ? `Subscribe · ${format(effectivePrice)}` : "Add to cart"}
+              <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
             </Button>
-            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Wishlist">
+            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
           {(() => {
             const lines = [
-              `Hi! I'm interested in ${product.name}`,
-              `Quantity: ${qty}`,
+              `¡Hola! Estoy interesado en ${product.name}`,
+              `Cantidad: ${qty}`,
               purchaseMode === "subscription"
-                ? `Purchase type: subscription (every ${interval} days, -${subDiscount}% discount)`
-                : `Purchase type: one-time`,
-              `Unit price: ${format(effectivePrice)}`,
+                ? `Tipo de compra: suscripción (cada ${interval} días, -${subDiscount}% de descuento)`
+                : `Tipo de compra: única`,
+              `Precio unitario: ${format(effectivePrice)}`,
               `Total: ${format(effectivePrice * qty)}`,
             ].filter(Boolean).join("\n");
             return (
               <Button asChild size="lg" variant="dark" className="mt-3 w-full">
                 <a href={`https://wa.me/14155552671?text=${encodeURIComponent(lines)}`} target="_blank" rel="noopener noreferrer">
-                  <MessageCircle /> Buy by WhatsApp
+                  <MessageCircle /> Comprar por WhatsApp
                 </a>
               </Button>
             );
           })()}
 
           <ul className="mt-6 grid gap-2 rounded-lg border bg-secondary/40 p-4 text-sm">
-            <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Free shipping over {format(50)} · delivery 1–3 days</li>
-            <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-accent" /> 30-day money-back guarantee</li>
-            <li className="flex items-center gap-2"><Award size={16} className="text-accent" /> Lab-tested · GMP certified</li>
+            <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Envío gratis sobre {format(50)} · entrega 1–3 días</li>
+            <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-accent" /> Garantía de devolución de 30 días</li>
+            <li className="flex items-center gap-2"><Award size={16} className="text-accent" /> Probado en laboratorio · Certificado GMP</li>
           </ul>
         </div>
       </section>
@@ -313,16 +313,16 @@ const ProductDetail = () => {
           <Tabs defaultValue={dbp.description ? "description" : dbp.usage_instructions ? "use" : dbp.ingredients ? "ingredients" : "nutrition"}>
             <TabsList className="w-full justify-start overflow-x-auto rounded-none border-b bg-transparent p-0">
               {dbp.description && (
-                <TabsTrigger value="description" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Description</TabsTrigger>
+                <TabsTrigger value="description" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Descripción</TabsTrigger>
               )}
               {dbp.usage_instructions && (
-                <TabsTrigger value="use" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">How to use</TabsTrigger>
+                <TabsTrigger value="use" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Cómo usar</TabsTrigger>
               )}
               {dbp.ingredients && (
-                <TabsTrigger value="ingredients" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Ingredients</TabsTrigger>
+                <TabsTrigger value="ingredients" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Ingredientes</TabsTrigger>
               )}
               {nutrition.length > 0 && (
-                <TabsTrigger value="nutrition" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Nutrition facts</TabsTrigger>
+                <TabsTrigger value="nutrition" className="rounded-none border-b-2 border-transparent px-5 py-3 text-sm font-bold uppercase tracking-wider data-[state=active]:border-accent data-[state=active]:bg-transparent data-[state=active]:shadow-none">Información nutricional</TabsTrigger>
               )}
             </TabsList>
             {dbp.description && (
@@ -343,7 +343,7 @@ const ProductDetail = () => {
             {nutrition.length > 0 && (
               <TabsContent value="nutrition" className="mt-6">
                 <div className="max-w-md overflow-hidden rounded-lg border">
-                  <div className="bg-foreground px-4 py-2 text-sm font-bold uppercase tracking-wider text-background">Nutrition facts</div>
+                  <div className="bg-foreground px-4 py-2 text-sm font-bold uppercase tracking-wider text-background">Información nutricional</div>
                   <table className="w-full text-sm">
                     <tbody>
                       {nutrition.map(([k, v]) => (
@@ -360,7 +360,7 @@ const ProductDetail = () => {
 
       {faqs.length > 0 && (
         <section className="container-x pb-16">
-          <h2 className="font-display text-3xl uppercase">FAQ</h2>
+          <h2 className="font-display text-3xl uppercase">Preguntas frecuentes</h2>
           <Accordion type="single" collapsible className="mt-4 max-w-3xl">
             {faqs.map((f, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
@@ -374,7 +374,7 @@ const ProductDetail = () => {
 
       {related.length > 0 && (
         <section className="container-x pb-20">
-          <h2 className="font-display text-3xl uppercase">You may also like</h2>
+          <h2 className="font-display text-3xl uppercase">También te puede gustar</h2>
           <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
             {related.map((p) => <ProductCard key={p.id} product={toCardProduct(p)} />)}
           </div>

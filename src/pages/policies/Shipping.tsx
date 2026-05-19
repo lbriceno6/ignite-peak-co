@@ -2,17 +2,17 @@ import { PolicyPage } from "./PolicyPage";
 
 export default function Shipping() {
   return (
-    <PolicyPage title="Shipping policy">
-      <p>We deliver across Lima and provinces, partnering with trusted carriers to keep your supplements fresh and protected in transit.</p>
-      <h2>Delivery times</h2>
+    <PolicyPage title="Política de envío">
+      <p>Hacemos entregas en Lima y provincias, trabajando con transportistas de confianza para mantener tus suplementos frescos y protegidos.</p>
+      <h2>Tiempos de entrega</h2>
       <ul>
-        <li>Lima Metropolitan: 1–3 business days.</li>
-        <li>Provinces: 3–7 business days depending on the city.</li>
+        <li>Lima Metropolitana: 1–3 días hábiles.</li>
+        <li>Provincias: 3–7 días hábiles según la ciudad.</li>
       </ul>
-      <h2>Customer responsibility</h2>
-      <p>The customer must enter accurate shipping information at checkout. Voltra is not responsible for delays caused by incorrect addresses or unreachable contact details.</p>
-      <h2>Confirmation</h2>
-      <p>Order confirmation and tracking updates are sent via WhatsApp or email.</p>
+      <h2>Responsabilidad del cliente</h2>
+      <p>El cliente debe ingresar información de envío precisa al pagar. Voltra no se responsabiliza por retrasos causados por direcciones incorrectas o datos de contacto inaccesibles.</p>
+      <h2>Confirmación</h2>
+      <p>La confirmación del pedido y las actualizaciones de seguimiento se envían por WhatsApp o correo.</p>
     </PolicyPage>
   );
 }
