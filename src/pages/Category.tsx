@@ -31,14 +31,16 @@ const emptyFilters: FilterState = {
   type: [], goal: [], flavor: [], size: [], brand: [], supplier: [], rating: 0, price: [0, 100],
 };
 
-const staticFilterGroups: { key: "type" | "goal" | "flavor" | "size"; title: string; options: string[] }[] = [
-  { key: "type", title: "Tipo de producto", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
-  { key: "goal", title: "Objetivo", options: goals.map((g) => g.name) },
-  { key: "flavor", title: "Sabor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
-  { key: "size", title: "Tamaño", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
-];
+type DynamicGroup = { key: "type" | "goal" | "flavor" | "size"; title: string; options: { label: string; value: string }[] };
 
-const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
+const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
+  type: "Tipo de producto",
+  goal: "Objetivo",
+  flavor: "Sabor",
+  size: "Tamaño",
+};
+
+const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? name;
 
 const FiltersPanel = ({
   filters, setFilters, brands, suppliers,
