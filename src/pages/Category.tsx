@@ -9,22 +9,22 @@ import { Slider } from "@/components/ui/slider";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { products, categories, goals, type Product } from "@/data/catalog";
+import { categories, goals, type Product } from "@/data/catalog";
 import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
+import { supabase } from "@/integrations/supabase/client";
+import { resolveProductImage } from "@/lib/productImage";
 
 type FilterState = {
   type: string[];
   goal: string[];
   flavor: string[];
   size: string[];
-  rating: string[];
-  brand: string[];
   price: [number, number];
 };
 
 const emptyFilters: FilterState = {
-  type: [], goal: [], flavor: [], size: [], rating: [], brand: [], price: [0, 100],
+  type: [], goal: [], flavor: [], size: [], price: [0, 100],
 };
 
 const filterGroups: { key: keyof Omit<FilterState, "price">; title: string; options: string[] }[] = [
@@ -32,12 +32,9 @@ const filterGroups: { key: keyof Omit<FilterState, "price">; title: string; opti
   { key: "goal", title: "Objetivo", options: goals.map((g) => g.name) },
   { key: "flavor", title: "Sabor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
   { key: "size", title: "Tamaño", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
-  { key: "rating", title: "Valoración", options: ["4★ y más", "4.5★ y más", "4.8★ y más"] },
-  { key: "brand", title: "Marca", options: ["VOLTRA"] },
 ];
 
 const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
-const ratingMin = (r: string) => (r.startsWith("4.8") ? 4.8 : r.startsWith("4.5") ? 4.5 : 4);
 
 const FiltersPanel = ({
   filters, setFilters,
@@ -92,8 +89,34 @@ const FiltersPanel = ({
   );
 };
 
-const matchesType = (p: Product, types: string[]) =>
-  types.length === 0 || types.some((t) => p.category.toLowerCase() === t.toLowerCase());
+const rowToProduct = (r: any): Product => {
+  const hasSale = r.sale_price != null && Number(r.sale_price) > 0 && Number(r.sale_price) < Number(r.price);
+  return {
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    shortBenefit: r.short_description ?? "",
+    price: Number(hasSale ? r.sale_price : r.price),
+    oldPrice: hasSale ? Number(r.price) : undefined,
+    rating: 4.7,
+    reviews: 0,
+    label: r.badge as Product["label"] | undefined,
+    image: resolveProductImage(r.main_image),
+    category: r.category ?? "",
+    goal: r.goal ? [r.goal] : [],
+    flavors: r.flavor ? [r.flavor] : undefined,
+    sizes: r.size ? [r.size] : undefined,
+    brand: "VOLTRA",
+    subscriptionEnabled: r.subscription_enabled,
+    subscriptionDiscountPercent: r.subscription_discount_percent ? Number(r.subscription_discount_percent) : undefined,
+    subscriptionIntervals: r.subscription_intervals ?? undefined,
+    supplier: r.supplier ? {
+      slug: r.supplier.slug,
+      business_name: r.supplier.business_name,
+      logo_url: r.supplier.logo_url,
+    } : null,
+  };
+};
 
 const Category = () => {
   const { slug = "" } = useParams();
@@ -101,6 +124,9 @@ const Category = () => {
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [items, setItems] = useState<Product[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
@@ -111,54 +137,56 @@ const Category = () => {
     return c?.name ?? "Todos los productos";
   }, [slug]);
 
-  const baseList = useMemo(() => {
-    if (slug.startsWith("goal-")) {
-      const goal = slug.replace("goal-", "");
-      return products.filter((p) => p.goal.includes(goal));
-    }
-    const c = categories.find((x) => x.slug === slug);
-    if (!c) return products;
-    return products.filter((p) =>
-      p.category.toLowerCase().includes(c.name.toLowerCase().split(" ")[0].toLowerCase())
-    );
-  }, [slug]);
-
-  const filtered = useMemo(() => {
-    return baseList.filter((p) => {
-      if (p.price < filters.price[0] || p.price > filters.price[1]) return false;
-      if (!matchesType(p, filters.type)) return false;
-      if (filters.goal.length > 0) {
-        const slugs = filters.goal.map(goalNameToSlug);
-        if (!slugs.some((g) => p.goal.includes(g))) return false;
-      }
-      if (filters.flavor.length > 0) {
-        if (!p.flavors || !filters.flavor.some((f) => p.flavors!.includes(f))) return false;
-      }
-      if (filters.size.length > 0) {
-        if (!p.sizes || !filters.size.some((s) => p.sizes!.includes(s))) return false;
-      }
-      if (filters.rating.length > 0) {
-        const min = Math.min(...filters.rating.map(ratingMin));
-        if (p.rating < min) return false;
-      }
-      if (filters.brand.length > 0 && !filters.brand.includes(p.brand)) return false;
-      return true;
-    });
-  }, [baseList, filters]);
-
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
-    if (sort === "price-low") arr.sort((a, b) => a.price - b.price);
-    else if (sort === "price-high") arr.sort((a, b) => b.price - a.price);
-    else if (sort === "rating") arr.sort((a, b) => b.rating - a.rating);
-    return arr;
-  }, [filtered, sort]);
-
+  // Reset page when slug/filters/sort/pageSize change
   useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize]);
-  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const paged = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  useEffect(() => {
+    const run = async () => {
+      setLoading(true);
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+
+      let query = supabase
+        .from("products")
+        .select("*, supplier:suppliers(id, business_name, slug, logo_url)", { count: "exact" });
+
+      // Route-level scope
+      if (slug.startsWith("goal-")) {
+        query = query.eq("goal", slug.replace("goal-", ""));
+      } else {
+        const c = categories.find((x) => x.slug === slug);
+        if (c) {
+          const word = c.name.split(" ")[0];
+          query = query.ilike("category", `%${word}%`);
+        }
+      }
+
+      // Facet filters (all applied server-side so the count is exact)
+      if (filters.type.length) query = query.in("category", filters.type);
+      if (filters.goal.length) query = query.in("goal", filters.goal.map(goalNameToSlug));
+      if (filters.flavor.length) query = query.in("flavor", filters.flavor);
+      if (filters.size.length) query = query.in("size", filters.size);
+      query = query.gte("price", filters.price[0]).lte("price", filters.price[1]);
+
+      // Sort
+      if (sort === "price-low") query = query.order("price", { ascending: true });
+      else if (sort === "price-high") query = query.order("price", { ascending: false });
+      else query = query.order("sort_order", { ascending: true } as any).order("created_at", { ascending: false });
+
+      query = query.range(from, to);
+
+      const { data, count, error } = await query;
+      if (!error) {
+        setItems((data ?? []).map(rowToProduct));
+        setTotal(count ?? 0);
+      }
+      setLoading(false);
+    };
+    run();
+  }, [slug, filters, sort, page, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, totalPages);
 
   const activeChips = useMemo(() => {
     const chips: { key: keyof Omit<FilterState, "price">; value: string }[] = [];
@@ -182,7 +210,7 @@ const Category = () => {
             <Link to="/" className="hover:text-accent">Inicio</Link> / <span className="text-foreground">{title}</span>
           </nav>
           <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{title}</h1>
-          <p className="mt-2 text-muted-foreground">{sorted.length} productos</p>
+          <p className="mt-2 text-muted-foreground">{total} productos</p>
         </div>
       </div>
 
@@ -222,7 +250,6 @@ const Category = () => {
                   className="appearance-none rounded-md border border-border bg-background py-2 pl-3 pr-9 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="popular">Más populares</option>
-                  <option value="rating">Mejor valorados</option>
                   <option value="price-low">Precio: menor a mayor</option>
                   <option value="price-high">Precio: mayor a menor</option>
                 </select>
@@ -244,7 +271,7 @@ const Category = () => {
             </div>
           )}
 
-          {sorted.length === 0 ? (
+          {!loading && total === 0 ? (
             <div className="rounded-lg border border-dashed border-border py-16 text-center">
               <p className="text-muted-foreground">Ningún producto coincide con tus filtros.</p>
               <Button variant="outline" className="mt-4" onClick={clearAll}>Limpiar filtros</Button>
@@ -252,12 +279,12 @@ const Category = () => {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-                {paged.map((p) => <ProductCard key={p.id} product={p} />)}
+                {items.map((p) => <ProductCard key={p.id} product={p} />)}
               </div>
               <PaginationBar
                 page={currentPage}
                 pageSize={pageSize}
-                total={sorted.length}
+                total={total}
                 onPageChange={(p) => { setPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
                 onPageSizeChange={setPageSize}
               />
