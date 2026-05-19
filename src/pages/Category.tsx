@@ -27,12 +27,12 @@ const emptyFilters: FilterState = {
 };
 
 const filterGroups: { key: keyof Omit<FilterState, "price">; title: string; options: string[] }[] = [
-  { key: "type", title: "Product type", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
-  { key: "goal", title: "Goal", options: goals.map((g) => g.name) },
-  { key: "flavor", title: "Flavor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
-  { key: "size", title: "Size", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
-  { key: "rating", title: "Rating", options: ["4★ & up", "4.5★ & up", "4.8★ & up"] },
-  { key: "brand", title: "Brand", options: ["VOLTRA"] },
+  { key: "type", title: "Tipo de producto", options: ["Protein", "Creatine", "Pre-Workout", "Vitamins", "Snacks", "Accessories", "Amino Acids"] },
+  { key: "goal", title: "Objetivo", options: goals.map((g) => g.name) },
+  { key: "flavor", title: "Sabor", options: ["Chocolate", "Vanilla", "Strawberry", "Cookies & Cream", "Tropical Storm", "Lemon Ice", "Berry Blast"] },
+  { key: "size", title: "Tamaño", options: ["300g", "500g", "750g", "900g", "1kg", "2kg", "4kg"] },
+  { key: "rating", title: "Valoración", options: ["4★ y más", "4.5★ y más", "4.8★ y más"] },
+  { key: "brand", title: "Marca", options: ["VOLTRA"] },
 ];
 
 const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? "";
