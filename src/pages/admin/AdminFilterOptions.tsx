@@ -46,16 +46,33 @@ export default function AdminFilterOptions() {
   const [editing, setEditing] = useState<Partial<FilterOption>>(empty);
   const [loading, setLoading] = useState(false);
 
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
+
   const load = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("filter_options" as any)
-      .select("*")
-      .order("group")
-      .order("sort_order")
-      .order("label");
-    if (error) toast.error(error.message);
-    setItems(((data as any) ?? []) as FilterOption[]);
+    const [{ data: itemsData, error: itemsError }, { data: productsData, error: productsError }] = await Promise.all([
+      supabase
+        .from("filter_options" as any)
+        .select("*")
+        .order("group")
+        .order("sort_order")
+        .order("label"),
+      supabase
+        .from("products" as any)
+        .select("category, goal, flavor, size"),
+    ]);
+    if (itemsError) toast.error(itemsError.message);
+    if (productsError) toast.error(productsError.message);
+    setItems(((itemsData as any) ?? []) as FilterOption[]);
+
+    const counts: Record<string, number> = {};
+    (productsData as any)?.forEach((p: any) => {
+      if (p.category) counts[`type:${p.category}`] = (counts[`type:${p.category}`] || 0) + 1;
+      if (p.goal) counts[`goal:${p.goal}`] = (counts[`goal:${p.goal}`] || 0) + 1;
+      if (p.flavor) counts[`flavor:${p.flavor}`] = (counts[`flavor:${p.flavor}`] || 0) + 1;
+      if (p.size) counts[`size:${p.size}`] = (counts[`size:${p.size}`] || 0) + 1;
+    });
+    setProductCounts(counts);
     setLoading(false);
   };
   useEffect(() => { load(); }, []);
