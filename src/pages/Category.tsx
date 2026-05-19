@@ -154,6 +154,12 @@ const Category = () => {
     return arr;
   }, [filtered, sort]);
 
+  useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize]);
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paged = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+
   const activeChips = useMemo(() => {
     const chips: { key: keyof Omit<FilterState, "price">; value: string }[] = [];
     (Object.keys(filters) as (keyof FilterState)[]).forEach((k) => {
