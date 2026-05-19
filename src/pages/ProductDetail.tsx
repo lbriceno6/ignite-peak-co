@@ -36,6 +36,7 @@ type DbProduct = {
   subscription_enabled: boolean;
   subscription_discount_percent: number;
   subscription_intervals: number[] | null;
+  size_variants: any;
 };
 
 const labelFromBadge = (badge: string | null): Product["label"] | undefined => {
