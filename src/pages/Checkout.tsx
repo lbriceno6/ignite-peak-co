@@ -60,7 +60,8 @@ const Checkout = () => {
   const navigate = useNavigate();
   const { items, clear } = useCart();
   useShippingSettings();
-  const { subtotal, shipping, total } = cartTotals(items);
+  const { zones } = useShippingZones();
+  const { subtotal } = cartTotals(items);
   const { format } = useCurrency();
   const { user } = useAuth();
   const { content: pay } = useSiteContent(PAY_KEYS, { "pay.card.enabled": "1" });
