@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { Package, ShoppingBag, DollarSign, Wallet, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SupplierStatusTimeline } from "@/components/supplier/SupplierStatusTimeline";
 
 const Stat = ({ icon: Icon, label, value, hint }: any) => (
   <div className="rounded-xl border bg-card p-5">
@@ -89,6 +90,13 @@ export default function SupplierDashboard() {
         <Stat icon={DollarSign} label="Ventas (30 días)" value={format(stats.sales30)} />
         <Stat icon={Wallet} label="Tu neto (30 días)" value={format(stats.payout30)} hint={`Comisión: ${format(stats.commission30)}`} />
       </div>
+
+      {supplierId && (
+        <div className="rounded-xl border bg-card p-5">
+          <h2 className="mb-4 font-display text-lg uppercase">Historial de la solicitud</h2>
+          <SupplierStatusTimeline supplierId={supplierId} />
+        </div>
+      )}
     </div>
   );
 }

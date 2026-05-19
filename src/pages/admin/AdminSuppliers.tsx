@@ -106,7 +106,14 @@ export default function AdminSuppliers() {
   };
 
   const setStatus = async (s: Supplier, status: string) => {
-    const { error } = await supabase.from("suppliers").update({ status }).eq("id", s.id);
+    let reason: string | undefined;
+    if (status === "rejected") {
+      reason = prompt("Motivo del rechazo (se enviará al proveedor):") ?? undefined;
+      if (reason === undefined) return;
+    }
+    const { error } = await supabase.from("suppliers")
+      .update({ status, ...(reason !== undefined ? { rejection_reason: reason } : {}) })
+      .eq("id", s.id);
     if (error) return toast.error(error.message);
     if (status === "approved" && s.user_id) {
       await supabase.from("user_roles").upsert(
@@ -114,7 +121,11 @@ export default function AdminSuppliers() {
         { onConflict: "user_id,role" } as any,
       );
     }
-    toast.success(`Proveedor ${status === "approved" ? "aprobado" : status === "suspended" ? "suspendido" : "actualizado"}`);
+    const { notifySupplierEvent } = await import("@/lib/notifySupplier");
+    if (status === "approved" || status === "rejected" || status === "suspended") {
+      await notifySupplierEvent(status as any, s.id, reason);
+    }
+    toast.success(`Proveedor ${status === "approved" ? "aprobado" : status === "suspended" ? "suspendido" : status === "rejected" ? "rechazado" : "actualizado"}`);
     load();
   };
 

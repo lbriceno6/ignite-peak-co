@@ -65,6 +65,7 @@ import SupplierProducts from "./pages/supplier/SupplierProducts.tsx";
 import SupplierProductForm from "./pages/supplier/SupplierProductForm.tsx";
 import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
 import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
+import Unsubscribe from "./pages/Unsubscribe.tsx";
 
 const queryClient = new QueryClient();
 
@@ -114,6 +115,7 @@ const App = () => (
             <Route path="/returns-policies" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* Marketplace / Suppliers */}
             <Route path="/vende-con-nosotros" element={<SellWithUs />} />

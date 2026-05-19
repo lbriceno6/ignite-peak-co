@@ -80,7 +80,7 @@ export const SupplierApplicationForm = ({ compact = false }: { compact?: boolean
         if (n > 50) break;
       }
 
-      const { error: insErr } = await supabase.from("suppliers").insert({
+      const { data: inserted, error: insErr } = await supabase.from("suppliers").insert({
         user_id: uid,
         business_name: f.business_name,
         contact_name: f.contact_name,
@@ -90,8 +90,13 @@ export const SupplierApplicationForm = ({ compact = false }: { compact?: boolean
         slug,
         status: "pending",
         is_active: true,
-      } as any);
+      } as any).select("id").maybeSingle();
       if (insErr) throw insErr;
+
+      if (inserted?.id) {
+        const { notifySupplierEvent } = await import("@/lib/notifySupplier");
+        notifySupplierEvent("new", inserted.id);
+      }
 
       await refreshSupplier();
       toast.success("Solicitud enviada. Te avisaremos al aprobarla.");
