@@ -2,16 +2,16 @@ import { PolicyPage } from "./PolicyPage";
 
 export default function Terms() {
   return (
-    <PolicyPage title="Terms & conditions">
-      <p>By using the Voltra website you agree to these terms. Please read them carefully.</p>
-      <h2>Use of the site</h2>
-      <p>Content is provided for informational and commercial purposes. Product descriptions, prices and availability may change without notice.</p>
-      <h2>Orders</h2>
-      <p>All orders are subject to acceptance and product availability. We reserve the right to refuse or cancel any order.</p>
-      <h2>Intellectual property</h2>
-      <p>All trademarks, logos, and content on this site are the property of Voltra and may not be used without permission.</p>
-      <h2>Liability</h2>
-      <p>Voltra products are dietary supplements and do not replace medical advice. Consult your physician before starting any new supplement regimen.</p>
+    <PolicyPage title="Términos y condiciones">
+      <p>Al usar el sitio de Voltra aceptas estos términos. Léelos con atención.</p>
+      <h2>Uso del sitio</h2>
+      <p>El contenido se proporciona con fines informativos y comerciales. Las descripciones, precios y disponibilidad pueden cambiar sin previo aviso.</p>
+      <h2>Pedidos</h2>
+      <p>Todos los pedidos están sujetos a aceptación y disponibilidad. Nos reservamos el derecho de rechazar o cancelar cualquier pedido.</p>
+      <h2>Propiedad intelectual</h2>
+      <p>Todas las marcas, logos y contenido del sitio son propiedad de Voltra y no pueden usarse sin autorización.</p>
+      <h2>Responsabilidad</h2>
+      <p>Los productos de Voltra son suplementos alimenticios y no reemplazan el consejo médico. Consulta a tu médico antes de iniciar cualquier régimen de suplementación.</p>
     </PolicyPage>
   );
 }
