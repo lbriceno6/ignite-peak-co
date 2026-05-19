@@ -98,26 +98,6 @@ const FiltersPanel = ({
             </Button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
-          <Input
-            type="number"
-            min={0}
-            max={5}
-            step={0.1}
-            value={filters.rating || ""}
-            onChange={(e) => {
-              const v = Math.max(0, Math.min(5, Number(e.target.value) || 0));
-              setFilters((f) => ({ ...f, rating: v }));
-            }}
-            placeholder="Personalizar (0–5)"
-            className="h-9"
-          />
-          {filters.rating > 0 && (
-            <Button type="button" variant="ghost" size="sm" className="h-9 px-2 text-xs" onClick={() => setFilters((f) => ({ ...f, rating: 0 }))}>
-              <X size={14} />
-            </Button>
-          )}
-        </div>
       </div>
 
       <Accordion type="multiple" defaultValue={["type", "goal", "brand", "supplier"]}>
