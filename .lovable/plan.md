@@ -1,53 +1,91 @@
-Voy a ampliar el panel de administración de tema (`/admin/theme`) con cuatro capacidades nuevas, manteniendo el mismo motor de tokens en `site_content` y aplicándose en vivo a toda la tienda vía `ThemeProvider`.
+Convertiré la tienda en un **marketplace multi-vendedor** con auto-registro de proveedores (con aprobación), publicación directa, pedido único con comisión, y vista pública por proveedor.
 
-## 1. Subir fuentes personalizadas (WOFF/TTF/WOFF2/OTF)
+## 1. Base de datos (migración)
 
-- Crear bucket público `brand-fonts` (migración) con políticas: lectura pública, subida/borrado solo admins.
-- En `AdminTheme.tsx`, nueva sección **"Fuentes personalizadas"**:
-  - Input file (acepta .woff,.woff2,.ttf,.otf), nombre de familia, botón subir.
-  - Lista de fuentes subidas con previsualización y botón eliminar.
-  - Botones "Usar en títulos" / "Usar en cuerpo" que asignan la familia a `theme.font_display` / `theme.font_body`.
-- Guardar metadatos en nueva clave `theme.custom_fonts` (JSON: `[{family, url, format}]`) en `site_content`.
-- `src/lib/theme.ts`: `applyTheme` inyecta `@font-face` para cada fuente personalizada antes de aplicar la familia seleccionada. El `<Select>` de fuentes incluye las personalizadas al inicio del listado.
+**Rol nuevo y suppliers ampliado**
+- Añadir valor `'supplier'` al enum `public.app_role`.
+- Ampliar tabla `suppliers` con: `user_id uuid UNIQUE` (vincula al usuario auth), `slug text UNIQUE`, `status text` (`pending` / `approved` / `suspended`, default `pending`), `logo_url`, `description text`, `commission_percent numeric default 15`, `payout_method text`, `payout_account text`, `tax_id text`.
+- Crear "Proveedor casa" Nutribatidos (`is_house=true`) y reasignar todos los productos sin proveedor a este registro.
 
-## 2. Presets de paleta y tipografía
+**Productos**
+- Mantener `supplier_id` (ya existe). Hacerlo `NOT NULL` tras la migración de datos.
+- Reescribir RLS de `products`:
+  - Público: ver activos cuyo supplier esté `approved`.
+  - Admin: todo.
+  - Supplier aprobado: CRUD sobre filas con su `supplier_id` (via security-definer `current_supplier_id()`).
 
-- Definir en `src/lib/theme.ts` un array `THEME_PRESETS` con presets curados:
-  - **Nutribatidos (default)** — verde lima sobre negro
-  - **Premium Negro** — negro/dorado, fuentes serif elegantes (Cormorant + Inter)
-  - **Deportivo Azul** — azul eléctrico/blanco, Oswald + Inter
-  - **Energía Naranja** — naranja/carbón, Bebas Neue + Work Sans
-  - **Wellness Verde** — sage/cream, Playfair + Lora
-  - **Minimal Claro** — blanco/negro, Space Grotesk + DM Sans
-- Cada preset incluye todos los tokens de color, fuentes y radius (y opcionalmente valores para modo oscuro).
-- Nueva sección **"Presets"** al inicio del admin con tarjetas clicables que muestran swatches y nombre de fuentes. Al hacer clic, rellenan todos los valores (con preview en vivo; el usuario debe guardar).
+**Order items con comisión**
+- Añadir a `order_items`: `supplier_id uuid`, `commission_percent numeric`, `commission_amount numeric`, `supplier_payout numeric`, `fulfillment_status text default 'pending'` (`pending` / `shipped` / `delivered`), `tracking_number text`.
+- Al insertar un item se calcula y se persiste comisión (vía trigger BEFORE INSERT que toma `commission_percent` actual del supplier).
+- RLS: supplier puede `SELECT` y `UPDATE fulfillment_status / tracking_number` de items con su `supplier_id`. Admin lo ve todo.
 
-## 3. Validación de contraste WCAG
+**Funciones de seguridad**
+- `current_supplier_id()` SECURITY DEFINER → devuelve el `suppliers.id` aprobado del `auth.uid()` actual.
+- `is_supplier()` helper.
+- `handle_new_user` no cambia (todos siguen creándose como `client`; el rol `supplier` se asigna al aprobar).
 
-- En `src/lib/theme.ts`, helpers `getContrastRatio(hsl1, hsl2)` y `wcagLevel(ratio)` → "AAA" | "AA" | "AA Large" | "Fail".
-- En cada `ColorRow` afectado, mostrar badge de contraste cuando el token tiene un par conocido (mapa de pares: background↔foreground, primary↔primary_foreground, accent↔accent_foreground, muted↔muted_foreground, card↔card-foreground).
-- Si el ratio es < 4.5, mostrar warning con icono y sugerencia: "Aumenta/reduce la luminosidad para alcanzar AA (4.5:1)". Botón "Sugerir color legible" que ajusta automáticamente la L del HSL hasta cumplir AA contra su par.
+## 2. Auth y rutas
 
-## 4. Modo oscuro/claro con tokens separados
+- `useAuth`: añadir `isSupplier`, `supplierId`, `supplierStatus`.
+- Nuevo guard `SupplierRoute` (requiere rol `supplier` y status `approved`; si está `pending` muestra pantalla "Tu cuenta está en revisión").
+- Rutas nuevas en `App.tsx`:
+  - `/supplier/signup` — formulario público (email, password, business_name, contact_name, phone). Crea usuario + fila en `suppliers` con `status='pending'` y `user_id`.
+  - `/supplier` (layout con sidebar) → dashboard
+  - `/supplier/products`, `/supplier/products/new`, `/supplier/products/:id/edit`
+  - `/supplier/orders` (lista de items vendidos)
+  - `/supplier/profile` (logo, descripción, slug, datos bancarios/fiscales)
+  - `/proveedor/:slug` — escaparate público
 
-- Duplicar todos los tokens de color como `theme.dark.*` en `THEME_KEYS` y `THEME_DEFAULTS` (los valores actuales de `.dark` en `index.css`).
-- `applyTheme` aplica las vars normales a `:root` y las vars `dark` a `.dark` mediante un `<style>` inyectado (ya que CSS vars necesitan estar dentro de un selector).
-- En el admin, **toggle de tabs "Claro / Oscuro"** que cambia qué set de tokens edita; live preview alterna la clase `dark` del root durante la edición.
-- Selector global de tema (claro/oscuro/sistema) almacenado en `localStorage`. Añadir botón sol/luna en el header (`src/components/Header.tsx`) que alterna la clase `dark` en `document.documentElement`. `ThemeProvider` inicializa el modo al cargar.
-- Los presets traen ambos sets (claro + oscuro) cuando aplica.
+## 3. Panel del proveedor (UI)
 
-## Detalles técnicos
+- `SupplierLayout` similar a `AdminLayout` con sidebar: Dashboard, Productos, Pedidos, Perfil.
+- **Dashboard**: ventas del mes, comisión pagada, pedidos pendientes de envío, productos publicados.
+- **Productos**: tabla CRUD reutilizando los componentes existentes de `AdminProducts` adaptados (sin selector de supplier — fijado a su propio id).
+- **Pedidos**: tabla de `order_items` con info del cliente (nombre/dirección), botón "Marcar enviado" + campo tracking. Notificación email cuando entra un pedido nuevo (reusa infraestructura `enqueue_email`).
+- **Perfil**: edita logo (upload a bucket `supplier-logos` público), descripción, slug, datos de pago, datos fiscales.
 
-- **Migración**: solo crear bucket `brand-fonts` + políticas RLS. Sin cambios de schema (todo cabe en `site_content` como clave/valor JSON o string).
-- **Realtime**: el `ThemeProvider` ya escucha cambios en `site_content`; se beneficiará automáticamente.
-- **Tipos**: nuevos keys se añaden a la unión `ThemeKey`. Sin tocar `types.ts` (generado).
-- **Compat**: defaults conservan look actual; cualquier instalación existente sigue funcionando.
+## 4. Admin
 
-## Archivos a tocar/crear
+- Mejorar `/admin/suppliers`:
+  - Columna `status` con acciones **Aprobar** / **Suspender** / **Rechazar**.
+  - Aprobar = `status='approved'` + insertar `user_roles(role='supplier')` para el `user_id`.
+  - Editar `commission_percent` por proveedor.
+- `/admin/orders`: mostrar columna "proveedor" en items y resumen de comisión.
 
-- `supabase/migrations/...` (nuevo) — bucket + RLS de `brand-fonts`
-- `src/lib/theme.ts` — presets, contrast, custom fonts, dark tokens
-- `src/components/ThemeProvider.tsx` — modo claro/oscuro, inicialización
-- `src/pages/admin/AdminTheme.tsx` — UI de presets, fuentes, contraste, tabs claro/oscuro
-- `src/components/Header.tsx` — toggle sol/luna
-- `src/index.css` — nada que tocar (los overrides se hacen vía JS)
+## 5. Vista pública
+
+- **`/proveedor/:slug`** — hero con logo + descripción + grid de sus productos activos.
+- **Badge "Vendido por X"** en `ProductCard` y `ProductDetail` (link a la página del proveedor).
+- **Filtro "Vendido por"** en `Category` y `Search` (chips/Select con proveedores que tengan productos en el set).
+- Añadir link al footer "¿Eres marca? Vende con nosotros" → `/supplier/signup`.
+
+## 6. Checkout y emails
+
+- En `Checkout`, al crear `order_items`, completar `supplier_id` desde `products.supplier_id`. El trigger calcula comisión.
+- Email transaccional al proveedor cuando un pedido contiene sus productos (encolar tras crear el pedido). Reutiliza `enqueue_email` con un nuevo template `supplier_new_order`.
+
+## 7. Storage
+
+- Nuevo bucket público `supplier-logos`. RLS: lectura pública, escritura solo por el supplier dueño (o admin) — path `{supplier_id}/...`.
+
+## Archivos a crear/tocar
+
+- `supabase/migrations/...` — todo el bloque schema + RLS + bucket + seed Nutribatidos
+- `src/context/AuthContext.tsx` — exponer `isSupplier`, `supplierId`, `supplierStatus`
+- `src/components/SupplierRoute.tsx` (nuevo)
+- `src/components/supplier/SupplierLayout.tsx` (nuevo)
+- `src/pages/supplier/SupplierSignup.tsx`, `SupplierDashboard.tsx`, `SupplierProducts.tsx`, `SupplierProductForm.tsx`, `SupplierOrders.tsx`, `SupplierProfile.tsx`, `SupplierPending.tsx` (nuevos)
+- `src/pages/SupplierStorefront.tsx` (nuevo, ruta `/proveedor/:slug`)
+- `src/pages/admin/AdminSuppliers.tsx` — añadir acciones aprobar/suspender + comisión
+- `src/pages/Category.tsx`, `src/pages/Search.tsx` — filtro "Vendido por"
+- `src/components/ProductCard.tsx`, `src/pages/ProductDetail.tsx` — badge proveedor
+- `src/pages/Checkout.tsx` — propagar `supplier_id` al insertar items
+- `src/App.tsx` — registrar nuevas rutas
+- `src/components/Footer.tsx` — link "Vende con nosotros"
+
+## Lo que NO entra en este sprint (avísame si lo quieres después)
+
+- Payouts automáticos vía Stripe Connect (la liquidación es manual: el admin ve `supplier_payout` por pedido).
+- Chat cliente↔proveedor.
+- Devoluciones gestionadas por el proveedor.
+- Valoraciones/rating del proveedor.
