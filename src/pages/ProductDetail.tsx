@@ -86,6 +86,7 @@ const ProductDetail = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [interval, setIntervalDays] = useState<number>(30);
+  const [selectedVariant, setSelectedVariant] = useState<number>(0);
 
   useEffect(() => {
     let alive = true;
