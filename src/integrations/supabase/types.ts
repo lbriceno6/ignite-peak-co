@@ -125,6 +125,42 @@ export type Database = {
         }
         Relationships: []
       }
+      footer_links: {
+        Row: {
+          column_index: number
+          created_at: string
+          href: string
+          id: string
+          is_active: boolean
+          label: string
+          open_in_new_tab: boolean
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          column_index?: number
+          created_at?: string
+          href?: string
+          id?: string
+          is_active?: boolean
+          label: string
+          open_in_new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          column_index?: number
+          created_at?: string
+          href?: string
+          id?: string
+          is_active?: boolean
+          label?: string
+          open_in_new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       goal_cards: {
         Row: {
           created_at: string
