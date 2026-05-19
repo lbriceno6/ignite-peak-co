@@ -72,112 +72,159 @@ const AdminCurrencySwitcher = () => {
   );
 };
 
-const sections = [
+const defaultSections = [
   {
-    label: "Overview",
-    items: [{ to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true }],
+    key: "overview",
+    label: "Resumen",
+    items: [{ key: "dashboard", to: "/admin", label: "Panel", icon: LayoutDashboard, end: true }],
   },
   {
-    label: "Catalog",
+    key: "catalog",
+    label: "Catálogo",
     items: [
-      { to: "/admin/products", label: "Products", icon: Package },
-      { to: "/admin/products/new", label: "New product", icon: Plus },
-      { to: "/admin/categories", label: "Categories", icon: Tags },
-      { to: "/admin/suppliers", label: "Suppliers", icon: Truck },
+      { key: "products", to: "/admin/products", label: "Productos", icon: Package },
+      { key: "products-new", to: "/admin/products/new", label: "Nuevo producto", icon: Plus },
+      { key: "categories", to: "/admin/categories", label: "Categorías", icon: Tags },
+      { key: "suppliers", to: "/admin/suppliers", label: "Proveedores", icon: Truck },
     ],
   },
   {
-    label: "Sales",
+    key: "sales",
+    label: "Ventas",
     items: [
-      { to: "/admin/orders", label: "Orders", icon: ShoppingBag },
-      { to: "/admin/customers", label: "Customers", icon: Users },
+      { key: "orders", to: "/admin/orders", label: "Pedidos", icon: ShoppingBag },
+      { key: "customers", to: "/admin/customers", label: "Clientes", icon: Users },
     ],
   },
   {
-    label: "Content",
+    key: "content",
+    label: "Contenido",
     items: [
-      { to: "/admin/navigation", label: "Logo & Menu", icon: Menu },
-      { to: "/admin/home", label: "Home content", icon: Home },
-      { to: "/admin/home-blocks", label: "Home sections", icon: Layers },
-      { to: "/admin/hero-slides", label: "Hero carousel", icon: GalleryHorizontal },
-      { to: "/admin/goal-cards", label: "Goal cards", icon: Tags },
-      { to: "/admin/blog", label: "Blog posts", icon: FileText },
-      { to: "/admin/blog/new", label: "New post", icon: Plus },
-      { to: "/admin/footer", label: "Footer", icon: PanelBottom },
-      { to: "/admin/site-links", label: "Site links", icon: Link2 },
-      { to: "/admin/about", label: "About page", icon: Info },
-      { to: "/admin/contact", label: "Contact page", icon: Mail },
+      { key: "navigation", to: "/admin/navigation", label: "Logo y menú", icon: Menu },
+      { key: "home", to: "/admin/home", label: "Contenido del home", icon: Home },
+      { key: "home-blocks", to: "/admin/home-blocks", label: "Secciones del home", icon: Layers },
+      { key: "hero-slides", to: "/admin/hero-slides", label: "Carrusel hero", icon: GalleryHorizontal },
+      { key: "goal-cards", to: "/admin/goal-cards", label: "Tarjetas de objetivos", icon: Tags },
+      { key: "blog", to: "/admin/blog", label: "Entradas de blog", icon: FileText },
+      { key: "blog-new", to: "/admin/blog/new", label: "Nueva entrada", icon: Plus },
+      { key: "footer", to: "/admin/footer", label: "Pie de página", icon: PanelBottom },
+      { key: "site-links", to: "/admin/site-links", label: "Enlaces del sitio", icon: Link2 },
+      { key: "about", to: "/admin/about", label: "Página Sobre", icon: Info },
+      { key: "contact", to: "/admin/contact", label: "Página Contacto", icon: Mail },
     ],
   },
 ];
 
-const titleFromPath = (p: string) => {
-  if (p === "/admin") return "Dashboard";
-  if (p.startsWith("/admin/products/new")) return "New product";
-  if (p.includes("/admin/products/") && p.endsWith("/edit")) return "Edit product";
-  if (p.startsWith("/admin/products")) return "Products";
-  if (p.startsWith("/admin/categories")) return "Categories";
-  if (p.startsWith("/admin/suppliers")) return "Suppliers";
-  if (p.startsWith("/admin/orders/")) return "Order detail";
-  if (p.startsWith("/admin/orders")) return "Orders";
-  if (p.startsWith("/admin/customers")) return "Customers";
-  if (p.startsWith("/admin/blog/new")) return "New post";
-  if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Edit post";
-  if (p.startsWith("/admin/blog")) return "Blog posts";
-  if (p.startsWith("/admin/home-blocks")) return "Home sections";
-  if (p.startsWith("/admin/home")) return "Home content";
-  if (p.startsWith("/admin/hero-slides")) return "Hero carousel";
-  if (p.startsWith("/admin/goal-cards")) return "Goal cards";
-  if (p.startsWith("/admin/navigation")) return "Logo & Menu";
-  if (p.startsWith("/admin/footer")) return "Footer";
-  if (p.startsWith("/admin/site-links")) return "Site links";
-  if (p.startsWith("/admin/about")) return "About page";
-  if (p.startsWith("/admin/contact")) return "Contact page";
+const LABELS_KEY = "voltra.admin.sidebarLabels";
+
+const loadLabels = (): Record<string, string> => {
+  try { return JSON.parse(localStorage.getItem(LABELS_KEY) || "{}"); } catch { return {}; }
+};
+
+const titleFromPath = (p: string, labels: Record<string, string>) => {
+  const get = (k: string, fallback: string) => labels[`item:${k}`] || fallback;
+  if (p === "/admin") return get("dashboard", "Panel");
+  if (p.startsWith("/admin/products/new")) return get("products-new", "Nuevo producto");
+  if (p.includes("/admin/products/") && p.endsWith("/edit")) return "Editar producto";
+  if (p.startsWith("/admin/products")) return get("products", "Productos");
+  if (p.startsWith("/admin/categories")) return get("categories", "Categorías");
+  if (p.startsWith("/admin/suppliers")) return get("suppliers", "Proveedores");
+  if (p.startsWith("/admin/orders/")) return "Detalle del pedido";
+  if (p.startsWith("/admin/orders")) return get("orders", "Pedidos");
+  if (p.startsWith("/admin/customers")) return get("customers", "Clientes");
+  if (p.startsWith("/admin/blog/new")) return get("blog-new", "Nueva entrada");
+  if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
+  if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");
+  if (p.startsWith("/admin/home-blocks")) return get("home-blocks", "Secciones del home");
+  if (p.startsWith("/admin/home")) return get("home", "Contenido del home");
+  if (p.startsWith("/admin/hero-slides")) return get("hero-slides", "Carrusel hero");
+  if (p.startsWith("/admin/goal-cards")) return get("goal-cards", "Tarjetas de objetivos");
+  if (p.startsWith("/admin/navigation")) return get("navigation", "Logo y menú");
+  if (p.startsWith("/admin/footer")) return get("footer", "Pie de página");
+  if (p.startsWith("/admin/site-links")) return get("site-links", "Enlaces del sitio");
+  if (p.startsWith("/admin/about")) return get("about", "Página Sobre");
+  if (p.startsWith("/admin/contact")) return get("contact", "Página Contacto");
   return "Admin";
 };
 
-const SidebarBody = ({ onNavigate }: { onNavigate?: () => void }) => (
+const SidebarBody = ({
+  onNavigate,
+  labels,
+  editMode,
+  onRename,
+}: {
+  onNavigate?: () => void;
+  labels: Record<string, string>;
+  editMode: boolean;
+  onRename: (key: string, value: string) => void;
+}) => (
   <>
     <Link
       to="/"
       onClick={onNavigate}
       className="mb-6 flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
     >
-      <ArrowLeft size={14} /> Back to store
+      <ArrowLeft size={14} /> Volver a la tienda
     </Link>
     <div className="mb-8 px-1 font-display text-2xl">
       VOLT<span className="text-accent">RA</span>
       <span className="ml-2 text-xs font-medium text-muted-foreground">Admin</span>
     </div>
     <nav className="flex flex-col gap-6">
-      {sections.map((s) => (
-        <div key={s.label}>
-          <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {s.label}
-          </div>
-          <div className="flex flex-col gap-1">
-            {s.items.map((it) => (
-              <NavLink
-                key={it.to}
-                to={it.to}
-                end={it.end}
-                onClick={onNavigate}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                    isActive
-                      ? "bg-foreground text-background"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )
+      {defaultSections.map((s) => {
+        const sectionLabel = labels[`section:${s.key}`] ?? s.label;
+        return (
+          <div key={s.key}>
+            {editMode ? (
+              <input
+                value={sectionLabel}
+                onChange={(e) => onRename(`section:${s.key}`, e.target.value)}
+                className="mb-2 w-full rounded border bg-background px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground"
+              />
+            ) : (
+              <div className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {sectionLabel}
+              </div>
+            )}
+            <div className="flex flex-col gap-1">
+              {s.items.map((it) => {
+                const itemLabel = labels[`item:${it.key}`] ?? it.label;
+                if (editMode) {
+                  return (
+                    <div key={it.to} className="flex items-center gap-2 rounded-md px-2 py-1">
+                      <it.icon size={16} className="text-muted-foreground" />
+                      <input
+                        value={itemLabel}
+                        onChange={(e) => onRename(`item:${it.key}`, e.target.value)}
+                        className="w-full rounded border bg-background px-2 py-1 text-sm"
+                      />
+                    </div>
+                  );
                 }
-              >
-                <it.icon size={16} />
-                {it.label}
-              </NavLink>
-            ))}
+                return (
+                  <NavLink
+                    key={it.to}
+                    to={it.to}
+                    end={it.end}
+                    onClick={onNavigate}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        isActive
+                          ? "bg-foreground text-background"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      )
+                    }
+                  >
+                    <it.icon size={16} />
+                    {itemLabel}
+                  </NavLink>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </nav>
   </>
 );
