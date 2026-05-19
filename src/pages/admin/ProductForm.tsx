@@ -184,8 +184,58 @@ export default function ProductForm() {
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>
         </div>
 
-        <Field label="Main image URL"><Input value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} /></Field>
-        <Field label="Gallery image URLs (one per line)"><Textarea rows={3} value={f.gallery_images} onChange={(e) => set("gallery_images", e.target.value)} /></Field>
+        <Field label="Main image">
+          <div className="space-y-2">
+            {f.main_image && (
+              <img src={f.main_image} alt="Main" className="h-32 w-32 rounded-md object-cover border" />
+            )}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => mainFileRef.current?.click()} disabled={uploadingMain}>
+                {uploadingMain ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                {uploadingMain ? "Uploading…" : "Upload image"}
+              </Button>
+              {f.main_image && (
+                <Button type="button" variant="ghost" size="sm" onClick={() => set("main_image", "")}>Remove</Button>
+              )}
+              <input ref={mainFileRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => onUploadMain(e.target.files?.[0])} />
+            </div>
+            <Input placeholder="Or paste image URL" value={f.main_image ?? ""} onChange={(e) => set("main_image", e.target.value)} />
+          </div>
+        </Field>
+
+        <Field label="Gallery images">
+          <div className="space-y-2">
+            {(() => {
+              const list = typeof f.gallery_images === "string"
+                ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+                : (f.gallery_images ?? []);
+              return list.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {list.map((url: string, i: number) => (
+                    <div key={i} className="relative">
+                      <img src={url} alt={`Gallery ${i + 1}`} className="h-24 w-24 rounded-md object-cover border" />
+                      <button type="button" onClick={() => removeGalleryAt(i)}
+                        className="absolute -top-2 -right-2 rounded-full bg-destructive text-destructive-foreground p-1 shadow">
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null;
+            })()}
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => galleryFileRef.current?.click()} disabled={uploadingGallery}>
+                {uploadingGallery ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                {uploadingGallery ? "Uploading…" : "Upload images"}
+              </Button>
+              <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden"
+                onChange={(e) => onUploadGallery(e.target.files)} />
+            </div>
+            <Textarea rows={3} placeholder="Or paste URLs (one per line)" value={f.gallery_images}
+              onChange={(e) => set("gallery_images", e.target.value)} />
+          </div>
+        </Field>
 
         <Field label="Usage instructions"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
         <Field label="Ingredients"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
