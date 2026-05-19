@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Pencil, Save, X, Package, LogOut, Repeat } from "lucide-react";
+import { Pencil, Save, X, Package, LogOut, Repeat, Wallet } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,7 @@ const MyProfile = () => {
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm"><Link to="/my-orders"><Package size={16}/> Pedidos</Link></Button>
             <Button asChild variant="outline" size="sm"><Link to="/my-subscriptions"><Repeat size={16}/> Suscripciones</Link></Button>
+            <Button asChild variant="outline" size="sm"><Link to="/my-store-credit"><Wallet size={16}/> Saldo en tienda</Link></Button>
             <Button asChild variant="accent" size="sm"><Link to="/programa-revendedor">💸 Plan revendedor</Link></Button>
             <Button onClick={signOut} variant="ghost" size="sm"><LogOut size={16}/> Cerrar sesión</Button>
           </div>
