@@ -108,14 +108,16 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p, i) => (
+            {paged.map((p) => {
+              const globalIdx = filtered.findIndex((x) => x.id === p.id);
+              return (
               <tr key={p.id} className="border-t">
                 <td className="p-3">
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={i === 0} aria-label="Subir">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={globalIdx === 0} aria-label="Subir">
                       <ArrowUp size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={i === filtered.length - 1} aria-label="Bajar">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={globalIdx === filtered.length - 1} aria-label="Bajar">
                       <ArrowDown size={16} />
                     </Button>
                   </div>
@@ -153,11 +155,19 @@ export default function AdminProducts() {
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
           </tbody>
         </table>
       </div>
+      <PaginationBar
+        page={currentPage}
+        pageSize={pageSize}
+        total={filtered.length}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+      />
     </div>
   );
 }
