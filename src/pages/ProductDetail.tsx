@@ -80,6 +80,7 @@ const ProductDetail = () => {
   const { slug } = useParams();
   const { add, toggleWish, wishlist } = useCart();
   const { format } = useCurrency();
+  const subSettings = useSubscriptionSettings();
   const [loading, setLoading] = useState(true);
   const [dbp, setDbp] = useState<DbProduct | null>(null);
   const [related, setRelated] = useState<DbProduct[]>([]);
