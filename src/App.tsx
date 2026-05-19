@@ -128,6 +128,7 @@ const App = () => (
               <Route path="testimonials" element={<AdminTestimonials />} />
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="subscription" element={<AdminSubscription />} />
+              <Route path="email" element={<AdminEmail />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
