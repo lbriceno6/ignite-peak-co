@@ -15,7 +15,7 @@ export default function AdminProducts() {
   const load = async () => {
     const { data } = await supabase
       .from("products")
-      .select("*")
+      .select("*, supplier:suppliers(id, business_name, slug)")
       .order("sort_order", { ascending: true } as any)
       .order("created_at", { ascending: false });
     setItems(data ?? []);
