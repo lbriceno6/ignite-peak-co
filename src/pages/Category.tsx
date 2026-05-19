@@ -270,6 +270,27 @@ const Category = () => {
     loadFacets();
   }, []);
 
+  // Load admin-managed filter options
+  useEffect(() => {
+    const loadOpts = async () => {
+      const { data } = await supabase
+        .from("filter_options" as any)
+        .select("group,label,value,sort_order,is_enabled")
+        .eq("is_enabled", true)
+        .order("sort_order");
+      const rows = ((data as any) ?? []) as { group: string; label: string; value: string }[];
+      const byGroup = (k: string) =>
+        rows.filter((r) => r.group === k).map((r) => ({ label: r.label, value: r.value }));
+      setDynamicGroups([
+        { key: "type", title: GROUP_TITLES.type, options: byGroup("type") },
+        { key: "goal", title: GROUP_TITLES.goal, options: byGroup("goal") },
+        { key: "flavor", title: GROUP_TITLES.flavor, options: byGroup("flavor") },
+        { key: "size", title: GROUP_TITLES.size, options: byGroup("size") },
+      ]);
+    };
+    loadOpts();
+  }, []);
+
   useEffect(() => {
     const run = async () => {
       setLoading(true);
