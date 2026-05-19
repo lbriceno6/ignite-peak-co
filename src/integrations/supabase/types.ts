@@ -738,11 +738,42 @@ export type Database = {
         }
         Relationships: []
       }
+      review_helpful_votes: {
+        Row: {
+          created_at: string
+          id: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           comment: string | null
           created_at: string
+          helpful_count: number
           id: string
+          is_published: boolean
           product_id: string
           rating: number
           user_id: string
@@ -750,7 +781,9 @@ export type Database = {
         Insert: {
           comment?: string | null
           created_at?: string
+          helpful_count?: number
           id?: string
+          is_published?: boolean
           product_id: string
           rating: number
           user_id: string
@@ -758,7 +791,9 @@ export type Database = {
         Update: {
           comment?: string | null
           created_at?: string
+          helpful_count?: number
           id?: string
+          is_published?: boolean
           product_id?: string
           rating?: number
           user_id?: string
@@ -1217,6 +1252,10 @@ export type Database = {
         }[]
       }
       supplier_owns_order: { Args: { _order_id: string }; Returns: boolean }
+      user_has_confirmed_purchase: {
+        Args: { _product_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "client"
