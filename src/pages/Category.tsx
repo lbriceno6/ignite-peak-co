@@ -231,6 +231,12 @@ const Category = () => {
   const [debouncedQ, setDebouncedQ] = useState("");
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const [dynamicGroups, setDynamicGroups] = useState<DynamicGroup[]>([
+    { key: "type", title: GROUP_TITLES.type, options: [] },
+    { key: "goal", title: GROUP_TITLES.goal, options: [] },
+    { key: "flavor", title: GROUP_TITLES.flavor, options: [] },
+    { key: "size", title: GROUP_TITLES.size, options: [] },
+  ]);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
