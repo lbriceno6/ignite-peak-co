@@ -655,13 +655,34 @@ const Checkout = () => {
               {items.length === 0 && <p className="text-sm text-muted-foreground">Tu carrito está vacío. <Link to="/" className="underline">Comprar ahora</Link></p>}
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
-              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(rawSubtotal)}</span></div>
+              {referral && discount > 0 && (
+                <div className="flex justify-between text-accent">
+                  <span className="inline-flex items-center gap-1"><Tag size={12} /> Descuento {referral.code ? `(${referral.code})` : ""} −{referral.customer_discount_percent}%</span>
+                  <span>−{format(discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between"><span className="text-muted-foreground">Envío {matchedZone ? `· ${matchedZone.name}` : ""}</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
               {matchedZone?.estimated_days && (
                 <div className="flex justify-between text-xs text-muted-foreground"><span>Entrega estimada</span><span>{matchedZone.estimated_days}</span></div>
               )}
+              {creditApplied > 0 && (
+                <div className="flex justify-between text-accent">
+                  <span className="inline-flex items-center gap-1"><Wallet size={12} /> Saldo en tienda</span>
+                  <span>−{format(creditApplied)}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
+            {availableCredit > 0 && (
+              <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-accent/40 bg-accent/5 p-3 text-sm">
+                <input type="checkbox" className="mt-0.5" checked={useCredit} onChange={(e) => setUseCredit(e.target.checked)} />
+                <div className="flex-1">
+                  <p className="font-semibold inline-flex items-center gap-1"><Wallet size={14} className="text-accent" /> Usar mi saldo en tienda</p>
+                  <p className="text-xs text-muted-foreground">Disponible: {format(availableCredit)}</p>
+                </div>
+              </label>
+            )}
             {(() => {
               const subItems = items.filter((i) => i.subscription);
               if (!subItems.length) return null;
