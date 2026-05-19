@@ -290,20 +290,32 @@ const Checkout = () => {
           <div className="space-y-6">
             {/* Contact + shipping */}
             <section className="rounded-xl border bg-card p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h3 className="font-display text-xl uppercase">Tus datos</h3>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-display text-xl uppercase">Datos de envío</h3>
                 {!user && <span className="rounded-full bg-success/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-success">Cuenta creada al pagar</span>}
+                {hasCompleteProfile && !editData && (
+                  <button type="button" onClick={() => setEditData(true)} className="text-xs font-semibold uppercase tracking-wider text-accent hover:underline">Editar</button>
+                )}
               </div>
-              <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="sm:col-span-2"><Label>Correo electrónico *</Label><Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className="mt-1.5" disabled={!!user} /></div>
-                <div><Label>Nombre *</Label><Input value={form.firstName} onChange={set("firstName")} className="mt-1.5" /></div>
-                <div><Label>Apellido *</Label><Input value={form.lastName} onChange={set("lastName")} className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>Teléfono *</Label><Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>Dirección *</Label><Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className="mt-1.5" /></div>
-                <div><Label>Ciudad *</Label><Input value={form.city} onChange={set("city")} className="mt-1.5" /></div>
-                <div><Label>Código postal</Label><Input value={form.postal} onChange={set("postal")} className="mt-1.5" /></div>
-                <div className="sm:col-span-2"><Label>País</Label><Input value={form.country} onChange={set("country")} className="mt-1.5" /></div>
-              </div>
+
+              {hasCompleteProfile && !editData ? (
+                <div className="mt-4 rounded-lg border bg-secondary/30 p-4 text-sm space-y-1">
+                  <p className="font-semibold">{form.firstName} {form.lastName}</p>
+                  <p className="text-muted-foreground">{form.email} · {form.phone}</p>
+                  <p className="text-muted-foreground">{form.address}, {form.city}{form.postal ? `, ${form.postal}` : ""}, {form.country}</p>
+                </div>
+              ) : (
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2"><Label>Correo electrónico *</Label><Input type="email" value={form.email} onChange={set("email")} placeholder="tu@correo.com" className="mt-1.5" disabled={!!user} /></div>
+                  <div><Label>Nombre *</Label><Input value={form.firstName} onChange={set("firstName")} className="mt-1.5" /></div>
+                  <div><Label>Apellido *</Label><Input value={form.lastName} onChange={set("lastName")} className="mt-1.5" /></div>
+                  <div className="sm:col-span-2"><Label>Teléfono *</Label><Input type="tel" value={form.phone} onChange={set("phone")} placeholder="+51 999 999 999" className="mt-1.5" /></div>
+                  <div className="sm:col-span-2"><Label>Dirección *</Label><Input value={form.address} onChange={set("address")} placeholder="Av. / Calle, número, referencia" className="mt-1.5" /></div>
+                  <div><Label>Ciudad *</Label><Input value={form.city} onChange={set("city")} className="mt-1.5" /></div>
+                  <div><Label>Código postal</Label><Input value={form.postal} onChange={set("postal")} className="mt-1.5" /></div>
+                  <div className="sm:col-span-2"><Label>País</Label><Input value={form.country} onChange={set("country")} className="mt-1.5" /></div>
+                </div>
+              )}
             </section>
 
             {/* Payment */}
