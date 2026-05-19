@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
+import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
 
 export default function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
@@ -17,6 +18,7 @@ export default function AdminProducts() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -169,6 +171,7 @@ export default function AdminProducts() {
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3"><Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p.id, v)} /></td>
                 <td className="p-3 text-right whitespace-nowrap">
+                  <Button variant="ghost" size="icon" onClick={() => setReviewsFor({ id: p.id, name: p.name })} aria-label="Valoraciones" title="Valoraciones"><Star size={16} /></Button>
                   <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicar"><Copy size={16} /></Button>
                   <Button asChild variant="ghost" size="icon"><Link to={`/admin/products/${p.id}/edit`}><Pencil size={16} /></Link></Button>
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
@@ -187,6 +190,12 @@ export default function AdminProducts() {
         total={total}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
+      />
+      <AdminReviewsDialog
+        open={!!reviewsFor}
+        onOpenChange={(v) => { if (!v) setReviewsFor(null); }}
+        productId={reviewsFor?.id ?? null}
+        productName={reviewsFor?.name}
       />
     </div>
   );

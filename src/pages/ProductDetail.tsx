@@ -15,6 +15,7 @@ import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
+import { ProductReviews } from "@/components/ProductReviews";
 
 type DbProduct = {
   id: string;
@@ -38,6 +39,7 @@ type DbProduct = {
   subscription_discount_percent: number;
   subscription_intervals: number[] | null;
   size_variants: any;
+  rating: number | null;
 };
 
 const labelFromBadge = (badge: string | null): Product["label"] | undefined => {
@@ -55,7 +57,7 @@ const toCardProduct = (p: DbProduct): Product => ({
   shortBenefit: p.short_description ?? "",
   price: Number(p.sale_price ?? p.price),
   oldPrice: p.sale_price ? Number(p.price) : undefined,
-  rating: 4.8,
+  rating: Number(p.rating ?? 0),
   reviews: 0,
   label: labelFromBadge(p.badge),
   image: resolveProductImage(p.main_image),
@@ -426,6 +428,8 @@ const ProductDetail = () => {
           </Accordion>
         </section>
       )}
+
+      <ProductReviews productId={dbp.id} />
 
       {related.length > 0 && (
         <section className="container-x pb-20">
