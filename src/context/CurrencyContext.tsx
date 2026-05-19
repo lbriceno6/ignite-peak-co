@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 export type CurrencyCode = "EUR" | "USD" | "PEN";
 
 export const CURRENCIES: Record<CurrencyCode, { label: string; symbol: string; flag: string; rate: number }> = {
-  // Base currency is EUR (database prices are stored in EUR). Rates are EUR -> X.
-  EUR: { label: "Euro", symbol: "€", flag: "🇪🇺", rate: 1 },
-  USD: { label: "US Dollar", symbol: "$", flag: "🇺🇸", rate: 1.08 },
-  PEN: { label: "Sol peruano", symbol: "S/", flag: "🇵🇪", rate: 4.05 },
+  // Base currency is PEN (database prices are stored in soles). Rates are PEN -> X.
+  PEN: { label: "Sol peruano", symbol: "S/", flag: "🇵🇪", rate: 1 },
+  USD: { label: "US Dollar", symbol: "$", flag: "🇺🇸", rate: 0.27 },
+  EUR: { label: "Euro", symbol: "€", flag: "🇪🇺", rate: 0.25 },
 };
 
 export const DEFAULT_CURRENCY_KEY = "site.currency.default";
