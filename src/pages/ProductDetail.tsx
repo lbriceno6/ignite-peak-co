@@ -429,6 +429,8 @@ const ProductDetail = () => {
         </section>
       )}
 
+      <ProductReviews productId={dbp.id} />
+
       {related.length > 0 && (
         <section className="container-x pb-20">
           <h2 className="font-display text-3xl uppercase">También te puede gustar</h2>
