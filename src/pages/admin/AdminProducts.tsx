@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,19 +12,39 @@ import { PaginationBar } from "@/components/PaginationBar";
 
 export default function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
 
   const load = async () => {
-    const { data } = await supabase
+    setLoading(true);
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    let query = supabase
       .from("products")
-      .select("*, supplier:suppliers(id, business_name, slug)")
+      .select("*, supplier:suppliers(id, business_name, slug)", { count: "exact" })
       .order("sort_order", { ascending: true } as any)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .range(from, to);
+    if (q.trim()) query = query.ilike("name", `%${q.trim()}%`);
+    const { data, count, error } = await query;
+    if (error) toast.error(error.message);
     setItems(data ?? []);
+    setTotal(count ?? 0);
+    setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+
+  // Reset page on filter/size change
+  useEffect(() => { setPage(1); }, [q, pageSize]);
+
+  // Re-fetch when page, pageSize or search changes (debounced for search)
+  useEffect(() => {
+    const t = setTimeout(() => { load(); }, q ? 250 : 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, q]);
 
   const toggleActive = async (id: string, value: boolean) => {
     const { error } = await supabase.from("products").update({ is_active: value }).eq("id", id);
@@ -42,12 +62,11 @@ export default function AdminProducts() {
   };
 
   const move = async (id: string, dir: -1 | 1) => {
-    // Reorder within the currently filtered list
-    const list = filtered;
-    const idx = list.findIndex((p) => p.id === id);
-    const swap = list[idx + dir];
+    // Reorder within the currently loaded page
+    const idx = items.findIndex((p) => p.id === id);
+    const swap = items[idx + dir];
     if (!swap) return;
-    const cur = list[idx];
+    const cur = items[idx];
     await Promise.all([
       (supabase.from("products") as any).update({ sort_order: swap.sort_order ?? 0 }).eq("id", cur.id),
       (supabase.from("products") as any).update({ sort_order: cur.sort_order ?? 0 }).eq("id", swap.id),
@@ -58,16 +77,22 @@ export default function AdminProducts() {
   const duplicate = async (id: string) => {
     const src = items.find((p) => p.id === id);
     if (!src) return;
-    const { id: _id, created_at, updated_at, ...rest } = src;
+    const { id: _id, created_at, updated_at, supplier: _supplier, ...rest } = src;
     const base = src.slug || "product";
     let newSlug = `${base}-copy`;
-    // ensure unique slug
     for (let i = 1; i < 50; i++) {
       const { data } = await supabase.from("products").select("id").eq("slug", newSlug).maybeSingle();
       if (!data) break;
       newSlug = `${base}-copy-${i + 1}`;
     }
-    const maxSort = items.reduce((m, p) => Math.max(m, p.sort_order ?? 0), 0);
+    // Compute new sort_order from the global max in DB
+    const { data: maxRow } = await supabase
+      .from("products")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const maxSort = (maxRow as any)?.sort_order ?? 0;
     const payload = { ...rest, slug: newSlug, name: `${src.name} (copy)`, is_active: false, sort_order: maxSort + 1 };
     const { error } = await supabase.from("products").insert(payload as any);
     if (error) return toast.error(error.message);
@@ -75,21 +100,15 @@ export default function AdminProducts() {
     load();
   };
 
-  const filtered = useMemo(
-    () => items.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())),
-    [items, q],
-  );
-  useEffect(() => { setPage(1); }, [q, pageSize]);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, totalPages);
-  const paged = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">Productos</h1>
-          <p className="text-muted-foreground">{items.length} en total</p>
+          <p className="text-muted-foreground">{total} en total</p>
         </div>
         <Button asChild variant="dark"><Link to="/admin/products/new"><Plus size={16} /> Nuevo producto</Link></Button>
       </div>
@@ -110,16 +129,14 @@ export default function AdminProducts() {
             </tr>
           </thead>
           <tbody>
-            {paged.map((p) => {
-              const globalIdx = filtered.findIndex((x) => x.id === p.id);
-              return (
+            {items.map((p, idx) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={globalIdx === 0} aria-label="Subir">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, -1)} disabled={idx === 0} aria-label="Subir">
                       <ArrowUp size={16} />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={globalIdx === filtered.length - 1} aria-label="Bajar">
+                    <Button variant="ghost" size="icon" onClick={() => move(p.id, 1)} disabled={idx === items.length - 1} aria-label="Bajar">
                       <ArrowDown size={16} />
                     </Button>
                   </div>
@@ -157,16 +174,17 @@ export default function AdminProducts() {
                   <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
                 </td>
               </tr>
-              );
-            })}
-            {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
+            ))}
+            {!loading && items.length === 0 && (
+              <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>
+            )}
           </tbody>
         </table>
       </div>
       <PaginationBar
         page={currentPage}
         pageSize={pageSize}
-        total={filtered.length}
+        total={total}
         onPageChange={setPage}
         onPageSizeChange={setPageSize}
       />
