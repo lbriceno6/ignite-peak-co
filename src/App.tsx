@@ -8,6 +8,7 @@ import { CurrencyProvider } from "@/context/CurrencyContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminRoute } from "@/components/AdminRoute";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index.tsx";
 import Category from "./pages/Category.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
