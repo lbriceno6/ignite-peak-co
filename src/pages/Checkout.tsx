@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
