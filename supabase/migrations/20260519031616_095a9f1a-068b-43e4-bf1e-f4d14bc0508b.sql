@@ -1,0 +1,1 @@
+UPDATE site_content SET value = '1' WHERE key = 'site.currency.rate.PEN';
