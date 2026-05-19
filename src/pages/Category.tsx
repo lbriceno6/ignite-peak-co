@@ -144,8 +144,19 @@ const FiltersPanel = ({
           <AccordionItem value="brand">
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Marca</AccordionTrigger>
             <AccordionContent>
+              <div className="relative mb-2">
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={brandQuery}
+                  onChange={(e) => setBrandQuery(e.target.value)}
+                  placeholder="Buscar marca…"
+                  className="h-8 pl-7 text-xs"
+                />
+              </div>
               <div className="max-h-56 space-y-2.5 overflow-y-auto pr-2">
-                {brands.map((b) => (
+                {filteredBrands.length === 0 ? (
+                  <p className="py-2 text-xs text-muted-foreground">Sin resultados</p>
+                ) : filteredBrands.map((b) => (
                   <label key={b} className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
                       checked={filters.brand.includes(b)}
@@ -163,8 +174,19 @@ const FiltersPanel = ({
           <AccordionItem value="supplier">
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Proveedor</AccordionTrigger>
             <AccordionContent>
+              <div className="relative mb-2">
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={supplierQuery}
+                  onChange={(e) => setSupplierQuery(e.target.value)}
+                  placeholder="Buscar proveedor…"
+                  className="h-8 pl-7 text-xs"
+                />
+              </div>
               <div className="max-h-56 space-y-2.5 overflow-y-auto pr-2">
-                {suppliers.map((s) => (
+                {filteredSuppliers.length === 0 ? (
+                  <p className="py-2 text-xs text-muted-foreground">Sin resultados</p>
+                ) : filteredSuppliers.map((s) => (
                   <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
                       checked={filters.supplier.includes(s.id)}
