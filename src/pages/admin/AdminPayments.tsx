@@ -38,6 +38,25 @@ const parseOrder = (raw: string): MethodId[] => {
   return valid;
 };
 
+type FieldProps = { k: string; label: string; area?: boolean; placeholder?: string; value: string; onChange: (v: string) => void };
+const Field = ({ label, area, placeholder, value, onChange }: FieldProps) => (
+  <div>
+    <Label className="text-xs">{label}</Label>
+    {area ? (
+      <Textarea className="mt-1.5" rows={3} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    ) : (
+      <Input className="mt-1.5" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} />
+    )}
+  </div>
+);
+
+const ToggleRow = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
+  <div className="flex items-center justify-between rounded-md border bg-muted/30 p-3">
+    <span className="text-sm font-semibold">{label}</span>
+    <Switch checked={checked} onCheckedChange={onChange} />
+  </div>
+);
+
 export default function AdminPayments() {
   const [m, setM] = useState<Record<string, string>>({});
   const [saved, setSaved] = useState<Record<string, string>>({});
