@@ -615,6 +615,48 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_providers: {
+        Row: {
+          code: string | null
+          cost: number
+          created_at: string
+          estimated_days: string | null
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          sort_order: number
+          updated_at: string
+          zones: string | null
+        }
+        Insert: {
+          code?: string | null
+          cost?: number
+          created_at?: string
+          estimated_days?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+          zones?: string | null
+        }
+        Update: {
+          code?: string | null
+          cost?: number
+          created_at?: string
+          estimated_days?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          sort_order?: number
+          updated_at?: string
+          zones?: string | null
+        }
+        Relationships: []
+      }
       site_content: {
         Row: {
           key: string
