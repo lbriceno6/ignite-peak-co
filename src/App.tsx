@@ -132,10 +132,12 @@ const App = () => (
               <Route path="shipping" element={<AdminShipping />} />
               <Route path="subscription" element={<AdminSubscription />} />
               <Route path="email" element={<AdminEmail />} />
+              <Route path="theme" element={<AdminTheme />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </ThemeProvider>
           </CurrencyProvider>
         </AuthProvider>
       </BrowserRouter>
