@@ -15,7 +15,7 @@ export default function AdminProducts() {
   const load = async () => {
     const { data } = await supabase
       .from("products")
-      .select("*")
+      .select("*, supplier:suppliers(id, business_name, slug)")
       .order("sort_order", { ascending: true } as any)
       .order("created_at", { ascending: false });
     setItems(data ?? []);
@@ -90,6 +90,7 @@ export default function AdminProducts() {
             <tr>
               <th className="p-3 w-24">Orden</th>
               <th className="p-3">Producto</th>
+              <th className="p-3">Proveedor</th>
               <th className="p-3">Categoría</th>
               <th className="p-3">Precio</th>
               <th className="p-3">Stock</th>
@@ -124,6 +125,15 @@ export default function AdminProducts() {
                     </div>
                   </div>
                 </td>
+                <td className="p-3">
+                  {p.supplier ? (
+                    <Link to={`/proveedor/${p.supplier.slug}`} className="text-xs hover:underline">
+                      {p.supplier.business_name}
+                    </Link>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </td>
                 <td className="p-3">{p.category}</td>
                 <td className="p-3">S/ {Number(p.price).toFixed(2)}</td>
                 <td className="p-3">{p.stock}</td>
@@ -135,7 +145,7 @@ export default function AdminProducts() {
                 </td>
               </tr>
             ))}
-            {filtered.length === 0 && <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>}
           </tbody>
         </table>
       </div>
