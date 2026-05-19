@@ -12,7 +12,7 @@ import {
   Palette, Loader2, RotateCcw, Type, Upload, Trash2, Sparkles, ShieldCheck, AlertTriangle, Wand2, Sun, Moon,
 } from "lucide-react";
 import {
-  THEME_KEYS, THEME_DEFAULTS, type ThemeKey, applyTheme, applyMode,
+  THEME_KEYS, THEME_DEFAULTS, type ThemeKey, applyTheme, applyMode, getStoredMode,
   hexToHsl, hslToHex, getContrastRatio, wcagLevel, suggestAccessible,
   COLOR_BASE_LIST, colorKey, CONTRAST_PAIRS,
   parseCustomFonts, type CustomFont,
