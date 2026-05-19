@@ -172,6 +172,11 @@ export default function AdminFilterOptions() {
                     <tr key={o.id} className="border-t">
                       <td className="p-3 font-medium">{o.label}</td>
                       <td className="p-3 text-muted-foreground">{o.value}</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                          {productCounts[`${o.group}:${o.value}`] || 0}
+                        </span>
+                      </td>
                       <td className="p-3">{o.sort_order}</td>
                       <td className="p-3">
                         <Switch checked={o.is_enabled} onCheckedChange={() => toggleEnabled(o)} />
