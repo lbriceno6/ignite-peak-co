@@ -125,7 +125,7 @@ export default function AdminProducts() {
                   </div>
                 </td>
                 <td className="p-3">{p.category}</td>
-                <td className="p-3">${Number(p.price).toFixed(2)}</td>
+                <td className="p-3">S/ {Number(p.price).toFixed(2)}</td>
                 <td className="p-3">{p.stock}</td>
                 <td className="p-3"><Switch checked={p.is_active} onCheckedChange={(v) => toggleActive(p.id, v)} /></td>
                 <td className="p-3 text-right whitespace-nowrap">
