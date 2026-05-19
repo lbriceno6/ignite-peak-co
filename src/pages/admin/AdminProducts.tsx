@@ -18,6 +18,7 @@ export default function AdminProducts() {
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
 
   const load = async () => {
     setLoading(true);
