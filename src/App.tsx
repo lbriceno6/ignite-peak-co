@@ -118,6 +118,7 @@ const App = () => (
               <Route path="site-links" element={<AdminSiteLinks />} />
               <Route path="contact" element={<AdminContact />} />
               <Route path="about" element={<AdminAbout />} />
+              <Route path="payments" element={<AdminPayments />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
