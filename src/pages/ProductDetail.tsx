@@ -36,6 +36,7 @@ type DbProduct = {
   subscription_enabled: boolean;
   subscription_discount_percent: number;
   subscription_intervals: number[] | null;
+  size_variants: any;
 };
 
 const labelFromBadge = (badge: string | null): Product["label"] | undefined => {
@@ -85,6 +86,7 @@ const ProductDetail = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [interval, setIntervalDays] = useState<number>(30);
+  const [selectedVariant, setSelectedVariant] = useState<number>(0);
 
   useEffect(() => {
     let alive = true;
@@ -141,7 +143,13 @@ const ProductDetail = () => {
   const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : [30, 60, 90]);
   const subDiscount = Number(dbp.subscription_discount_percent ?? 10);
   const subEnabled = !!dbp.subscription_enabled;
-  const basePrice = Number(dbp.sale_price ?? dbp.price);
+  const variants: { label: string; price: number }[] = Array.isArray(dbp.size_variants)
+    ? (dbp.size_variants as any[])
+        .map((v) => ({ label: String(v?.label ?? ""), price: Number(v?.price ?? 0) }))
+        .filter((v) => v.label && v.price > 0)
+    : [];
+  const variant = variants[selectedVariant];
+  const basePrice = variant ? variant.price : Number(dbp.sale_price ?? dbp.price);
   const effectivePrice = purchaseMode === "subscription"
     ? +(basePrice * (1 - subDiscount / 100)).toFixed(2)
     : basePrice;
@@ -220,6 +228,29 @@ const ProductDetail = () => {
             )}
           </div>
 
+          {variants.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-bold uppercase tracking-wider">Presentación</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {variants.map((v, i) => (
+                  <button
+                    key={`${v.label}-${i}`}
+                    type="button"
+                    onClick={() => setSelectedVariant(i)}
+                    className={cn(
+                      "rounded-md border px-4 py-2 text-sm font-semibold transition-smooth",
+                      selectedVariant === i ? "border-accent bg-accent/10" : "border-border hover:border-foreground",
+                    )}
+                  >
+                    {v.label} · {format(v.price)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+
+
           {subEnabled && (
             <div className="mt-6 space-y-2">
               <p className="text-sm font-bold uppercase tracking-wider">Compra</p>
@@ -271,10 +302,14 @@ const ProductDetail = () => {
               <span className="w-10 text-center font-display text-lg">{qty}</span>
               <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(product, {
-              quantity: qty,
-              subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
-            })}>
+            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(
+              { ...product, price: basePrice, oldPrice: undefined },
+              {
+                quantity: qty,
+                size: variant?.label,
+                subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
+              },
+            )}>
               <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
             </Button>
             <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
@@ -284,6 +319,7 @@ const ProductDetail = () => {
           {(() => {
             const lines = [
               `¡Hola! Estoy interesado en ${product.name}`,
+              variant ? `Presentación: ${variant.label}` : null,
               `Cantidad: ${qty}`,
               purchaseMode === "subscription"
                 ? `Tipo de compra: suscripción (cada ${interval} días, -${subDiscount}% de descuento)`

@@ -466,6 +466,7 @@ export type Database = {
           sale_price: number | null
           short_description: string | null
           size: string | null
+          size_variants: Json
           slug: string
           sort_order: number
           stock: number
@@ -496,6 +497,7 @@ export type Database = {
           sale_price?: number | null
           short_description?: string | null
           size?: string | null
+          size_variants?: Json
           slug: string
           sort_order?: number
           stock?: number
@@ -526,6 +528,7 @@ export type Database = {
           sale_price?: number | null
           short_description?: string | null
           size?: string | null
+          size_variants?: Json
           slug?: string
           sort_order?: number
           stock?: number

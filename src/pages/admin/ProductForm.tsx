@@ -32,6 +32,7 @@ const empty = {
   subscription_enabled: false,
   subscription_discount_percent: 10,
   subscription_intervals: "30,60,90",
+  size_variants: "" as any,
   supplier_id: null as string | null,
 };
 
@@ -113,6 +114,8 @@ export default function ProductForm() {
           nutrition_facts: data.nutrition_facts ? JSON.stringify(data.nutrition_facts, null, 2) : "",
           faqs: data.faqs ? JSON.stringify(data.faqs, null, 2) : "",
           subscription_intervals: (data.subscription_intervals as number[] ?? [30, 60, 90]).join(","),
+          size_variants: ((data as any).size_variants as any[] ?? [])
+            .map((v: any) => `${v?.label ?? ""}|${v?.price ?? ""}`).join("\n"),
         });
       }
     })();
@@ -139,6 +142,13 @@ export default function ProductForm() {
         subscription_intervals: typeof f.subscription_intervals === "string"
           ? f.subscription_intervals.split(",").map((s: string) => parseInt(s.trim(), 10)).filter((n: number) => !isNaN(n) && n > 0)
           : f.subscription_intervals,
+        size_variants: typeof f.size_variants === "string"
+          ? f.size_variants.split("\n").map((line: string) => {
+              const [label, price] = line.split("|").map((s) => s.trim());
+              if (!label) return null;
+              return { label, price: Number(price) || 0 };
+            }).filter(Boolean)
+          : (f.size_variants ?? []),
       };
       delete payload.created_at; delete payload.updated_at; delete payload.id;
       const res = isEdit
@@ -198,6 +208,14 @@ export default function ProductForm() {
             </Select>
           </Field>
         </div>
+
+        <Field label="Presentaciones / variantes de peso (una por línea, formato: etiqueta|precio, ej. 1kg|49.90)">
+          <Textarea rows={4} placeholder={"500g|29.90\n1kg|49.90\n2kg|89.90"} value={f.size_variants}
+            onChange={(e) => set("size_variants", e.target.value)} />
+          <p className="text-xs text-muted-foreground mt-1">Si agregas variantes, el cliente podrá elegir y se cobrará el precio de la variante seleccionada.</p>
+        </Field>
+
+
 
         <Field label="Imagen principal">
           <div className="space-y-2">
