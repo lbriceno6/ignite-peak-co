@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,10 +7,13 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
+import { PaginationBar } from "@/components/PaginationBar";
 
 export default function AdminProducts() {
   const [items, setItems] = useState<any[]>([]);
   const [q, setQ] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const load = async () => {
     const { data } = await supabase
