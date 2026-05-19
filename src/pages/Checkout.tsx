@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check } from "lucide-react";
+import { Lock, CreditCard, Truck, Smartphone, Landmark, Banknote, MessageCircle, Loader2, ShieldCheck, Copy, Check, Repeat } from "lucide-react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
