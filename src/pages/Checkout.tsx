@@ -610,7 +610,10 @@ const Checkout = () => {
             </div>
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(subtotal)}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Envío {matchedZone ? `· ${matchedZone.name}` : ""}</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
+              {matchedZone?.estimated_days && (
+                <div className="flex justify-between text-xs text-muted-foreground"><span>Entrega estimada</span><span>{matchedZone.estimated_days}</span></div>
+              )}
               <div className="flex justify-between border-t pt-3 font-display text-xl"><span>Total</span><span>{format(total)}</span></div>
             </div>
           </aside>
