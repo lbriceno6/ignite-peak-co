@@ -29,6 +29,7 @@ import {
   Repeat,
   Palette,
   SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,6 +127,13 @@ const defaultSections = [
       { key: "about", to: "/admin/about", label: "Página Sobre", icon: Info },
       { key: "contact", to: "/admin/contact", label: "Página Contacto", icon: Mail },
       { key: "theme", to: "/admin/theme", label: "Paleta y tipografía", icon: Palette },
+    ],
+  },
+  {
+    key: "seo",
+    label: "SEO Inteligente",
+    items: [
+      { key: "seo", to: "/admin/seo", label: "Panel SEO", icon: Sparkles },
     ],
   },
 ];

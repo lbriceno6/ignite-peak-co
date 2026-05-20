@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Upload, Loader2 } from "lucide-react";
+import { SeoEditor } from "@/components/admin/SeoEditor";
 
 const empty = {
   title: "", slug: "", excerpt: "", content: "",
@@ -134,6 +135,15 @@ export default function BlogForm() {
           <Switch checked={f.is_published} onCheckedChange={(v) => set("is_published", v)} />
           <Label>Published</Label>
         </div>
+
+        <SeoEditor
+          entityType="blog"
+          entityId={isEdit ? (id ?? null) : null}
+          fallbackTitle={f.title}
+          fallbackDescription={f.excerpt ?? ""}
+          fallbackSlug={f.slug}
+          images={f.cover_image ? [f.cover_image] : []}
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={() => nav("/admin/blog")}>Cancel</Button>

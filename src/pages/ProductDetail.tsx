@@ -16,6 +16,8 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
 import { ProductReviews } from "@/components/ProductReviews";
+import { SeoFromMeta } from "@/components/SeoFromMeta";
+import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 
 type DbProduct = {
   id: string;
@@ -91,6 +93,7 @@ const ProductDetail = () => {
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [interval, setIntervalDays] = useState<number>(30);
   const [selectedVariant, setSelectedVariant] = useState<number>(0);
+  const imageAlts = useSeoImageAlts("product", dbp?.id ?? null);
 
   useEffect(() => {
     let alive = true;
@@ -144,6 +147,7 @@ const ProductDetail = () => {
   const mainImg = resolveProductImage(dbp.main_image);
   const galleryUrls = parseList(dbp.gallery_images).map((u) => resolveProductImage(u));
   const gallery = [mainImg, ...galleryUrls].filter(Boolean);
+  const altFor = (url: string) => imageAlts[url] || product.name;
   const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : subSettings.defaultIntervals);
   const subDiscount = Number(dbp.subscription_discount_percent ?? subSettings.defaultDiscount) || subSettings.defaultDiscount;
   const subEnabled = !!dbp.subscription_enabled && subSettings.enabled;
@@ -171,8 +175,45 @@ const ProductDetail = () => {
     return [];
   })();
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: dbp.short_description || dbp.description || product.name,
+    image: gallery,
+    sku: dbp.id,
+    brand: { "@type": "Brand", name: product.brand || "Nutribatidos" },
+    aggregateRating: product.rating > 0 ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: 1 } : undefined,
+    offers: {
+      "@type": "Offer",
+      url: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}`,
+      priceCurrency: "PEN",
+      price: basePrice,
+      availability: (dbp as any).stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://ignite-peak-co.lovable.app/" },
+      ...(product.category ? [{ "@type": "ListItem", position: 2, name: product.category, item: `https://ignite-peak-co.lovable.app/categoria/${product.category.toLowerCase()}` }] : []),
+      { "@type": "ListItem", position: product.category ? 3 : 2, name: product.name, item: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}` },
+    ],
+  };
+
   return (
     <Layout>
+      <SeoFromMeta
+        entityType="product"
+        entityId={dbp.id}
+        path={`/producto/${dbp.slug}`}
+        fallbackTitle={`${product.name} | Nutribatidos`}
+        fallbackDescription={dbp.short_description || dbp.description || product.name}
+        fallbackImage={mainImg}
+        type="website"
+        extraJsonLd={[productJsonLd, breadcrumbJsonLd]}
+      />
       <div className="container-x py-6">
         <nav className="text-xs uppercase tracking-wider text-muted-foreground">
           <Link to="/" className="hover:text-accent">Inicio</Link>
@@ -187,7 +228,7 @@ const ProductDetail = () => {
       <section className="container-x grid gap-10 pb-12 lg:grid-cols-2">
         <div>
           <div className="overflow-hidden rounded-lg bg-secondary aspect-square">
-            <img src={gallery[activeImg] ?? mainImg} alt={product.name} className="h-full w-full object-cover" />
+            <img src={gallery[activeImg] ?? mainImg} alt={altFor(gallery[activeImg] ?? mainImg)} className="h-full w-full object-cover" />
           </div>
           {gallery.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
@@ -197,7 +238,7 @@ const ProductDetail = () => {
                   onClick={() => setActiveImg(i)}
                   className={cn("overflow-hidden rounded-md border-2 bg-secondary aspect-square", activeImg === i ? "border-accent" : "border-transparent")}
                 >
-                  <img src={g} alt="" className="h-full w-full object-cover" />
+                  <img src={g} alt={altFor(g)} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

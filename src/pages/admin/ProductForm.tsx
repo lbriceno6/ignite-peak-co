@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
+import { SeoEditor } from "@/components/admin/SeoEditor";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -302,6 +303,20 @@ export default function ProductForm() {
             </div>
           )}
         </div>
+
+        <SeoEditor
+          entityType="product"
+          entityId={isEdit ? (id ?? null) : null}
+          fallbackTitle={f.name}
+          fallbackDescription={f.short_description ?? f.description ?? ""}
+          fallbackSlug={f.slug}
+          images={[
+            ...(f.main_image ? [f.main_image] : []),
+            ...((typeof f.gallery_images === "string"
+              ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+              : (f.gallery_images ?? [])) as string[]),
+          ]}
+        />
 
         <div className="flex justify-end gap-3 pt-4">
           <Button variant="outline" onClick={() => nav("/admin/products")}>Cancelar</Button>

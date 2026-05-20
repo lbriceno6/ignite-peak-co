@@ -1042,6 +1042,141 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_image_alts: {
+        Row: {
+          alt_text: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          image_url: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          image_url: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          image_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_meta: {
+        Row: {
+          canonical: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          keywords: string[]
+          last_analyzed_at: string | null
+          long_description: string | null
+          noindex: boolean
+          og_image: string | null
+          schema_jsonld: Json | null
+          score: number | null
+          seo_description: string | null
+          seo_title: string | null
+          shopping_description: string | null
+          shopping_title: string | null
+          short_description: string | null
+          slug: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          canonical?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          keywords?: string[]
+          last_analyzed_at?: string | null
+          long_description?: string | null
+          noindex?: boolean
+          og_image?: string | null
+          schema_jsonld?: Json | null
+          score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shopping_description?: string | null
+          shopping_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          canonical?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          keywords?: string[]
+          last_analyzed_at?: string | null
+          long_description?: string | null
+          noindex?: boolean
+          og_image?: string | null
+          schema_jsonld?: Json | null
+          score?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shopping_description?: string | null
+          shopping_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_settings: {
+        Row: {
+          brand: string | null
+          default_description: string | null
+          default_og_image: string | null
+          default_title_template: string
+          google_product_category: string | null
+          id: number
+          robots_extra: string | null
+          site_name: string
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          default_description?: string | null
+          default_og_image?: string | null
+          default_title_template?: string
+          google_product_category?: string | null
+          id?: number
+          robots_extra?: string | null
+          site_name?: string
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          default_description?: string | null
+          default_og_image?: string | null
+          default_title_template?: string
+          google_product_category?: string | null
+          id?: number
+          robots_extra?: string | null
+          site_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       shipping_providers: {
         Row: {
           code: string | null
