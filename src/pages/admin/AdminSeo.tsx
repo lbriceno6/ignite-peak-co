@@ -22,7 +22,7 @@ import { PerformanceTab } from "@/components/admin/seo/PerformanceTab";
 import { ContentPlanTab } from "@/components/admin/seo/ContentPlanTab";
 import { RedirectsTab } from "@/components/admin/seo/RedirectsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
-import { exportSeoFullReport } from "@/lib/seoFullReport";
+import { exportFullSeoReport } from "@/lib/seoFullReport";
 import { Download } from "lucide-react";
 
 type Row = {
