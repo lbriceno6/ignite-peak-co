@@ -228,7 +228,7 @@ const ProductDetail = () => {
       <section className="container-x grid gap-10 pb-12 lg:grid-cols-2">
         <div>
           <div className="overflow-hidden rounded-lg bg-secondary aspect-square">
-            <img src={gallery[activeImg] ?? mainImg} alt={product.name} className="h-full w-full object-cover" />
+            <img src={gallery[activeImg] ?? mainImg} alt={altFor(gallery[activeImg] ?? mainImg)} className="h-full w-full object-cover" />
           </div>
           {gallery.length > 1 && (
             <div className="mt-3 grid grid-cols-4 gap-3">
@@ -238,7 +238,7 @@ const ProductDetail = () => {
                   onClick={() => setActiveImg(i)}
                   className={cn("overflow-hidden rounded-md border-2 bg-secondary aspect-square", activeImg === i ? "border-accent" : "border-transparent")}
                 >
-                  <img src={g} alt="" className="h-full w-full object-cover" />
+                  <img src={g} alt={altFor(g)} className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
