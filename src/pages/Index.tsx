@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Layout } from "@/components/Layout";
+import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { InstagramTestimonials } from "@/components/InstagramTestimonials";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
