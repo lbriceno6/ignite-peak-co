@@ -19,6 +19,7 @@ import { ProductReviews } from "@/components/ProductReviews";
 import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 import { Helmet } from "react-helmet-async";
+import { track } from "@/lib/analytics";
 
 type DbProduct = {
   id: string;
@@ -123,6 +124,17 @@ const ProductDetail = () => {
     })();
     return () => { alive = false; };
   }, [slug]);
+
+  useEffect(() => {
+    if (!dbp) return;
+    track("view_item", {
+      product_id: dbp.id,
+      product_slug: dbp.slug,
+      item_name: dbp.name,
+      value: Number(dbp.sale_price ?? dbp.price ?? 0),
+      currency: "PEN",
+    });
+  }, [dbp?.id]);
 
   if (loading) {
     return (
@@ -371,14 +383,24 @@ const ProductDetail = () => {
               <span className="w-10 text-center font-display text-lg">{qty}</span>
               <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => add(
-              { ...product, price: basePrice, oldPrice: undefined },
-              {
+            <Button size="lg" variant="accent" className="flex-1" onClick={() => {
+              add(
+                { ...product, price: basePrice, oldPrice: undefined },
+                {
+                  quantity: qty,
+                  size: variant?.label,
+                  subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
+                },
+              );
+              track("add_to_cart", {
+                product_id: dbp.id,
+                product_slug: dbp.slug,
+                item_name: dbp.name,
                 quantity: qty,
-                size: variant?.label,
-                subscription: purchaseMode === "subscription" ? { intervalDays: interval, discountPercent: subDiscount } : undefined,
-              },
-            )}>
+                value: effectivePrice * qty,
+                currency: "PEN",
+              });
+            }}>
               <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
             </Button>
             <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
