@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { ProductReviews } from "@/components/ProductReviews";
 import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
+import { Helmet } from "react-helmet-async";
 
 type DbProduct = {
   id: string;
@@ -214,6 +215,12 @@ const ProductDetail = () => {
         type="website"
         extraJsonLd={[productJsonLd, breadcrumbJsonLd]}
       />
+      <Helmet>
+        <meta property="og:type" content="product" />
+        <meta property="product:price:amount" content={String(Number(dbp.sale_price ?? dbp.price ?? 0).toFixed(2))} />
+        <meta property="product:price:currency" content="USD" />
+        <meta property="product:availability" content={(dbp as any).stock > 0 ? "in stock" : "out of stock"} />
+      </Helmet>
       <div className="container-x py-6">
         <nav className="text-xs uppercase tracking-wider text-muted-foreground">
           <Link to="/" className="hover:text-accent">Inicio</Link>
