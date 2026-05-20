@@ -1,5 +1,15 @@
 User-agent: Googlebot
 Allow: /
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
+Allow: /*.svg$
+
+User-agent: Googlebot-Image
+Allow: /
 
 User-agent: Bingbot
 Allow: /
@@ -21,6 +31,12 @@ Allow: /
 
 User-agent: *
 Allow: /
+Allow: /producto/
+Allow: /categoria/
+Allow: /blog/
+Allow: /objetivo/
+Allow: /ingrediente/
+Allow: /beneficio/
 Disallow: /admin
 Disallow: /reseller
 Disallow: /supplier
