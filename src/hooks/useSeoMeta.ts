@@ -20,6 +20,7 @@ export type SeoMetaRow = {
   short_description: string | null;
   long_description: string | null;
   noindex: boolean;
+  robots_directive: string | null;
   score: number | null;
   last_analyzed_at: string | null;
 };

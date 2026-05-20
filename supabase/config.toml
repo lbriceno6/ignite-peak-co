@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.notify-supplier-event]
 verify_jwt = false
+
+[functions.seo-monthly-plan]
+verify_jwt = true
+
+[functions.seo-generate]
+verify_jwt = true

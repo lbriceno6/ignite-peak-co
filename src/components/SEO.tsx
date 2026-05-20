@@ -20,9 +20,10 @@ type Props = {
   type?: "website" | "article";
   publishedTime?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  robots?: string;
 };
 
-export const SEO = ({ title, description, path = "", image, type = "website", publishedTime, jsonLd }: Props) => {
+export const SEO = ({ title, description, path = "", image, type = "website", publishedTime, jsonLd, robots }: Props) => {
   const url = `${SITE_URL}${path}`;
   const fullTitle = title.length > 60 ? title.slice(0, 57) + "…" : title;
   const desc = description ? (description.length > 160 ? description.slice(0, 157) + "…" : description) : undefined;
@@ -32,6 +33,7 @@ export const SEO = ({ title, description, path = "", image, type = "website", pu
     <Helmet>
       <title>{fullTitle}</title>
       {desc && <meta name="description" content={desc} />}
+      {robots && <meta name="robots" content={robots} />}
       <link rel="canonical" href={url} />
       <meta property="og:site_name" content={SITE_NAME} />
       <meta property="og:title" content={fullTitle} />
