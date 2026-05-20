@@ -19,6 +19,7 @@ import { ClaimsTab } from "@/components/admin/seo/ClaimsTab";
 import { QaTab } from "@/components/admin/seo/QaTab";
 import { AnalyticsTab } from "@/components/admin/seo/AnalyticsTab";
 import { PerformanceTab } from "@/components/admin/seo/PerformanceTab";
+import { FunnelTab } from "@/components/admin/seo/FunnelTab";
 import { ContentPlanTab } from "@/components/admin/seo/ContentPlanTab";
 import { RedirectsTab } from "@/components/admin/seo/RedirectsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
@@ -107,6 +108,7 @@ export default function AdminSeo() {
           <TabsTrigger value="claims">Claims</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="funnel">Embudo</TabsTrigger>
           <TabsTrigger value="content">Plan contenido</TabsTrigger>
           <TabsTrigger value="redirects">Redirecciones</TabsTrigger>
           <TabsTrigger value="settings">Ajustes</TabsTrigger>
@@ -121,6 +123,7 @@ export default function AdminSeo() {
         <TabsContent value="claims" className="mt-4"><ClaimsTab /></TabsContent>
         <TabsContent value="analytics" className="mt-4"><AnalyticsTab /></TabsContent>
         <TabsContent value="performance" className="mt-4"><PerformanceTab /></TabsContent>
+        <TabsContent value="funnel" className="mt-4"><FunnelTab /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPlanTab /></TabsContent>
         <TabsContent value="redirects" className="mt-4"><RedirectsTab /></TabsContent>
 
