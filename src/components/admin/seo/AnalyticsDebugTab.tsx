@@ -6,7 +6,7 @@ import { CheckCircle2, XCircle, Send } from "lucide-react";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 
-declare global { interface Window { dataLayer?: any[]; gtag?: any; fbq?: any } }
+
 
 export function AnalyticsDebugTab() {
   const [cfg, setCfg] = useState<any>(null);
