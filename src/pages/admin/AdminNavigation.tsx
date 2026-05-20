@@ -71,6 +71,19 @@ export default function AdminNavigation() {
     } catch (e: any) { toast.error(e.message); } finally { setUploading(false); }
   };
 
+  const uploadFavicon = async (file: File) => {
+    setUploadingFavicon(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `favicon-${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
+      setL("favicon_url", data.publicUrl);
+      toast.success("Favicon uploaded — remember to save");
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingFavicon(false); }
+  };
+
   const createLink = async () => {
     const sort_order = links.length ? Math.max(...links.map((s) => s.sort_order)) + 1 : 0;
     const { error } = await supabase.from("nav_links").insert({ label: "New link", href: "/", sort_order });
