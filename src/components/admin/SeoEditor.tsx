@@ -7,10 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles } from "lucide-react";
 import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
 import { slugify } from "@/lib/slug";
 import type { SeoEntityType, SeoMetaRow } from "@/hooks/useSeoMeta";
+import { SeoAiSuggestionDialog } from "@/components/admin/SeoAiSuggestionDialog";
 
 type Props = {
   entityType: SeoEntityType;
@@ -38,6 +39,10 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const [alts, setAlts] = useState<Record<string, string>>({});
   const [kwInput, setKwInput] = useState("");
   const [tagInput, setTagInput] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiFaqs, setAiFaqs] = useState<{ question: string; answer: string }[] | null>(null);
+
+
 
   useEffect(() => {
     if (!entityId) return;
