@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_settings: {
+        Row: {
+          ads_enabled: boolean
+          ga4_enabled: boolean
+          ga4_measurement_id: string | null
+          google_ads_conversion_id: string | null
+          google_ads_conversion_label: string | null
+          gtm_container_id: string | null
+          gtm_enabled: boolean
+          id: number
+          meta_pixel_id: string | null
+          pixel_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          ads_enabled?: boolean
+          ga4_enabled?: boolean
+          ga4_measurement_id?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_label?: string | null
+          gtm_container_id?: string | null
+          gtm_enabled?: boolean
+          id?: number
+          meta_pixel_id?: string | null
+          pixel_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ads_enabled?: boolean
+          ga4_enabled?: boolean
+          ga4_measurement_id?: string | null
+          google_ads_conversion_id?: string | null
+          google_ads_conversion_label?: string | null
+          gtm_container_id?: string | null
+          gtm_enabled?: boolean
+          id?: number
+          meta_pixel_id?: string | null
+          pixel_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           category: string | null
@@ -666,6 +708,45 @@ export type Database = {
           },
         ]
       }
+      product_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          landing_slug: string | null
+          metadata: Json
+          product_id: string | null
+          product_slug: string | null
+          session_id: string | null
+          user_id: string | null
+          value: number | null
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          landing_slug?: string | null
+          metadata?: Json
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          value?: number | null
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          landing_slug?: string | null
+          metadata?: Json
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          user_id?: string | null
+          value?: number | null
+        }
+        Relationships: []
+      }
       product_search_terms: {
         Row: {
           created_at: string
@@ -1164,6 +1245,51 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_content_plan: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          kind: string
+          notes: string | null
+          payload: Json
+          status: string
+          target_keyword: string | null
+          target_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          kind: string
+          notes?: string | null
+          payload?: Json
+          status?: string
+          target_keyword?: string | null
+          target_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          payload?: Json
+          status?: string
+          target_keyword?: string | null
+          target_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seo_gsc_settings: {
         Row: {
           id: number
@@ -1311,6 +1437,7 @@ export type Database = {
           long_description: string | null
           noindex: boolean
           og_image: string | null
+          robots_directive: string | null
           schema_jsonld: Json | null
           score: number | null
           seo_description: string | null
@@ -1333,6 +1460,7 @@ export type Database = {
           long_description?: string | null
           noindex?: boolean
           og_image?: string | null
+          robots_directive?: string | null
           schema_jsonld?: Json | null
           score?: number | null
           seo_description?: string | null
@@ -1355,6 +1483,7 @@ export type Database = {
           long_description?: string | null
           noindex?: boolean
           og_image?: string | null
+          robots_directive?: string | null
           schema_jsonld?: Json | null
           score?: number | null
           seo_description?: string | null
@@ -1365,6 +1494,33 @@ export type Database = {
           slug?: string | null
           tags?: string[]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_redirects: {
+        Row: {
+          active: boolean
+          created_at: string
+          from_path: string
+          id: string
+          status_code: number
+          to_path: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          from_path: string
+          id?: string
+          status_code?: number
+          to_path: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          from_path?: string
+          id?: string
+          status_code?: number
+          to_path?: string
         }
         Relationships: []
       }
