@@ -16,16 +16,18 @@ type NavLinkRow = {
   open_in_new_tab: boolean;
 };
 
-const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url"] as const;
+const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url", "favicon_url"] as const;
 
 export default function AdminNavigation() {
-  const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "" });
-  const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "" });
+  const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
+  const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
   const [links, setLinks] = useState<NavLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingLogo, setSavingLogo] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const faviconRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
