@@ -24,7 +24,7 @@ const KEYS = [
 ];
 
 const DEFAULTS: Record<string, string> = {
-  logo_text: "VOLT", logo_accent: "RA", logo_image_url: "",
+  logo_text: "", logo_accent: "", logo_image_url: "",
   footer_description: "Nutrición y suplementos premium diseñados para potenciar tu entrenamiento, recuperación y bienestar diario.",
   footer_newsletter_title: "Únete al círculo interno",
   footer_newsletter_help: "Obtén 10% de descuento en tu primer pedido. Sin spam.",
