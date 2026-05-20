@@ -83,6 +83,7 @@ import SupplierProductForm from "./pages/supplier/SupplierProductForm.tsx";
 import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
 import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
+import SeoLanding from "./pages/SeoLanding.tsx";
 
 const queryClient = new QueryClient();
 
@@ -136,6 +137,11 @@ const App = () => (
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
+
+            {/* SEO landing pages */}
+            <Route path="/objetivo/:slug" element={<SeoLanding kind="objetivo" />} />
+            <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
+            <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
 
             {/* Marketplace / Suppliers */}
             <Route path="/vende-con-nosotros" element={<SellWithUs />} />
