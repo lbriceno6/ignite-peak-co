@@ -7,10 +7,11 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp, X } from "lucide-react";
+import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles } from "lucide-react";
 import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
 import { slugify } from "@/lib/slug";
 import type { SeoEntityType, SeoMetaRow } from "@/hooks/useSeoMeta";
+import { SeoAiSuggestionDialog } from "@/components/admin/SeoAiSuggestionDialog";
 
 type Props = {
   entityType: SeoEntityType;
@@ -38,6 +39,10 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const [alts, setAlts] = useState<Record<string, string>>({});
   const [kwInput, setKwInput] = useState("");
   const [tagInput, setTagInput] = useState("");
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiFaqs, setAiFaqs] = useState<{ question: string; answer: string }[] | null>(null);
+
+
 
   useEffect(() => {
     if (!entityId) return;
@@ -109,8 +114,28 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
         if (e2) throw e2;
       }
 
+      // FAQs into schema_jsonld
+      if (aiFaqs && aiFaqs.length > 0) {
+        const faqSchema = {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: aiFaqs.map((q) => ({
+            "@type": "Question",
+            name: q.question,
+            acceptedAnswer: { "@type": "Answer", text: q.answer },
+          })),
+        };
+        await supabase.from("seo_meta" as any).update({ schema_jsonld: faqSchema }).eq("entity_type", entityType).eq("entity_id", entityId);
+      }
+
       toast.success("SEO guardado");
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
+  };
+
+  const applySuggestion = (patch: Record<string, any>, newAlts: Record<string, string>, faqs: { question: string; answer: string }[]) => {
+    setF((p) => ({ ...p, ...patch }));
+    if (Object.keys(newAlts).length) setAlts((p) => ({ ...p, ...newAlts }));
+    if (faqs.length) setAiFaqs(faqs);
   };
 
   const addKeyword = () => {
@@ -146,6 +171,13 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
       {open && (
         <div className="space-y-4 border-t p-4">
           {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Cargando…</div>}
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setAiOpen(true)} disabled={!entityId}>
+              <Sparkles size={14} /> Generar SEO con IA
+            </Button>
+            {aiFaqs && <span className="text-xs text-emerald-600">{aiFaqs.length} FAQs listas para guardar</span>}
+          </div>
 
           {/* Google snippet preview */}
           <div className="rounded-md border bg-secondary/30 p-3">
@@ -269,6 +301,17 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
             </Button>
           </div>
         </div>
+      )}
+
+      {entityId && (
+        <SeoAiSuggestionDialog
+          open={aiOpen}
+          onClose={() => setAiOpen(false)}
+          entityType={entityType}
+          entityId={entityId}
+          current={f}
+          onApply={applySuggestion}
+        />
       )}
     </div>
   );

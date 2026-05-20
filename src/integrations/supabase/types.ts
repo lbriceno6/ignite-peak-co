@@ -1177,6 +1177,75 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_suggestions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_id: string
+          entity_type: string
+          faqs: Json
+          id: string
+          image_alts: Json
+          keywords: string[]
+          long_description: string | null
+          model: string | null
+          raw: Json | null
+          reviewed_at: string | null
+          seo_description: string | null
+          seo_title: string | null
+          shopping_description: string | null
+          shopping_title: string | null
+          short_description: string | null
+          slug: string | null
+          status: string
+          tags: string[]
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_id: string
+          entity_type: string
+          faqs?: Json
+          id?: string
+          image_alts?: Json
+          keywords?: string[]
+          long_description?: string | null
+          model?: string | null
+          raw?: Json | null
+          reviewed_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shopping_description?: string | null
+          shopping_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          status?: string
+          tags?: string[]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_id?: string
+          entity_type?: string
+          faqs?: Json
+          id?: string
+          image_alts?: Json
+          keywords?: string[]
+          long_description?: string | null
+          model?: string | null
+          raw?: Json | null
+          reviewed_at?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          shopping_description?: string | null
+          shopping_title?: string | null
+          short_description?: string | null
+          slug?: string | null
+          status?: string
+          tags?: string[]
+        }
+        Relationships: []
+      }
       shipping_providers: {
         Row: {
           code: string | null

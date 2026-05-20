@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, ExternalLink, Loader2, Save } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Pencil, ExternalLink, Loader2, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { scoreBadgeClass } from "@/lib/seoScore";
 
@@ -82,13 +84,13 @@ export default function AdminSeo() {
         </TabsList>
 
         <TabsContent value="products" className="mt-4">
-          <EntityTable rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
+          <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
-          <EntityTable rows={catRows} editHref={() => `#`} publicHref={(r) => `/categoria/${r.slug}`} note="Edición SEO de categorías llega en Etapa 2 (botón IA)." />
+          <EntityTable entityType="category" rows={catRows} editHref={() => `#`} publicHref={(r) => `/categoria/${r.slug}`} note="Categorías: usa Optimizar con IA (no hay editor manual aún)." />
         </TabsContent>
         <TabsContent value="blog" className="mt-4">
-          <EntityTable rows={blogRows} editHref={(r) => `/admin/blog/${r.id}/edit`} publicHref={(r) => `/blog/${r.slug}`} />
+          <EntityTable entityType="blog" rows={blogRows} editHref={(r) => `/admin/blog/${r.id}/edit`} publicHref={(r) => `/blog/${r.slug}`} />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-4">
@@ -140,39 +142,111 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
   <div className="space-y-1.5"><Label>{label}</Label>{children}</div>
 );
 
-const EntityTable = ({ rows, editHref, publicHref, note }: { rows: Row[]; editHref: (r: Row) => string; publicHref: (r: Row) => string; note?: string }) => (
-  <div className="overflow-x-auto rounded-lg border bg-background">
-    {note && <div className="border-b bg-amber-50 p-2 text-xs text-amber-700 dark:bg-amber-950/30">{note}</div>}
-    <table className="w-full text-sm">
-      <thead className="bg-muted/50 text-left">
-        <tr>
-          <th className="p-3">Nombre</th>
-          <th className="p-3">Slug</th>
-          <th className="p-3">Título SEO</th>
-          <th className="p-3">Score</th>
-          <th className="p-3 text-right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r) => {
-          const s = r.seo?.score ?? 0;
-          return (
-            <tr key={r.id} className="border-t">
-              <td className="p-3 font-medium">{r.name ?? r.title}</td>
-              <td className="p-3 text-muted-foreground">{r.slug}</td>
-              <td className="p-3 text-muted-foreground truncate max-w-[280px]">{r.seo?.seo_title ?? <span className="text-amber-600">— sin configurar —</span>}</td>
-              <td className="p-3">
-                {r.seo ? <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreBadgeClass(s)}`}>{s}</span> : <span className="text-xs text-muted-foreground">—</span>}
-              </td>
-              <td className="p-3 text-right whitespace-nowrap">
-                <Button asChild variant="ghost" size="icon" title="Editar"><Link to={editHref(r)}><Pencil size={14} /></Link></Button>
-                <Button asChild variant="ghost" size="icon" title="Ver"><Link to={publicHref(r)} target="_blank"><ExternalLink size={14} /></Link></Button>
-              </td>
+const EntityTable = ({ rows, editHref, publicHref, entityType, note }: { rows: Row[]; editHref: (r: Row) => string; publicHref: (r: Row) => string; entityType: "product" | "blog" | "category"; note?: string }) => {
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [bulkRunning, setBulkRunning] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0, fail: 0 });
+
+  const toggleAll = (v: boolean) => {
+    const m: Record<string, boolean> = {};
+    if (v) rows.forEach((r) => { m[r.id] = true; });
+    setSelected(m);
+  };
+
+  const selectedIds = rows.filter((r) => selected[r.id]).map((r) => r.id);
+
+  const runBulk = async () => {
+    if (selectedIds.length === 0) return;
+    setBulkRunning(true);
+    setProgress({ done: 0, total: selectedIds.length, fail: 0 });
+    let done = 0; let fail = 0;
+    for (const id of selectedIds) {
+      try {
+        const { data, error } = await supabase.functions.invoke("seo-generate", { body: { entity_type: entityType, entity_id: id } });
+        if (error || (data as any)?.error) throw new Error(error?.message || (data as any).error);
+        const s = (data as any).suggestion;
+        // Auto-accept and upsert into seo_meta (bulk = quick wins)
+        await supabase.from("seo_meta" as any).upsert({
+          entity_type: entityType,
+          entity_id: id,
+          seo_title: s.seo_title,
+          seo_description: s.seo_description,
+          slug: s.slug,
+          keywords: s.keywords ?? [],
+          tags: s.tags ?? [],
+          short_description: s.short_description,
+          long_description: s.long_description,
+          shopping_title: s.shopping_title,
+          shopping_description: s.shopping_description,
+          last_analyzed_at: new Date().toISOString(),
+        }, { onConflict: "entity_type,entity_id" });
+        // Alts
+        const altRows = (s.image_alts ?? []).map((a: any) => ({ entity_type: entityType, entity_id: id, image_url: a.image_url, alt_text: a.alt_text }));
+        if (altRows.length) await supabase.from("seo_image_alts" as any).upsert(altRows, { onConflict: "entity_type,entity_id,image_url" });
+        done++;
+      } catch (e: any) {
+        fail++;
+        toast.error(`${id.slice(0, 8)}: ${e.message}`);
+      }
+      setProgress({ done: done + fail, total: selectedIds.length, fail });
+      await new Promise((r) => setTimeout(r, 600));
+    }
+    setBulkRunning(false);
+    toast.success(`Completado: ${done} ok, ${fail} fallidos. Refresca para ver scores.`);
+  };
+
+  const allChecked = rows.length > 0 && selectedIds.length === rows.length;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">{selectedIds.length} seleccionado(s)</span>
+        <Button variant="dark" size="sm" disabled={selectedIds.length === 0 || bulkRunning} onClick={runBulk}>
+          {bulkRunning ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />} Optimizar con IA
+        </Button>
+        {bulkRunning && (
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Progress value={(progress.done / Math.max(1, progress.total)) * 100} className="w-40" />
+            {progress.done}/{progress.total} ({progress.fail} fallidos)
+          </div>
+        )}
+      </div>
+      <div className="overflow-x-auto rounded-lg border bg-background">
+        {note && <div className="border-b bg-amber-50 p-2 text-xs text-amber-700 dark:bg-amber-950/30">{note}</div>}
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50 text-left">
+            <tr>
+              <th className="p-3 w-8"><Checkbox checked={allChecked} onCheckedChange={(v) => toggleAll(!!v)} /></th>
+              <th className="p-3">Nombre</th>
+              <th className="p-3">Slug</th>
+              <th className="p-3">Título SEO</th>
+              <th className="p-3">Score</th>
+              <th className="p-3 text-right">Acciones</th>
             </tr>
-          );
-        })}
-        {rows.length === 0 && <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">Sin elementos</td></tr>}
-      </tbody>
-    </table>
-  </div>
-);
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const s = r.seo?.score ?? 0;
+              return (
+                <tr key={r.id} className="border-t">
+                  <td className="p-3"><Checkbox checked={!!selected[r.id]} onCheckedChange={(v) => setSelected((p) => ({ ...p, [r.id]: !!v }))} /></td>
+                  <td className="p-3 font-medium">{r.name ?? r.title}</td>
+                  <td className="p-3 text-muted-foreground">{r.slug}</td>
+                  <td className="p-3 text-muted-foreground truncate max-w-[280px]">{r.seo?.seo_title ?? <span className="text-amber-600">— sin configurar —</span>}</td>
+                  <td className="p-3">
+                    {r.seo ? <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreBadgeClass(s)}`}>{s}</span> : <span className="text-xs text-muted-foreground">—</span>}
+                  </td>
+                  <td className="p-3 text-right whitespace-nowrap">
+                    <Button asChild variant="ghost" size="icon" title="Editar"><Link to={editHref(r)}><Pencil size={14} /></Link></Button>
+                    <Button asChild variant="ghost" size="icon" title="Ver"><Link to={publicHref(r)} target="_blank"><ExternalLink size={14} /></Link></Button>
+                  </td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">Sin elementos</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
