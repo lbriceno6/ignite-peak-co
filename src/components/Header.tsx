@@ -39,9 +39,12 @@ const ModeSwitcher = () => {
 type NavItem = { id: string; label: string; href: string; open_in_new_tab: boolean };
 
 const Logo = ({ className }: { className?: string }) => {
-  const { content } = useSiteContent(["logo_text", "logo_accent", "logo_image_url"], {
-    logo_text: "VOLT", logo_accent: "RA", logo_image_url: "",
+  const { content, loading } = useSiteContent(["logo_text", "logo_accent", "logo_image_url"], {
+    logo_text: "", logo_accent: "", logo_image_url: "",
   });
+  if (loading) {
+    return <span className={cn("inline-block h-8 w-24 lg:h-10", className)} aria-hidden />;
+  }
   if (content.logo_image_url) {
     return <img src={content.logo_image_url} alt="Logo" className={cn("h-8 w-auto object-contain lg:h-10", className)} />;
   }
