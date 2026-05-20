@@ -83,7 +83,9 @@ export const Footer = () => {
         <div className="grid gap-12 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Link to="/" className="inline-flex items-center">
-              {content.logo_image_url ? (
+              {loading ? (
+                <span className="inline-block h-10 w-32" aria-hidden />
+              ) : content.logo_image_url ? (
                 <img src={content.logo_image_url} alt="Logo" className="h-10 w-auto object-contain" />
               ) : (
                 <span className="font-display text-3xl">
