@@ -545,7 +545,13 @@ const Home = () => {
     }
   };
 
-  return <Layout>{blocks.map(renderBlock)}<InstagramTestimonials /></Layout>;
+  return (
+    <Layout>
+      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Batidos y suplementos naturales" fallbackDescription="Productos alimenticios naturales que ayudan a complementar una rutina saludable y contribuyen al bienestar general." />
+      {blocks.map(renderBlock)}
+      <InstagramTestimonials />
+    </Layout>
+  );
 };
 
 export default Home;
