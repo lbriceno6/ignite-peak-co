@@ -21,13 +21,30 @@ type Props = {
   publishedTime?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   robots?: string;
+  canonical?: string;
+  siteName?: string;
+  ogTitle?: string;
+  ogDescription?: string;
+  twitterTitle?: string;
+  twitterDescription?: string;
+  twitterImage?: string | null;
 };
 
-export const SEO = ({ title, description, path = "", image, type = "website", publishedTime, jsonLd, robots }: Props) => {
-  const url = `${SITE_URL}${path}`;
+export const SEO = ({
+  title, description, path = "", image, type = "website", publishedTime, jsonLd, robots,
+  canonical, siteName, ogTitle, ogDescription, twitterTitle, twitterDescription, twitterImage,
+}: Props) => {
+  const url = canonical && /^https?:\/\//i.test(canonical)
+    ? canonical
+    : `${SITE_URL}${canonical ?? path}`;
   const fullTitle = title.length > 60 ? title.slice(0, 57) + "…" : title;
   const desc = description ? (description.length > 160 ? description.slice(0, 157) + "…" : description) : undefined;
   const ogImage = toAbsolute(image) ?? DEFAULT_OG_IMAGE;
+  const twImage = toAbsolute(twitterImage) ?? ogImage;
+  const ogT = ogTitle || fullTitle;
+  const ogD = ogDescription || desc;
+  const twT = twitterTitle || ogT;
+  const twD = twitterDescription || ogD;
 
   return (
     <Helmet>
@@ -35,17 +52,17 @@ export const SEO = ({ title, description, path = "", image, type = "website", pu
       {desc && <meta name="description" content={desc} />}
       {robots && <meta name="robots" content={robots} />}
       <link rel="canonical" href={url} />
-      <meta property="og:site_name" content={SITE_NAME} />
-      <meta property="og:title" content={fullTitle} />
-      {desc && <meta property="og:description" content={desc} />}
+      <meta property="og:site_name" content={siteName || SITE_NAME} />
+      <meta property="og:title" content={ogT} />
+      {ogD && <meta property="og:description" content={ogD} />}
       <meta property="og:url" content={url} />
       <meta property="og:type" content={type} />
       <meta property="og:image" content={ogImage} />
       {publishedTime && <meta property="article:published_time" content={publishedTime} />}
       <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={fullTitle} />
-      {desc && <meta name="twitter:description" content={desc} />}
-      <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:title" content={twT} />
+      {twD && <meta name="twitter:description" content={twD} />}
+      <meta name="twitter:image" content={twImage} />
       {jsonLd && (
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       )}
