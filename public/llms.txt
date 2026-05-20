@@ -1,0 +1,51 @@
+# Nutribatidos
+
+> Tienda online de suplementos nutricionales, batidos y productos de bienestar.
+
+## Principales
+
+- [Inicio](https://ignite-peak-co.lovable.app/)
+- [Productos](https://ignite-peak-co.lovable.app/productos)
+- [Blog](https://ignite-peak-co.lovable.app/blog)
+- [Sobre nosotros](https://ignite-peak-co.lovable.app/nosotros)
+- [Contacto](https://ignite-peak-co.lovable.app/contacto)
+- [Programa revendedor](https://ignite-peak-co.lovable.app/programa-revendedor)
+- [Vende con nosotros](https://ignite-peak-co.lovable.app/vende-con-nosotros)
+
+## Categorías
+
+- [Pre-Workout](https://ignite-peak-co.lovable.app/categoria/pre-workout)
+- [Snacks](https://ignite-peak-co.lovable.app/categoria/snacks)
+- [Accessories](https://ignite-peak-co.lovable.app/categoria/accessories)
+- [Creatina](https://ignite-peak-co.lovable.app/categoria/creatine)
+- [Vitaminas](https://ignite-peak-co.lovable.app/categoria/vitamins)
+- [Amino Acidos](https://ignite-peak-co.lovable.app/categoria/amino-acids)
+- [Proteinas](https://ignite-peak-co.lovable.app/categoria/Proteinas)
+
+
+
+## Productos
+
+- [Ignite Pre-Workout](https://ignite-peak-co.lovable.app/producto/ignite-pre-workout)
+- [Daily Multi Complex](https://ignite-peak-co.lovable.app/producto/daily-multi-vitamin)
+- [Protein Bar Crunch](https://ignite-peak-co.lovable.app/producto/protein-bar-crunch)
+- [Pro Shaker 700ml](https://ignite-peak-co.lovable.app/producto/pro-shaker-700)
+- [Creatine HCL](https://ignite-peak-co.lovable.app/producto/creatine-hcl)
+- [Pre-Workout Pump X](https://ignite-peak-co.lovable.app/producto/pre-workout-pump-x)
+- [BCAA Recovery+](https://ignite-peak-co.lovable.app/producto/bcaa-recovery-plus)
+- [Omega 3 Ultra](https://ignite-peak-co.lovable.app/producto/omega-3-ultra)
+- [Multivitamínico Daily](https://ignite-peak-co.lovable.app/producto/multivitaminico-daily)
+- [BCAA Recovery 2:1:1](https://ignite-peak-co.lovable.app/producto/bcaa-recovery)
+- [Vegan Protein Blend](https://ignite-peak-co.lovable.app/producto/vegan-protein)
+- [Whey Pro Gold](https://ignite-peak-co.lovable.app/producto/whey-pro-gold)
+- [Mass Gainer Extreme](https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme)
+- [Flexacil Ultra+ 600gr](https://ignite-peak-co.lovable.app/producto/iso-whey-elite)
+- [Flexacil Ultra](https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra)
+
+
+## Blog
+
+- [Productos Naturales](https://ignite-peak-co.lovable.app/blog/productos-naturales)
+- [Creatine 101: Benefits, Dosage and Myths](https://ignite-peak-co.lovable.app/blog/creatine-101)
+- [Pre-Workout: When and How to Use It](https://ignite-peak-co.lovable.app/blog/pre-workout-guide)
+- [How to Choose the Right Protein Powder](https://ignite-peak-co.lovable.app/blog/creatine-myths)
