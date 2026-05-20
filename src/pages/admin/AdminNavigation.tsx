@@ -16,16 +16,18 @@ type NavLinkRow = {
   open_in_new_tab: boolean;
 };
 
-const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url"] as const;
+const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url", "favicon_url"] as const;
 
 export default function AdminNavigation() {
-  const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "" });
-  const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "" });
+  const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
+  const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
   const [links, setLinks] = useState<NavLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingLogo, setSavingLogo] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const faviconRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -33,7 +35,7 @@ export default function AdminNavigation() {
       supabase.from("site_content").select("key,value").in("key", LOGO_KEYS as unknown as string[]),
       supabase.from("nav_links").select("*").order("sort_order").order("created_at"),
     ]);
-    const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "" };
+    const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" };
     (c.data ?? []).forEach((r: any) => { m[r.key] = r.value ?? ""; });
     setLogo(m); setSavedLogo(m);
     setLinks((l.data as NavLinkRow[]) ?? []);
@@ -67,6 +69,19 @@ export default function AdminNavigation() {
       setL("logo_image_url", data.publicUrl);
       toast.success("Image uploaded — remember to save");
     } catch (e: any) { toast.error(e.message); } finally { setUploading(false); }
+  };
+
+  const uploadFavicon = async (file: File) => {
+    setUploadingFavicon(true);
+    try {
+      const ext = file.name.split(".").pop();
+      const path = `favicon-${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("blog-images").upload(path, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
+      setL("favicon_url", data.publicUrl);
+      toast.success("Favicon uploaded — remember to save");
+    } catch (e: any) { toast.error(e.message); } finally { setUploadingFavicon(false); }
   };
 
   const createLink = async () => {
@@ -108,34 +123,69 @@ export default function AdminNavigation() {
           <p className="text-muted-foreground">Loading…</p>
         ) : (
           <div className="grid gap-5 md:grid-cols-[260px,1fr]">
-            <div className="space-y-2">
-              <Label className="text-xs">Image logo (optional)</Label>
-              <div className="relative grid h-32 place-items-center overflow-hidden rounded-md border bg-muted">
-                {logo.logo_image_url ? (
-                  <img src={logo.logo_image_url} alt="" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <ImageIcon size={28} className="text-muted-foreground" />
-                )}
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0])}
-              />
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                  {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                  {uploading ? "Uploading…" : "Upload"}
-                </Button>
-                {logo.logo_image_url && (
-                  <Button type="button" variant="ghost" size="sm" onClick={() => setL("logo_image_url", "")}>
-                    Remove
+            <div className="space-y-5">
+              {/* Logo image */}
+              <div className="space-y-2">
+                <Label className="text-xs">Image logo (optional)</Label>
+                <div className="relative grid h-32 place-items-center overflow-hidden rounded-md border bg-muted">
+                  {logo.logo_image_url ? (
+                    <img src={logo.logo_image_url} alt="" className="max-h-full max-w-full object-contain" />
+                  ) : (
+                    <ImageIcon size={28} className="text-muted-foreground" />
+                  )}
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && uploadLogo(e.target.files[0])}
+                />
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                    {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    {uploading ? "Uploading…" : "Upload"}
                   </Button>
-                )}
+                  {logo.logo_image_url && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setL("logo_image_url", "")}>
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <Input value={logo.logo_image_url} onChange={(e) => setL("logo_image_url", e.target.value)} placeholder="…or paste URL" />
               </div>
-              <Input value={logo.logo_image_url} onChange={(e) => setL("logo_image_url", e.target.value)} placeholder="…or paste URL" />
+
+              {/* Favicon */}
+              <div className="space-y-2">
+                <Label className="text-xs">Favicon</Label>
+                <div className="relative grid h-20 w-20 place-items-center overflow-hidden rounded-md border bg-muted">
+                  {logo.favicon_url ? (
+                    <img src={logo.favicon_url} alt="" className="h-full w-full object-contain" />
+                  ) : (
+                    <ImageIcon size={20} className="text-muted-foreground" />
+                  )}
+                </div>
+                <input
+                  ref={faviconRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && uploadFavicon(e.target.files[0])}
+                />
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" className="flex-1" onClick={() => faviconRef.current?.click()} disabled={uploadingFavicon}>
+                    {uploadingFavicon ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                    {uploadingFavicon ? "Uploading…" : "Upload"}
+                  </Button>
+                  {logo.favicon_url && (
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setL("favicon_url", "")}>
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <Input value={logo.favicon_url} onChange={(e) => setL("favicon_url", e.target.value)} placeholder="…or paste URL" />
+                <p className="text-xs text-muted-foreground">Shown in browser tab. Recommended: 32×32 or 64×64 PNG/ICO.</p>
+              </div>
             </div>
             <div className="grid gap-3">
               <div>
