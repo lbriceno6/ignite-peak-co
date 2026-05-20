@@ -1,5 +1,8 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks).
-// Writes public/sitemap.xml + public/llms.txt with public routes + dynamic product/blog/category entries.
+// Writes public/sitemap.xml (index) + public/sitemap-products.xml +
+// public/sitemap-categories.xml + public/sitemap-blog.xml +
+// public/sitemap-landings.xml + public/llms.txt
+// Each URL carries a real lastmod from updated_at when available.
 
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -33,21 +36,21 @@ async function fetchDynamic(): Promise<Dyn> {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
     const [{ data: products }, { data: posts }, { data: cats }, { data: landings }] = await Promise.all([
       sb.from("products").select("slug, name, updated_at").eq("is_active", true).eq("approval_status", "approved"),
-      sb.from("blog_posts").select("slug, title, published_at").eq("is_published", true),
-      sb.from("categories").select("slug, name, type"),
+      sb.from("blog_posts").select("slug, title, published_at, updated_at").eq("is_published", true),
+      sb.from("categories").select("slug, name, type, updated_at"),
       sb.from("seo_landing_pages").select("kind, slug, title, updated_at").eq("is_published", true),
     ]);
-    (products ?? []).forEach((p: any) => out.products.push({ path: `/producto/${p.slug}`, title: p.name, lastmod: p.updated_at?.slice(0, 10), changefreq: "weekly", priority: "0.8" }));
-    (posts ?? []).forEach((p: any) => out.posts.push({ path: `/blog/${p.slug}`, title: p.title, lastmod: p.published_at?.slice(0, 10), changefreq: "monthly", priority: "0.6" }));
-    (cats ?? []).filter((c: any) => c.type === "product").forEach((c: any) => out.cats.push({ path: `/categoria/${c.slug}`, title: c.name, changefreq: "weekly", priority: "0.7" }));
-    (landings ?? []).forEach((l: any) => out.landings.push({ path: `/${l.kind}/${l.slug}`, title: l.title, lastmod: l.updated_at?.slice(0, 10), changefreq: "weekly", priority: "0.6" }));
+    (products ?? []).forEach((p: any) => out.products.push({ path: `/producto/${p.slug}`, title: p.name, lastmod: (p.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.8" }));
+    (posts ?? []).forEach((p: any) => out.posts.push({ path: `/blog/${p.slug}`, title: p.title, lastmod: ((p.updated_at || p.published_at) || "").slice(0, 10) || undefined, changefreq: "monthly", priority: "0.6" }));
+    (cats ?? []).filter((c: any) => c.type === "product").forEach((c: any) => out.cats.push({ path: `/categoria/${c.slug}`, title: c.name, lastmod: (c.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.7" }));
+    (landings ?? []).forEach((l: any) => out.landings.push({ path: `/${l.kind}/${l.slug}`, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }));
   } catch (e) {
     console.warn("sitemap: dynamic fetch failed, using static only:", (e as Error).message);
   }
   return out;
 }
 
-function buildSitemap(entries: Entry[]) {
+function buildUrlset(entries: Entry[]) {
   const urls = entries.map((e) => [
     `  <url>`,
     `    <loc>${BASE_URL}${e.path}</loc>`,
@@ -59,16 +62,23 @@ function buildSitemap(entries: Entry[]) {
   return [`<?xml version="1.0" encoding="UTF-8"?>`, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`, ...urls, `</urlset>`].join("\n");
 }
 
+function buildIndex(files: { loc: string; lastmod?: string }[]) {
+  const items = files.map((f) => [
+    `  <sitemap>`,
+    `    <loc>${f.loc}</loc>`,
+    f.lastmod ? `    <lastmod>${f.lastmod}</lastmod>` : null,
+    `  </sitemap>`,
+  ].filter(Boolean).join("\n"));
+  return [`<?xml version="1.0" encoding="UTF-8"?>`, `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`, ...items, `</sitemapindex>`].join("\n");
+}
+
 function buildLlms(dyn: Dyn) {
   const section = (title: string, items: Entry[]) =>
     items.length ? `\n## ${title}\n\n${items.map((e) => `- [${e.title ?? e.path}](${BASE_URL}${e.path})`).join("\n")}\n` : "";
   return [
-    `# Nutribatidos`,
-    ``,
-    `> Tienda online de suplementos nutricionales, batidos y productos de bienestar.`,
-    ``,
-    `## Principales`,
-    ``,
+    `# Nutribatidos`, ``,
+    `> Tienda online de suplementos nutricionales, batidos y productos de bienestar.`, ``,
+    `## Principales`, ``,
     ...staticEntries.filter((e) => e.title).map((e) => `- [${e.title}](${BASE_URL}${e.path})`),
     section("Categorías", dyn.cats),
     section("Páginas SEO", dyn.landings),
@@ -77,10 +87,31 @@ function buildLlms(dyn: Dyn) {
   ].join("\n");
 }
 
+function maxLastmod(entries: Entry[]): string | undefined {
+  const sorted = entries.map((e) => e.lastmod).filter(Boolean).sort();
+  return sorted.length ? sorted[sorted.length - 1] : undefined;
+}
+
 (async () => {
   const dyn = await fetchDynamic();
-  const all = [...staticEntries, ...dyn.products, ...dyn.posts, ...dyn.cats, ...dyn.landings];
-  writeFileSync(resolve("public/sitemap.xml"), buildSitemap(all));
+  const today = new Date().toISOString().slice(0, 10);
+
+  writeFileSync(resolve("public/sitemap-products.xml"), buildUrlset(dyn.products));
+  writeFileSync(resolve("public/sitemap-categories.xml"), buildUrlset(dyn.cats));
+  writeFileSync(resolve("public/sitemap-blog.xml"), buildUrlset(dyn.posts));
+  writeFileSync(resolve("public/sitemap-landings.xml"), buildUrlset(dyn.landings));
+  writeFileSync(resolve("public/sitemap-static.xml"), buildUrlset(staticEntries));
+
+  const index = buildIndex([
+    { loc: `${BASE_URL}/sitemap-static.xml`, lastmod: today },
+    { loc: `${BASE_URL}/sitemap-products.xml`, lastmod: maxLastmod(dyn.products) ?? today },
+    { loc: `${BASE_URL}/sitemap-categories.xml`, lastmod: maxLastmod(dyn.cats) ?? today },
+    { loc: `${BASE_URL}/sitemap-blog.xml`, lastmod: maxLastmod(dyn.posts) ?? today },
+    { loc: `${BASE_URL}/sitemap-landings.xml`, lastmod: maxLastmod(dyn.landings) ?? today },
+  ]);
+  writeFileSync(resolve("public/sitemap.xml"), index);
   writeFileSync(resolve("public/llms.txt"), buildLlms(dyn));
-  console.log(`sitemap.xml (${all.length} entries) + llms.txt written`);
+
+  const totals = `static=${staticEntries.length} products=${dyn.products.length} cats=${dyn.cats.length} blog=${dyn.posts.length} landings=${dyn.landings.length}`;
+  console.log(`sitemap index + 5 sub-sitemaps + llms.txt written (${totals})`);
 })();

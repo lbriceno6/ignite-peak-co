@@ -4,6 +4,8 @@ import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
+import { logSearch } from "@/lib/searchLog";
+import { useAuth } from "@/context/AuthContext";
 
 const Search = () => {
   const [params] = useSearchParams();
@@ -11,6 +13,7 @@ const Search = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [didYouMean, setDidYouMean] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!q) { setResults([]); return; }
@@ -47,9 +50,18 @@ const Search = () => {
         if (best && best.score < 0.4 && best.name) setDidYouMean(best.name); else setDidYouMean(null);
       }
       setLoading(false);
+      // Best-effort analytics (debounced by alive flag)
+      setTimeout(() => { if (alive) logSearch({ query: q, resultsCount: 0, userId: user?.id }); }, 0);
     })();
     return () => { alive = false; };
-  }, [q]);
+  }, [q, user?.id]);
+
+  // Log effective result count after results state settles
+  useEffect(() => {
+    if (!q || loading) return;
+    logSearch({ query: q, resultsCount: results.length, userId: user?.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading]);
 
   return (
     <Layout>
