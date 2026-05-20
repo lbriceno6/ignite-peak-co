@@ -48,7 +48,7 @@ const renderLink = (l: FooterLink) => {
 };
 
 export const Footer = () => {
-  const { content } = useSiteContent(KEYS, DEFAULTS);
+  const { content, loading } = useSiteContent(KEYS, DEFAULTS);
   const [links, setLinks] = useState<FooterLink[]>([]);
 
   useEffect(() => {
