@@ -1,84 +1,141 @@
-# Módulo SEO Inteligente — Nutribatidos
+# Etapa 5 — SEO Inteligente: Producción, Analítica y Crecimiento
 
-Voy a implementar el módulo en 3 etapas como sugieres. Cada etapa se entrega completa y funcional antes de pasar a la siguiente.
-
----
-
-## Etapa 1 — SEO básico (manual + estructura)
-
-**Base de datos**
-- Tabla `seo_meta` (polimórfica): `entity_type` (product|category|blog|page), `entity_id`, `slug`, `seo_title`, `seo_description`, `keywords[]`, `tags[]`, `og_image`, `canonical`, `schema_jsonld`, `noindex`, `updated_at`.
-- Tabla `seo_image_alts`: `entity_type`, `entity_id`, `image_url`, `alt_text`.
-- Tabla `seo_settings` (singleton): defaults globales, robots rules, plantillas.
-- RLS: lectura pública; escritura solo admin.
-
-**Frontend público**
-- Componente `<SEO>` ampliado para leer de `seo_meta` por ruta (producto/categoría/blog) con fallback a campos del producto.
-- JSON-LD `Product` con price, availability, brand, rating, reviewCount, image.
-- JSON-LD `BreadcrumbList` en producto y categoría.
-- `alt` real en todas las imágenes de producto desde `seo_image_alts`.
-
-**Sitemap y robots**
-- `scripts/generate-sitemap.ts` con hooks `predev`/`prebuild` que enumera rutas estáticas + productos activos + categorías + posts publicados.
-- `public/robots.txt` actualizado con `Sitemap:` directive.
-
-**Admin**
-- Página `/admin/seo` con tabs: Productos, Categorías, Blog, Ajustes.
-- En `ProductForm.tsx` y `BlogForm.tsx`: nueva sección "SEO" (collapse) con título, descripción, slug, keywords, tags, OG image, noindex, vista previa de snippet Google.
-- Editor de alt text por imagen (galería).
+Una sola etapa muy grande. La divido en 10 bloques que cubren todos los puntos pedidos. Cada bloque es independiente y se entregará junto.
 
 ---
 
-## Etapa 2 — IA + Score + Masivo
+## 1. Ruta `/feeds/google-merchant.xml`
 
-**IA (Lovable AI Gateway)**
-- Edge function `seo-generate` (modelo `google/gemini-3-flash-preview`) que recibe `{entity_type, entity_id, fields[]}` y devuelve sugerencias estructuradas (Zod schema): title, description, slug, keywords, tags, alt texts, FAQs, short/long description, Google Shopping title/description.
-- Edge function `seo-score` que calcula score 0–100 según reglas: largo de título (50–60), meta (140–160), keyword density, alt text presente, slug limpio, schema válido, imágenes con alt, FAQs, etc. Devuelve `{score, issues[], suggestions[]}`.
-- Tabla `seo_suggestions`: guarda sugerencia IA pendiente con `status` (pending|accepted|rejected), permite review antes de publicar.
-
-**Admin UI**
-- Botón **"Generar SEO con IA"** en ProductForm/BlogForm → abre modal con diff lado a lado (actual vs sugerido) por campo, checkboxes para aceptar parcialmente.
-- Editor de FAQs sugeridas (acept/edit/reject por FAQ).
-- En `/admin/seo`:
-  - **Panel general**: contadores (optimizados / con errores / sin SEO), score promedio, top issues.
-  - Tabla de productos con score, estado, último análisis, acciones (regenerar, editar).
-  - **Optimización masiva**: seleccionar N productos → cola asincrónica vía edge function que procesa de a uno (con rate limit), barra de progreso, log de resultados.
+Ya quedó resuelto en el turno anterior con `public/_redirects` (rewrite 200 → edge function `merchant-feed`). Lo verifico y dejo nota en el panel Merchant del admin con la nueva URL pública (`https://nutribatidos.com/feeds/google-merchant.xml`).
 
 ---
 
-## Etapa 3 — Merchant, llms.txt, buscador avanzado
+## 2. Panel "Validación técnica" en `/admin/seo`
 
-**Google Merchant Center**
-- Edge function pública `merchant-feed` que devuelve XML RSS 2.0 con namespace `g:` (id, title, description, link, image_link, availability, price, brand, gtin, condition, google_product_category).
-- Usa los campos Shopping de Etapa 2.
-- Endpoint cacheado: `https://<project>.functions.supabase.co/merchant-feed`.
+Nuevo tab **QA** que ejecuta verificaciones en tiempo real:
 
-**llms.txt**
-- `public/llms.txt` generado por el mismo script de sitemap, con secciones por categoría, excluyendo admin/auth/reseller/supplier.
+- HEAD/GET a `/sitemap.xml`, `/robots.txt`, `/llms.txt`, `/feeds/google-merchant.xml`
+- Conteo de productos con `schema_jsonld` (Product), landings con `schema_jsonld` (CollectionPage), productos con `og_image`
+- Muestreo de 10 imágenes principales (HEAD) → reporta rotas
+- Productos sin `canonical` o con `canonical` distinto a `/producto/{slug}`
+- Cada check → estado ok / warn / fail + detalle expandible
 
-**Buscador interno avanzado**
-- Tabla `product_search_terms`: `product_id`, `term`, `weight`, `kind` (keyword|benefit|ingredient|synonym).
-- Migración: índice GIN trigram (`pg_trgm`) en `products.name`, `description`, y en `product_search_terms.term` para tolerar errores de escritura.
-- RPC `search_products(q text)` que combina: full-text en español + similitud trigram + match en sinónimos/beneficios, con ranking ponderado.
-- Reemplazar el buscador actual (`/buscar`) por esta RPC, mostrando "¿Quisiste decir...?" cuando hay match por similitud baja.
-- IA puebla `product_search_terms` (sinónimos, beneficios, errores comunes) durante la generación SEO.
-
-**Páginas SEO automáticas**
-- Rutas dinámicas tipo `/objetivo/:slug`, `/ingrediente/:slug`, `/beneficio/:slug` que listan productos filtrados, con title/description/JSON-LD generado por IA y cacheado en `seo_meta`.
-- Generador admin: "Crear página SEO" desde lista de keywords trending.
+Archivo: `src/components/admin/seo/QaTab.tsx`.
 
 ---
 
-## Detalles técnicos clave
+## 3. Integración de analítica
 
-- Stack: React + Vite + react-helmet-async (ya existe), Tailwind, shadcn, Supabase, Lovable AI Gateway.
-- IA: nunca expone `LOVABLE_API_KEY` al cliente; todo via edge function con `verify_jwt` y check admin.
-- Costo IA: usar `gemini-3-flash-preview` por defecto; permitir override a `gpt-5-mini` en ajustes.
-- Multi-idioma: por ahora solo español (estructura permite agregar `locale` después).
-- Reversible: sugerencias en `seo_suggestions` con historial; el admin siempre puede rollback al snapshot anterior.
+Nueva tabla `analytics_settings` (singleton id=1):
+
+- `ga4_measurement_id`, `gtm_container_id`, `meta_pixel_id`, `google_ads_conversion_id`, `google_ads_conversion_label`, `enabled` booleano por cada uno.
+
+Componente `<AnalyticsScripts/>` montado en `App.tsx` que inyecta dinámicamente los scripts (GA4 gtag, GTM, Meta Pixel) según los IDs configurados, con `<noscript>` para Pixel en `<body>` (cumple regla HTML5).
+
+Pantalla de configuración: tab **Analytics** en `/admin/seo`.
+
+Archivos: `src/components/AnalyticsScripts.tsx`, `src/lib/analytics.ts`, `src/components/admin/seo/AnalyticsTab.tsx`.
 
 ---
 
-## Entrega
+## 4. Eventos ecommerce
 
-Confirma y arranco con **Etapa 1**. Al terminarla y validarla, sigo con Etapa 2 y luego Etapa 3.
+Helper `track(event, payload)` en `src/lib/analytics.ts` que despacha a GA4 (`gtag('event', ...)`), GTM (`dataLayer.push`) y Meta Pixel (`fbq('track', ...)`). 
+
+Integración en:
+
+- `ProductDetail.tsx` → `view_item`
+- `Search.tsx` → `search`
+- `ProductCard.tsx` → `select_item` (click) y `add_to_cart`
+- `Checkout.tsx` → `begin_checkout`, `purchase` (al confirmar pedido + Google Ads conversion)
+- `WhatsAppButton.tsx` → `whatsapp_click`
+- `SeoLanding.tsx` → `landing_page_view`
+
+---
+
+## 5. Dashboard de rendimiento
+
+Nueva tabla `product_events` (lightweight: id, event_type, product_id, landing_slug, user_id, session_id, created_at). Inserts desde el cliente vía RLS insert-only.
+
+Tab **Performance** en `/admin/seo` con queries agregadas:
+
+- Top productos por `view_item`, `search`, `add_to_cart`, `purchase` (joins a `orders`+`order_items` para compras reales)
+- Top landings por `landing_page_view`
+- Búsquedas internas sin resultados (de `search_logs` con `results_count=0`)
+- Clics WhatsApp
+- Conversión por producto = `purchase / view_item`
+- Conversión por landing = `purchase asociadas / landing_page_view`
+
+Archivo: `src/components/admin/seo/PerformanceTab.tsx`.
+
+---
+
+## 6. Gestor de contenidos SEO
+
+Nueva tabla `seo_content_plan`:
+
+- `kind` (blog | landing | faq | product_improvement | synonym | internal_link)
+- `title`, `notes`, `payload` jsonb, `target_keyword`, `target_url`
+- `status` (draft | review | approved | published)
+- `due_date`, `created_by`
+
+Tab **Contenidos** con tablero kanban simple (4 columnas) + CRUD inline.
+
+Archivo: `src/components/admin/seo/ContentPlanTab.tsx`.
+
+---
+
+## 7. Generador mensual SEO con IA
+
+Nueva edge function `seo-monthly-plan` (Lovable AI Gateway, modelo `google/gemini-2.5-flash`, tool-calling estructurado).
+
+Devuelve JSON con: 4 blog posts, 5 landings, 10 FAQs, 20 keywords, 20 sinónimos, 10 mejoras de productos, 10 oportunidades de enlaces internos. Recibe contexto: top búsquedas sin resultado, productos peor ranqueados en SEO, landings actuales.
+
+Botón "Generar plan SEO mensual" dentro de tab Contenidos → inserta todo como `status='draft'` en `seo_content_plan`.
+
+---
+
+## 8. Redirecciones SEO
+
+Nueva tabla `seo_redirects` (from_path, to_path, status_code, active, created_at).
+
+Componente `<RedirectGate/>` montado dentro del Router que, en cada cambio de ruta, consulta caché (precargada al boot) y hace `navigate(to_path, { replace: true })` si match. Para 301 reales se documenta usar `_redirects` en producción; en SPA hacemos rewrite client-side equivalente.
+
+Tab **Redirecciones** con CRUD.
+
+Archivos: `src/components/RedirectGate.tsx`, `src/components/admin/seo/RedirectsTab.tsx`.
+
+---
+
+## 9. Control de indexación
+
+Columna ya existe (`noindex` en `seo_meta`). Añadir `robots_directive` text ('index,follow' | 'noindex,follow' | 'noindex,nofollow'). Actualizar `SeoFromMeta.tsx` para emitir `<meta name="robots" content="...">` según directiva.
+
+UI: nuevo selector en `SeoEditor.tsx`.
+
+---
+
+## 10. Reporte general
+
+Botón "Exportar reporte completo" en tab QA que genera CSV con todas las secciones combinadas (auditoría técnica + estados merchant/sitemap/schema/analytics + productos con errores + landings con errores + búsquedas sin resultado + oportunidades del content plan).
+
+Archivo: `src/lib/seoFullReport.ts`.
+
+---
+
+## Detalle técnico (resumen)
+
+**Migración única** con:
+- `analytics_settings` (singleton, admin manage, public select para IDs públicos)
+- `product_events` (insert público, select admin)
+- `seo_content_plan` (admin manage, public select)
+- `seo_redirects` (admin manage, public select para que el gate funcione sin auth)
+- `seo_meta.robots_directive` columna nueva
+
+**Edge function nueva**: `supabase/functions/seo-monthly-plan/index.ts` (LOVABLE_API_KEY, verify_jwt=true).
+
+**Frontend nuevo**: 6 tabs admin + AnalyticsScripts + RedirectGate + helper analytics + 2 librerías helper.
+
+**Frontend tocado**: `App.tsx`, `AdminSeo.tsx`, `SeoEditor.tsx`, `SeoFromMeta.tsx`, `ProductDetail.tsx`, `ProductCard.tsx`, `Search.tsx`, `Checkout.tsx`, `WhatsAppButton.tsx`, `SeoLanding.tsx`.
+
+¿Procedo a implementarlo todo?
