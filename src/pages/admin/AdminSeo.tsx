@@ -32,6 +32,7 @@ import { SearchMonitorTab } from "@/components/admin/seo/SearchMonitorTab";
 import { ClaimsScannerTab } from "@/components/admin/seo/ClaimsScannerTab";
 import { ProductionChecklistTab } from "@/components/admin/seo/ProductionChecklistTab";
 import { ReportsTab } from "@/components/admin/seo/ReportsTab";
+import { SeoHomeTab } from "@/components/admin/seo/SeoHomeTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
 import { exportFullSeoReport } from "@/lib/seoFullReport";
 import { Download } from "lucide-react";
