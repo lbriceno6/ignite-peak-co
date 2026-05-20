@@ -146,6 +146,8 @@ const ProductDetail = () => {
   const mainImg = resolveProductImage(dbp.main_image);
   const galleryUrls = parseList(dbp.gallery_images).map((u) => resolveProductImage(u));
   const gallery = [mainImg, ...galleryUrls].filter(Boolean);
+  const imageAlts = useSeoImageAlts("product", dbp.id);
+  const altFor = (url: string) => imageAlts[url] || product.name;
   const subIntervals = (dbp.subscription_intervals && dbp.subscription_intervals.length ? dbp.subscription_intervals : subSettings.defaultIntervals);
   const subDiscount = Number(dbp.subscription_discount_percent ?? subSettings.defaultDiscount) || subSettings.defaultDiscount;
   const subEnabled = !!dbp.subscription_enabled && subSettings.enabled;
