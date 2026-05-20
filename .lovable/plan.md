@@ -1,102 +1,84 @@
-# Plan: Módulo Revendedor
+# Módulo SEO Inteligente — Nutribatidos
 
-Sistema híbrido (link de afiliado + código de descuento), auto-registro inmediato, comisión por niveles (Bronce/Plata/Oro) y pago a elección (efectivo o saldo en tienda).
+Voy a implementar el módulo en 3 etapas como sugieres. Cada etapa se entrega completa y funcional antes de pasar a la siguiente.
 
-## 1. Base de datos
+---
 
-**Nuevas tablas:**
-- `reseller_tiers`: `name`, `min_sales` (umbral $), `commission_percent`, `customer_discount_percent` (descuento que da el código al cliente), `sort_order`. Seed inicial: Bronce 0$/5%, Plata 500$/8%, Oro 2000$/12%.
-- `resellers`: `user_id` (UNIQUE), `code` (UNIQUE, generado), `link_slug` (UNIQUE), `tier_id`, `total_sales` (acum.), `balance_cash` (a pagar), `balance_credit` (saldo tienda), `payout_method` ('cash'|'credit'|'choose'), `payout_account` (banco/wallet), `is_active`.
-- `reseller_referrals`: `reseller_id`, `order_id`, `source` ('link'|'code'), `subtotal`, `commission_percent`, `commission_amount`, `status` ('pending'|'approved'|'paid'|'cancelled').
-- `reseller_payouts`: `reseller_id`, `amount`, `method` ('cash'|'credit'), `status` ('requested'|'approved'|'paid'|'rejected'), `notes`, `processed_by`, `processed_at`.
+## Etapa 1 — SEO básico (manual + estructura)
 
-**Cambios a tablas existentes:**
-- `orders`: agregar `reseller_id`, `referral_source`, `reseller_discount_applied`, `store_credit_used`.
+**Base de datos**
+- Tabla `seo_meta` (polimórfica): `entity_type` (product|category|blog|page), `entity_id`, `slug`, `seo_title`, `seo_description`, `keywords[]`, `tags[]`, `og_image`, `canonical`, `schema_jsonld`, `noindex`, `updated_at`.
+- Tabla `seo_image_alts`: `entity_type`, `entity_id`, `image_url`, `alt_text`.
+- Tabla `seo_settings` (singleton): defaults globales, robots rules, plantillas.
+- RLS: lectura pública; escritura solo admin.
 
-**Funciones/triggers:**
-- `recalc_reseller_tier(reseller_id)`: recalcula tier según `total_sales`.
-- Trigger en `orders` cuando `status` pasa a `confirmed`/`delivered`: crea fila en `reseller_referrals` con la comisión, suma a `total_sales`, recalcula tier, acumula `balance_cash` o `balance_credit` según `payout_method`.
-- Función `apply_reseller_code(code)`: devuelve descuento aplicable.
+**Frontend público**
+- Componente `<SEO>` ampliado para leer de `seo_meta` por ruta (producto/categoría/blog) con fallback a campos del producto.
+- JSON-LD `Product` con price, availability, brand, rating, reviewCount, image.
+- JSON-LD `BreadcrumbList` en producto y categoría.
+- `alt` real en todas las imágenes de producto desde `seo_image_alts`.
 
-**RLS:**
-- `resellers`: el dueño ve/edita lo suyo; admin todo.
-- `reseller_referrals`: dueño ve las suyas; admin todo.
-- `reseller_payouts`: dueño crea solicitudes y ve las suyas; admin aprueba.
-- `reseller_tiers`: lectura pública (para mostrar la tabla); escritura admin.
+**Sitemap y robots**
+- `scripts/generate-sitemap.ts` con hooks `predev`/`prebuild` que enumera rutas estáticas + productos activos + categorías + posts publicados.
+- `public/robots.txt` actualizado con `Sitemap:` directive.
 
-## 2. Auto-registro (cliente)
+**Admin**
+- Página `/admin/seo` con tabs: Productos, Categorías, Blog, Ajustes.
+- En `ProductForm.tsx` y `BlogForm.tsx`: nueva sección "SEO" (collapse) con título, descripción, slug, keywords, tags, OG image, noindex, vista previa de snippet Google.
+- Editor de alt text por imagen (galería).
 
-- Botón **"Activar plan revendedor"** en `MyProfile` → llama RPC que crea fila en `resellers` con código aleatorio (6 chars) y `link_slug` (uuid corto).
-- Nuevo `useReseller()` hook expone `reseller`, `isReseller`.
+---
 
-## 3. Panel del revendedor
+## Etapa 2 — IA + Score + Masivo
 
-Nueva ruta `/reseller` (protegida, sólo si tiene fila en `resellers`) con sidebar similar a supplier:
+**IA (Lovable AI Gateway)**
+- Edge function `seo-generate` (modelo `google/gemini-3-flash-preview`) que recibe `{entity_type, entity_id, fields[]}` y devuelve sugerencias estructuradas (Zod schema): title, description, slug, keywords, tags, alt texts, FAQs, short/long description, Google Shopping title/description.
+- Edge function `seo-score` que calcula score 0–100 según reglas: largo de título (50–60), meta (140–160), keyword density, alt text presente, slug limpio, schema válido, imágenes con alt, FAQs, etc. Devuelve `{score, issues[], suggestions[]}`.
+- Tabla `seo_suggestions`: guarda sugerencia IA pendiente con `status` (pending|accepted|rejected), permite review antes de publicar.
 
-- **Dashboard**: tarjetas con tier actual, próximo tier (con barra de progreso), ventas acumuladas, comisión total ganada, balance disponible.
-- **Mi link y código**: muestra link `https://.../?ref=LINK_SLUG`, código `CODE` con botones copiar/compartir (WhatsApp, X, FB). QR del link.
-- **Ventas**: tabla de `reseller_referrals` con pedido, fecha, fuente, comisión, estado.
-- **Pagos**: botón "Solicitar retiro" (elige monto y método cash/credit), historial de `reseller_payouts`.
-- **Configuración**: método de pago preferido y datos bancarios/wallet.
+**Admin UI**
+- Botón **"Generar SEO con IA"** en ProductForm/BlogForm → abre modal con diff lado a lado (actual vs sugerido) por campo, checkboxes para aceptar parcialmente.
+- Editor de FAQs sugeridas (acept/edit/reject por FAQ).
+- En `/admin/seo`:
+  - **Panel general**: contadores (optimizados / con errores / sin SEO), score promedio, top issues.
+  - Tabla de productos con score, estado, último análisis, acciones (regenerar, editar).
+  - **Optimización masiva**: seleccionar N productos → cola asincrónica vía edge function que procesa de a uno (con rate limit), barra de progreso, log de resultados.
 
-## 4. Tracking en la tienda
+---
 
-- Componente `ReferralTracker` montado en App.tsx: lee `?ref=` de la URL, lo guarda en `localStorage` (cookie 30 días).
-- Componente `ResellerCodeInput` en `Cart`/`Checkout`: el cliente puede pegar un código manualmente.
-- En `Checkout`, al crear la orden:
-  - Si hay `ref` válido (link o código) → `orders.reseller_id`, `referral_source`, y aplica `customer_discount_percent` si es código.
-  - Si el cliente tiene `balance_credit` propio (es revendedor también) → opción "Usar mi saldo en tienda" descuenta hasta el total.
+## Etapa 3 — Merchant, llms.txt, buscador avanzado
 
-## 5. Admin
+**Google Merchant Center**
+- Edge function pública `merchant-feed` que devuelve XML RSS 2.0 con namespace `g:` (id, title, description, link, image_link, availability, price, brand, gtin, condition, google_product_category).
+- Usa los campos Shopping de Etapa 2.
+- Endpoint cacheado: `https://<project>.functions.supabase.co/merchant-feed`.
 
-- `/admin/resellers`: tabla con todos, filtros por tier, búsqueda, ver detalle (ventas, balance, ajustar tier manual).
-- `/admin/reseller-tiers`: CRUD de niveles (umbral, % comisión, % descuento).
-- `/admin/reseller-payouts`: bandeja de solicitudes, aprobar/rechazar/marcar pagado. Al aprobar 'credit' acredita `balance_credit` y descuenta `balance_cash` automáticamente.
-- Sidebar admin: nueva sección **"Revendedores"** agrupando estas 3 vistas.
+**llms.txt**
+- `public/llms.txt` generado por el mismo script de sitemap, con secciones por categoría, excluyendo admin/auth/reseller/supplier.
 
-## 6. Vista pública / marketing
+**Buscador interno avanzado**
+- Tabla `product_search_terms`: `product_id`, `term`, `weight`, `kind` (keyword|benefit|ingredient|synonym).
+- Migración: índice GIN trigram (`pg_trgm`) en `products.name`, `description`, y en `product_search_terms.term` para tolerar errores de escritura.
+- RPC `search_products(q text)` que combina: full-text en español + similitud trigram + match en sinónimos/beneficios, con ranking ponderado.
+- Reemplazar el buscador actual (`/buscar`) por esta RPC, mostrando "¿Quisiste decir...?" cuando hay match por similitud baja.
+- IA puebla `product_search_terms` (sinónimos, beneficios, errores comunes) durante la generación SEO.
 
-- Página `/programa-revendedor` (landing): cómo funciona, tabla de niveles dinámica desde `reseller_tiers`, CTA "Activar mi plan" (lleva a auth si no logueado, sino a `/reseller`).
-- Link en footer "Gana con nosotros".
+**Páginas SEO automáticas**
+- Rutas dinámicas tipo `/objetivo/:slug`, `/ingrediente/:slug`, `/beneficio/:slug` que listan productos filtrados, con title/description/JSON-LD generado por IA y cacheado en `seo_meta`.
+- Generador admin: "Crear página SEO" desde lista de keywords trending.
 
-## Detalles técnicos
+---
 
-**Cálculo de comisión** (en trigger):
-```
-commission = subtotal * tier.commission_percent / 100
-```
-El descuento del cliente con código se aplica sobre `subtotal` antes de comisión, así no se canibalizan.
+## Detalles técnicos clave
 
-**Distribución del balance**:
-- `payout_method='cash'` → todo a `balance_cash`
-- `payout_method='credit'` → todo a `balance_credit`
-- `payout_method='choose'` → queda en `balance_cash` y el revendedor decide al solicitar
+- Stack: React + Vite + react-helmet-async (ya existe), Tailwind, shadcn, Supabase, Lovable AI Gateway.
+- IA: nunca expone `LOVABLE_API_KEY` al cliente; todo via edge function con `verify_jwt` y check admin.
+- Costo IA: usar `gemini-3-flash-preview` por defecto; permitir override a `gpt-5-mini` en ajustes.
+- Multi-idioma: por ahora solo español (estructura permite agregar `locale` después).
+- Reversible: sugerencias en `seo_suggestions` con historial; el admin siempre puede rollback al snapshot anterior.
 
-**Uso de saldo en tienda** (`balance_credit`): se descuenta al confirmar el pedido vía trigger.
+---
 
-**Códigos únicos**: generados con `substring(md5(random()::text), 1, 6)` reintentando si choca.
+## Entrega
 
-## Archivos a crear/tocar
-
-- `supabase/migrations/..._reseller_module.sql` (todo el bloque)
-- `src/context/AuthContext.tsx` (exponer `isReseller`, `resellerId`)
-- `src/hooks/useReseller.ts` (nuevo)
-- `src/components/ResellerRoute.tsx` (nuevo)
-- `src/components/reseller/ResellerLayout.tsx` (nuevo)
-- `src/components/ReferralTracker.tsx` (nuevo, montado en App)
-- `src/pages/reseller/ResellerDashboard.tsx`, `ResellerLink.tsx`, `ResellerSales.tsx`, `ResellerPayouts.tsx`, `ResellerSettings.tsx` (nuevos)
-- `src/pages/ResellerProgram.tsx` (landing, nuevo)
-- `src/pages/admin/AdminResellers.tsx`, `AdminResellerTiers.tsx`, `AdminResellerPayouts.tsx` (nuevos)
-- `src/pages/MyProfile.tsx` (botón activar)
-- `src/pages/Checkout.tsx` (aplicar referido y saldo)
-- `src/pages/Cart.tsx` (input código)
-- `src/App.tsx` (rutas + ReferralTracker)
-- `src/components/admin/AdminLayout.tsx` (menú Revendedores)
-- `src/components/Footer.tsx` (link al programa)
-
-## Fuera de alcance (avísame si lo quieres después)
-
-- Pagos automáticos a banco/Stripe Connect (el admin marca como pagado manualmente).
-- Sub-revendedores / multinivel (MLM).
-- Notificaciones email a revendedor por cada venta (se pueden agregar después con la infra existente de `enqueue_email`).
-- Productos exclusivos por tier.
+Confirma y arranco con **Etapa 1**. Al terminarla y validarla, sigo con Etapa 2 y luego Etapa 3.
