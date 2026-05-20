@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Pencil, ExternalLink, Loader2, Save } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
+import { Pencil, ExternalLink, Loader2, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { scoreBadgeClass } from "@/lib/seoScore";
 
