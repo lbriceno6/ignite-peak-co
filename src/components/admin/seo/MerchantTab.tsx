@@ -34,7 +34,7 @@ export function MerchantTab() {
   const regenerate = async () => {
     setRegen(true);
     try {
-      const res = await fetch(FEED_URL + "?log=1");
+      const res = await fetch(FEED_INTERNAL_URL + "?log=1");
       if (!res.ok) throw new Error(`${res.status}`);
       toast.success("Feed regenerado");
       await load();
