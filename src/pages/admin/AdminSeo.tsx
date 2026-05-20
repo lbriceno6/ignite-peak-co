@@ -84,13 +84,13 @@ export default function AdminSeo() {
         </TabsList>
 
         <TabsContent value="products" className="mt-4">
-          <EntityTable rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
+          <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
         </TabsContent>
         <TabsContent value="categories" className="mt-4">
-          <EntityTable rows={catRows} editHref={() => `#`} publicHref={(r) => `/categoria/${r.slug}`} note="Edición SEO de categorías llega en Etapa 2 (botón IA)." />
+          <EntityTable entityType="category" rows={catRows} editHref={() => `#`} publicHref={(r) => `/categoria/${r.slug}`} note="Categorías: usa Optimizar con IA (no hay editor manual aún)." />
         </TabsContent>
         <TabsContent value="blog" className="mt-4">
-          <EntityTable rows={blogRows} editHref={(r) => `/admin/blog/${r.id}/edit`} publicHref={(r) => `/blog/${r.slug}`} />
+          <EntityTable entityType="blog" rows={blogRows} editHref={(r) => `/admin/blog/${r.id}/edit`} publicHref={(r) => `/blog/${r.slug}`} />
         </TabsContent>
 
         <TabsContent value="settings" className="mt-4">
