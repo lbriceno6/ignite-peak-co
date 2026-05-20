@@ -1,5 +1,5 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks).
-// Writes public/sitemap.xml with public routes + dynamic product/blog/category entries.
+// Writes public/sitemap.xml + public/llms.txt with public routes + dynamic product/blog/category entries.
 
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -9,42 +9,45 @@ const BASE_URL = "https://ignite-peak-co.lovable.app";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://mphrhcuqzkbbnovmdbpc.supabase.co";
 const SUPABASE_ANON = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1waHJoY3VxemtiYm5vdm1kYnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNTM1ODMsImV4cCI6MjA5MzYyOTU4M30.2ID3yuUo0K5oBRg7uX6-VkeZzC_74VEgm5WlcOWynsg";
 
-interface Entry { path: string; lastmod?: string; changefreq?: string; priority?: string }
+interface Entry { path: string; lastmod?: string; changefreq?: string; priority?: string; title?: string }
 
 const staticEntries: Entry[] = [
-  { path: "/", changefreq: "weekly", priority: "1.0" },
-  { path: "/productos", changefreq: "daily", priority: "0.9" },
-  { path: "/blog", changefreq: "weekly", priority: "0.7" },
-  { path: "/nosotros", changefreq: "monthly", priority: "0.5" },
-  { path: "/contacto", changefreq: "monthly", priority: "0.5" },
-  { path: "/programa-revendedor", changefreq: "monthly", priority: "0.5" },
-  { path: "/vende-con-nosotros", changefreq: "monthly", priority: "0.5" },
+  { path: "/", changefreq: "weekly", priority: "1.0", title: "Inicio" },
+  { path: "/productos", changefreq: "daily", priority: "0.9", title: "Productos" },
+  { path: "/blog", changefreq: "weekly", priority: "0.7", title: "Blog" },
+  { path: "/nosotros", changefreq: "monthly", priority: "0.5", title: "Sobre nosotros" },
+  { path: "/contacto", changefreq: "monthly", priority: "0.5", title: "Contacto" },
+  { path: "/programa-revendedor", changefreq: "monthly", priority: "0.5", title: "Programa revendedor" },
+  { path: "/vende-con-nosotros", changefreq: "monthly", priority: "0.5", title: "Vende con nosotros" },
   { path: "/shipping-policies", changefreq: "yearly", priority: "0.3" },
   { path: "/returns-policies", changefreq: "yearly", priority: "0.3" },
   { path: "/terms-and-conditions", changefreq: "yearly", priority: "0.3" },
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
 ];
 
-async function fetchDynamic(): Promise<Entry[]> {
+interface Dyn { products: Entry[]; posts: Entry[]; cats: Entry[]; landings: Entry[] }
+
+async function fetchDynamic(): Promise<Dyn> {
+  const out: Dyn = { products: [], posts: [], cats: [], landings: [] };
   try {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-    const [{ data: products }, { data: posts }, { data: cats }] = await Promise.all([
-      sb.from("products").select("slug, updated_at").eq("is_active", true).eq("approval_status", "approved"),
-      sb.from("blog_posts").select("slug, published_at").eq("is_published", true),
-      sb.from("categories").select("slug, type"),
+    const [{ data: products }, { data: posts }, { data: cats }, { data: landings }] = await Promise.all([
+      sb.from("products").select("slug, name, updated_at").eq("is_active", true).eq("approval_status", "approved"),
+      sb.from("blog_posts").select("slug, title, published_at").eq("is_published", true),
+      sb.from("categories").select("slug, name, type"),
+      sb.from("seo_landing_pages").select("kind, slug, title, updated_at").eq("is_published", true),
     ]);
-    const out: Entry[] = [];
-    (products ?? []).forEach((p: any) => out.push({ path: `/producto/${p.slug}`, lastmod: p.updated_at?.slice(0, 10), changefreq: "weekly", priority: "0.8" }));
-    (posts ?? []).forEach((p: any) => out.push({ path: `/blog/${p.slug}`, lastmod: p.published_at?.slice(0, 10), changefreq: "monthly", priority: "0.6" }));
-    (cats ?? []).filter((c: any) => c.type === "product").forEach((c: any) => out.push({ path: `/categoria/${c.slug}`, changefreq: "weekly", priority: "0.7" }));
-    return out;
+    (products ?? []).forEach((p: any) => out.products.push({ path: `/producto/${p.slug}`, title: p.name, lastmod: p.updated_at?.slice(0, 10), changefreq: "weekly", priority: "0.8" }));
+    (posts ?? []).forEach((p: any) => out.posts.push({ path: `/blog/${p.slug}`, title: p.title, lastmod: p.published_at?.slice(0, 10), changefreq: "monthly", priority: "0.6" }));
+    (cats ?? []).filter((c: any) => c.type === "product").forEach((c: any) => out.cats.push({ path: `/categoria/${c.slug}`, title: c.name, changefreq: "weekly", priority: "0.7" }));
+    (landings ?? []).forEach((l: any) => out.landings.push({ path: `/${l.kind}/${l.slug}`, title: l.title, lastmod: l.updated_at?.slice(0, 10), changefreq: "weekly", priority: "0.6" }));
   } catch (e) {
     console.warn("sitemap: dynamic fetch failed, using static only:", (e as Error).message);
-    return [];
   }
+  return out;
 }
 
-function build(entries: Entry[]) {
+function buildSitemap(entries: Entry[]) {
   const urls = entries.map((e) => [
     `  <url>`,
     `    <loc>${BASE_URL}${e.path}</loc>`,
@@ -56,9 +59,28 @@ function build(entries: Entry[]) {
   return [`<?xml version="1.0" encoding="UTF-8"?>`, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`, ...urls, `</urlset>`].join("\n");
 }
 
+function buildLlms(dyn: Dyn) {
+  const section = (title: string, items: Entry[]) =>
+    items.length ? `\n## ${title}\n\n${items.map((e) => `- [${e.title ?? e.path}](${BASE_URL}${e.path})`).join("\n")}\n` : "";
+  return [
+    `# Nutribatidos`,
+    ``,
+    `> Tienda online de suplementos nutricionales, batidos y productos de bienestar.`,
+    ``,
+    `## Principales`,
+    ``,
+    ...staticEntries.filter((e) => e.title).map((e) => `- [${e.title}](${BASE_URL}${e.path})`),
+    section("Categorías", dyn.cats),
+    section("Páginas SEO", dyn.landings),
+    section("Productos", dyn.products.slice(0, 200)),
+    section("Blog", dyn.posts.slice(0, 100)),
+  ].join("\n");
+}
+
 (async () => {
   const dyn = await fetchDynamic();
-  const all = [...staticEntries, ...dyn];
-  writeFileSync(resolve("public/sitemap.xml"), build(all));
-  console.log(`sitemap.xml written (${all.length} entries)`);
+  const all = [...staticEntries, ...dyn.products, ...dyn.posts, ...dyn.cats, ...dyn.landings];
+  writeFileSync(resolve("public/sitemap.xml"), buildSitemap(all));
+  writeFileSync(resolve("public/llms.txt"), buildLlms(dyn));
+  console.log(`sitemap.xml (${all.length} entries) + llms.txt written`);
 })();
