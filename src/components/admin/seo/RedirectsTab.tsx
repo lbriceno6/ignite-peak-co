@@ -72,6 +72,13 @@ export function RedirectsTab() {
         <Button onClick={add}><Plus size={14} /> Añadir</Button>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="outline" size="sm" onClick={validate} disabled={validating || rows.length === 0}>
+          {validating ? <Loader2 size={14} className="animate-spin" /> : <ShieldAlert size={14} />} Validar redirecciones
+        </Button>
+        {issues.length > 0 && <Badge variant="destructive">{issues.length} problemas</Badge>}
+      </div>
+
       <div className="rounded-lg border bg-background">
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left"><tr><th className="p-3">Desde</th><th className="p-3">A</th><th className="p-3">Código</th><th className="p-3">Activa</th><th className="p-3"></th></tr></thead>
