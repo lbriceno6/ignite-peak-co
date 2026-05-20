@@ -6,6 +6,7 @@ import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import { logSearch } from "@/lib/searchLog";
 import { useAuth } from "@/context/AuthContext";
+import { track } from "@/lib/analytics";
 
 const Search = () => {
   const [params] = useSearchParams();
@@ -60,6 +61,7 @@ const Search = () => {
   useEffect(() => {
     if (!q || loading) return;
     logSearch({ query: q, resultsCount: results.length, userId: user?.id });
+    track("search", { search_term: q, results: results.length });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 

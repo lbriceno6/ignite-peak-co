@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
+import { track } from "@/lib/analytics";
 
 type Kind = "objetivo" | "ingrediente" | "beneficio";
 
@@ -50,6 +51,11 @@ export default function SeoLanding({ kind }: { kind: Kind }) {
     })();
     return () => { alive = false; };
   }, [kind, slug]);
+
+  useEffect(() => {
+    if (!slug || loading) return;
+    track("landing_page_view", { landing_slug: `${kind}/${slug}`, kind, results: products.length });
+  }, [kind, slug, loading, products.length]);
 
   const title = useMemo(() => {
     if (landing?.title) return landing.title;
