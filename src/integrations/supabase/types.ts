@@ -1245,6 +1245,39 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_change_logs: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          entity_id: string | null
+          entity_type: string
+          field_changed: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          entity_id?: string | null
+          entity_type: string
+          field_changed: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          field_changed?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+        }
+        Relationships: []
+      }
       seo_content_plan: {
         Row: {
           created_at: string
@@ -2109,6 +2142,16 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_seo_change: {
+        Args: {
+          _entity_id: string
+          _entity_type: string
+          _field: string
+          _new: string
+          _old: string
+        }
+        Returns: undefined
       }
       move_to_dlq: {
         Args: {

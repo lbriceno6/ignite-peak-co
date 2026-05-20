@@ -22,6 +22,16 @@ import { PerformanceTab } from "@/components/admin/seo/PerformanceTab";
 import { FunnelTab } from "@/components/admin/seo/FunnelTab";
 import { ContentPlanTab } from "@/components/admin/seo/ContentPlanTab";
 import { RedirectsTab } from "@/components/admin/seo/RedirectsTab";
+import { ProductionTestsTab } from "@/components/admin/seo/ProductionTestsTab";
+import { EventsQaTab } from "@/components/admin/seo/EventsQaTab";
+import { AnalyticsDebugTab } from "@/components/admin/seo/AnalyticsDebugTab";
+import { MerchantValidationTab } from "@/components/admin/seo/MerchantValidationTab";
+import { ChangeHistoryTab } from "@/components/admin/seo/ChangeHistoryTab";
+import { AlertsTab } from "@/components/admin/seo/AlertsTab";
+import { SearchMonitorTab } from "@/components/admin/seo/SearchMonitorTab";
+import { ClaimsScannerTab } from "@/components/admin/seo/ClaimsScannerTab";
+import { ProductionChecklistTab } from "@/components/admin/seo/ProductionChecklistTab";
+import { ReportsTab } from "@/components/admin/seo/ReportsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
 import { exportFullSeoReport } from "@/lib/seoFullReport";
 import { Download } from "lucide-react";
@@ -111,6 +121,16 @@ export default function AdminSeo() {
           <TabsTrigger value="funnel">Embudo</TabsTrigger>
           <TabsTrigger value="content">Plan contenido</TabsTrigger>
           <TabsTrigger value="redirects">Redirecciones</TabsTrigger>
+          <TabsTrigger value="prod-tests">Pruebas producción</TabsTrigger>
+          <TabsTrigger value="events-qa">Eventos QA</TabsTrigger>
+          <TabsTrigger value="ana-debug">Debug Analytics</TabsTrigger>
+          <TabsTrigger value="merchant-val">Validación Feed</TabsTrigger>
+          <TabsTrigger value="changes">Historial</TabsTrigger>
+          <TabsTrigger value="alerts">Alertas</TabsTrigger>
+          <TabsTrigger value="search-mon">Monitor búsqueda</TabsTrigger>
+          <TabsTrigger value="claims-scan">Escáner claims</TabsTrigger>
+          <TabsTrigger value="checklist">Checklist</TabsTrigger>
+          <TabsTrigger value="reports">Reportes</TabsTrigger>
           <TabsTrigger value="settings">Ajustes</TabsTrigger>
         </TabsList>
 
@@ -126,6 +146,16 @@ export default function AdminSeo() {
         <TabsContent value="funnel" className="mt-4"><FunnelTab /></TabsContent>
         <TabsContent value="content" className="mt-4"><ContentPlanTab /></TabsContent>
         <TabsContent value="redirects" className="mt-4"><RedirectsTab /></TabsContent>
+        <TabsContent value="prod-tests" className="mt-4"><ProductionTestsTab /></TabsContent>
+        <TabsContent value="events-qa" className="mt-4"><EventsQaTab /></TabsContent>
+        <TabsContent value="ana-debug" className="mt-4"><AnalyticsDebugTab /></TabsContent>
+        <TabsContent value="merchant-val" className="mt-4"><MerchantValidationTab /></TabsContent>
+        <TabsContent value="changes" className="mt-4"><ChangeHistoryTab /></TabsContent>
+        <TabsContent value="alerts" className="mt-4"><AlertsTab /></TabsContent>
+        <TabsContent value="search-mon" className="mt-4"><SearchMonitorTab /></TabsContent>
+        <TabsContent value="claims-scan" className="mt-4"><ClaimsScannerTab /></TabsContent>
+        <TabsContent value="checklist" className="mt-4"><ProductionChecklistTab /></TabsContent>
+        <TabsContent value="reports" className="mt-4"><ReportsTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4">
           <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
