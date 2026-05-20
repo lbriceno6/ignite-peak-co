@@ -83,15 +83,18 @@ export function RedirectsTab() {
         <table className="w-full text-sm">
           <thead className="bg-muted/50 text-left"><tr><th className="p-3">Desde</th><th className="p-3">A</th><th className="p-3">Código</th><th className="p-3">Activa</th><th className="p-3"></th></tr></thead>
           <tbody>
-            {rows.map((r) => (
-              <tr key={r.id} className="border-t">
-                <td className="p-3 font-mono text-xs">{r.from_path}</td>
-                <td className="p-3 font-mono text-xs">{r.to_path}</td>
-                <td className="p-3">{r.status_code}</td>
-                <td className="p-3"><Switch checked={r.active} onCheckedChange={(v) => toggle(r.id, v)} /></td>
-                <td className="p-3 text-right"><Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 size={14} /></Button></td>
-              </tr>
-            ))}
+            {rows.map((r) => {
+              const probs = issues.filter((i) => i.id === r.id);
+              return (
+                <tr key={r.id} className="border-t">
+                  <td className="p-3 font-mono text-xs">{r.from_path}</td>
+                  <td className="p-3 font-mono text-xs">{r.to_path}{probs.length > 0 && <div className="mt-1 flex flex-wrap gap-1">{probs.map((p, i) => <Badge key={i} variant="destructive" className="text-[10px]">{p.problem}</Badge>)}</div>}</td>
+                  <td className="p-3">{r.status_code}</td>
+                  <td className="p-3"><Switch checked={r.active} onCheckedChange={(v) => toggle(r.id, v)} /></td>
+                  <td className="p-3 text-right"><Button variant="ghost" size="icon" onClick={() => remove(r.id)}><Trash2 size={14} /></Button></td>
+                </tr>
+              );
+            })}
             {rows.length === 0 && <tr><td colSpan={5} className="p-6 text-center text-muted-foreground">Sin redirecciones</td></tr>}
           </tbody>
         </table>
