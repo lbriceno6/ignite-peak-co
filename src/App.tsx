@@ -84,6 +84,8 @@ import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
 import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
+import { RedirectGate } from "@/components/RedirectGate";
 
 const queryClient = new QueryClient();
 
@@ -98,6 +100,8 @@ const App = () => (
           <ThemeProvider>
             <ScrollToTop />
             <ReferralTracker />
+            <AnalyticsScripts />
+            <RedirectGate />
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />

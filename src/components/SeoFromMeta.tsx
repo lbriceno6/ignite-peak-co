@@ -36,19 +36,7 @@ export const SeoFromMeta = ({
   }
   if (extraJsonLd?.length) blocks.push(...extraJsonLd);
 
-  if (data?.noindex) {
-    return (
-      <SEO
-        title={title}
-        description={description}
-        path={path}
-        image={image}
-        type={type}
-        publishedTime={publishedTime}
-        jsonLd={blocks.length ? blocks : undefined}
-      />
-    );
-  }
+  const robots = data?.robots_directive || (data?.noindex ? "noindex,follow" : undefined);
 
   return (
     <SEO
@@ -59,6 +47,7 @@ export const SeoFromMeta = ({
       type={type}
       publishedTime={publishedTime}
       jsonLd={blocks.length ? blocks : undefined}
+      robots={robots}
     />
   );
 };

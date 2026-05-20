@@ -16,7 +16,14 @@ import { SearchTab } from "@/components/admin/seo/SearchTab";
 import { SynonymsTab } from "@/components/admin/seo/SynonymsTab";
 import { GscTab } from "@/components/admin/seo/GscTab";
 import { ClaimsTab } from "@/components/admin/seo/ClaimsTab";
+import { QaTab } from "@/components/admin/seo/QaTab";
+import { AnalyticsTab } from "@/components/admin/seo/AnalyticsTab";
+import { PerformanceTab } from "@/components/admin/seo/PerformanceTab";
+import { ContentPlanTab } from "@/components/admin/seo/ContentPlanTab";
+import { RedirectsTab } from "@/components/admin/seo/RedirectsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
+import { exportSeoFullReport } from "@/lib/seoFullReport";
+import { Download } from "lucide-react";
 
 type Row = {
   id: string;
@@ -69,9 +76,14 @@ export default function AdminSeo() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-display text-3xl">SEO Inteligente</h1>
-        <p className="text-muted-foreground">Optimiza productos, categorías y blog para Google y buscadores con IA.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-3xl">SEO Inteligente</h1>
+          <p className="text-muted-foreground">Optimiza productos, categorías y blog para Google y buscadores con IA.</p>
+        </div>
+        <Button variant="outline" size="sm" onClick={exportSeoFullReport}>
+          <Download size={14} /> Exportar reporte completo
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -87,20 +99,30 @@ export default function AdminSeo() {
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="audit">Auditoría</TabsTrigger>
+          <TabsTrigger value="qa">QA</TabsTrigger>
           <TabsTrigger value="merchant">Merchant</TabsTrigger>
           <TabsTrigger value="search">Buscador</TabsTrigger>
           <TabsTrigger value="synonyms">Sinónimos</TabsTrigger>
           <TabsTrigger value="gsc">Search Console</TabsTrigger>
           <TabsTrigger value="claims">Claims</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="content">Plan contenido</TabsTrigger>
+          <TabsTrigger value="redirects">Redirecciones</TabsTrigger>
           <TabsTrigger value="settings">Ajustes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="audit" className="mt-4"><AuditTab /></TabsContent>
+        <TabsContent value="qa" className="mt-4"><QaTab /></TabsContent>
         <TabsContent value="merchant" className="mt-4"><MerchantTab /></TabsContent>
         <TabsContent value="search" className="mt-4"><SearchTab /></TabsContent>
         <TabsContent value="synonyms" className="mt-4"><SynonymsTab /></TabsContent>
         <TabsContent value="gsc" className="mt-4"><GscTab /></TabsContent>
         <TabsContent value="claims" className="mt-4"><ClaimsTab /></TabsContent>
+        <TabsContent value="analytics" className="mt-4"><AnalyticsTab /></TabsContent>
+        <TabsContent value="performance" className="mt-4"><PerformanceTab /></TabsContent>
+        <TabsContent value="content" className="mt-4"><ContentPlanTab /></TabsContent>
+        <TabsContent value="redirects" className="mt-4"><RedirectsTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4">
           <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
