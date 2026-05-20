@@ -10,6 +10,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Pencil, ExternalLink, Loader2, Save, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { AuditTab } from "@/components/admin/seo/AuditTab";
+import { MerchantTab } from "@/components/admin/seo/MerchantTab";
+import { SearchTab } from "@/components/admin/seo/SearchTab";
+import { SynonymsTab } from "@/components/admin/seo/SynonymsTab";
+import { GscTab } from "@/components/admin/seo/GscTab";
+import { ClaimsTab } from "@/components/admin/seo/ClaimsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
 
 type Row = {
@@ -76,12 +82,25 @@ export default function AdminSeo() {
       </div>
 
       <Tabs defaultValue="products">
-        <TabsList>
+        <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="products">Productos</TabsTrigger>
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
+          <TabsTrigger value="audit">Auditoría</TabsTrigger>
+          <TabsTrigger value="merchant">Merchant</TabsTrigger>
+          <TabsTrigger value="search">Buscador</TabsTrigger>
+          <TabsTrigger value="synonyms">Sinónimos</TabsTrigger>
+          <TabsTrigger value="gsc">Search Console</TabsTrigger>
+          <TabsTrigger value="claims">Claims</TabsTrigger>
           <TabsTrigger value="settings">Ajustes</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="audit" className="mt-4"><AuditTab /></TabsContent>
+        <TabsContent value="merchant" className="mt-4"><MerchantTab /></TabsContent>
+        <TabsContent value="search" className="mt-4"><SearchTab /></TabsContent>
+        <TabsContent value="synonyms" className="mt-4"><SynonymsTab /></TabsContent>
+        <TabsContent value="gsc" className="mt-4"><GscTab /></TabsContent>
+        <TabsContent value="claims" className="mt-4"><ClaimsTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4">
           <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />

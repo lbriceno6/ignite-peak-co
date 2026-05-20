@@ -4,6 +4,8 @@ import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
+import { logSearch } from "@/lib/searchLog";
+import { useAuth } from "@/context/AuthContext";
 
 const Search = () => {
   const [params] = useSearchParams();
@@ -11,6 +13,7 @@ const Search = () => {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [didYouMean, setDidYouMean] = useState<string | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!q) { setResults([]); return; }
