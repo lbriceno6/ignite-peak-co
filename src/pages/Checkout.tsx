@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStoredReferral, clearReferral, StoredReferral } from "@/components/ReferralTracker";
 import { useReseller } from "@/hooks/useReseller";
 import { Tag, Wallet } from "lucide-react";
+import { track } from "@/lib/analytics";
 
 const PAY_KEYS = [
   "pay.order",
@@ -351,6 +352,13 @@ const Checkout = () => {
       }
 
       toast.success(`Pedido ${order.order_code} creado correctamente`);
+      track("purchase", {
+        transaction_id: order.order_code,
+        value: total,
+        currency: "PEN",
+        items: items.length,
+        payment_method: selected,
+      });
       clear();
       clearReferral();
       if (creditApplied > 0) refreshReseller();
