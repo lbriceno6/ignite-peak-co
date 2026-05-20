@@ -108,6 +108,7 @@ export default function AdminSeo() {
       <Tabs defaultValue="products">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="products">Productos</TabsTrigger>
+          <TabsTrigger value="home">SEO Home</TabsTrigger>
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="audit">Auditoría</TabsTrigger>
