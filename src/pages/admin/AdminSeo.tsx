@@ -158,6 +158,7 @@ export default function AdminSeo() {
         <TabsContent value="claims-scan" className="mt-4"><ClaimsScannerTab /></TabsContent>
         <TabsContent value="checklist" className="mt-4"><ProductionChecklistTab /></TabsContent>
         <TabsContent value="reports" className="mt-4"><ReportsTab /></TabsContent>
+        <TabsContent value="home" className="mt-4"><SeoHomeTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4">
           <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
