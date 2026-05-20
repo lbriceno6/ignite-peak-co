@@ -81,6 +81,13 @@ const Checkout = () => {
   const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
   const total = subtotal + shipping - creditApplied;
 
+  useEffect(() => {
+    if (items.length === 0) return;
+    track("begin_checkout", { value: total, currency: "PEN", items: items.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
   const [form, setForm] = useState({
     email: user?.email ?? "",
     phone: "",
