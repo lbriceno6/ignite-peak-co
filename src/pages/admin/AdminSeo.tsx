@@ -19,6 +19,7 @@ import { ClaimsTab } from "@/components/admin/seo/ClaimsTab";
 import { QaTab } from "@/components/admin/seo/QaTab";
 import { AnalyticsTab } from "@/components/admin/seo/AnalyticsTab";
 import { PerformanceTab } from "@/components/admin/seo/PerformanceTab";
+import { FunnelTab } from "@/components/admin/seo/FunnelTab";
 import { ContentPlanTab } from "@/components/admin/seo/ContentPlanTab";
 import { RedirectsTab } from "@/components/admin/seo/RedirectsTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
