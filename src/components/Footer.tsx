@@ -24,7 +24,7 @@ const KEYS = [
 ];
 
 const DEFAULTS: Record<string, string> = {
-  logo_text: "VOLT", logo_accent: "RA", logo_image_url: "",
+  logo_text: "", logo_accent: "", logo_image_url: "",
   footer_description: "Nutrición y suplementos premium diseñados para potenciar tu entrenamiento, recuperación y bienestar diario.",
   footer_newsletter_title: "Únete al círculo interno",
   footer_newsletter_help: "Obtén 10% de descuento en tu primer pedido. Sin spam.",
@@ -48,7 +48,7 @@ const renderLink = (l: FooterLink) => {
 };
 
 export const Footer = () => {
-  const { content } = useSiteContent(KEYS, DEFAULTS);
+  const { content, loading } = useSiteContent(KEYS, DEFAULTS);
   const [links, setLinks] = useState<FooterLink[]>([]);
 
   useEffect(() => {
@@ -83,7 +83,9 @@ export const Footer = () => {
         <div className="grid gap-12 lg:grid-cols-5">
           <div className="lg:col-span-2">
             <Link to="/" className="inline-flex items-center">
-              {content.logo_image_url ? (
+              {loading ? (
+                <span className="inline-block h-10 w-32" aria-hidden />
+              ) : content.logo_image_url ? (
                 <img src={content.logo_image_url} alt="Logo" className="h-10 w-auto object-contain" />
               ) : (
                 <span className="font-display text-3xl">
