@@ -35,7 +35,7 @@ export default function AdminNavigation() {
       supabase.from("site_content").select("key,value").in("key", LOGO_KEYS as unknown as string[]),
       supabase.from("nav_links").select("*").order("sort_order").order("created_at"),
     ]);
-    const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "" };
+    const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" };
     (c.data ?? []).forEach((r: any) => { m[r.key] = r.value ?? ""; });
     setLogo(m); setSavedLogo(m);
     setLinks((l.data as NavLinkRow[]) ?? []);
