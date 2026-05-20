@@ -15,7 +15,8 @@ type Log = {
   status: string;
 };
 
-const FEED_URL = `https://mphrhcuqzkbbnovmdbpc.supabase.co/functions/v1/merchant-feed`;
+const FEED_URL = `https://nutribatidos.com/feeds/google-merchant.xml`;
+const FEED_INTERNAL_URL = `https://mphrhcuqzkbbnovmdbpc.supabase.co/functions/v1/merchant-feed`;
 
 export function MerchantTab() {
   const [logs, setLogs] = useState<Log[]>([]);
