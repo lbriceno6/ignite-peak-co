@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Layout } from "@/components/Layout";
+import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { InstagramTestimonials } from "@/components/InstagramTestimonials";
 import { Button } from "@/components/ui/button";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
@@ -545,7 +546,13 @@ const Home = () => {
     }
   };
 
-  return <Layout>{blocks.map(renderBlock)}<InstagramTestimonials /></Layout>;
+  return (
+    <Layout>
+      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Batidos y suplementos naturales" fallbackDescription="Productos alimenticios naturales que ayudan a complementar una rutina saludable y contribuyen al bienestar general." />
+      {blocks.map(renderBlock)}
+      <InstagramTestimonials />
+    </Layout>
+  );
 };
 
 export default Home;

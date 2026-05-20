@@ -32,6 +32,7 @@ import { SearchMonitorTab } from "@/components/admin/seo/SearchMonitorTab";
 import { ClaimsScannerTab } from "@/components/admin/seo/ClaimsScannerTab";
 import { ProductionChecklistTab } from "@/components/admin/seo/ProductionChecklistTab";
 import { ReportsTab } from "@/components/admin/seo/ReportsTab";
+import { SeoHomeTab } from "@/components/admin/seo/SeoHomeTab";
 import { scoreBadgeClass } from "@/lib/seoScore";
 import { exportFullSeoReport } from "@/lib/seoFullReport";
 import { Download } from "lucide-react";
@@ -107,6 +108,7 @@ export default function AdminSeo() {
       <Tabs defaultValue="products">
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="products">Productos</TabsTrigger>
+          <TabsTrigger value="home">SEO Home</TabsTrigger>
           <TabsTrigger value="categories">Categorías</TabsTrigger>
           <TabsTrigger value="blog">Blog</TabsTrigger>
           <TabsTrigger value="audit">Auditoría</TabsTrigger>
@@ -156,6 +158,7 @@ export default function AdminSeo() {
         <TabsContent value="claims-scan" className="mt-4"><ClaimsScannerTab /></TabsContent>
         <TabsContent value="checklist" className="mt-4"><ProductionChecklistTab /></TabsContent>
         <TabsContent value="reports" className="mt-4"><ReportsTab /></TabsContent>
+        <TabsContent value="home" className="mt-4"><SeoHomeTab /></TabsContent>
 
         <TabsContent value="products" className="mt-4">
           <EntityTable entityType="product" rows={productRows} editHref={(r) => `/admin/products/${r.id}/edit`} publicHref={(r) => `/producto/${r.slug}`} />
