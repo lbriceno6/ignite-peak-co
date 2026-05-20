@@ -16,6 +16,8 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
 import { ProductReviews } from "@/components/ProductReviews";
+import { SeoFromMeta } from "@/components/SeoFromMeta";
+import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 
 type DbProduct = {
   id: string;
@@ -171,8 +173,45 @@ const ProductDetail = () => {
     return [];
   })();
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: dbp.short_description || dbp.description || product.name,
+    image: gallery,
+    sku: dbp.id,
+    brand: { "@type": "Brand", name: product.brand || "Nutribatidos" },
+    aggregateRating: product.rating > 0 ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: 1 } : undefined,
+    offers: {
+      "@type": "Offer",
+      url: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}`,
+      priceCurrency: "PEN",
+      price: basePrice,
+      availability: (dbp as any).stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    },
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://ignite-peak-co.lovable.app/" },
+      ...(product.category ? [{ "@type": "ListItem", position: 2, name: product.category, item: `https://ignite-peak-co.lovable.app/categoria/${product.category.toLowerCase()}` }] : []),
+      { "@type": "ListItem", position: product.category ? 3 : 2, name: product.name, item: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}` },
+    ],
+  };
+
   return (
     <Layout>
+      <SeoFromMeta
+        entityType="product"
+        entityId={dbp.id}
+        path={`/producto/${dbp.slug}`}
+        fallbackTitle={`${product.name} | Nutribatidos`}
+        fallbackDescription={dbp.short_description || dbp.description || product.name}
+        fallbackImage={mainImg}
+        type="website"
+        extraJsonLd={[productJsonLd, breadcrumbJsonLd]}
+      />
       <div className="container-x py-6">
         <nav className="text-xs uppercase tracking-wider text-muted-foreground">
           <Link to="/" className="hover:text-accent">Inicio</Link>
