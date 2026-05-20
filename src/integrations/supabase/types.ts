@@ -636,6 +636,41 @@ export type Database = {
           },
         ]
       }
+      product_search_terms: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          product_id: string
+          term: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          product_id: string
+          term: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          product_id?: string
+          term?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_search_terms_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           approval_status: string
@@ -1068,6 +1103,48 @@ export type Database = {
           entity_type?: string
           id?: string
           image_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      seo_landing_pages: {
+        Row: {
+          created_at: string
+          filter_field: string | null
+          filter_value: string | null
+          id: string
+          intro: string | null
+          is_published: boolean
+          kind: string
+          long_description: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          filter_field?: string | null
+          filter_value?: string | null
+          id?: string
+          intro?: string | null
+          is_published?: boolean
+          kind: string
+          long_description?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          filter_field?: string | null
+          filter_value?: string | null
+          id?: string
+          intro?: string | null
+          is_published?: boolean
+          kind?: string
+          long_description?: string | null
+          slug?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -1736,6 +1813,23 @@ export type Database = {
           source: string
         }[]
       }
+      search_products: {
+        Args: { q: string }
+        Returns: {
+          category: string
+          id: string
+          main_image: string
+          name: string
+          price: number
+          rating: number
+          sale_price: number
+          score: number
+          short_description: string
+          slug: string
+        }[]
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       supplier_owns_order: { Args: { _order_id: string }; Returns: boolean }
       user_has_confirmed_purchase: {
         Args: { _product_id: string; _user_id: string }
