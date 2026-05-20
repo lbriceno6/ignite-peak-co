@@ -1464,12 +1464,18 @@ export type Database = {
           created_at: string
           entity_id: string
           entity_type: string
+          h1: string | null
           id: string
+          intro_text: string | null
           keywords: string[]
           last_analyzed_at: string | null
+          llms_summary: string | null
           long_description: string | null
           noindex: boolean
+          og_description: string | null
           og_image: string | null
+          og_site_name: string | null
+          og_title: string | null
           robots_directive: string | null
           schema_jsonld: Json | null
           score: number | null
@@ -1480,6 +1486,9 @@ export type Database = {
           short_description: string | null
           slug: string | null
           tags: string[]
+          twitter_description: string | null
+          twitter_image: string | null
+          twitter_title: string | null
           updated_at: string
         }
         Insert: {
@@ -1487,12 +1496,18 @@ export type Database = {
           created_at?: string
           entity_id: string
           entity_type: string
+          h1?: string | null
           id?: string
+          intro_text?: string | null
           keywords?: string[]
           last_analyzed_at?: string | null
+          llms_summary?: string | null
           long_description?: string | null
           noindex?: boolean
+          og_description?: string | null
           og_image?: string | null
+          og_site_name?: string | null
+          og_title?: string | null
           robots_directive?: string | null
           schema_jsonld?: Json | null
           score?: number | null
@@ -1503,6 +1518,9 @@ export type Database = {
           short_description?: string | null
           slug?: string | null
           tags?: string[]
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
           updated_at?: string
         }
         Update: {
@@ -1510,12 +1528,18 @@ export type Database = {
           created_at?: string
           entity_id?: string
           entity_type?: string
+          h1?: string | null
           id?: string
+          intro_text?: string | null
           keywords?: string[]
           last_analyzed_at?: string | null
+          llms_summary?: string | null
           long_description?: string | null
           noindex?: boolean
+          og_description?: string | null
           og_image?: string | null
+          og_site_name?: string | null
+          og_title?: string | null
           robots_directive?: string | null
           schema_jsonld?: Json | null
           score?: number | null
@@ -1526,6 +1550,9 @@ export type Database = {
           short_description?: string | null
           slug?: string | null
           tags?: string[]
+          twitter_description?: string | null
+          twitter_image?: string | null
+          twitter_title?: string | null
           updated_at?: string
         }
         Relationships: []
