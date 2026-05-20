@@ -425,6 +425,36 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_feed_logs: {
+        Row: {
+          errors_json: Json
+          generated_at: string
+          id: string
+          invalid_products: number
+          status: string
+          total_products: number
+          valid_products: number
+        }
+        Insert: {
+          errors_json?: Json
+          generated_at?: string
+          id?: string
+          invalid_products?: number
+          status?: string
+          total_products?: number
+          valid_products?: number
+        }
+        Update: {
+          errors_json?: Json
+          generated_at?: string
+          id?: string
+          invalid_products?: number
+          status?: string
+          total_products?: number
+          valid_products?: number
+        }
+        Relationships: []
+      }
       nav_links: {
         Row: {
           created_at: string
@@ -1077,6 +1107,126 @@ export type Database = {
         }
         Relationships: []
       }
+      search_logs: {
+        Row: {
+          clicked_product_id: string | null
+          clicked_product_slug: string | null
+          created_at: string
+          id: string
+          query: string
+          results_count: number
+          user_id: string | null
+        }
+        Insert: {
+          clicked_product_id?: string | null
+          clicked_product_slug?: string | null
+          created_at?: string
+          id?: string
+          query: string
+          results_count?: number
+          user_id?: string | null
+        }
+        Update: {
+          clicked_product_id?: string | null
+          clicked_product_slug?: string | null
+          created_at?: string
+          id?: string
+          query?: string
+          results_count?: number
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      sensitive_claims_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          pattern: string
+          severity: string
+          suggestion: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pattern: string
+          severity?: string
+          suggestion: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          pattern?: string
+          severity?: string
+          suggestion?: string
+        }
+        Relationships: []
+      }
+      seo_gsc_settings: {
+        Row: {
+          id: number
+          last_synced_at: string | null
+          notes: string | null
+          site_property: string | null
+          updated_at: string
+          verification_method: string | null
+          verification_token: string | null
+          verified_at: string | null
+        }
+        Insert: {
+          id?: number
+          last_synced_at?: string | null
+          notes?: string | null
+          site_property?: string | null
+          updated_at?: string
+          verification_method?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
+        }
+        Update: {
+          id?: number
+          last_synced_at?: string | null
+          notes?: string | null
+          site_property?: string | null
+          updated_at?: string
+          verification_method?: string | null
+          verification_token?: string | null
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
+      seo_gsc_urls: {
+        Row: {
+          coverage_state: string | null
+          id: string
+          is_indexable: boolean | null
+          last_crawl_at: string | null
+          last_synced_at: string
+          raw: Json | null
+          url: string
+        }
+        Insert: {
+          coverage_state?: string | null
+          id?: string
+          is_indexable?: boolean | null
+          last_crawl_at?: string | null
+          last_synced_at?: string
+          raw?: Json | null
+          url: string
+        }
+        Update: {
+          coverage_state?: string | null
+          id?: string
+          is_indexable?: boolean | null
+          last_crawl_at?: string | null
+          last_synced_at?: string
+          raw?: Json | null
+          url?: string
+        }
+        Relationships: []
+      }
       seo_image_alts: {
         Row: {
           alt_text: string
@@ -1320,6 +1470,42 @@ export type Database = {
           slug?: string | null
           status?: string
           tags?: string[]
+        }
+        Relationships: []
+      }
+      seo_synonyms: {
+        Row: {
+          created_at: string
+          hits: number
+          id: string
+          resolved_to: string | null
+          status: string
+          suggested_target_id: string | null
+          suggested_target_kind: string | null
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hits?: number
+          id?: string
+          resolved_to?: string | null
+          status?: string
+          suggested_target_id?: string | null
+          suggested_target_kind?: string | null
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hits?: number
+          id?: string
+          resolved_to?: string | null
+          status?: string
+          suggested_target_id?: string | null
+          suggested_target_kind?: string | null
+          term?: string
+          updated_at?: string
         }
         Relationships: []
       }
