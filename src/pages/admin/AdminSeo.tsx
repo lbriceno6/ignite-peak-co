@@ -81,7 +81,7 @@ export default function AdminSeo() {
           <h1 className="font-display text-3xl">SEO Inteligente</h1>
           <p className="text-muted-foreground">Optimiza productos, categorías y blog para Google y buscadores con IA.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportFullSeoReport}>
+        <Button variant="outline" size="sm" onClick={() => exportFullSeoReport([])}>
           <Download size={14} /> Exportar reporte completo
         </Button>
       </div>
