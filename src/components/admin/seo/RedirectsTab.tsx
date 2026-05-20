@@ -11,6 +11,36 @@ import { toast } from "sonner";
 export function RedirectsTab() {
   const [rows, setRows] = useState<any[]>([]);
   const [form, setForm] = useState({ from_path: "", to_path: "", status_code: 301 });
+  const [issues, setIssues] = useState<{ id: string; problem: string }[]>([]);
+  const [validating, setValidating] = useState(false);
+
+  const validate = async () => {
+    setValidating(true);
+    const found: { id: string; problem: string }[] = [];
+    const map = new Map<string, string>();
+    const fromCounts = new Map<string, number>();
+    rows.forEach((r) => { map.set(r.from_path, r.to_path); fromCounts.set(r.from_path, (fromCounts.get(r.from_path) ?? 0) + 1); });
+    for (const r of rows) {
+      if (!r.to_path?.startsWith("/")) { found.push({ id: r.id, problem: "to_path inválido" }); continue; }
+      if ((fromCounts.get(r.from_path) ?? 0) > 1) found.push({ id: r.id, problem: "from_path duplicado" });
+      // loop
+      let cur = r.to_path; const seen = new Set([r.from_path]);
+      for (let i = 0; i < 10 && map.has(cur); i++) {
+        if (seen.has(cur)) { found.push({ id: r.id, problem: "loop detectado" }); break; }
+        seen.add(cur); cur = map.get(cur)!;
+      }
+      if (r.status_code !== 301 && r.status_code !== 302) found.push({ id: r.id, problem: "código no estándar" });
+      // 404 check
+      try {
+        const res = await fetch(window.location.origin + r.to_path, { method: "GET" });
+        if (!res.ok) found.push({ id: r.id, problem: `target ${res.status}` });
+      } catch { found.push({ id: r.id, problem: "target inalcanzable" }); }
+    }
+    setIssues(found);
+    setValidating(false);
+    toast.success(`Validación completa: ${found.length} problemas`);
+  };
+
 
   const load = async () => {
     const { data } = await supabase.from("seo_redirects" as any).select("*").order("created_at", { ascending: false });
