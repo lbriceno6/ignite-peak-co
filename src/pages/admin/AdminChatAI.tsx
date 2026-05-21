@@ -17,6 +17,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Download, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PROVIDER_MODELS } from "@/lib/lucia";
 
