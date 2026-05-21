@@ -1,0 +1,1 @@
+DELETE FROM public.chat_ai_messages WHERE session_id = 'test-debug';
