@@ -15,6 +15,11 @@ import {
   pageShowsLucia,
   whatsappUrl,
 } from "@/lib/lucia";
+import { logLuciaEvent } from "@/lib/luciaEvents";
+import { getVisitorId, getSessionId } from "@/lib/visitor";
+import { readCurrentAttribution, getFirstTouch } from "@/lib/attribution";
+import { getDeviceInfo } from "@/lib/device";
+import { getConsent } from "@/lib/consent";
 import { LuciaProductCard } from "./LuciaProductCard";
 
 type Msg = {
