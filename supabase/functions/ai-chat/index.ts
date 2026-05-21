@@ -216,7 +216,16 @@ Deno.serve(async (req) => {
       history = [],
       test_mode = false,
       override_prompt = null,
+      tracking = {},
     } = body;
+
+    // Server-side only: capture headers for geolocation/IP (never returned to client)
+    const ipHeader = req.headers.get("x-forwarded-for") || "";
+    const ip = ipHeader.split(",")[0].trim() || null;
+    const country = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || null;
+    const city = req.headers.get("cf-ipcity") || req.headers.get("x-vercel-ip-city") || null;
+    const userAgent = req.headers.get("user-agent") || null;
+    const acceptLanguage = req.headers.get("accept-language") || null;
 
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "message required" }), {
