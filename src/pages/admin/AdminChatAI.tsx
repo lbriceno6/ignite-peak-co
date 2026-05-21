@@ -507,10 +507,14 @@ const AdminChatAI = () => (
         <TabsTrigger value="settings">Configuración</TabsTrigger>
         <TabsTrigger value="prompts">Prompt</TabsTrigger>
         <TabsTrigger value="conversations">Conversaciones</TabsTrigger>
+        <TabsTrigger value="visitors">Visitantes y origen</TabsTrigger>
+        <TabsTrigger value="attribution">Atribución</TabsTrigger>
       </TabsList>
       <TabsContent value="settings"><SettingsTab /></TabsContent>
       <TabsContent value="prompts"><PromptsTab /></TabsContent>
       <TabsContent value="conversations"><ConversationsTab /></TabsContent>
+      <TabsContent value="visitors"><VisitorsTab /></TabsContent>
+      <TabsContent value="attribution"><AttributionTab /></TabsContent>
     </Tabs>
   </div>
 );
