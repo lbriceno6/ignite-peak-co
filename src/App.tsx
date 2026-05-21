@@ -150,6 +150,9 @@ const App = () => (
             <Route path="/returns-policies" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/politica-de-privacidad" element={<Privacy />} />
+            <Route path="/politica-de-cookies" element={<Cookies />} />
+            <Route path="/cookies" element={<Cookies />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* SEO landing pages */}
