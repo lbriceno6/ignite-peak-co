@@ -328,6 +328,7 @@ Deno.serve(async (req) => {
           content: message,
           current_page: context.page,
           product_id: context.productId ?? null,
+          matched_products: [],
         },
         {
           session_id,
@@ -337,7 +338,7 @@ Deno.serve(async (req) => {
           model: s.model,
           current_page: context.page,
           product_id: context.productId ?? null,
-          matched_products: matchedProducts,
+          matched_products: matchedProducts ?? [],
           prompt_version_id: prompt?.id ?? null,
           tokens_input: result.tokens_in,
           tokens_output: result.tokens_out,
