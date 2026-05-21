@@ -1,0 +1,2 @@
+CREATE POLICY "Admins delete chat sessions" ON public.chat_ai_sessions FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
+CREATE POLICY "Admins delete chat messages" ON public.chat_ai_messages FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'));
