@@ -29,6 +29,15 @@ export const THEME_KEYS = [
   "theme.font_display",
   "theme.font_body",
   "theme.custom_fonts", // JSON array
+  "theme.font_size_base",
+  "theme.font_size_h1",
+  "theme.font_size_h2",
+  "theme.font_size_h3",
+  "theme.font_size_h4",
+  "theme.font_size_h5",
+  "theme.font_size_h6",
+  "theme.line_height_base",
+  "theme.line_height_heading",
 ] as const;
 export type ThemeKey = (typeof THEME_KEYS)[number];
 
