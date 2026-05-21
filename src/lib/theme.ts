@@ -78,6 +78,15 @@ export const THEME_DEFAULTS: Record<ThemeKey, string> = {
   "theme.font_display": "Oswald",
   "theme.font_body": "Inter",
   "theme.custom_fonts": "[]",
+  "theme.font_size_base": "16px",
+  "theme.font_size_h1": "3rem",
+  "theme.font_size_h2": "2.25rem",
+  "theme.font_size_h3": "1.75rem",
+  "theme.font_size_h4": "1.375rem",
+  "theme.font_size_h5": "1.125rem",
+  "theme.font_size_h6": "1rem",
+  "theme.line_height_base": "1.6",
+  "theme.line_height_heading": "1.2",
 } as Record<ThemeKey, string>;
 
 const CSS_VAR_MAP: Record<ColorBase, string> = {
