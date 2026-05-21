@@ -454,6 +454,52 @@ export default function AdminTheme() {
         )}
       </Section>
 
+      {/* Font sizes */}
+      <Section title="Tamaños de letra" icon={Type}>
+        <p className="mb-3 text-xs text-muted-foreground">
+          Define el tamaño base del cuerpo y de cada encabezado. Acepta unidades CSS
+          (<code className="rounded bg-muted px-1">px</code>, <code className="rounded bg-muted px-1">rem</code>,
+          <code className="rounded bg-muted px-1">em</code>, <code className="rounded bg-muted px-1">clamp()</code>).
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {([
+            ["theme.font_size_base", "Texto base", "16px"],
+            ["theme.font_size_h1", "Título H1", "3rem"],
+            ["theme.font_size_h2", "Título H2", "2.25rem"],
+            ["theme.font_size_h3", "Título H3", "1.75rem"],
+            ["theme.font_size_h4", "Título H4", "1.375rem"],
+            ["theme.font_size_h5", "Título H5", "1.125rem"],
+            ["theme.font_size_h6", "Título H6", "1rem"],
+            ["theme.line_height_base", "Interlineado cuerpo", "1.6"],
+            ["theme.line_height_heading", "Interlineado títulos", "1.2"],
+          ] as const).map(([k, label, ph]) => (
+            <div key={k}>
+              <Label className="text-xs text-muted-foreground">{label}</Label>
+              <Input
+                value={v[k] || THEME_DEFAULTS[k as ThemeKey]}
+                onChange={(e) => set(k, e.target.value)}
+                placeholder={ph}
+                className="mt-1 font-mono text-xs"
+              />
+              {k.startsWith("theme.font_size_") && (
+                <div
+                  className="mt-2 truncate rounded border bg-background px-2 py-1"
+                  style={{
+                    fontSize: v[k] || THEME_DEFAULTS[k as ThemeKey],
+                    fontFamily: k === "theme.font_size_base"
+                      ? `'${v["theme.font_body"] || THEME_DEFAULTS["theme.font_body"]}', sans-serif`
+                      : `'${v["theme.font_display"] || THEME_DEFAULTS["theme.font_display"]}', sans-serif`,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Aa
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </Section>
+
       <Section title="Otros" icon={Palette}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
