@@ -65,8 +65,13 @@ export const LuciaChat = () => {
     if (open) {
       setShowBubble(false);
       track("lucia_chat_open" as any, { page: ctx.page });
+      logLuciaEvent("lucia_chat_open", {
+        product_id: ctx.productId,
+        product_slug: ctx.productSlug,
+        page: ctx.page,
+      });
     }
-  }, [open, ctx.page]);
+  }, [open, ctx.page, ctx.productId, ctx.productSlug]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
