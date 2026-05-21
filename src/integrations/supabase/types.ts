@@ -199,55 +199,73 @@ export type Database = {
           content: string
           created_at: string
           current_page: string | null
+          device_data: Json
           id: string
           intent: string | null
           latency_ms: number | null
+          location_data: Json
           matched_products: Json
           metadata: Json
           model: string | null
           product_id: string | null
           prompt_version_id: string | null
           provider: string | null
+          referrer: string | null
           role: string
           session_id: string
+          source: string | null
           tokens_input: number | null
           tokens_output: number | null
+          utm_data: Json
+          visitor_id: string | null
         }
         Insert: {
           content: string
           created_at?: string
           current_page?: string | null
+          device_data?: Json
           id?: string
           intent?: string | null
           latency_ms?: number | null
+          location_data?: Json
           matched_products?: Json
           metadata?: Json
           model?: string | null
           product_id?: string | null
           prompt_version_id?: string | null
           provider?: string | null
+          referrer?: string | null
           role: string
           session_id: string
+          source?: string | null
           tokens_input?: number | null
           tokens_output?: number | null
+          utm_data?: Json
+          visitor_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string
           current_page?: string | null
+          device_data?: Json
           id?: string
           intent?: string | null
           latency_ms?: number | null
+          location_data?: Json
           matched_products?: Json
           metadata?: Json
           model?: string | null
           product_id?: string | null
           prompt_version_id?: string | null
           provider?: string | null
+          referrer?: string | null
           role?: string
           session_id?: string
+          source?: string | null
           tokens_input?: number | null
           tokens_output?: number | null
+          utm_data?: Json
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -301,49 +319,91 @@ export type Database = {
       }
       chat_ai_sessions: {
         Row: {
+          browser: string | null
+          campaign: string | null
+          city: string | null
+          consent_snapshot: Json | null
+          country: string | null
           created_at: string
           current_product_id: string | null
           customer_email: string | null
           customer_name: string | null
           customer_phone: string | null
+          device_type: string | null
           first_page: string | null
+          first_product_viewed: string | null
           id: string
+          landing_page: string | null
           last_page: string | null
+          last_product_viewed: string | null
+          medium: string | null
+          os: string | null
+          referrer: string | null
           session_id: string
           source: string
           status: string
+          timezone: string | null
           updated_at: string
           user_id: string | null
+          visitor_id: string | null
         }
         Insert: {
+          browser?: string | null
+          campaign?: string | null
+          city?: string | null
+          consent_snapshot?: Json | null
+          country?: string | null
           created_at?: string
           current_product_id?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          device_type?: string | null
           first_page?: string | null
+          first_product_viewed?: string | null
           id?: string
+          landing_page?: string | null
           last_page?: string | null
+          last_product_viewed?: string | null
+          medium?: string | null
+          os?: string | null
+          referrer?: string | null
           session_id: string
           source?: string
           status?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string | null
+          visitor_id?: string | null
         }
         Update: {
+          browser?: string | null
+          campaign?: string | null
+          city?: string | null
+          consent_snapshot?: Json | null
+          country?: string | null
           created_at?: string
           current_product_id?: string | null
           customer_email?: string | null
           customer_name?: string | null
           customer_phone?: string | null
+          device_type?: string | null
           first_page?: string | null
+          first_product_viewed?: string | null
           id?: string
+          landing_page?: string | null
           last_page?: string | null
+          last_product_viewed?: string | null
+          medium?: string | null
+          os?: string | null
+          referrer?: string | null
           session_id?: string
           source?: string
           status?: string
+          timezone?: string | null
           updated_at?: string
           user_id?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -710,6 +770,63 @@ export type Database = {
           subtitle?: string | null
           title?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      lucia_events: {
+        Row: {
+          campaign: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          event_type: string
+          id: string
+          medium: string | null
+          metadata: Json
+          page: string | null
+          product_id: string | null
+          product_slug: string | null
+          session_id: string | null
+          source: string | null
+          user_id: string | null
+          visitor_id: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type: string
+          id?: string
+          medium?: string | null
+          metadata?: Json
+          page?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          event_type?: string
+          id?: string
+          medium?: string | null
+          metadata?: Json
+          page?: string | null
+          product_id?: string | null
+          product_slug?: string | null
+          session_id?: string | null
+          source?: string | null
+          user_id?: string | null
+          visitor_id?: string | null
         }
         Relationships: []
       }
@@ -2345,6 +2462,111 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      visitor_tracking: {
+        Row: {
+          browser: string | null
+          campaign: string | null
+          city: string | null
+          consent_analytics: boolean
+          consent_marketing: boolean
+          consent_personalization: boolean
+          country: string | null
+          created_at: string
+          current_page: string | null
+          device_type: string | null
+          fbclid: string | null
+          first_page: string | null
+          gclid: string | null
+          id: string
+          language: string | null
+          last_page: string | null
+          medium: string | null
+          os: string | null
+          referrer: string | null
+          region: string | null
+          session_id: string | null
+          source: string | null
+          timezone: string | null
+          ttclid: string | null
+          updated_at: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visitor_id: string
+        }
+        Insert: {
+          browser?: string | null
+          campaign?: string | null
+          city?: string | null
+          consent_analytics?: boolean
+          consent_marketing?: boolean
+          consent_personalization?: boolean
+          country?: string | null
+          created_at?: string
+          current_page?: string | null
+          device_type?: string | null
+          fbclid?: string | null
+          first_page?: string | null
+          gclid?: string | null
+          id?: string
+          language?: string | null
+          last_page?: string | null
+          medium?: string | null
+          os?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id?: string | null
+          source?: string | null
+          timezone?: string | null
+          ttclid?: string | null
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id: string
+        }
+        Update: {
+          browser?: string | null
+          campaign?: string | null
+          city?: string | null
+          consent_analytics?: boolean
+          consent_marketing?: boolean
+          consent_personalization?: boolean
+          country?: string | null
+          created_at?: string
+          current_page?: string | null
+          device_type?: string | null
+          fbclid?: string | null
+          first_page?: string | null
+          gclid?: string | null
+          id?: string
+          language?: string | null
+          last_page?: string | null
+          medium?: string | null
+          os?: string | null
+          referrer?: string | null
+          region?: string | null
+          session_id?: string | null
+          source?: string | null
+          timezone?: string | null
+          ttclid?: string | null
+          updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visitor_id?: string
         }
         Relationships: []
       }

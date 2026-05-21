@@ -1,98 +1,72 @@
-# Plan: Lucía — Asesora Virtual IA de Nutribatidos
+# Plan: Tracking, consentimiento y atribución para Lucía
 
-## Resumen
+Implementación grande dividida en fases. Cada fase es independiente y verificable.
 
-Reemplazar el botón flotante de WhatsApp por **Lucía**, una asesora IA humana, contextual (Home/Producto/Categoría/Landing), con multi-proveedor (DeepSeek, OpenAI, Gemini, Claude), panel admin completo, gestión de prompts versionados y registro de conversaciones.
+## Fase 1 — Base de datos
 
----
+Migración única que crea/actualiza:
 
-## 1. Base de datos (migración)
+- **Tabla nueva `visitor_tracking`**: visitor_id, session_id, user_id, páginas (first/current/last), referrer, source/medium/campaign, UTMs, gclid/fbclid/ttclid, device_type/browser/os/language, country/region/city/timezone, consent_analytics/marketing/personalization, timestamps. RLS: admin lee todo, público puede insert/update por visitor_id.
+- **Ampliar `chat_ai_sessions`**: visitor_id, referrer, source, medium, campaign, device_type, browser, os, country, city, timezone, consent_snapshot jsonb, landing_page, first_product_viewed, last_product_viewed.
+- **Ampliar `chat_ai_messages`**: visitor_id, source, current_page, referrer, utm_data jsonb, device_data jsonb, location_data jsonb.
+- **Tabla `lucia_events`**: id, visitor_id, session_id, event_type (lucia_chat_open, lucia_chat_message, lucia_product_recommendation, lucia_product_click, lucia_whatsapp_click, lucia_lead_captured), product_id, page, source, campaign, metadata jsonb, created_at. RLS: insert público, select admin.
+- Índices por visitor_id, session_id, source, country, created_at.
 
-**Tablas nuevas:**
-- `chat_ai_settings` (singleton id=1): provider, model, temperature, max_tokens, history_size, enabled flags por contexto (home/product/category/landing), proactive bubble + delay, whatsapp_number, save_conversations, hide_whatsapp_button.
-- `chat_ai_sessions`: session_id, user_id, customer_name/phone/email, source, first_page, last_page, current_product_id, status.
-- `chat_ai_messages`: session_id, role, content, provider, model, intent, current_page, product_id, matched_products (jsonb), prompt_version_id, metadata, tokens_input/output, latency_ms.
-- `chat_ai_feedback`: session_id, message_id, rating, comment.
-- `chat_ai_prompts`: name, version, is_active, provider, model, system_prompt, business_rules, safety_rules, sales_rules, fallback_rules.
+## Fase 2 — Cliente: cookies, visitor_id y tracking
 
-**RLS:** Admins gestionan todo. `sessions/messages/feedback` permiten INSERT público (sesiones anónimas). `settings` y prompts activos legibles públicamente (frontend necesita config). Prompts completos solo admin.
+Archivos nuevos:
 
-**Seed:** settings default + 1 prompt activo de Lucía (el texto base proporcionado).
+- `src/lib/consent.ts`: gestión de `cookie_consent` en localStorage + helpers `getConsent()`, `setConsent()`, `hasConsent(category)`.
+- `src/lib/visitor.ts`: genera/lee `nutribatidos_visitor_id` (UUID, persistente) y `nutribatidos_session_id` (renovable por sesión, 30 min de inactividad).
+- `src/lib/attribution.ts`: parsea URL (UTMs, gclid/fbclid/ttclid) y referrer → devuelve `{source, medium, campaign, ...}`. Persiste primera atribución en localStorage.
+- `src/lib/device.ts`: detecta device_type, browser, os, language, timezone con `navigator` + `Intl`.
+- `src/hooks/useVisitorTracking.ts`: en cada cambio de ruta hace upsert a `visitor_tracking` con los datos disponibles según consentimiento.
 
-## 2. Secrets
+Componentes nuevos:
 
-Solicitar al usuario: `DEEPSEEK_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `CLAUDE_API_KEY`. `LOVABLE_API_KEY` ya existe (sirve como fallback para Gemini/OpenAI vía gateway). Solo pediré las claves cuando el admin seleccione un proveedor que no esté disponible.
+- `src/components/CookieBanner.tsx`: banner inferior con botones Aceptar todo / Rechazar / Configurar.
+- `src/components/CookiePreferencesModal.tsx`: modal con switches por categoría (necesarias bloqueadas en true).
+- Botón "Configurar cookies" añadido al `Footer.tsx`.
 
-## 3. Edge Function `ai-chat`
+Integración en `App.tsx` / `Layout.tsx`: montar `CookieBanner` + `useVisitorTracking` global. `AnalyticsScripts` y pixels solo cargan si hay consentimiento correspondiente.
 
-- Recibe: `{ session_id, message, context: { page, product?, category?, landing? }, history[] }`.
-- Carga settings + prompt activo + datos reales del producto/categoría/landing desde DB.
-- Construye system prompt + contexto productos (top 6 relevantes con nombre/precio/stock/slug/imagen/beneficio).
-- Llama al proveedor configurado (DeepSeek/OpenAI/Gemini/Claude) con la API correspondiente.
-- Detecta intención básica + extrae `matched_products` (slugs mencionados).
-- Persiste user + assistant messages, devuelve `{ reply, products: [...], intent }`.
+## Fase 3 — Lucía y edge function
 
-## 4. Componente `LuciaChat` (frontend)
+- `LuciaChat.tsx`: al abrir, enviar evento `lucia_chat_open` con contexto completo. Al enviar mensaje, al hacer click en producto o WhatsApp, registrar eventos.
+- `useLuciaContext.ts`: incluir visitor_id, session_id, source, device, location en el payload enviado a `ai-chat`.
+- `supabase/functions/ai-chat/index.ts`: leer headers `x-forwarded-for`, `cf-ipcountry`, `user-agent`, `accept-language` y guardar país/IP server-side. Persistir en `chat_ai_sessions` y `chat_ai_messages` los campos nuevos. Nunca devolver IP al cliente.
+- Helper `logLuciaEvent()` en cliente para insertar en `lucia_events`.
 
-- Botón flotante (reemplaza `WhatsAppButton`): avatar circular, punto verde "en línea", animación pulse suave, burbuja proactiva tras N segundos, badge "Lucía / Tu asesora Nutri".
-- Drawer/panel inferior derecho con header "Lucía 😊 En línea", mensajes con markdown, botones rápidos contextuales, input, botón "Hablar por WhatsApp" siempre visible al final.
-- Tarjetas de producto inline cuando el assistant devuelve `products[]` (imagen, nombre, precio, stock, "Ver producto" + "Comprar por WhatsApp" con mensaje personalizado).
-- Hook `useLuciaContext()` detecta ruta actual y carga producto/categoría/landing por slug.
-- Settings: si `enabled=false` o página no incluida → no renderiza. Si activo → oculta `WhatsAppButton`.
-- Analytics: dispara los 8 eventos vía `track()`.
+## Fase 4 — Admin: visitantes, atribución y conversación enriquecida
 
-## 5. Integración Layout
+- `AdminChatAI.tsx`: añadir dos tabs nuevos.
+  - **Visitantes y origen**: KPIs (totales, por fuente/campaña/país/ciudad/dispositivo/navegador), tablas de páginas y productos top. Filtros: fecha, fuente, campaña, país, ciudad, dispositivo, producto, página, proveedor, con WhatsApp, con compra.
+  - **Atribución**: conversaciones / WhatsApp clicks / leads / recomendaciones por canal. Top campañas, páginas que activan Lucía, productos.
+- Modal de conversación: cabecera enriquecida con nombre, teléfono, país/ciudad, dispositivo, navegador, fuente, campaña, primera página, página de apertura, producto, proveedor/modelo, estado de cookies, clic a WhatsApp.
 
-- `Layout.tsx`: render condicional — si `lucia.enabled` y página incluida → `<LuciaChat />` (oculta WhatsApp); sino → `<WhatsAppButton />`.
+## Fase 5 — Privacidad
 
-## 6. Panel admin `/admin/chat-ia`
+- Página `/politica-de-cookies` y actualización de `/politica-de-privacidad` con: cookies usadas, finalidades, cómo cambiar preferencias, datos de Lucía, derechos del usuario.
+- Footer: enlace a ambas + botón "Configurar cookies".
 
-Página con 3 tabs:
+## Seguridad
 
-### Tab 1: Conversaciones
-Lista de sesiones con filtros (fecha, producto, intención, proveedor, página). Click → diálogo con thread completo, productos recomendados, indicador de clic WhatsApp.
+- IP solo en logs server-side, nunca expuesta en `chat_ai_*` ni al frontend.
+- Sin GPS, sin geolocation API.
+- Consentimiento bloquea analytics/marketing/personalización.
+- RLS en todas las tablas nuevas; insert público solo por visitor_id, select solo admin.
 
-### Tab 2: Configuración
-Form con todos los toggles + selects (proveedor, modelo dinámico según proveedor), sliders (temperature, tokens, history), inputs WhatsApp y delay burbuja, toggles por contexto, toggle ocultar WhatsApp.
+## Detalles técnicos
 
-### Tab 3: Prompts
-Lista de versiones, editor con tabs (system/business/safety/sales/fallback), botones: guardar nueva versión, duplicar, activar, restaurar, **Probar** (llama `ai-chat` en modo test y muestra respuesta + tokens + productos usados).
+- Reutilizamos `chat_ai_settings.save_conversations` como gate adicional.
+- `visitor_tracking` se upsertea por `visitor_id` (unique). `session_id` se actualiza en cada hit.
+- Eventos `lucia_events` se insertan también si el usuario rechaza cookies (solo categoría "necesaria" = funcionamiento de Lucía), pero sin UTMs/device si no hay consentimiento de analytics.
+- Atribución "first touch" persistente + "last touch" por sesión.
 
-Ruta agregada a `App.tsx` bajo `AdminRoute`. Link en `AdminLayout` sidebar.
+## Orden de ejecución
 
-## 7. WhatsApp dinámico
-
-Función `buildWhatsAppMessage(context)`:
-- Home: "Hola, Lucía me recomendó recibir asesoría para elegir un producto de Nutribatidos."
-- Producto: `Hola, quiero información sobre ${product.name}. Lo vi en la web de Nutribatidos y Lucía me lo recomendó.`
-- Número desde settings.
-
-## 8. Páginas con Lucía
-
-`Index`, `ProductDetail`, `Category`, `SeoLanding` ya están en Layout → render automático. El hook lee la ruta y entidad.
-
----
-
-## Notas técnicas
-
-- Usaré `LOVABLE_API_KEY` (Lovable AI Gateway) para OpenAI/Gemini sin pedir secrets — más rápido para el usuario. DeepSeek y Claude requieren sus propias API keys que pediré al admin **solo cuando seleccione ese proveedor** en el panel (no upfront).
-- Mensajes guardados con `session_id` en localStorage (anónimo) — sin requerir login.
-- Tarjetas de producto: query lateral por slugs devueltos para asegurar precio/stock fresco.
-- Prompt de seguridad incluye reglas anti-claims médicos (reutiliza `sensitiveClaims`).
-
-## Archivos clave
-
-**Nuevos:**
-- `supabase/migrations/<ts>_lucia.sql`
-- `supabase/functions/ai-chat/index.ts`
-- `src/components/LuciaChat.tsx` + `LuciaButton.tsx` + `LuciaMessage.tsx` + `LuciaProductCard.tsx`
-- `src/hooks/useLuciaContext.ts` + `useLuciaSettings.ts`
-- `src/pages/admin/AdminChatAI.tsx` + tabs (`ConversationsTab`, `SettingsTab`, `PromptsTab`)
-- `src/lib/lucia.ts` (helpers)
-
-**Editados:**
-- `src/components/Layout.tsx` (swap WhatsApp ↔ Lucía)
-- `src/App.tsx` (ruta `/admin/chat-ia`)
-- `src/components/admin/AdminLayout.tsx` (link nav)
-
-¿Procedo con la implementación? Empezaré por la migración y luego pediré la API key de DeepSeek/Claude solo si el admin las necesita después.
+1. Migración (Fase 1) → esperar aprobación.
+2. Helpers cliente + banner cookies (Fase 2).
+3. Tracking + edge function (Fase 3).
+4. Admin dashboards (Fase 4).
+5. Páginas legales (Fase 5).
