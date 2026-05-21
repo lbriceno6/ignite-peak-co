@@ -78,20 +78,30 @@ function injectGoogleAds(conversionId: string) {
   `);
 }
 
+import { getConsent } from "@/lib/consent";
+
 export const AnalyticsScripts = () => {
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const run = async () => {
+      const consent = getConsent();
       const { data } = await supabase.from("analytics_settings" as any).select("*").eq("id", 1).maybeSingle();
       if (cancelled || !data) return;
       const cfg = data as AnalyticsConfig;
       window.__nbAnalyticsCfg = cfg;
-      if (cfg.ga4_enabled !== false && cfg.ga4_measurement_id) injectGA4(cfg.ga4_measurement_id);
-      if (cfg.gtm_enabled !== false && cfg.gtm_container_id) injectGTM(cfg.gtm_container_id);
-      if (cfg.pixel_enabled !== false && cfg.meta_pixel_id) injectPixel(cfg.meta_pixel_id);
-      if (cfg.ads_enabled !== false && cfg.google_ads_conversion_id) injectGoogleAds(cfg.google_ads_conversion_id);
-    })();
-    return () => { cancelled = true; };
+      if (consent.analytics) {
+        if (cfg.ga4_enabled !== false && cfg.ga4_measurement_id) injectGA4(cfg.ga4_measurement_id);
+        if (cfg.gtm_enabled !== false && cfg.gtm_container_id) injectGTM(cfg.gtm_container_id);
+      }
+      if (consent.marketing) {
+        if (cfg.pixel_enabled !== false && cfg.meta_pixel_id) injectPixel(cfg.meta_pixel_id);
+        if (cfg.ads_enabled !== false && cfg.google_ads_conversion_id) injectGoogleAds(cfg.google_ads_conversion_id);
+      }
+    };
+    run();
+    const onChange = () => run();
+    window.addEventListener("consent:changed", onChange);
+    return () => { cancelled = true; window.removeEventListener("consent:changed", onChange); };
   }, []);
   return null;
 };
