@@ -89,9 +89,14 @@ export const LuciaChat = () => {
     const next: Msg[] = [...messages, { role: "user", content }];
     setMessages(next);
     track("lucia_chat_message" as any, { page: ctx.page });
+    logLuciaEvent("lucia_chat_message", { page: ctx.page, product_slug: ctx.productSlug, product_id: ctx.productId });
 
     try {
       const history = messages.map((m) => ({ role: m.role, content: m.content }));
+      const attr = readCurrentAttribution();
+      const first = getFirstTouch();
+      const dev = getDeviceInfo();
+      const consent = getConsent();
       const { data, error } = await supabase.functions.invoke("ai-chat", {
         body: {
           session_id: sessionId,
@@ -103,6 +108,27 @@ export const LuciaChat = () => {
             category: ctx.category,
             landing: ctx.landing,
           },
+          tracking: {
+            visitor_id: getVisitorId(),
+            client_session_id: getSessionId(),
+            referrer: first.referrer,
+            source: consent.analytics ? first.source : null,
+            medium: consent.analytics ? first.medium : null,
+            campaign: consent.analytics ? first.campaign : null,
+            landing_page: first.landing_page,
+            utm: consent.marketing ? {
+              utm_source: attr.utm_source ?? first.utm_source,
+              utm_medium: attr.utm_medium ?? first.utm_medium,
+              utm_campaign: attr.utm_campaign ?? first.utm_campaign,
+              utm_content: attr.utm_content ?? first.utm_content,
+              utm_term: attr.utm_term ?? first.utm_term,
+              gclid: attr.gclid ?? first.gclid,
+              fbclid: attr.fbclid ?? first.fbclid,
+              ttclid: attr.ttclid ?? first.ttclid,
+            } : {},
+            device: consent.analytics ? dev : {},
+            consent,
+          },
           history,
         },
       });
@@ -112,6 +138,7 @@ export const LuciaChat = () => {
       setMessages((m) => [...m, { role: "assistant", content: reply, products }]);
       if (products?.length) {
         track("lucia_product_recommendation" as any, { count: products.length });
+        logLuciaEvent("lucia_product_recommendation", { page: ctx.page, metadata: { products: products.map((p:any)=>p.slug) } });
       }
     } catch (e: any) {
       setMessages((m) => [
