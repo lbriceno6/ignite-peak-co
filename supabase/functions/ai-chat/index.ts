@@ -307,8 +307,7 @@ Deno.serve(async (req) => {
 
     // Persist
     if (s.save_conversations && !test_mode && session_id) {
-      // upsert session
-      await admin
+      const { error: sessErr } = await admin
         .from("chat_ai_sessions")
         .upsert(
           {
@@ -320,8 +319,9 @@ Deno.serve(async (req) => {
           },
           { onConflict: "session_id", ignoreDuplicates: false },
         );
+      if (sessErr) console.error("session upsert err", sessErr);
 
-      await admin.from("chat_ai_messages").insert([
+      const { error: msgErr } = await admin.from("chat_ai_messages").insert([
         {
           session_id,
           role: "user",
@@ -344,6 +344,7 @@ Deno.serve(async (req) => {
           latency_ms: result.latency_ms,
         },
       ]);
+      if (msgErr) console.error("messages insert err", msgErr);
     }
 
     return new Response(
