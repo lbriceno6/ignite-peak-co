@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Download, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PROVIDER_MODELS } from "@/lib/lucia";
+import { VisitorsTab, AttributionTab } from "./AdminLuciaTracking";
 
 type Settings = any;
 type Prompt = any;
