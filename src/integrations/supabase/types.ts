@@ -167,6 +167,252 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_ai_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          message_id: string | null
+          rating: string
+          session_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          rating: string
+          session_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string | null
+          rating?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
+      chat_ai_messages: {
+        Row: {
+          content: string
+          created_at: string
+          current_page: string | null
+          id: string
+          intent: string | null
+          latency_ms: number | null
+          matched_products: Json
+          metadata: Json
+          model: string | null
+          product_id: string | null
+          prompt_version_id: string | null
+          provider: string | null
+          role: string
+          session_id: string
+          tokens_input: number | null
+          tokens_output: number | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          current_page?: string | null
+          id?: string
+          intent?: string | null
+          latency_ms?: number | null
+          matched_products?: Json
+          metadata?: Json
+          model?: string | null
+          product_id?: string | null
+          prompt_version_id?: string | null
+          provider?: string | null
+          role: string
+          session_id: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          current_page?: string | null
+          id?: string
+          intent?: string | null
+          latency_ms?: number | null
+          matched_products?: Json
+          metadata?: Json
+          model?: string | null
+          product_id?: string | null
+          prompt_version_id?: string | null
+          provider?: string | null
+          role?: string
+          session_id?: string
+          tokens_input?: number | null
+          tokens_output?: number | null
+        }
+        Relationships: []
+      }
+      chat_ai_prompts: {
+        Row: {
+          business_rules: string
+          created_at: string
+          fallback_rules: string
+          id: string
+          is_active: boolean
+          model: string | null
+          name: string
+          provider: string | null
+          safety_rules: string
+          sales_rules: string
+          system_prompt: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          business_rules?: string
+          created_at?: string
+          fallback_rules?: string
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          name?: string
+          provider?: string | null
+          safety_rules?: string
+          sales_rules?: string
+          system_prompt?: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          business_rules?: string
+          created_at?: string
+          fallback_rules?: string
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          name?: string
+          provider?: string | null
+          safety_rules?: string
+          sales_rules?: string
+          system_prompt?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      chat_ai_sessions: {
+        Row: {
+          created_at: string
+          current_product_id: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          first_page: string | null
+          id: string
+          last_page: string | null
+          session_id: string
+          source: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_product_id?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          first_page?: string | null
+          id?: string
+          last_page?: string | null
+          session_id: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_product_id?: string | null
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          first_page?: string | null
+          id?: string
+          last_page?: string | null
+          session_id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      chat_ai_settings: {
+        Row: {
+          assistant_name: string
+          assistant_tagline: string
+          enabled: boolean
+          hide_whatsapp_button: boolean
+          history_size: number
+          id: number
+          max_tokens: number
+          model: string
+          proactive_bubble_delay_ms: number
+          proactive_bubble_enabled: boolean
+          provider: string
+          save_conversations: boolean
+          show_on_category: boolean
+          show_on_home: boolean
+          show_on_landing: boolean
+          show_on_product: boolean
+          temperature: number
+          updated_at: string
+          whatsapp_number: string
+        }
+        Insert: {
+          assistant_name?: string
+          assistant_tagline?: string
+          enabled?: boolean
+          hide_whatsapp_button?: boolean
+          history_size?: number
+          id?: number
+          max_tokens?: number
+          model?: string
+          proactive_bubble_delay_ms?: number
+          proactive_bubble_enabled?: boolean
+          provider?: string
+          save_conversations?: boolean
+          show_on_category?: boolean
+          show_on_home?: boolean
+          show_on_landing?: boolean
+          show_on_product?: boolean
+          temperature?: number
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Update: {
+          assistant_name?: string
+          assistant_tagline?: string
+          enabled?: boolean
+          hide_whatsapp_button?: boolean
+          history_size?: number
+          id?: number
+          max_tokens?: number
+          model?: string
+          proactive_bubble_delay_ms?: number
+          proactive_bubble_enabled?: boolean
+          provider?: string
+          save_conversations?: boolean
+          show_on_category?: boolean
+          show_on_home?: boolean
+          show_on_landing?: boolean
+          show_on_product?: boolean
+          temperature?: number
+          updated_at?: string
+          whatsapp_number?: string
+        }
+        Relationships: []
+      }
       email_send_log: {
         Row: {
           created_at: string

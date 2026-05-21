@@ -136,6 +136,13 @@ const defaultSections = [
       { key: "seo", to: "/admin/seo", label: "Panel SEO", icon: Sparkles },
     ],
   },
+  {
+    key: "ai",
+    label: "Asistente IA",
+    items: [
+      { key: "chat-ia", to: "/admin/chat-ia", label: "Chat IA · Lucía", icon: Sparkles },
+    ],
+  },
 ];
 
 const LABELS_KEY = "voltra.admin.sidebarLabels";
