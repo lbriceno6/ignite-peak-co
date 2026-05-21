@@ -87,6 +87,12 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
+import { CookieBanner } from "@/components/CookieBanner";
+import { CookiePreferencesModal } from "@/components/CookiePreferencesModal";
+import { useVisitorTracking } from "@/hooks/useVisitorTracking";
+import Cookies from "./pages/policies/Cookies.tsx";
+
+const VisitorTrackingMount = () => { useVisitorTracking(); return null; };
 
 const queryClient = new QueryClient();
 
@@ -103,6 +109,9 @@ const App = () => (
             <ReferralTracker />
             <AnalyticsScripts />
             <RedirectGate />
+            <VisitorTrackingMount />
+            <CookieBanner />
+            <CookiePreferencesModal />
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
@@ -141,6 +150,9 @@ const App = () => (
             <Route path="/returns-policies" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
+            <Route path="/politica-de-privacidad" element={<Privacy />} />
+            <Route path="/politica-de-cookies" element={<Cookies />} />
+            <Route path="/cookies" element={<Cookies />} />
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* SEO landing pages */}

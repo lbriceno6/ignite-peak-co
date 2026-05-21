@@ -154,7 +154,17 @@ export const Footer = () => {
         </div>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-background/10 pt-6 text-xs text-background/50 md:flex-row md:items-center md:justify-between">
-          <p>{copyright}</p>
+          <div className="flex flex-wrap items-center gap-3">
+            <p>{copyright}</p>
+            <Link to="/politica-de-cookies" className="hover:text-accent">Política de cookies</Link>
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("consent:open"))}
+              className="hover:text-accent"
+            >
+              Configurar cookies
+            </button>
+          </div>
           {badges.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               {badges.map((p) => (

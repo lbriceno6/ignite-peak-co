@@ -216,7 +216,16 @@ Deno.serve(async (req) => {
       history = [],
       test_mode = false,
       override_prompt = null,
+      tracking = {},
     } = body;
+
+    // Server-side only: capture headers for geolocation/IP (never returned to client)
+    const ipHeader = req.headers.get("x-forwarded-for") || "";
+    const ip = ipHeader.split(",")[0].trim() || null;
+    const country = req.headers.get("cf-ipcountry") || req.headers.get("x-vercel-ip-country") || null;
+    const city = req.headers.get("cf-ipcity") || req.headers.get("x-vercel-ip-city") || null;
+    const userAgent = req.headers.get("user-agent") || null;
+    const acceptLanguage = req.headers.get("accept-language") || null;
 
     if (!message || typeof message !== "string") {
       return new Response(JSON.stringify({ error: "message required" }), {
@@ -307,6 +316,10 @@ Deno.serve(async (req) => {
 
     // Persist
     if (s.save_conversations && !test_mode && session_id) {
+      const utm = tracking.utm || {};
+      const dev = tracking.device || {};
+      const locData = { country, city, ip_country: country };
+
       const { error: sessErr } = await admin
         .from("chat_ai_sessions")
         .upsert(
@@ -315,11 +328,34 @@ Deno.serve(async (req) => {
             last_page: context.page,
             first_page: context.page,
             current_product_id: context.productId ?? null,
+            visitor_id: tracking.visitor_id ?? null,
+            referrer: tracking.referrer ?? null,
+            source: tracking.source ?? null,
+            medium: tracking.medium ?? null,
+            campaign: tracking.campaign ?? null,
+            device_type: dev.device_type ?? null,
+            browser: dev.browser ?? null,
+            os: dev.os ?? null,
+            country,
+            city,
+            timezone: dev.timezone ?? null,
+            consent_snapshot: tracking.consent ?? null,
+            landing_page: tracking.landing_page ?? null,
+            last_product_viewed: context.productSlug ?? null,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "session_id", ignoreDuplicates: false },
         );
       if (sessErr) console.error("session upsert err", sessErr);
+
+      const msgBase = {
+        visitor_id: tracking.visitor_id ?? null,
+        source: tracking.source ?? null,
+        referrer: tracking.referrer ?? null,
+        utm_data: utm,
+        device_data: dev,
+        location_data: locData,
+      };
 
       const { error: msgErr } = await admin.from("chat_ai_messages").insert([
         {
@@ -329,6 +365,7 @@ Deno.serve(async (req) => {
           current_page: context.page,
           product_id: context.productId ?? null,
           matched_products: [],
+          ...msgBase,
         },
         {
           session_id,
@@ -343,6 +380,7 @@ Deno.serve(async (req) => {
           tokens_input: result.tokens_in,
           tokens_output: result.tokens_out,
           latency_ms: result.latency_ms,
+          ...msgBase,
         },
       ]);
       if (msgErr) console.error("messages insert err", msgErr);
