@@ -87,6 +87,12 @@ import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
+import { CookieBanner } from "@/components/CookieBanner";
+import { CookiePreferencesModal } from "@/components/CookiePreferencesModal";
+import { useVisitorTracking } from "@/hooks/useVisitorTracking";
+import Cookies from "./pages/policies/Cookies.tsx";
+
+const VisitorTrackingMount = () => { useVisitorTracking(); return null; };
 
 const queryClient = new QueryClient();
 
