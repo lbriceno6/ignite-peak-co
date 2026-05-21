@@ -252,7 +252,7 @@ export const LuciaChat = () => {
               href={waHref}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => track("lucia_whatsapp_click" as any, { source: "quick_reply", page: ctx.page })}
+              onClick={() => { track("lucia_whatsapp_click" as any, { source: "quick_reply", page: ctx.page }); logLuciaEvent("lucia_whatsapp_click", { page: ctx.page, product_slug: ctx.productSlug, product_id: ctx.productId }); }}
               className="inline-flex items-center gap-1 rounded-full bg-success px-2.5 py-1 text-xs font-medium text-background hover:bg-success/90"
             >
               <MessageCircle size={12} /> WhatsApp
