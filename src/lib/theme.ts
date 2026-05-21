@@ -293,16 +293,42 @@ export const applyTheme = (map: Partial<Record<ThemeKey, string>>) => {
     style.id = STYLE_ID;
     document.head.appendChild(style);
   }
+  const fsBase = get("theme.font_size_base");
+  const fsH1 = get("theme.font_size_h1");
+  const fsH2 = get("theme.font_size_h2");
+  const fsH3 = get("theme.font_size_h3");
+  const fsH4 = get("theme.font_size_h4");
+  const fsH5 = get("theme.font_size_h5");
+  const fsH6 = get("theme.font_size_h6");
+  const lhBase = get("theme.line_height_base");
+  const lhHead = get("theme.line_height_heading");
+
   style.textContent = `
 :root{
 ${lightDecls}
 --radius: ${radius};
+--font-size-base: ${fsBase};
+--font-size-h1: ${fsH1};
+--font-size-h2: ${fsH2};
+--font-size-h3: ${fsH3};
+--font-size-h4: ${fsH4};
+--font-size-h5: ${fsH5};
+--font-size-h6: ${fsH6};
+--line-height-base: ${lhBase};
+--line-height-heading: ${lhHead};
 }
 .dark{
 ${darkDecls}
 }
-html, body, .font-sans { font-family: '${fontBody}', system-ui, sans-serif; }
+html { font-size: ${fsBase}; }
+html, body, .font-sans { font-family: '${fontBody}', system-ui, sans-serif; line-height: ${lhBase}; }
 .font-display { font-family: '${fontDisplay}', Impact, sans-serif; }
+h1, .h1 { font-size: ${fsH1}; line-height: ${lhHead}; }
+h2, .h2 { font-size: ${fsH2}; line-height: ${lhHead}; }
+h3, .h3 { font-size: ${fsH3}; line-height: ${lhHead}; }
+h4, .h4 { font-size: ${fsH4}; line-height: ${lhHead}; }
+h5, .h5 { font-size: ${fsH5}; line-height: ${lhHead}; }
+h6, .h6 { font-size: ${fsH6}; line-height: ${lhHead}; }
 `;
 };
 
