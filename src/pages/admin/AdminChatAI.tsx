@@ -20,6 +20,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Download, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PROVIDER_MODELS } from "@/lib/lucia";
+import { VisitorsTab, AttributionTab } from "./AdminLuciaTracking";
 
 type Settings = any;
 type Prompt = any;
@@ -455,19 +456,32 @@ const ConversationsTab = () => {
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Conversación</DialogTitle></DialogHeader>
           {open && (
-            <div className="flex flex-wrap items-center gap-2 border-b pb-3 text-xs text-muted-foreground">
-              <span className="font-mono">{open.session_id.slice(0, 12)}</span>
-              <span>·</span>
-              <span>{open.last_page}</span>
-              <span>·</span>
-              <span>{open.customer_name ?? "anónimo"}</span>
-              <div className="ml-auto flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => downloadSession(open, thread)}>
-                  <Download className="mr-1 h-3 w-3" /> Descargar
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => deleteSession(open)}>
-                  <Trash2 className="mr-1 h-3 w-3 text-destructive" /> Eliminar
-                </Button>
+            <div className="space-y-2 border-b pb-3 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono">{open.session_id.slice(0, 12)}</span>
+                <span>·</span>
+                <span>{open.customer_name ?? "anónimo"}{open.customer_phone ? ` · ${open.customer_phone}` : ""}</span>
+                <div className="ml-auto flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => downloadSession(open, thread)}>
+                    <Download className="mr-1 h-3 w-3" /> Descargar
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => deleteSession(open)}>
+                    <Trash2 className="mr-1 h-3 w-3 text-destructive" /> Eliminar
+                  </Button>
+                </div>
+              </div>
+              <div className="grid gap-1 sm:grid-cols-2">
+                <div><strong>Origen:</strong> {open.source ?? "direct"}{open.medium ? ` · ${open.medium}` : ""}{open.campaign ? ` · ${open.campaign}` : ""}</div>
+                <div><strong>Referrer:</strong> {open.referrer ?? "—"}</div>
+                <div><strong>Landing:</strong> {open.landing_page ?? open.first_page ?? "—"}</div>
+                <div><strong>Última página:</strong> {open.last_page ?? "—"}</div>
+                <div><strong>Dispositivo:</strong> {open.device_type ?? "—"}{open.browser ? ` · ${open.browser}` : ""}{open.os ? ` · ${open.os}` : ""}</div>
+                <div><strong>Ubicación:</strong> {open.country ?? "—"}{open.city ? ` · ${open.city}` : ""}{open.timezone ? ` · ${open.timezone}` : ""}</div>
+                <div><strong>Producto inicial:</strong> {open.first_product_viewed ?? "—"}</div>
+                <div><strong>Último producto:</strong> {open.last_product_viewed ?? "—"}</div>
+                {open.consent_snapshot && (
+                  <div className="sm:col-span-2"><strong>Consent:</strong> analytics={String(open.consent_snapshot?.analytics ?? false)} · marketing={String(open.consent_snapshot?.marketing ?? false)} · personalization={String(open.consent_snapshot?.personalization ?? false)}</div>
+                )}
               </div>
             </div>
           )}
@@ -506,10 +520,14 @@ const AdminChatAI = () => (
         <TabsTrigger value="settings">Configuración</TabsTrigger>
         <TabsTrigger value="prompts">Prompt</TabsTrigger>
         <TabsTrigger value="conversations">Conversaciones</TabsTrigger>
+        <TabsTrigger value="visitors">Visitantes y origen</TabsTrigger>
+        <TabsTrigger value="attribution">Atribución</TabsTrigger>
       </TabsList>
       <TabsContent value="settings"><SettingsTab /></TabsContent>
       <TabsContent value="prompts"><PromptsTab /></TabsContent>
       <TabsContent value="conversations"><ConversationsTab /></TabsContent>
+      <TabsContent value="visitors"><VisitorsTab /></TabsContent>
+      <TabsContent value="attribution"><AttributionTab /></TabsContent>
     </Tabs>
   </div>
 );
