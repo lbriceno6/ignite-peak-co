@@ -17,6 +17,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Download, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { PROVIDER_MODELS } from "@/lib/lucia";
 
@@ -359,6 +360,42 @@ const ConversationsTab = () => {
     });
   }, [sessions, filter]);
 
+  const deleteSession = async (s: Session) => {
+    if (!confirm("¿Eliminar esta conversación y todos sus mensajes?")) return;
+    const { error: e1 } = await supabase.from("chat_ai_messages" as any).delete().eq("session_id", s.session_id);
+    const { error: e2 } = await supabase.from("chat_ai_sessions" as any).delete().eq("id", s.id);
+    if (e1 || e2) {
+      toast({ title: "Error", description: (e1 || e2)?.message, variant: "destructive" });
+      return;
+    }
+    setSessions((prev) => prev.filter((x) => x.id !== s.id));
+    if (open?.id === s.id) setOpen(null);
+    toast({ title: "Conversación eliminada" });
+  };
+
+  const downloadSession = (s: Session, msgs: Message[]) => {
+    const payload = {
+      session: s,
+      messages: msgs.map((m) => ({
+        role: m.role,
+        content: m.content,
+        provider: m.provider,
+        model: m.model,
+        tokens_input: m.tokens_input,
+        tokens_output: m.tokens_output,
+        latency_ms: m.latency_ms,
+        created_at: m.created_at,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lucia-${s.session_id.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-3">
       <Card className="p-3">
@@ -372,19 +409,44 @@ const ConversationsTab = () => {
       </Card>
       <div className="grid gap-2">
         {filtered.map((s) => (
-          <button
+          <div
             key={s.id}
-            onClick={() => setOpen(s)}
-            className="rounded-md border bg-card p-3 text-left text-sm hover:bg-muted"
+            className="flex items-center gap-2 rounded-md border bg-card p-3 text-sm hover:bg-muted/50"
           >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-xs">{s.session_id.slice(0, 8)}</span>
-              <span className="text-xs text-muted-foreground">{new Date(s.updated_at).toLocaleString()}</span>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {s.last_page} · {s.customer_name ?? "anónimo"}
-            </div>
-          </button>
+            <button onClick={() => setOpen(s)} className="flex-1 text-left">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs">{s.session_id.slice(0, 8)}</span>
+                <span className="text-xs text-muted-foreground">{new Date(s.updated_at).toLocaleString()}</span>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {s.last_page} · {s.customer_name ?? "anónimo"}
+              </div>
+            </button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={async (e) => {
+                e.stopPropagation();
+                const { data } = await supabase
+                  .from("chat_ai_messages" as any)
+                  .select("*")
+                  .eq("session_id", s.session_id)
+                  .order("created_at", { ascending: true });
+                downloadSession(s, (data ?? []) as any);
+              }}
+              title="Descargar"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); deleteSession(s); }}
+              title="Eliminar"
+            >
+              <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+          </div>
         ))}
         {!filtered.length && <p className="text-sm text-muted-foreground">No hay conversaciones todavía.</p>}
       </div>
@@ -392,7 +454,27 @@ const ConversationsTab = () => {
       <Dialog open={!!open} onOpenChange={(v) => !v && setOpen(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader><DialogTitle>Conversación</DialogTitle></DialogHeader>
+          {open && (
+            <div className="flex flex-wrap items-center gap-2 border-b pb-3 text-xs text-muted-foreground">
+              <span className="font-mono">{open.session_id.slice(0, 12)}</span>
+              <span>·</span>
+              <span>{open.last_page}</span>
+              <span>·</span>
+              <span>{open.customer_name ?? "anónimo"}</span>
+              <div className="ml-auto flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => downloadSession(open, thread)}>
+                  <Download className="mr-1 h-3 w-3" /> Descargar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => deleteSession(open)}>
+                  <Trash2 className="mr-1 h-3 w-3 text-destructive" /> Eliminar
+                </Button>
+              </div>
+            </div>
+          )}
           <div className="max-h-[60vh] space-y-2 overflow-y-auto">
+            {thread.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">Sin mensajes en esta conversación.</p>
+            )}
             {thread.map((m) => (
               <div key={m.id} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${m.role === "user" ? "bg-foreground text-background" : "bg-muted"}`}>
