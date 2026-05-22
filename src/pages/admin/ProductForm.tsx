@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
 import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
+import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
