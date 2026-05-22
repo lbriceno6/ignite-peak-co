@@ -126,6 +126,13 @@ export default function ProductForm() {
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
 
   const save = async () => {
+    // Validate JSON fields before saving
+    if (f.nutrition_facts && f.nutrition_facts.trim() && safeJson(f.nutrition_facts) === null) {
+      return toast.error("La información nutricional no es un JSON válido.");
+    }
+    if (f.faqs && f.faqs.trim() && safeJson(f.faqs) === null) {
+      return toast.error("Las preguntas frecuentes no son un JSON válido.");
+    }
     setSaving(true);
     try {
       const payload: any = {
