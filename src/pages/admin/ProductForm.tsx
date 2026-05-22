@@ -280,11 +280,23 @@ export default function ProductForm() {
           </div>
         </Field>
 
+        <ProductImageAiEditor
+          mainImage={f.main_image}
+          onApplyMain={(url) => set("main_image", url)}
+          onAppendGallery={(url) => {
+            const current = typeof f.gallery_images === "string"
+              ? f.gallery_images.split("\n").map((s: string) => s.trim()).filter(Boolean)
+              : (f.gallery_images ?? []);
+            set("gallery_images", [...current, url].join("\n"));
+          }}
+        />
+
         <ProductAiAssistant
           product={f}
           isEdit={isEdit}
           onApply={(patch) => setF((p: any) => ({ ...p, ...patch }))}
         />
+
 
         <Field label="Instrucciones de uso"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
         <Field label="Ingredientes"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
