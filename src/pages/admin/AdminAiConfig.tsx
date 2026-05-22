@@ -21,6 +21,20 @@ const LEVELS = [
   { value: "premium", label: "Premium" },
 ];
 
+const IMAGE_PROVIDERS = [
+  { value: "gemini", label: "Gemini (Lovable AI)" },
+  { value: "openai", label: "OpenAI" },
+];
+
+const IMAGE_SIZES = ["512x512", "1024x1024", "1200x1200", "1600x1600"];
+const IMAGE_FORMATS = ["webp", "png", "jpg"];
+const IMAGE_BACKGROUNDS = [
+  { value: "white_ecommerce", label: "Blanco ecommerce" },
+  { value: "transparent", label: "Transparente" },
+  { value: "premium_jar", label: "Premium frasco" },
+  { value: "premium_box", label: "Premium caja" },
+];
+
 export default function AdminAiConfig() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,6 +46,12 @@ export default function AdminAiConfig() {
     openai_api_key: "",
     claude_api_key: "",
     deepseek_api_key: "",
+    image_provider: "gemini",
+    image_api_key: "",
+    image_default_size: "1200x1200",
+    image_default_format: "webp",
+    image_default_background: "white_ecommerce",
+    image_quality: 85,
   });
 
   useEffect(() => {
