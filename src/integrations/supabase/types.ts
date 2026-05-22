@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_product_settings: {
+        Row: {
+          claude_api_key: string | null
+          created_at: string
+          deepseek_api_key: string | null
+          default_level: string
+          default_provider: string
+          gemini_api_key: string | null
+          id: number
+          openai_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          claude_api_key?: string | null
+          created_at?: string
+          deepseek_api_key?: string | null
+          default_level?: string
+          default_provider?: string
+          gemini_api_key?: string | null
+          id?: number
+          openai_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          claude_api_key?: string | null
+          created_at?: string
+          deepseek_api_key?: string | null
+          default_level?: string
+          default_provider?: string
+          gemini_api_key?: string | null
+          id?: number
+          openai_api_key?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_settings: {
         Row: {
           ads_enabled: boolean

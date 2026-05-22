@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
+import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -125,6 +126,13 @@ export default function ProductForm() {
   const set = (k: string, v: any) => setF((p: any) => ({ ...p, [k]: v }));
 
   const save = async () => {
+    // Validate JSON fields before saving
+    if (f.nutrition_facts && f.nutrition_facts.trim() && safeJson(f.nutrition_facts) === null) {
+      return toast.error("La información nutricional no es un JSON válido.");
+    }
+    if (f.faqs && f.faqs.trim() && safeJson(f.faqs) === null) {
+      return toast.error("Las preguntas frecuentes no son un JSON válido.");
+    }
     setSaving(true);
     try {
       const payload: any = {
@@ -270,6 +278,12 @@ export default function ProductForm() {
               onChange={(e) => set("gallery_images", e.target.value)} />
           </div>
         </Field>
+
+        <ProductAiAssistant
+          product={f}
+          isEdit={isEdit}
+          onApply={(patch) => setF((p: any) => ({ ...p, ...patch }))}
+        />
 
         <Field label="Instrucciones de uso"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
         <Field label="Ingredientes"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>

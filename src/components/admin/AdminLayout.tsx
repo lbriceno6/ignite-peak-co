@@ -141,6 +141,7 @@ const defaultSections = [
     label: "Asistente IA",
     items: [
       { key: "chat-ia", to: "/admin/chat-ia", label: "Chat IA · Lucía", icon: Sparkles },
+      { key: "ai-config", to: "/admin/ai-config", label: "Configuración de IA", icon: Sparkles },
     ],
   },
 ];
