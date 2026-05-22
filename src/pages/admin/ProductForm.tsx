@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
+import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
