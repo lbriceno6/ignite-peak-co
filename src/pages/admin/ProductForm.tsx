@@ -272,6 +272,12 @@ export default function ProductForm() {
           </div>
         </Field>
 
+        <ProductAiAssistant
+          product={f}
+          isEdit={isEdit}
+          onApply={(patch) => setF((p: any) => ({ ...p, ...patch }))}
+        />
+
         <Field label="Instrucciones de uso"><Textarea rows={3} value={f.usage_instructions ?? ""} onChange={(e) => set("usage_instructions", e.target.value)} /></Field>
         <Field label="Ingredientes"><Textarea rows={3} value={f.ingredients ?? ""} onChange={(e) => set("ingredients", e.target.value)} /></Field>
         <Field label='Información nutricional (JSON, ej. {"protein":"24g"})'>
