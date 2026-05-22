@@ -23,6 +23,12 @@ export type Database = {
           default_provider: string
           gemini_api_key: string | null
           id: number
+          image_api_key: string | null
+          image_default_background: string
+          image_default_format: string
+          image_default_size: string
+          image_provider: string
+          image_quality: number
           openai_api_key: string | null
           updated_at: string
         }
@@ -34,6 +40,12 @@ export type Database = {
           default_provider?: string
           gemini_api_key?: string | null
           id?: number
+          image_api_key?: string | null
+          image_default_background?: string
+          image_default_format?: string
+          image_default_size?: string
+          image_provider?: string
+          image_quality?: number
           openai_api_key?: string | null
           updated_at?: string
         }
@@ -45,6 +57,12 @@ export type Database = {
           default_provider?: string
           gemini_api_key?: string | null
           id?: number
+          image_api_key?: string | null
+          image_default_background?: string
+          image_default_format?: string
+          image_default_size?: string
+          image_provider?: string
+          image_quality?: number
           openai_api_key?: string | null
           updated_at?: string
         }
