@@ -118,6 +118,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
             price: product.price,
             sale_price: product.sale_price,
             category: product.category,
+            subcategory: product.subcategory,
             badge: product.badge,
             main_ingredient: product.main_ingredient,
             goal: product.goal,
