@@ -95,8 +95,19 @@ const FiltersPanel = ({
       };
     });
   };
+
+  const subOptions = useMemo(() => getSubcategories(filters.mainCategory), [filters.mainCategory]);
+
+  // Para "¿Para qué lo necesitas?" preferimos la lista oficial de salud,
+  // pero si admin no la configuró todavía usamos las opciones dinámicas.
+  const healthGoal = dynamicGroups.find((g) => g.key === "goal");
+  const healthOptions = (healthGoal && healthGoal.options.length > 0)
+    ? healthGoal.options.map((o) => o.label)
+    : HEALTH_NEEDS;
+
   return (
     <div className="space-y-4">
+      {/* 1. Precio */}
       <div>
         <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Precio ({symbol})</h4>
         <Slider
@@ -109,46 +120,94 @@ const FiltersPanel = ({
         </div>
       </div>
 
-      <div>
-        <h4 className="mb-3 text-sm font-bold uppercase tracking-wider">Valoración mínima</h4>
-        <div className="mb-2 flex flex-wrap gap-1.5">
-          {[0, 3, 3.5, 4, 4.5].map((r) => (
-            <Button
-              key={r}
-              type="button"
-              size="sm"
-              variant={filters.rating === r ? "default" : "outline"}
-              className="h-8 text-xs"
-              onClick={() => setFilters((f) => ({ ...f, rating: r }))}
-            >
-              {r === 0 ? "Todas" : `★ ${r}+`}
-            </Button>
-          ))}
-        </div>
-      </div>
+      <Accordion type="multiple" defaultValue={["cat", "subcat", "need", "presentation", "flavor", "brand", "supplier", "stock"]}>
+        {/* 2. Categoría */}
+        <AccordionItem value="cat">
+          <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Categoría</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2.5">
+              {mainCategories.map((c) => (
+                <label key={c} className="flex cursor-pointer items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={filters.mainCategory === c}
+                    onCheckedChange={(v) =>
+                      setFilters((f) => ({
+                        ...f,
+                        mainCategory: v ? c : "",
+                        subcategory: "", // limpiar subcat al cambiar
+                      }))
+                    }
+                  />
+                  <span>{c}</span>
+                </label>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      <Accordion type="multiple" defaultValue={["type", "goal", "brand", "supplier"]}>
-        {dynamicGroups.map((g) => (
-          <AccordionItem key={g.key} value={g.key}>
-            <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
+        {/* 3. Subcategoría — depende de la categoría */}
+        {filters.mainCategory && subOptions.length > 0 && (
+          <AccordionItem value="subcat">
+            <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Subcategoría</AccordionTrigger>
             <AccordionContent>
               <div className="space-y-2.5">
-                {g.options.length === 0 ? (
-                  <p className="py-2 text-xs text-muted-foreground">Sin opciones</p>
-                ) : g.options.map((o) => (
-                  <label key={o.value} className="flex cursor-pointer items-center gap-2 text-sm">
+                {subOptions.map((s) => (
+                  <label key={s} className="flex cursor-pointer items-center gap-2 text-sm">
                     <Checkbox
-                      checked={filters[g.key].includes(o.label)}
-                      onCheckedChange={() => toggle(g.key, o.label)}
+                      checked={filters.subcategory === s}
+                      onCheckedChange={(v) => setFilters((f) => ({ ...f, subcategory: v ? s : "" }))}
                     />
-                    <span>{o.label}</span>
+                    <span>{s}</span>
                   </label>
                 ))}
               </div>
             </AccordionContent>
           </AccordionItem>
-        ))}
+        )}
 
+        {/* 4. ¿Para qué lo necesitas? */}
+        <AccordionItem value="need">
+          <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">¿Para qué lo necesitas?</AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-2.5">
+              {healthOptions.map((o) => (
+                <label key={o} className="flex cursor-pointer items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={filters.goal.includes(o)}
+                    onCheckedChange={() => toggle("goal", o)}
+                  />
+                  <span>{o}</span>
+                </label>
+              ))}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* 5. Presentación / 6. Sabor / Tamaño — desde filter_options dinámicos */}
+        {dynamicGroups
+          .filter((g) => g.key !== "goal")
+          .map((g) => (
+            <AccordionItem key={g.key} value={g.key === "type" ? "presentation" : g.key}>
+              <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">{g.title}</AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-2.5">
+                  {g.options.length === 0 ? (
+                    <p className="py-2 text-xs text-muted-foreground">Sin opciones</p>
+                  ) : g.options.map((o) => (
+                    <label key={o.value} className="flex cursor-pointer items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={filters[g.key].includes(o.label)}
+                        onCheckedChange={() => toggle(g.key, o.label)}
+                      />
+                      <span>{o.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+
+        {/* 7. Marca */}
         {brands.length > 0 && (
           <AccordionItem value="brand">
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Marca</AccordionTrigger>
@@ -179,6 +238,7 @@ const FiltersPanel = ({
           </AccordionItem>
         )}
 
+        {/* 8. Proveedor */}
         {suppliers.length > 0 && (
           <AccordionItem value="supplier">
             <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Proveedor</AccordionTrigger>
@@ -208,6 +268,20 @@ const FiltersPanel = ({
             </AccordionContent>
           </AccordionItem>
         )}
+
+        {/* 9. Disponibilidad */}
+        <AccordionItem value="stock">
+          <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Disponibilidad</AccordionTrigger>
+          <AccordionContent>
+            <label className="flex cursor-pointer items-center gap-2 text-sm">
+              <Checkbox
+                checked={filters.inStock}
+                onCheckedChange={(v) => setFilters((f) => ({ ...f, inStock: !!v }))}
+              />
+              <span>Solo productos en stock</span>
+            </label>
+          </AccordionContent>
+        </AccordionItem>
       </Accordion>
     </div>
   );
