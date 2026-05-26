@@ -66,7 +66,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-        display: ['Oswald', 'Impact', 'sans-serif'],
+        display: ['Playfair Display', 'Georgia', 'serif'],
       },
       keyframes: {
         "accordion-down": {

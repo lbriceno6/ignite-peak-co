@@ -13,7 +13,7 @@ import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { resolveProductImage } from "@/lib/productImage";
-import { useCurrency } from "@/context/CurrencyContext";
+
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
@@ -96,7 +96,7 @@ const toCardProduct = (p: DbProduct): Product => {
     image: resolveProductImage(p.main_image, productPlaceholder),
     category: p.category ?? "",
     goal: [],
-    brand: "VOLTRA",
+    brand: "Nutribatidos",
   };
 };
 
@@ -109,7 +109,7 @@ const GUIDES_KEYS = [
 ];
 
 const Home = () => {
-  const { format } = useCurrency();
+  
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
@@ -189,14 +189,14 @@ const Home = () => {
           ? slides
           : [{
               id: "fallback",
-              eyebrow: "Diseñado para el rendimiento",
-              title: "Lleva tu rendimiento al siguiente nivel",
-              subtitle: "Nutrición premium, suplementos y productos saludables diseñados para potenciar tu energía, fuerza, recuperación y bienestar.",
+              eyebrow: "100% peruano",
+              title: "Energía que viene de los Andes",
+              subtitle: "Maca, cañihua y espirulina. Superalimentos puros, sin saborizantes ni químicos. Como lo hacían nuestras abuelas.",
               image_url: null,
-              primary_label: "Comprar ahora",
-              primary_href: "/category/protein",
-              secondary_label: "Ver más vendidos",
-              secondary_href: "/category/best-sellers",
+              primary_label: "Ver productos",
+              primary_href: "/categoria/nb-superalimentos",
+              secondary_label: "Hablar por WhatsApp",
+              secondary_href: "https://wa.me/51999999999",
             }];
         return (
           <section key={b.id} className="relative bg-surface-darker text-background">
@@ -219,11 +219,11 @@ const Home = () => {
                       <div className="container-x relative grid min-h-[560px] items-center py-20 lg:min-h-[680px]">
                         <div className="max-w-2xl">
                           {s.eyebrow && (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent">
+                            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold tracking-wide text-accent">
                               <Zap size={12} /> {s.eyebrow}
                             </span>
                           )}
-                          <h1 className="mt-6 font-display text-5xl uppercase leading-[0.95] sm:text-6xl lg:text-7xl">
+                          <h1 className="mt-6 font-display text-5xl leading-[0.95] sm:text-6xl lg:text-7xl">
                             {s.title}
                           </h1>
                           {s.subtitle && (
@@ -247,7 +247,7 @@ const Home = () => {
                               <span className="font-semibold text-background">4.9/5</span>
                             </div>
                             <span className="text-background/40">·</span>
-                            <span>Confiado por más de 240k atletas en todo el mundo</span>
+                            <span>Hecho en Perú · Envíos a todo el país en 24-48 horas</span>
                           </div>
                         </div>
                       </div>
@@ -282,7 +282,7 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <h2 className="font-display text-3xl uppercase sm:text-4xl">{b.title || "Comprar por categoría"}</h2>
+                <h2 className="font-display text-3xl sm:text-4xl">{b.title || "Comprar por categoría"}</h2>
                 {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
               </div>
             </div>
@@ -294,7 +294,7 @@ const Home = () => {
                   className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-card p-5 text-center transition-smooth hover:border-accent hover:shadow-product hover:-translate-y-1"
                 >
                   <span className="text-3xl">{c.icon || "🏷️"}</span>
-                  <span className="text-sm font-bold uppercase tracking-wide group-hover:text-accent">{c.name}</span>
+                  <span className="text-sm font-bold tracking-wide group-hover:text-accent">{c.name}</span>
                 </Link>
               ))}
             </div>
@@ -308,11 +308,11 @@ const Home = () => {
             <div className="container-x">
               <div className="flex items-end justify-between gap-4">
                 <div>
-                  {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-                  <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Más vendidos"}</h2>
+                  {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
+                  <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Más vendidos"}</h2>
                 </div>
                 {b.cta_label && b.cta_href && (
-                  <Link to={b.cta_href} className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+                  <Link to={b.cta_href} className="hidden text-sm font-semibold tracking-wide hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
                     {b.cta_label} <ArrowRight size={14} />
                   </Link>
                 )}
@@ -343,8 +343,8 @@ const Home = () => {
         return (
           <section key={b.id} className="container-x py-16">
             <div className="text-center">
-              {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Comprar por objetivo"}</h2>
+              {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
+              <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Comprar por objetivo"}</h2>
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-10 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
@@ -357,9 +357,9 @@ const Home = () => {
                   <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
                   <span className="font-display text-6xl text-background/10">0{i + 1}</span>
                   <div className="relative">
-                    <h3 className="font-display text-xl uppercase">{g.name}</h3>
+                    <h3 className="font-display text-xl">{g.name}</h3>
                     {g.desc && <p className="mt-1 text-xs text-background/60">{g.desc}</p>}
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-accent opacity-0 transition-smooth group-hover:opacity-100">
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-accent opacity-0 transition-smooth group-hover:opacity-100">
                       {g.ctaLabel || "Comprar"} <ArrowRight size={14} />
                     </span>
                   </div>
@@ -384,11 +384,11 @@ const Home = () => {
               <div className="relative grid min-h-[340px] items-center p-8 sm:p-12 lg:p-16">
                 <div className="max-w-lg">
                   {b.eyebrow && (
-                    <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent-foreground">
+                    <span className="inline-block rounded-full bg-accent px-3 py-1 text-xs font-bold tracking-wide text-accent-foreground">
                       {b.eyebrow}
                     </span>
                   )}
-                  <h3 className="mt-4 font-display text-4xl uppercase leading-tight sm:text-5xl">
+                  <h3 className="mt-4 font-display text-4xl leading-tight sm:text-5xl">
                     {b.title || "Combina y ahorra hasta 30%."}
                   </h3>
                   {b.subtitle && <p className="mt-3 text-background/75">{b.subtitle}</p>}
@@ -408,8 +408,8 @@ const Home = () => {
         return (
           <section key={b.id} className="container-x py-16">
             <div>
-              {b.eyebrow && <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || "Más para potenciar tu entrenamiento"}</h2>
+              {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
+              <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Complementa tu rutina diaria"}</h2>
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -424,7 +424,7 @@ const Home = () => {
             <div className="container-x">
               <div className="text-center">
                 <Stars rating={5} size={20} />
-                <h2 className="mt-3 font-display text-3xl uppercase sm:text-4xl">{b.title || "Amado por atletas"}</h2>
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl">{b.title || "Lo que dicen nuestras clientas"}</h2>
                 {b.subtitle && <p className="mt-2 text-background/60">{b.subtitle}</p>}
               </div>
               <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -450,13 +450,13 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div className="flex items-end justify-between">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-accent">{b.eyebrow || content["home.guides.eyebrow"]}</span>
-                <h2 className="mt-1 font-display text-3xl uppercase sm:text-4xl">{b.title || content["home.guides.title"]}</h2>
+                <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow || content["home.guides.eyebrow"]}</span>
+                <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || content["home.guides.title"]}</h2>
                 {(b.subtitle || content["home.guides.subtitle"]) && (
                   <p className="mt-2 max-w-xl text-muted-foreground">{b.subtitle || content["home.guides.subtitle"]}</p>
                 )}
               </div>
-              <Link to={b.cta_href || content["home.guides.cta_href"] || "/blog"} className="hidden text-sm font-semibold uppercase tracking-wider hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+              <Link to={b.cta_href || content["home.guides.cta_href"] || "/blog"} className="hidden text-sm font-semibold tracking-wide hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
                 {b.cta_label || content["home.guides.cta_label"]} <ArrowRight size={14} />
               </Link>
             </div>
@@ -470,7 +470,7 @@ const Home = () => {
                       <div className="grid h-full place-items-center text-6xl opacity-30">📝</div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs tracking-wide text-muted-foreground">
                     {post.category && <span className="text-accent font-bold">{post.category}</span>}
                     {post.read_time && <span>· {post.read_time} de lectura</span>}
                   </div>
@@ -487,17 +487,17 @@ const Home = () => {
           <section key={b.id} className="border-y border-border bg-secondary/40 py-12">
             <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
-                { icon: Truck, title: "Envío gratis", desc: `En pedidos sobre ${format(50)}` },
-                { icon: ShieldCheck, title: "Pago seguro", desc: "Pago 100% encriptado" },
-                { icon: Award, title: "Probado en laboratorio", desc: "Calidad verificada por terceros" },
-                { icon: MessageCircle, title: "Soporte real", desc: "WhatsApp los 7 días" },
+                { icon: Truck, title: "Envío rápido", desc: "A todo el Perú en 24-48h" },
+                { icon: ShieldCheck, title: "Pago seguro", desc: "Yape, Plin, tarjeta o contraentrega" },
+                { icon: Award, title: "100% natural", desc: "Sin químicos ni saborizantes" },
+                { icon: MessageCircle, title: "Atención cercana", desc: "WhatsApp los 7 días" },
               ].map((t) => (
                 <div key={t.title} className="flex items-center gap-4">
                   <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
                     <t.icon size={22} />
                   </div>
                   <div>
-                    <p className="font-bold uppercase tracking-wide">{t.title}</p>
+                    <p className="font-bold tracking-wide">{t.title}</p>
                     <p className="text-xs text-muted-foreground">{t.desc}</p>
                   </div>
                 </div>
@@ -519,11 +519,11 @@ const Home = () => {
               </div>
               <div className="flex flex-col justify-center gap-4 p-8 sm:p-12">
                 {b.eyebrow && (
-                  <span className="inline-flex w-fit items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-success">
+                  <span className="inline-flex w-fit items-center gap-2 rounded-full bg-success/10 px-3 py-1 text-xs font-bold tracking-wide text-success">
                     {b.eyebrow}
                   </span>
                 )}
-                <h2 className="font-display text-3xl uppercase leading-tight sm:text-4xl lg:text-5xl">
+                <h2 className="font-display text-3xl leading-tight sm:text-4xl lg:text-5xl">
                   {b.title || "Nutribatidos + Asesoría nutricional"}
                 </h2>
                 {b.subtitle && <p className="text-muted-foreground sm:text-lg">{b.subtitle}</p>}
@@ -548,7 +548,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Batidos y suplementos naturales" fallbackDescription="Productos alimenticios naturales que ayudan a complementar una rutina saludable y contribuyen al bienestar general." />
+      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Superalimentos andinos y medicina natural" fallbackDescription="Maca, cañihua, espirulina y fórmulas naturales peruanas para el bienestar diario." />
       {blocks.map(renderBlock)}
       <InstagramTestimonials />
     </Layout>

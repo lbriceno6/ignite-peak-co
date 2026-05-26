@@ -188,7 +188,7 @@ export const Header = () => {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar proteínas, creatina, vitaminas..."
+              placeholder="Buscar maca, cañihua, espirulina..."
               className="h-11 pl-10 bg-secondary border-transparent focus-visible:bg-background"
             />
           </form>
