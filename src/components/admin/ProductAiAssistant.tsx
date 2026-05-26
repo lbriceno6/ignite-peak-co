@@ -256,6 +256,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
           )}
           <DialogFooter className="flex flex-wrap gap-2">
             <Button variant="dark" onClick={() => { if (suggestions) { onApply(toPatch(suggestions)); toast.success("Todo aplicado."); setOpen(false); } }}>Aplicar todo</Button>
+            <Button variant="outline" onClick={() => applySubset(["category", "subcategory"])}>Aplicar categoría y subcategoría</Button>
             <Button variant="outline" onClick={() => applySubset(["short_description", "description"])}>Aplicar solo descripción</Button>
             <Button variant="outline" onClick={() => applySubset(["usage_instructions"])}>Instrucciones de uso</Button>
             <Button variant="outline" onClick={() => applySubset(["ingredients"])}>Ingredientes</Button>
