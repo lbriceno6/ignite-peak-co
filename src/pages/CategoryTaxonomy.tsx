@@ -36,7 +36,9 @@ const rowToProduct = (r: any): Product => {
 };
 
 export default function CategoryTaxonomy() {
-  const { catSlug = "", subSlug } = useParams();
+  const params = useParams();
+  const catSlug = params.catSlug ?? params.slug ?? "";
+  const subSlug = params.subSlug;
   const mainName = mainBySlug[catSlug];
   const subName = subSlug ? subBySlug[catSlug]?.[subSlug] : undefined;
 
