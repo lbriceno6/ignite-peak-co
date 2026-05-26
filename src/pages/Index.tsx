@@ -96,7 +96,7 @@ const toCardProduct = (p: DbProduct): Product => {
     image: resolveProductImage(p.main_image, productPlaceholder),
     category: p.category ?? "",
     goal: [],
-    brand: "VOLTRA",
+    brand: "Nutribatidos",
   };
 };
 
@@ -189,14 +189,14 @@ const Home = () => {
           ? slides
           : [{
               id: "fallback",
-              eyebrow: "Diseñado para el rendimiento",
-              title: "Lleva tu rendimiento al siguiente nivel",
-              subtitle: "Nutrición premium, suplementos y productos saludables diseñados para potenciar tu energía, fuerza, recuperación y bienestar.",
+              eyebrow: "100% peruano",
+              title: "Energía que viene de los Andes",
+              subtitle: "Maca, cañihua y espirulina. Superalimentos puros, sin saborizantes ni químicos. Como lo hacían nuestras abuelas.",
               image_url: null,
-              primary_label: "Comprar ahora",
-              primary_href: "/category/protein",
-              secondary_label: "Ver más vendidos",
-              secondary_href: "/category/best-sellers",
+              primary_label: "Ver productos",
+              primary_href: "/categoria/nb-superalimentos",
+              secondary_label: "Hablar por WhatsApp",
+              secondary_href: "https://wa.me/51999999999",
             }];
         return (
           <section key={b.id} className="relative bg-surface-darker text-background">
