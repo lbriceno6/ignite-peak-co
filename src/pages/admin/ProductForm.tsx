@@ -52,7 +52,6 @@ export default function ProductForm() {
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
-  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
 
   const uploadToBucket = async (file: File, prefix: string) => {
