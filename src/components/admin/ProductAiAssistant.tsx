@@ -46,7 +46,7 @@ const LEVELS = [
 
 // Campos auto-aplicables vs sólo-sugerencia
 const AUTO_FIELDS: (keyof Suggestions)[] = [
-  "name", "slug", "short_description", "description", "category", "badge",
+  "name", "slug", "short_description", "description", "category", "subcategory", "badge",
   "main_ingredient", "goal", "flavor", "size", "size_variants",
   "usage_instructions", "ingredients", "nutrition_facts", "faqs",
 ];
