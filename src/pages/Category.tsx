@@ -108,7 +108,7 @@ const FiltersPanel = ({
         </div>
       </div>
 
-      <Accordion type="multiple" defaultValue={["cat", "subcat", "need", "presentation", "flavor", "brand", "supplier", "stock"]}>
+      <Accordion type="multiple" defaultValue={["cat", "subcat", "need", "presentation", "flavor", "stock"]}>
         {/* 2. Categoría */}
         <AccordionItem value="cat">
           <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Categoría</AccordionTrigger>
@@ -195,69 +195,7 @@ const FiltersPanel = ({
             </AccordionItem>
           ))}
 
-        {/* 7. Marca */}
-        {brands.length > 0 && (
-          <AccordionItem value="brand">
-            <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Marca</AccordionTrigger>
-            <AccordionContent>
-              <div className="relative mb-2">
-                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={brandQuery}
-                  onChange={(e) => setBrandQuery(e.target.value)}
-                  placeholder="Buscar marca…"
-                  className="h-8 pl-7 text-xs"
-                />
-              </div>
-              <div className="max-h-56 space-y-2.5 overflow-y-auto pr-2">
-                {filteredBrands.length === 0 ? (
-                  <p className="py-2 text-xs text-muted-foreground">Sin resultados</p>
-                ) : filteredBrands.map((b) => (
-                  <label key={b} className="flex cursor-pointer items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={filters.brand.includes(b)}
-                      onCheckedChange={() => toggle("brand", b)}
-                    />
-                    <span>{b}</span>
-                  </label>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {/* 8. Proveedor */}
-        {suppliers.length > 0 && (
-          <AccordionItem value="supplier">
-            <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Proveedor</AccordionTrigger>
-            <AccordionContent>
-              <div className="relative mb-2">
-                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={supplierQuery}
-                  onChange={(e) => setSupplierQuery(e.target.value)}
-                  placeholder="Buscar proveedor…"
-                  className="h-8 pl-7 text-xs"
-                />
-              </div>
-              <div className="max-h-56 space-y-2.5 overflow-y-auto pr-2">
-                {filteredSuppliers.length === 0 ? (
-                  <p className="py-2 text-xs text-muted-foreground">Sin resultados</p>
-                ) : filteredSuppliers.map((s) => (
-                  <label key={s.id} className="flex cursor-pointer items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={filters.supplier.includes(s.id)}
-                      onCheckedChange={() => toggle("supplier", s.id)}
-                    />
-                    <span>{s.business_name}</span>
-                  </label>
-                ))}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        )}
-
-        {/* 9. Disponibilidad */}
+        {/* 7. Disponibilidad */}
         <AccordionItem value="stock">
           <AccordionTrigger className="text-sm font-bold uppercase tracking-wider">Disponibilidad</AccordionTrigger>
           <AccordionContent>
@@ -319,8 +257,6 @@ const Category = () => {
   const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
-  const [brands, setBrands] = useState<string[]>([]);
-  const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
   const [dynamicGroups, setDynamicGroups] = useState<DynamicGroup[]>([
     { key: "type", title: GROUP_TITLES.type, options: [] },
     { key: "goal", title: GROUP_TITLES.goal, options: [] },
@@ -345,20 +281,6 @@ const Category = () => {
 
   // Reset page when scope, filters, sort, pageSize or search change
   useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize, debouncedQ]);
-
-  // Load brand + supplier facets once per scope
-  useEffect(() => {
-    const loadFacets = async () => {
-      const [{ data: bRows }, { data: sRows }] = await Promise.all([
-        supabase.from("products").select("brand").not("brand", "is", null).limit(1000),
-        supabase.from("suppliers").select("id, business_name").eq("status", "approved").order("business_name"),
-      ]);
-      const uniq = Array.from(new Set((bRows ?? []).map((r: any) => r.brand).filter(Boolean))).sort();
-      setBrands(uniq);
-      setSuppliers((sRows ?? []) as any);
-    };
-    loadFacets();
-  }, []);
 
   // Load admin-managed filter options
   useEffect(() => {
@@ -469,18 +391,13 @@ const Category = () => {
     filters.goal.forEach((v) => chips.push({ key: "goal", value: v, label: v }));
     filters.flavor.forEach((v) => chips.push({ key: "flavor", value: v, label: v }));
     filters.size.forEach((v) => chips.push({ key: "size", value: v, label: v }));
-    filters.brand.forEach((v) => chips.push({ key: "brand", value: v, label: v }));
-    filters.supplier.forEach((v) => {
-      const s = suppliers.find((x) => x.id === v);
-      chips.push({ key: "supplier", value: v, label: s?.business_name ?? "Proveedor" });
-    });
     if (filters.rating > 0) chips.push({ key: "rating", value: String(filters.rating), label: `★ ${filters.rating}+` });
     if (filters.inStock) chips.push({ key: "inStock", value: "1", label: "En stock" });
     if (filters.price[0] > 0 || filters.price[1] < 100) {
       chips.push({ key: "price", value: "range", label: `S/ ${filters.price[0]} – S/ ${filters.price[1]}` });
     }
     return chips;
-  }, [filters, suppliers]);
+  }, [filters]);
 
   const removeChip = (key: keyof FilterState, value: string) => {
     setFilters((f) => {
