@@ -25,14 +25,14 @@ const KEYS = [
 
 const DEFAULTS: Record<string, string> = {
   logo_text: "", logo_accent: "", logo_image_url: "",
-  footer_description: "Nutrición y suplementos premium diseñados para potenciar tu entrenamiento, recuperación y bienestar diario.",
-  footer_newsletter_title: "Únete al círculo interno",
-  footer_newsletter_help: "Obtén 10% de descuento en tu primer pedido. Sin spam.",
+  footer_description: "Superalimentos andinos y medicina natural peruana para tu bienestar diario. Maca, cañihua, espirulina y fórmulas como las hacían nuestras abuelas.",
+  footer_newsletter_title: "Únete a Nutribatidos",
+  footer_newsletter_help: "10% de descuento en tu primer pedido. Sin spam.",
   footer_col1_title: "Tienda",
   footer_col2_title: "Empresa",
   footer_col3_title: "Ayuda",
-  footer_copyright: "© {year} Voltra Nutrition. Todos los derechos reservados.",
-  footer_payment_badges: "VISA,MASTERCARD,AMEX,PAYPAL,APPLE PAY,G PAY",
+  footer_copyright: "© {year} Nutribatidos. Todos los derechos reservados.",
+  footer_payment_badges: "YAPE,PLIN,VISA,MASTERCARD,AMEX,CONTRAENTREGA",
 };
 
 const renderLink = (l: FooterLink) => {

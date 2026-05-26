@@ -1,13 +1,11 @@
 import { Truck, ShieldCheck, MessageCircle, Tag } from "lucide-react";
-import { useCurrency } from "@/context/CurrencyContext";
 
 export const AnnouncementBar = () => {
-  const { format } = useCurrency();
   const items = [
-    { icon: Truck, text: `Envío gratis en pedidos sobre ${format(50)}` },
-    { icon: ShieldCheck, text: "Pago seguro · 100% protegido" },
-    { icon: MessageCircle, text: "Soporte por WhatsApp los 7 días" },
-    { icon: Tag, text: "Código FUEL10 — 10% en tu primer pedido" },
+    { icon: Truck, text: "Envío gratis en compras desde S/ 99 · Todo el Perú" },
+    { icon: ShieldCheck, text: "Pago seguro · Yape, Plin, tarjeta o contraentrega" },
+    { icon: MessageCircle, text: "Atención por WhatsApp los 7 días" },
+    { icon: Tag, text: "Código NATURAL10 — 10% en tu primer pedido" },
   ];
   return (
     <div className="bg-foreground text-background overflow-hidden">
