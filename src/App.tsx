@@ -118,8 +118,10 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
-            <Route path="/categoria/:slug" element={<Category />} />
-            <Route path="/categorias/:slug" element={<Category />} />
+            <Route path="/categoria/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
+            <Route path="/categoria/:slug" element={<CategoryDispatcher />} />
+            <Route path="/categorias/:slug" element={<CategoryDispatcher />} />
+            <Route path="/categorias/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/producto/:slug" element={<ProductDetail />} />
             <Route path="/productos/:slug" element={<ProductDetail />} />
