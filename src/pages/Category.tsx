@@ -414,26 +414,46 @@ const Category = () => {
         }
       }
 
-      // Search (name OR short_description)
+      // Search (name, descripciones, ingredientes, categoría, sub, marca, objetivo)
       if (debouncedQ) {
         const safe = debouncedQ.replace(/[%,()]/g, " ");
-        query = query.or(`name.ilike.%${safe}%,short_description.ilike.%${safe}%`);
+        query = query.or(
+          [
+            `name.ilike.%${safe}%`,
+            `short_description.ilike.%${safe}%`,
+            `long_description.ilike.%${safe}%`,
+            `ingredients.ilike.%${safe}%`,
+            `main_ingredient.ilike.%${safe}%`,
+            `category.ilike.%${safe}%`,
+            `subcategory.ilike.%${safe}%`,
+            `brand.ilike.%${safe}%`,
+            `goal.ilike.%${safe}%`,
+          ].join(","),
+        );
       }
 
-      // Facet filters (all server-side so the count is exact)
+      // Facet filters (server-side para que el conteo sea exacto)
+      if (filters.mainCategory) query = query.eq("category", filters.mainCategory);
+      if (filters.subcategory) query = query.eq("subcategory", filters.subcategory);
       if (filters.type.length) query = query.in("category", filters.type);
-      if (filters.goal.length) query = query.in("goal", filters.goal.map(goalNameToSlug));
+      if (filters.goal.length) query = query.in("goal", filters.goal);
       if (filters.flavor.length) query = query.in("flavor", filters.flavor);
       if (filters.size.length) query = query.in("size", filters.size);
       if (filters.brand.length) query = query.in("brand", filters.brand);
       if (filters.supplier.length) query = query.in("supplier_id", filters.supplier);
       if (filters.rating > 0) query = query.gte("rating", filters.rating);
+      if (filters.inStock) query = query.gt("stock", 0);
       query = query.gte("price", filters.price[0]).lte("price", filters.price[1]);
+      // No mostrar productos con precio 0 en el catálogo público (regla de negocio).
+      query = query.gt("price", 0);
 
       // Sort
       if (sort === "price-low") query = query.order("price", { ascending: true });
       else if (sort === "price-high") query = query.order("price", { ascending: false });
       else if (sort === "rating") query = query.order("rating", { ascending: false });
+      else if (sort === "new") query = query.order("created_at", { ascending: false });
+      else if (sort === "offers") query = query.not("sale_price", "is", null).order("sale_price", { ascending: true });
+      else if (sort === "bestsellers") query = query.order("sales_count" as any, { ascending: false }).order("rating", { ascending: false });
       else query = query.order("sort_order", { ascending: true } as any).order("created_at", { ascending: false });
 
       query = query.range(from, to);
