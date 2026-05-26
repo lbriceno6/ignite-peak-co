@@ -13,7 +13,7 @@ import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { resolveProductImage } from "@/lib/productImage";
-import { useCurrency } from "@/context/CurrencyContext";
+
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
@@ -109,7 +109,7 @@ const GUIDES_KEYS = [
 ];
 
 const Home = () => {
-  useCurrency();
+  
   const [products, setProducts] = useState<DbProduct[]>([]);
   const [categories, setCategories] = useState<DbCategory[]>([]);
   const [posts, setPosts] = useState<DbPost[]>([]);
