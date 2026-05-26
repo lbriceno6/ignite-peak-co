@@ -453,7 +453,7 @@ const Category = () => {
       else if (sort === "rating") query = query.order("rating", { ascending: false });
       else if (sort === "new") query = query.order("created_at", { ascending: false });
       else if (sort === "offers") query = query.not("sale_price", "is", null).order("sale_price", { ascending: true });
-      else if (sort === "bestsellers") query = query.order("sales_count" as any, { ascending: false }).order("rating", { ascending: false });
+      else if (sort === "bestsellers") query = query.order("rating", { ascending: false });
       else query = query.order("sort_order", { ascending: true } as any).order("created_at", { ascending: false });
 
       query = query.range(from, to);
