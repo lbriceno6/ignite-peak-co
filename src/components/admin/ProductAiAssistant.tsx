@@ -231,7 +231,8 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
               <PreviewBlock label="Descripción corta" value={suggestions.short_description} />
               <PreviewBlock label="Descripción larga" value={suggestions.description} />
               <div className="grid grid-cols-2 gap-3">
-                <PreviewBlock label="Categoría" value={suggestions.category} />
+                <PreviewBlock label="Categoría principal" value={suggestions.category} />
+                <PreviewBlock label="Subcategoría" value={suggestions.subcategory} />
                 <PreviewBlock label="Etiqueta" value={suggestions.badge} />
                 <PreviewBlock label="Ingrediente principal" value={suggestions.main_ingredient} />
                 <PreviewBlock label="Objetivo" value={suggestions.goal} />
