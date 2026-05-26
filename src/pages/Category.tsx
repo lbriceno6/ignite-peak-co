@@ -456,7 +456,7 @@ const Category = () => {
               </button>
             )}
           </div>
-          <FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} />
+          <FiltersPanel filters={filters} setFilters={setFilters} dynamicGroups={dynamicGroups} />
         </aside>
 
         <div>
@@ -478,7 +478,7 @@ const Category = () => {
                     Limpiar todo
                   </button>
                 </div>
-                <div className="mt-4"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} /></div>
+                <div className="mt-4"><FiltersPanel filters={filters} setFilters={setFilters} dynamicGroups={dynamicGroups} /></div>
               </SheetContent>
             </Sheet>
 
