@@ -19,7 +19,7 @@ const defaults = {
   shipping_policy_times_title: "Tiempos de entrega",
   shipping_policy_times: "Lima Metropolitana: 1–3 días hábiles.\nProvincias: 3–7 días hábiles según la ciudad.",
   shipping_policy_responsibility_title: "Responsabilidad del cliente",
-  shipping_policy_responsibility: "El cliente debe ingresar información de envío precisa al pagar. Voltra no se responsabiliza por retrasos causados por direcciones incorrectas o datos de contacto inaccesibles.",
+  shipping_policy_responsibility: "El cliente debe ingresar información de envío precisa al pagar. Nutribatidos no se responsabiliza por retrasos causados por direcciones incorrectas o datos de contacto inaccesibles.",
   shipping_policy_confirmation_title: "Confirmación",
   shipping_policy_confirmation: "La confirmación del pedido y las actualizaciones de seguimiento se envían por WhatsApp o correo.",
   shipping_providers_title: "Transportistas con los que trabajamos",

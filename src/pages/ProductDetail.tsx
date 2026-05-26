@@ -67,7 +67,7 @@ const toCardProduct = (p: DbProduct): Product => ({
   image: resolveProductImage(p.main_image),
   category: p.category ?? "",
   goal: [],
-  brand: "VOLTRA",
+  brand: "Nutribatidos",
 });
 
 const parseList = (val: any): string[] => {

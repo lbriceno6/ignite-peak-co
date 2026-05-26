@@ -3,7 +3,7 @@ import { track } from "@/lib/analytics";
 
 export const WhatsAppButton = () => (
   <a
-    href="https://wa.me/14155552671?text=%C2%A1Hola%20Voltra!"
+    href="https://wa.me/51999999999?text=%C2%A1Hola%20Nutribatidos!%20Quiero%20informaci%C3%B3n"
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Chatear por WhatsApp"

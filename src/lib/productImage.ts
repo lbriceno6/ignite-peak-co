@@ -1,19 +1,11 @@
-import productBcaa from "@/assets/product-bcaa.jpg";
-import productCreatine from "@/assets/product-creatine.jpg";
-import productPreworkout from "@/assets/product-preworkout.jpg";
 import productProtein from "@/assets/product-protein.jpg";
-import productShaker from "@/assets/product-shaker.jpg";
-import productSnack from "@/assets/product-snack.jpg";
 import productVitamins from "@/assets/product-vitamins.jpg";
+import productSnack from "@/assets/product-snack.jpg";
 
 const bundled: Record<string, string> = {
-  "product-bcaa.jpg": productBcaa,
-  "product-creatine.jpg": productCreatine,
-  "product-preworkout.jpg": productPreworkout,
   "product-protein.jpg": productProtein,
-  "product-shaker.jpg": productShaker,
-  "product-snack.jpg": productSnack,
   "product-vitamins.jpg": productVitamins,
+  "product-snack.jpg": productSnack,
 };
 
 export const resolveProductImage = (src?: string | null, fallback?: string): string => {

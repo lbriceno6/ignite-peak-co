@@ -58,7 +58,7 @@ export default function Unsubscribe() {
           </>)}
           {state === "valid" && (<>
             <h1 className="font-display text-2xl uppercase">¿Confirmar baja?</h1>
-            <p className="mt-2 text-sm text-muted-foreground">Dejarás de recibir correos de Voltra Nutrition.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Dejarás de recibir correos de Nutribatidos.</p>
             <Button variant="dark" className="mt-5 w-full" onClick={confirm}>Confirmar baja</Button>
           </>)}
           {state === "submitting" && <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />}
