@@ -487,10 +487,10 @@ const Home = () => {
           <section key={b.id} className="border-y border-border bg-secondary/40 py-12">
             <div className="container-x grid grid-cols-2 gap-6 md:grid-cols-4">
               {[
-                { icon: Truck, title: "Envío gratis", desc: `En pedidos sobre ${format(50)}` },
-                { icon: ShieldCheck, title: "Pago seguro", desc: "Pago 100% encriptado" },
-                { icon: Award, title: "Probado en laboratorio", desc: "Calidad verificada por terceros" },
-                { icon: MessageCircle, title: "Soporte real", desc: "WhatsApp los 7 días" },
+                { icon: Truck, title: "Envío rápido", desc: "A todo el Perú en 24-48h" },
+                { icon: ShieldCheck, title: "Pago seguro", desc: "Yape, Plin, tarjeta o contraentrega" },
+                { icon: Award, title: "100% natural", desc: "Sin químicos ni saborizantes" },
+                { icon: MessageCircle, title: "Atención cercana", desc: "WhatsApp los 7 días" },
               ].map((t) => (
                 <div key={t.title} className="flex items-center gap-4">
                   <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
