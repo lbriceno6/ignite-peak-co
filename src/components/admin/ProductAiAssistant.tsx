@@ -87,6 +87,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     if (s.short_description) patch.short_description = s.short_description;
     if (s.description) patch.description = s.description;
     if (s.category) patch.category = s.category;
+    if (s.subcategory) patch.subcategory = s.subcategory;
     if (s.badge !== undefined) patch.badge = s.badge;
     if (s.main_ingredient) patch.main_ingredient = s.main_ingredient;
     if (s.goal) patch.goal = s.goal;
