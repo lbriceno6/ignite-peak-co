@@ -475,6 +475,8 @@ const Category = () => {
 
   const activeChips = useMemo(() => {
     const chips: { key: keyof FilterState; value: string; label: string }[] = [];
+    if (filters.mainCategory) chips.push({ key: "mainCategory", value: filters.mainCategory, label: filters.mainCategory });
+    if (filters.subcategory) chips.push({ key: "subcategory", value: filters.subcategory, label: filters.subcategory });
     filters.type.forEach((v) => chips.push({ key: "type", value: v, label: v }));
     filters.goal.forEach((v) => chips.push({ key: "goal", value: v, label: v }));
     filters.flavor.forEach((v) => chips.push({ key: "flavor", value: v, label: v }));
@@ -485,19 +487,33 @@ const Category = () => {
       chips.push({ key: "supplier", value: v, label: s?.business_name ?? "Proveedor" });
     });
     if (filters.rating > 0) chips.push({ key: "rating", value: String(filters.rating), label: `★ ${filters.rating}+` });
+    if (filters.inStock) chips.push({ key: "inStock", value: "1", label: "En stock" });
+    if (filters.price[0] > 0 || filters.price[1] < 100) {
+      chips.push({ key: "price", value: "range", label: `S/ ${filters.price[0]} – S/ ${filters.price[1]}` });
+    }
     return chips;
   }, [filters, suppliers]);
 
   const removeChip = (key: keyof FilterState, value: string) => {
     setFilters((f) => {
       if (key === "rating") return { ...f, rating: 0 };
-      if (key === "price") return f;
+      if (key === "inStock") return { ...f, inStock: false };
+      if (key === "price") return { ...f, price: [0, 100] };
+      if (key === "mainCategory") return { ...f, mainCategory: "", subcategory: "" };
+      if (key === "subcategory") return { ...f, subcategory: "" };
       const arr = f[key] as string[];
       return { ...f, [key]: arr.filter((v) => v !== value) };
     });
   };
 
   const clearAll = () => { setFilters(emptyFilters); setQ(""); };
+
+  const trustItems = [
+    { Icon: Truck, text: "Envíos a todo el Perú" },
+    { Icon: ShieldCheck, text: "Pago seguro" },
+    { Icon: Leaf, text: "Productos naturales seleccionados" },
+    { Icon: MessageCircle, text: "Atención por WhatsApp" },
+  ];
 
   return (
     <Layout>
@@ -513,13 +529,25 @@ const Category = () => {
         </div>
       </div>
 
+      {/* Franja de confianza, discreta */}
+      <div className="border-y border-border bg-background">
+        <div className="container-x grid grid-cols-2 gap-3 py-3 text-xs text-muted-foreground sm:grid-cols-4">
+          {trustItems.map(({ Icon, text }) => (
+            <div key={text} className="flex items-center gap-2">
+              <Icon size={14} className="text-accent" />
+              <span>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="container-x grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
           <div className="mb-4 flex items-center justify-between">
             <h3 className="font-display text-xl uppercase">Filtros</h3>
             {(activeChips.length > 0 || q) && (
               <button onClick={clearAll} className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">
-                Limpiar
+                Limpiar todo
               </button>
             )}
           </div>
@@ -531,21 +559,30 @@ const Category = () => {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" className="lg:hidden">
-                  <SlidersHorizontal size={16} /> Filtros
+                  <SlidersHorizontal size={16} /> Filtrar productos
+                  {activeChips.length > 0 && (
+                    <Badge className="ml-1 bg-accent text-accent-foreground">{activeChips.length}</Badge>
+                  )}
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-80 overflow-y-auto">
                 <SheetHeader><SheetTitle>Filtros</SheetTitle></SheetHeader>
-                <div className="mt-6"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} /></div>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">{total} productos</span>
+                  <button onClick={clearAll} className="text-xs uppercase tracking-wider text-muted-foreground hover:text-accent">
+                    Limpiar todo
+                  </button>
+                </div>
+                <div className="mt-4"><FiltersPanel filters={filters} setFilters={setFilters} brands={brands} suppliers={suppliers} dynamicGroups={dynamicGroups} /></div>
               </SheetContent>
             </Sheet>
 
-            <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
+            <div className="relative min-w-[220px] flex-1 sm:max-w-md">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar en esta categoría…"
+                placeholder="Busca por producto, ingrediente o necesidad"
                 className="h-10 pl-9"
               />
               {q && (
@@ -568,9 +605,12 @@ const Category = () => {
                   className="appearance-none rounded-md border border-border bg-background py-2 pl-3 pr-9 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <option value="popular">Más populares</option>
+                  <option value="price-low">Menor precio</option>
+                  <option value="price-high">Mayor precio</option>
+                  <option value="new">Nuevos productos</option>
+                  <option value="offers">Ofertas</option>
+                  <option value="bestsellers">Más vendidos</option>
                   <option value="rating">Mejor valorados</option>
-                  <option value="price-low">Precio: menor a mayor</option>
-                  <option value="price-high">Precio: mayor a menor</option>
                 </select>
                 <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               </div>
@@ -578,22 +618,42 @@ const Category = () => {
           </div>
 
           {activeChips.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-2">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <span className="text-xs uppercase tracking-wider text-muted-foreground">Filtros activos:</span>
               {activeChips.map((c) => (
                 <Badge key={`${c.key}-${c.value}`} variant="secondary" className="gap-1">
                   {c.label}
-                  <button onClick={() => removeChip(c.key, c.value)} className="ml-1">
+                  <button onClick={() => removeChip(c.key, c.value)} aria-label={`Quitar ${c.label}`} className="ml-1">
                     <X size={12} />
                   </button>
                 </Badge>
               ))}
+              <button
+                onClick={clearAll}
+                className="text-xs uppercase tracking-wider text-muted-foreground underline-offset-2 hover:text-accent hover:underline"
+              >
+                Limpiar todo
+              </button>
             </div>
           )}
 
           {!loading && total === 0 ? (
-            <div className="rounded-lg border border-dashed border-border py-16 text-center">
-              <p className="text-muted-foreground">Ningún producto coincide con tus filtros.</p>
-              <Button variant="outline" className="mt-4" onClick={clearAll}>Limpiar filtros</Button>
+            <div className="rounded-lg border border-dashed border-border py-16 px-4 text-center">
+              <p className="text-lg font-medium">No encontramos productos con estos filtros.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Prueba ajustando tus filtros o consúltanos por WhatsApp y te recomendamos un producto.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                <Button variant="outline" onClick={clearAll}>Limpiar filtros</Button>
+                <Button variant="secondary" asChild>
+                  <Link to="/categoria/todos">Ver todos los productos</Link>
+                </Button>
+                <Button variant="accent" asChild>
+                  <a href={WA_CONSULT} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle size={14} /> Consultar por WhatsApp
+                  </a>
+                </Button>
+              </div>
             </div>
           ) : (
             <>
