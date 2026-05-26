@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
-import { SlidersHorizontal, ChevronDown, X, Search } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, X, Search, Truck, ShieldCheck, Leaf, MessageCircle } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -15,27 +15,51 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
+import { mainCategories, getSubcategories } from "@/lib/productCategories";
+
+const WA_CONSULT =
+  "https://wa.me/51999999999?text=" +
+  encodeURIComponent("¡Hola Nutribatidos! Necesito ayuda para encontrar un producto.");
+
+const HEALTH_NEEDS = [
+  "Energía y Vitalidad",
+  "Control de Peso",
+  "Digestión y Colon",
+  "Próstata y Salud Masculina",
+  "Hígado y Limpieza Natural",
+  "Articulaciones y Huesos",
+  "Defensas e Inmunidad",
+  "Corazón y Circulación",
+  "Riñones y Vías Urinarias",
+  "Piel, Cabello y Uñas",
+  "Bienestar General",
+];
 
 type FilterState = {
+  mainCategory: string;
+  subcategory: string;
   type: string[];
   goal: string[];
   flavor: string[];
   size: string[];
   brand: string[];
-  supplier: string[]; // supplier ids
-  rating: number; // minimum rating: 0..5
+  supplier: string[];
+  rating: number;
   price: [number, number];
+  inStock: boolean;
 };
 
 const emptyFilters: FilterState = {
-  type: [], goal: [], flavor: [], size: [], brand: [], supplier: [], rating: 0, price: [0, 100],
+  mainCategory: "", subcategory: "",
+  type: [], goal: [], flavor: [], size: [], brand: [], supplier: [],
+  rating: 0, price: [0, 100], inStock: false,
 };
 
 type DynamicGroup = { key: "type" | "goal" | "flavor" | "size"; title: string; options: { label: string; value: string }[] };
 
 const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
-  type: "Tipo de producto",
-  goal: "Objetivo",
+  type: "Presentación",
+  goal: "¿Para qué lo necesitas?",
   flavor: "Sabor",
   size: "Tamaño",
 };
