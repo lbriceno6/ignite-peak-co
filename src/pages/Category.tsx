@@ -67,25 +67,13 @@ const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
 
 
 const FiltersPanel = ({
-  filters, setFilters, brands, suppliers, dynamicGroups,
+  filters, setFilters, dynamicGroups,
 }: {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  brands: string[];
-  suppliers: { id: string; business_name: string }[];
   dynamicGroups: DynamicGroup[];
 }) => {
   const { format, symbol } = useCurrency();
-  const [brandQuery, setBrandQuery] = useState("");
-  const [supplierQuery, setSupplierQuery] = useState("");
-  const filteredBrands = useMemo(
-    () => brands.filter((b) => b.toLowerCase().includes(brandQuery.trim().toLowerCase())),
-    [brands, brandQuery],
-  );
-  const filteredSuppliers = useMemo(
-    () => suppliers.filter((s) => s.business_name.toLowerCase().includes(supplierQuery.trim().toLowerCase())),
-    [suppliers, supplierQuery],
-  );
   const toggle = (key: "type" | "goal" | "flavor" | "size" | "brand" | "supplier", value: string) => {
     setFilters((f) => {
       const current = f[key];
