@@ -21,12 +21,50 @@ const LEVEL_GUIDE: Record<string, string> = {
   premium: "Texto premium, sofisticado, con storytelling breve, beneficios percibidos altos, lenguaje aspiracional.",
 };
 
+const TAXONOMY_TEXT = `Taxonomía oficial de categorías y subcategorías de Nutribatidos (debes elegir SIEMPRE una categoría principal y una subcategoría exactas de esta lista):
+
+Productos:
+  - Nutribatidos
+  - Superfoods Andinos
+  - Proteínas y Colágeno
+  - Semillas y Cereales
+  - Plantas Naturales
+  - Aceites Naturales
+
+Para tu salud:
+  - Próstata y Salud Masculina
+  - Hígado y Limpieza Natural
+  - Digestión y Colon
+  - Articulaciones y Huesos
+  - Control de Peso
+  - Defensas e Inmunidad
+  - Corazón y Circulación
+  - Riñones y Vías Urinarias
+  - Piel, Cabello y Uñas
+  - Energía y Vitalidad
+
+Promociones:
+  - Combos
+  - Ofertas
+  - Más vendidos
+  - Nuevos productos
+
+Reglas de clasificación:
+- "category" debe ser exactamente uno de: "Productos", "Para tu salud", "Promociones".
+- "subcategory" debe pertenecer a la lista de la categoría elegida (texto exacto, incluyendo tildes y mayúsculas).
+- Si el producto es un superalimento andino (maca, cacao, lúcuma, etc.) → "Productos" / "Superfoods Andinos".
+- Si es colágeno o proteína → "Productos" / "Proteínas y Colágeno".
+- Si el enfoque es bienestar de un órgano o sistema → "Para tu salud" + la subcategoría correspondiente.
+- Si es un pack, combo, oferta o producto destacado → "Promociones" + la subcategoría correspondiente.`;
+
 function buildSystemPrompt(level: string) {
   const guide = LEVEL_GUIDE[level] ?? LEVEL_GUIDE.equilibrado;
   return `Eres un copywriter experto en ecommerce de productos naturales, suplementos y nutribatidos para la marca Nutribatidos.
 
 Nivel de contenido solicitado: ${level.toUpperCase()}.
 Guía de tono: ${guide}
+
+${TAXONOMY_TEXT}
 
 REGLAS OBLIGATORIAS:
 - Escribe siempre en español neutro.
@@ -37,6 +75,7 @@ REGLAS OBLIGATORIAS:
 - "nutrition_facts" debe ser un objeto JSON simple (claves: proteina, carbohidratos, grasas, fibra, calorias, etc.).
 - "faqs" debe ser un arreglo de objetos {q, a}.
 - "slug" debe ser url-safe (a-z, 0-9, guiones).
+- SIEMPRE devuelve "category" y "subcategory" elegidos de la taxonomía oficial.
 - No incluyas campos que no conozcas con seguridad — déjalos vacíos o con un valor razonable.`;
 }
 
@@ -52,7 +91,8 @@ const TOOL_SCHEMA = {
         slug: { type: "string" },
         short_description: { type: "string" },
         description: { type: "string" },
-        category: { type: "string" },
+        category: { type: "string", enum: ["Productos", "Para tu salud", "Promociones", ""] },
+        subcategory: { type: "string" },
         badge: { type: "string", enum: ["", "new", "best-seller", "sale", "limited", "popular", "exclusive"] },
         main_ingredient: { type: "string" },
         goal: { type: "string" },

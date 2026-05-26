@@ -12,6 +12,7 @@ import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
 import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
+import { mainCategories, getSubcategories } from "@/lib/productCategories";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -27,7 +28,7 @@ const BADGE_OPTIONS = [
 const empty = {
   name: "", slug: "", short_description: "", description: "",
   price: 0, sale_price: null as number | null,
-  category: "", main_ingredient: "", goal: "", flavor: "", size: "",
+  category: "", subcategory: "", main_ingredient: "", goal: "", flavor: "", size: "",
   stock: 0, main_image: "", gallery_images: "" as any,
   is_active: true, badge: "",
   usage_instructions: "", ingredients: "",
@@ -51,7 +52,6 @@ export default function ProductForm() {
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
-  const [categories, setCategories] = useState<{ name: string; slug: string }[]>([]);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
 
   const uploadToBucket = async (file: File, prefix: string) => {
@@ -99,8 +99,6 @@ export default function ProductForm() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("categories").select("name, slug").eq("type", "product").order("sort_order");
-      setCategories(data ?? []);
       const { data: sup } = await supabase.from("suppliers").select("id, business_name").eq("is_active", true).order("business_name");
       setSuppliers(sup ?? []);
     })();
@@ -185,11 +183,39 @@ export default function ProductForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Precio"><Input type="number" step="0.01" value={f.price} onChange={(e) => set("price", e.target.value)} /></Field>
           <Field label="Precio de oferta"><Input type="number" step="0.01" value={f.sale_price ?? ""} onChange={(e) => set("sale_price", e.target.value)} /></Field>
-          <Field label="Categoría">
-            <Input list="product-categories" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
-            <datalist id="product-categories">
-              {categories.map((c) => <option key={c.slug} value={c.name} />)}
-            </datalist>
+          <Field label="Categoría principal">
+            <Select
+              value={f.category || "__none__"}
+              onValueChange={(v) => {
+                const next = v === "__none__" ? "" : v;
+                setF((p: any) => ({ ...p, category: next, subcategory: "" }));
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Selecciona una categoría</SelectItem>
+                {mainCategories.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Subcategoría">
+            <Select
+              value={f.subcategory || "__none__"}
+              onValueChange={(v) => set("subcategory", v === "__none__" ? "" : v)}
+              disabled={!f.category}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={f.category ? "Selecciona una subcategoría" : "Primero elige una categoría"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sin subcategoría</SelectItem>
+                {getSubcategories(f.category).map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Etiqueta">
             <Select value={f.badge ?? ""} onValueChange={(v) => set("badge", v === "__none__" ? "" : v)}>

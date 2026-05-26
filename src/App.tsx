@@ -23,6 +23,8 @@ import AdminResellerTiers from "./pages/admin/AdminResellerTiers.tsx";
 import AdminResellerPayouts from "./pages/admin/AdminResellerPayouts.tsx";
 import Index from "./pages/Index.tsx";
 import Category from "./pages/Category.tsx";
+import CategoryDispatcher from "./pages/CategoryDispatcher.tsx";
+import CategoryTaxonomy from "./pages/CategoryTaxonomy.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import Cart from "./pages/Cart.tsx";
 import Checkout from "./pages/Checkout.tsx";
@@ -116,8 +118,10 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
-            <Route path="/categoria/:slug" element={<Category />} />
-            <Route path="/categorias/:slug" element={<Category />} />
+            <Route path="/categoria/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
+            <Route path="/categoria/:slug" element={<CategoryDispatcher />} />
+            <Route path="/categorias/:slug" element={<CategoryDispatcher />} />
+            <Route path="/categorias/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/producto/:slug" element={<ProductDetail />} />
             <Route path="/productos/:slug" element={<ProductDetail />} />

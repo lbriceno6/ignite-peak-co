@@ -1228,6 +1228,7 @@ export type Database = {
           slug: string
           sort_order: number
           stock: number
+          subcategory: string | null
           subscription_discount_percent: number
           subscription_enabled: boolean
           subscription_intervals: number[]
@@ -1263,6 +1264,7 @@ export type Database = {
           slug: string
           sort_order?: number
           stock?: number
+          subcategory?: string | null
           subscription_discount_percent?: number
           subscription_enabled?: boolean
           subscription_intervals?: number[]
@@ -1298,6 +1300,7 @@ export type Database = {
           slug?: string
           sort_order?: number
           stock?: number
+          subcategory?: string | null
           subscription_discount_percent?: number
           subscription_enabled?: boolean
           subscription_intervals?: number[]

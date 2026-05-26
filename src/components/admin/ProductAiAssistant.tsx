@@ -14,6 +14,7 @@ type Suggestions = {
   short_description?: string;
   description?: string;
   category?: string;
+  subcategory?: string;
   badge?: string;
   main_ingredient?: string;
   goal?: string;
@@ -45,7 +46,7 @@ const LEVELS = [
 
 // Campos auto-aplicables vs sólo-sugerencia
 const AUTO_FIELDS: (keyof Suggestions)[] = [
-  "name", "slug", "short_description", "description", "category", "badge",
+  "name", "slug", "short_description", "description", "category", "subcategory", "badge",
   "main_ingredient", "goal", "flavor", "size", "size_variants",
   "usage_instructions", "ingredients", "nutrition_facts", "faqs",
 ];
@@ -86,6 +87,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     if (s.short_description) patch.short_description = s.short_description;
     if (s.description) patch.description = s.description;
     if (s.category) patch.category = s.category;
+    if (s.subcategory) patch.subcategory = s.subcategory;
     if (s.badge !== undefined) patch.badge = s.badge;
     if (s.main_ingredient) patch.main_ingredient = s.main_ingredient;
     if (s.goal) patch.goal = s.goal;
@@ -116,6 +118,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
             price: product.price,
             sale_price: product.sale_price,
             category: product.category,
+            subcategory: product.subcategory,
             badge: product.badge,
             main_ingredient: product.main_ingredient,
             goal: product.goal,
@@ -228,7 +231,8 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
               <PreviewBlock label="Descripción corta" value={suggestions.short_description} />
               <PreviewBlock label="Descripción larga" value={suggestions.description} />
               <div className="grid grid-cols-2 gap-3">
-                <PreviewBlock label="Categoría" value={suggestions.category} />
+                <PreviewBlock label="Categoría principal" value={suggestions.category} />
+                <PreviewBlock label="Subcategoría" value={suggestions.subcategory} />
                 <PreviewBlock label="Etiqueta" value={suggestions.badge} />
                 <PreviewBlock label="Ingrediente principal" value={suggestions.main_ingredient} />
                 <PreviewBlock label="Objetivo" value={suggestions.goal} />
@@ -252,6 +256,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
           )}
           <DialogFooter className="flex flex-wrap gap-2">
             <Button variant="dark" onClick={() => { if (suggestions) { onApply(toPatch(suggestions)); toast.success("Todo aplicado."); setOpen(false); } }}>Aplicar todo</Button>
+            <Button variant="outline" onClick={() => applySubset(["category", "subcategory"])}>Aplicar categoría y subcategoría</Button>
             <Button variant="outline" onClick={() => applySubset(["short_description", "description"])}>Aplicar solo descripción</Button>
             <Button variant="outline" onClick={() => applySubset(["usage_instructions"])}>Instrucciones de uso</Button>
             <Button variant="outline" onClick={() => applySubset(["ingredients"])}>Ingredientes</Button>
