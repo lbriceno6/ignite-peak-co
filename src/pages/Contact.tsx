@@ -19,7 +19,7 @@ const DEFAULTS = {
   contact_title: "Estamos para ayudarte",
   contact_intro: "¿Preguntas sobre productos, pedidos o tu plan de entrenamiento? Nuestro equipo responde en menos de 24 horas.",
   contact_whatsapp_value: "+1 (415) 555-2671", contact_whatsapp_note: "Respuesta más rápida",
-  contact_email_value: "support@voltra.com", contact_email_note: "En menos de 24h",
+  contact_email_value: "hola@nutribatidos.pe", contact_email_note: "En menos de 24h",
   contact_address_value: "Carrer de la Marina 16, Barcelona", contact_address_note: "España",
   contact_hours_value: "Lun–Sáb · 9am – 8pm", contact_hours_note: "CET",
 };

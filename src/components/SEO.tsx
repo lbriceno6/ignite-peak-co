@@ -1,7 +1,7 @@
 import { Helmet } from "react-helmet-async";
 
 const SITE_URL = "https://ignite-peak-co.lovable.app";
-const SITE_NAME = "Voltra Nutrition";
+const SITE_NAME = "Nutribatidos";
 const DEFAULT_OG_IMAGE =
   "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab92b0f7-8a4a-4391-9bed-0931f1af1340/id-preview-91df73ee--ace85f94-64f0-4daa-a974-2aa900bc3a79.lovable.app-1778858363091.png";
 

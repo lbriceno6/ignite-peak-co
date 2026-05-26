@@ -81,14 +81,14 @@ const Blog = () => {
           datePublished: post.published_at,
           articleSection: post.category ?? undefined,
           mainEntityOfPage: `https://ignite-peak-co.lovable.app/blog/${post.slug}`,
-          publisher: { "@type": "Organization", name: "Voltra Nutrition" },
+          publisher: { "@type": "Organization", name: "Nutribatidos" },
         }
       : undefined;
     return (
       <Layout>
         {post && (
           <SEO
-            title={`${post.title} | Voltra Nutrition Blog`}
+            title={`${post.title} | Blog Nutribatidos`}
             description={post.excerpt ?? undefined}
             path={`/blog/${post.slug}`}
             image={post.cover_image ?? undefined}
@@ -131,7 +131,7 @@ const Blog = () => {
   const blogJsonLd = {
     "@context": "https://schema.org",
     "@type": "Blog",
-    name: "Voltra Nutrition — Guides & Insights",
+    name: "Nutribatidos — Guías y consejos",
     url: "https://ignite-peak-co.lovable.app/blog",
     blogPost: posts.slice(0, 20).map((p) => ({
       "@type": "BlogPosting",
@@ -144,8 +144,8 @@ const Blog = () => {
   return (
     <Layout>
       <SEO
-        title="Guides & Insights | Voltra Nutrition Blog"
-        description="Practical advice from our nutritionists, coaches and athletes — supplement guides, training tips and recovery insights."
+        title="Guías y consejos | Blog Nutribatidos"
+        description="Consejos prácticos de bienestar natural: superalimentos andinos, rutinas saludables y recetas con maca, cañihua y espirulina."
         path="/blog"
         type="website"
         jsonLd={blogJsonLd}
@@ -153,8 +153,8 @@ const Blog = () => {
       <section className="bg-surface-darker py-16 text-background">
         <div className="container-x">
           <span className="text-xs font-bold uppercase tracking-[0.3em] text-accent">Knowledge hub</span>
-          <h1 className="mt-3 font-display text-5xl uppercase sm:text-6xl">Guides & insights</h1>
-          <p className="mt-3 max-w-xl text-background/70">Practical advice from our nutritionists, coaches and athletes — no fluff.</p>
+          <h1 className="mt-3 font-display text-5xl uppercase sm:text-6xl">Guías y consejos</h1>
+          <p className="mt-3 max-w-xl text-background/70">Información útil para tu bienestar diario, sin paja.</p>
           <div className="mt-6 flex max-w-md gap-2">
             <Input
               placeholder="Buscar artículos..."

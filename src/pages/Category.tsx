@@ -206,7 +206,7 @@ const rowToProduct = (r: any): Product => {
     goal: r.goal ? [r.goal] : [],
     flavors: r.flavor ? [r.flavor] : undefined,
     sizes: r.size ? [r.size] : undefined,
-    brand: r.brand ?? "VOLTRA",
+    brand: r.brand ?? "Nutribatidos",
     subscriptionEnabled: r.subscription_enabled,
     subscriptionDiscountPercent: r.subscription_discount_percent ? Number(r.subscription_discount_percent) : undefined,
     subscriptionIntervals: r.subscription_intervals ?? undefined,
