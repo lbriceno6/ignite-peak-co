@@ -28,7 +28,7 @@ const BADGE_OPTIONS = [
 const empty = {
   name: "", slug: "", short_description: "", description: "",
   price: 0, sale_price: null as number | null,
-  category: "", main_ingredient: "", goal: "", flavor: "", size: "",
+  category: "", subcategory: "", main_ingredient: "", goal: "", flavor: "", size: "",
   stock: 0, main_image: "", gallery_images: "" as any,
   is_active: true, badge: "",
   usage_instructions: "", ingredients: "",
