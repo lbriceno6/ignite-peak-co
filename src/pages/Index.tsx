@@ -247,7 +247,7 @@ const Home = () => {
                               <span className="font-semibold text-background">4.9/5</span>
                             </div>
                             <span className="text-background/40">·</span>
-                            <span>Confiado por más de 240k atletas en todo el mundo</span>
+                            <span>Hecho en Perú · Envíos a todo el país en 24-48 horas</span>
                           </div>
                         </div>
                       </div>
@@ -409,7 +409,7 @@ const Home = () => {
           <section key={b.id} className="container-x py-16">
             <div>
               {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Más para potenciar tu entrenamiento"}</h2>
+              <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Complementa tu rutina diaria"}</h2>
               {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
             </div>
             <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -424,7 +424,7 @@ const Home = () => {
             <div className="container-x">
               <div className="text-center">
                 <Stars rating={5} size={20} />
-                <h2 className="mt-3 font-display text-3xl sm:text-4xl">{b.title || "Amado por atletas"}</h2>
+                <h2 className="mt-3 font-display text-3xl sm:text-4xl">{b.title || "Lo que dicen nuestras clientas"}</h2>
                 {b.subtitle && <p className="mt-2 text-background/60">{b.subtitle}</p>}
               </div>
               <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -548,7 +548,7 @@ const Home = () => {
 
   return (
     <Layout>
-      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Batidos y suplementos naturales" fallbackDescription="Productos alimenticios naturales que ayudan a complementar una rutina saludable y contribuyen al bienestar general." />
+      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Superalimentos andinos y medicina natural" fallbackDescription="Maca, cañihua, espirulina y fórmulas naturales peruanas para el bienestar diario." />
       {blocks.map(renderBlock)}
       <InstagramTestimonials />
     </Layout>
