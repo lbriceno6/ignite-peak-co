@@ -186,11 +186,39 @@ export default function ProductForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Precio"><Input type="number" step="0.01" value={f.price} onChange={(e) => set("price", e.target.value)} /></Field>
           <Field label="Precio de oferta"><Input type="number" step="0.01" value={f.sale_price ?? ""} onChange={(e) => set("sale_price", e.target.value)} /></Field>
-          <Field label="Categoría">
-            <Input list="product-categories" value={f.category ?? ""} onChange={(e) => set("category", e.target.value)} />
-            <datalist id="product-categories">
-              {categories.map((c) => <option key={c.slug} value={c.name} />)}
-            </datalist>
+          <Field label="Categoría principal">
+            <Select
+              value={f.category || "__none__"}
+              onValueChange={(v) => {
+                const next = v === "__none__" ? "" : v;
+                setF((p: any) => ({ ...p, category: next, subcategory: "" }));
+              }}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecciona una categoría" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Selecciona una categoría</SelectItem>
+                {mainCategories.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Subcategoría">
+            <Select
+              value={f.subcategory || "__none__"}
+              onValueChange={(v) => set("subcategory", v === "__none__" ? "" : v)}
+              disabled={!f.category}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={f.category ? "Selecciona una subcategoría" : "Primero elige una categoría"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sin subcategoría</SelectItem>
+                {getSubcategories(f.category).map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <Field label="Etiqueta">
             <Select value={f.badge ?? ""} onValueChange={(v) => set("badge", v === "__none__" ? "" : v)}>
