@@ -340,6 +340,25 @@ const Category = () => {
     { key: "flavor", title: GROUP_TITLES.flavor, options: [] },
     { key: "size", title: GROUP_TITLES.size, options: [] },
   ]);
+  const { config: filterConfig } = useCatalogFilterSettings();
+  const [brands, setBrands] = useState<string[]>([]);
+  const [suppliersList, setSuppliersList] = useState<{ id: string; name: string }[]>([]);
+
+  // Load brand/supplier facets only when those filters are enabled
+  useEffect(() => {
+    if (filterConfig.brand.enabled) {
+      supabase.from("products").select("brand").not("brand", "is", null).then(({ data }) => {
+        const set = new Set<string>();
+        (data ?? []).forEach((r: any) => { if (r.brand) set.add(r.brand); });
+        setBrands(Array.from(set).sort());
+      });
+    }
+    if (filterConfig.supplier.enabled) {
+      supabase.from("suppliers").select("id, business_name").eq("status", "approved").then(({ data }) => {
+        setSuppliersList(((data as any) ?? []).map((s: any) => ({ id: s.id, name: s.business_name })));
+      });
+    }
+  }, [filterConfig.brand.enabled, filterConfig.supplier.enabled]);
 
   const title = useMemo(() => {
     if (slug.startsWith("goal-")) {
