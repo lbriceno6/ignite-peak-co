@@ -64,7 +64,7 @@ const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
   size: "Tamaño",
 };
 
-const goalNameToSlug = (name: string) => goals.find((g) => g.name === name)?.slug ?? name;
+
 
 const FiltersPanel = ({
   filters, setFilters, brands, suppliers, dynamicGroups,
