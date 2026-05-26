@@ -288,19 +288,23 @@ const FiltersPanel = ({
 };
 
 const rowToProduct = (r: any): Product => {
-  const hasSale = r.sale_price != null && Number(r.sale_price) > 0 && Number(r.sale_price) < Number(r.price);
+  const priceN = Number(r.price ?? 0) || 0;
+  const saleN = Number(r.sale_price ?? 0) || 0;
+  const hasSale = saleN > 0 && saleN < priceN;
   return {
     id: r.id,
     slug: r.slug,
     name: r.name,
     shortBenefit: r.short_description ?? "",
-    price: Number(hasSale ? r.sale_price : r.price),
-    oldPrice: hasSale ? Number(r.price) : undefined,
-    rating: Number(r.rating ?? 0) || 4.7,
-    reviews: 0,
+    price: hasSale ? saleN : priceN,
+    oldPrice: hasSale ? priceN : undefined,
+    rating: Number(r.rating ?? 0),
+    reviews: Number(r.reviews_count ?? r.reviews ?? 0),
     label: r.badge as Product["label"] | undefined,
     image: resolveProductImage(r.main_image),
     category: r.category ?? "",
+    // @ts-expect-error subcategory no está en el type pero ProductCard lo lee opcional.
+    subcategory: r.subcategory ?? "",
     goal: r.goal ? [r.goal] : [],
     flavors: r.flavor ? [r.flavor] : undefined,
     sizes: r.size ? [r.size] : undefined,
