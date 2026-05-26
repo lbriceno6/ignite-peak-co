@@ -23,6 +23,8 @@ import AdminResellerTiers from "./pages/admin/AdminResellerTiers.tsx";
 import AdminResellerPayouts from "./pages/admin/AdminResellerPayouts.tsx";
 import Index from "./pages/Index.tsx";
 import Category from "./pages/Category.tsx";
+import CategoryDispatcher from "./pages/CategoryDispatcher.tsx";
+import CategoryTaxonomy from "./pages/CategoryTaxonomy.tsx";
 import ProductDetail from "./pages/ProductDetail.tsx";
 import Cart from "./pages/Cart.tsx";
 import Checkout from "./pages/Checkout.tsx";
