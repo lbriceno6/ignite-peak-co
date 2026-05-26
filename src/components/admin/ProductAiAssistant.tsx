@@ -14,6 +14,7 @@ type Suggestions = {
   short_description?: string;
   description?: string;
   category?: string;
+  subcategory?: string;
   badge?: string;
   main_ingredient?: string;
   goal?: string;
