@@ -592,7 +592,6 @@ export const THEME_PRESETS: ThemePreset[] = [
       primary: "121 52% 44%",
       primary_foreground: "0 0% 100%",
       secondary: "115 53% 94%",
-      secondary_foreground: "130 59% 30%",
       accent: "121 52% 44%",
       accent_foreground: "0 0% 100%",
       accent_glow: "115 60% 77%",
