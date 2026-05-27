@@ -37,6 +37,17 @@ type Category = {
   meta_description: string | null;
   sort_order: number;
   is_active: boolean;
+  show_in_menu?: boolean;
+  menu_column?: number;
+  menu_group_title?: string | null;
+  menu_badge?: string | null;
+  menu_type?: "mega" | "link";
+  featured_enabled?: boolean;
+  featured_title?: string | null;
+  featured_text?: string | null;
+  featured_cta_label?: string | null;
+  featured_cta_href?: string | null;
+  featured_image_url?: string | null;
 };
 
 const empty: Partial<Category> = {
@@ -51,6 +62,12 @@ const empty: Partial<Category> = {
   meta_description: "",
   sort_order: 0,
   is_active: true,
+  show_in_menu: true,
+  menu_column: 1,
+  menu_group_title: "",
+  menu_badge: "",
+  menu_type: "mega",
+  featured_enabled: false,
 };
 
 export default function AdminCategories() {
