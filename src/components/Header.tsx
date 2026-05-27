@@ -6,15 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCart, cartTotals } from "@/store/cart";
-import { categories as fallbackCategories } from "@/data/catalog";
+
 import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 
-type CategoryItem = { slug: string; name: string; icon: string | null };
+type CategoryItem = { id: string; slug: string; name: string; icon: string | null; parent_id: string | null };
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 const ModeSwitcher = () => {
   const [mode, setMode] = useState<Mode>(() => getStoredMode());
@@ -116,7 +117,7 @@ export const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>(fallbackCategories);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
@@ -124,7 +125,12 @@ export const Header = () => {
     { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
-  const visibleCategories = categories.slice(0, maxCats);
+  const mains = categories.filter((c) => !c.parent_id);
+  const visibleCategories = mains.slice(0, maxCats);
+  const subsByParent: Record<string, CategoryItem[]> = {};
+  for (const c of categories) {
+    if (c.parent_id) (subsByParent[c.parent_id] ||= []).push(c);
+  }
   const navStyle: React.CSSProperties = {
     ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
@@ -136,11 +142,11 @@ export const Header = () => {
     (async () => {
       const [navRes, catRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
-        supabase.from("categories").select("slug,name,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+        supabase.from("categories").select("id,slug,name,icon,parent_id,sort_order").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
-      if (catRes.data && catRes.data.length) setCategories(catRes.data as CategoryItem[]);
+      if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     })();
     return () => { alive = false; };
   }, []);
@@ -180,11 +186,25 @@ export const Header = () => {
               <Logo className="text-2xl" />
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
-              {visibleCategories.map((c) => (
-                <Link key={c.slug} to={`/categoria/${c.slug}`} className="rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
-                  <span className="mr-2">{c.icon}</span> {c.name}
-                </Link>
-              ))}
+              {visibleCategories.map((c) => {
+                const subs = subsByParent[c.id] || [];
+                return (
+                  <div key={c.id}>
+                    <Link to={`/categoria/${c.slug}`} className="flex items-center rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
+                      <span className="mr-2">{c.icon}</span> {c.name}
+                    </Link>
+                    {subs.length > 0 && (
+                      <div className="ml-6 flex flex-col gap-0.5 border-l pl-2">
+                        {subs.map((s) => (
+                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                            {s.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {navItems.length > 0 && <hr className="my-3" />}
               {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
@@ -258,21 +278,36 @@ export const Header = () => {
 
       <nav className="hidden border-t border-border lg:block" style={navStyle}>
         <div className="container-x flex items-center gap-1 overflow-x-auto">
-          {visibleCategories.map((c) => (
-            <NavLink
-              key={c.slug}
-              to={`/categoria/${c.slug}`}
-              style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined}
-              className={({ isActive }) =>
-                cn(
-                  "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth",
-                  isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
-                )
-              }
-            >
-              {c.name}
-            </NavLink>
-          ))}
+          {visibleCategories.map((c) => {
+            const subs = subsByParent[c.id] || [];
+            const linkClass = ({ isActive }: { isActive: boolean }) =>
+              cn(
+                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1",
+                isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+              );
+            if (subs.length === 0) {
+              return (
+                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                  {c.name}
+                </NavLink>
+              );
+            }
+            return (
+              <div key={c.id} className="relative group">
+                <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                  {c.name}
+                  <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+                </NavLink>
+                <div className="invisible absolute left-0 top-full z-50 min-w-[220px] -translate-y-1 rounded-md border border-border bg-popover py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  {subs.map((s) => (
+                    <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="block px-4 py-2 text-sm text-popover-foreground hover:bg-secondary">
+                      {s.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
           <div className="ml-auto flex items-center gap-1">
             {navItems.map((n) => renderNavLink(n, "px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"))}
           </div>
