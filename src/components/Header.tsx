@@ -224,25 +224,41 @@ export const Header = () => {
               {visibleCategories.map((c) => {
                 const subs = subsByParent[c.id] || [];
                 return (
-                  <div key={c.id}>
-                    <Link to={`/categoria/${c.slug}`} className="flex items-center rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
-                      <span className="mr-2">{c.icon}</span> {c.name}
-                    </Link>
+                  <details key={c.id} className="group/m rounded-md">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 font-medium hover:bg-secondary">
+                      <span className="inline-flex items-center gap-2">
+                        {c.icon && <span>{c.icon}</span>}
+                        {c.name}
+                        {c.menu_badge && (
+                          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                        )}
+                      </span>
+                      {subs.length > 0 && (
+                        <ChevronDown size={16} className="transition-transform group-open/m:rotate-180" />
+                      )}
+                    </summary>
                     {subs.length > 0 && (
-                      <div className="ml-6 flex flex-col gap-0.5 border-l pl-2">
+                      <div className="ml-4 mb-2 flex flex-col gap-0.5 border-l pl-2">
+                        <Link to={`/categoria/${c.slug}`} className="rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary">
+                          Ver toda la categoría
+                        </Link>
                         {subs.map((s) => (
-                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
                             {s.name}
+                            {s.menu_badge && (
+                              <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                            )}
                           </Link>
                         ))}
                       </div>
                     )}
-                  </div>
+                  </details>
                 );
               })}
               {navItems.length > 0 && <hr className="my-3" />}
               {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
+
 
           </SheetContent>
         </Sheet>
