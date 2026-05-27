@@ -123,16 +123,17 @@ export const ProductCard = ({ product }: { product: Product }) => {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3 min-w-0">
-        <div className="h-4 text-[11px] uppercase tracking-wider text-muted-foreground truncate">
+        <div data-pc="category" className="h-4 text-[11px] uppercase tracking-wider text-muted-foreground truncate">
           {subcat || "\u00A0"}
         </div>
         <Link
           to={`/producto/${product.slug}`}
+          data-pc="title"
           className="font-display text-sm leading-snug line-clamp-2 break-words hover:text-accent transition-smooth min-h-[2.25rem]"
         >
           {product.name}
         </Link>
-        <p className="text-xs text-muted-foreground line-clamp-2 break-words min-h-[2rem]">
+        <p data-pc="description" className="text-xs text-muted-foreground line-clamp-2 break-words min-h-[2rem]">
           {benefit || "\u00A0"}
         </p>
 
@@ -152,7 +153,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
               <span>({product.reviews})</span>
             </div>
           ) : (
-            <div className="text-[11px] font-semibold text-primary">
+            <div data-pc="recommended" className="text-[11px] font-semibold text-primary">
               {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
             </div>
           )}
@@ -161,14 +162,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <div className="mt-auto pt-1">
           <div className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
             {!hasPrice ? (
-              <span className="font-display text-base font-bold text-destructive">Consultar precio</span>
+              <span data-pc="price" className="font-display text-base font-bold text-destructive">Consultar precio</span>
             ) : product.oldPrice ? (
               <>
-                <span className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
-                <span className="text-xs text-muted-foreground line-through">{format(product.oldPrice)}</span>
+                <span data-pc="price" className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
+                <span data-pc="price-old" className="text-xs text-muted-foreground line-through">{format(product.oldPrice)}</span>
               </>
             ) : (
-              <span className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
+              <span data-pc="price" className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
             )}
           </div>
 
@@ -177,6 +178,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
             <Button
               size="sm"
               variant="accent"
+              data-pc="button"
               className="mt-2 w-full min-w-0 px-2 text-xs"
               onClick={() => add(product)}
               aria-label={`Añadir ${product.name} al carrito`}
@@ -188,6 +190,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
               size="sm"
               variant="outline"
               asChild
+              data-pc="button"
               className="mt-2 w-full min-w-0 px-2 text-xs"
             >
               <a href={waHref} target="_blank" rel="noopener noreferrer">
