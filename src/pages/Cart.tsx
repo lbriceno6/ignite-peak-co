@@ -73,6 +73,14 @@ const Cart = () => {
                         <Repeat size={10} /> Cada {i.subscription.intervalDays}d · −{i.subscription.discountPercent}%
                       </p>
                     )}
+                    {perProduct[i.product.id]?.participating && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Sparkles size={10} /> {perProduct[i.product.id].label}
+                        {perProduct[i.product.id].discountAmount > 0 && (
+                          <span className="normal-case">· −{format(perProduct[i.product.id].discountAmount)} aplicado</span>
+                        )}
+                      </p>
+                    )}
                     <p className="mt-1 text-sm font-medium md:hidden">{format(lineUnitPrice(i))}</p>
                   </div>
                 </div>
