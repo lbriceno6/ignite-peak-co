@@ -371,28 +371,19 @@ const Home = () => {
           </section>
         );
 
-      case "best_sellers":
-        if (!bestSellersDisplay.length) return null;
+      case "best_sellers": {
+        if (!carouselConfig || !carouselConfig.is_active) return null;
+        const items = carouselProducts.length ? carouselProducts : bestSellersDisplay;
+        if (!items.length) return null;
         return (
-          <section key={b.id} className="bg-secondary/40 py-16">
-            <div className="container-x">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
-                  <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Más vendidos"}</h2>
-                </div>
-                {b.cta_label && b.cta_href && (
-                  <Link to={b.cta_href} className="hidden text-sm font-semibold tracking-wide hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
-                    {b.cta_label} <ArrowRight size={14} />
-                  </Link>
-                )}
-              </div>
-              <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {bestSellersDisplay.map((p) => <ProductCard key={p.id} product={p} />)}
-              </div>
-            </div>
-          </section>
+          <HomeProductsCarousel
+            key={b.id}
+            config={carouselConfig}
+            products={items}
+            eyebrow={b.eyebrow}
+          />
         );
+      }
 
       case "goals": {
         const displayGoals = goalCards.length
