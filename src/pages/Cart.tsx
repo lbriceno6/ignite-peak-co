@@ -11,6 +11,7 @@ import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
@@ -98,6 +99,7 @@ const Cart = () => {
           </div>
 
           <aside className="space-y-4">
+            <FreeShippingBar subtotal={Math.max(0, subtotal)} variant="full" surface="cart" />
             <div className="rounded-lg border p-5">
               <h3 className="font-display text-xl uppercase">Resumen del pedido</h3>
               <div className="mt-4 space-y-2 text-sm">
