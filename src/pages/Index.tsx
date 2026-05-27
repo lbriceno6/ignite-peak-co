@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle } from "lucide-react";
+import { ArrowRight, Zap, Truck, ShieldCheck, Award, MessageCircle, Flame, Scale, Leaf, Bone, Sparkles, Shield, HeartPulse, Droplets } from "lucide-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Layout } from "@/components/Layout";
 import { SeoFromMeta } from "@/components/SeoFromMeta";
