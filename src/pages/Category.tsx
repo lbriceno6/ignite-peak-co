@@ -15,7 +15,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
-import { mainCategories, getSubcategories } from "@/lib/productCategories";
+import { mainCategories, getSubcategories, mainBySlug, subBySlug } from "@/lib/productCategories";
 import { useCatalogFilterSettings, type CatalogFilterConfig, type CatalogFilterKey } from "@/hooks/useCatalogFilterSettings";
 
 const WA_CONSULT =
@@ -324,7 +324,11 @@ const rowToProduct = (r: any): Product => {
 };
 
 const Category = () => {
-  const { slug = "" } = useParams();
+  const params = useParams();
+  const slug = params.slug ?? params.catSlug ?? "";
+  const subSlugParam = params.subSlug ?? "";
+  const taxonomyMain = mainBySlug[slug];
+  const taxonomySub = taxonomyMain && subSlugParam ? subBySlug[slug]?.[subSlugParam] : undefined;
   const [sort, setSort] = useState("popular");
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [page, setPage] = useState(1);
@@ -361,13 +365,15 @@ const Category = () => {
   }, [filterConfig.brand.enabled, filterConfig.supplier.enabled]);
 
   const title = useMemo(() => {
+    if (taxonomySub) return taxonomySub;
+    if (taxonomyMain) return taxonomyMain;
     if (slug.startsWith("goal-")) {
       const g = goals.find((x) => x.slug === slug.replace("goal-", ""));
       return g?.name ?? "Objetivo";
     }
     const c = categories.find((x) => x.slug === slug);
     return c?.name ?? "Todos los productos";
-  }, [slug]);
+  }, [slug, taxonomyMain, taxonomySub]);
 
   // Debounce search input
   useEffect(() => {
@@ -376,7 +382,7 @@ const Category = () => {
   }, [q]);
 
   // Reset page when scope, filters, sort, pageSize or search change
-  useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize, debouncedQ]);
+  useEffect(() => { setPage(1); }, [slug, subSlugParam, filters, sort, pageSize, debouncedQ]);
 
   // Load admin-managed filter options
   useEffect(() => {
@@ -410,12 +416,20 @@ const Category = () => {
         .select("*, supplier:suppliers(id, business_name, slug, logo_url)", { count: "exact" });
 
       // Route-level scope
-      if (slug.startsWith("goal-")) {
+      if (taxonomyMain) {
+        query = query.eq("category", taxonomyMain);
+        if (taxonomySub) query = query.eq("subcategory", taxonomySub);
+      } else if (slug.startsWith("goal-")) {
         query = query.eq("goal", slug.replace("goal-", ""));
       } else {
         const c = categories.find((x) => x.slug === slug);
         if (c) {
           const word = c.name.split(" ")[0];
+          query = query.ilike("category", `%${word}%`);
+        } else if (slug) {
+          // DB-backed category slug from mega menu: match by category name (best effort)
+          // Look up by direct slug-to-name isn't available client-side, so try ilike on the raw slug words.
+          const word = slug.replace(/-/g, " ");
           query = query.ilike("category", `%${word}%`);
         }
       }
@@ -472,7 +486,7 @@ const Category = () => {
       setLoading(false);
     };
     run();
-  }, [slug, filters, sort, page, pageSize, debouncedQ]);
+  }, [slug, subSlugParam, filters, sort, page, pageSize, debouncedQ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, totalPages);
