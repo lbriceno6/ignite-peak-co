@@ -1369,6 +1369,69 @@ export type Database = {
           },
         ]
       }
+      products_carousel_config: {
+        Row: {
+          autoplay: boolean
+          autoplay_speed: number
+          id: string
+          is_active: boolean
+          manual_slugs: Json
+          show_arrows: boolean
+          show_dots: boolean
+          show_view_all: boolean
+          source: string
+          subtitle: string | null
+          title: string
+          total_items: number
+          updated_at: string
+          view_all_href: string
+          view_all_label: string
+          visible_desktop: number
+          visible_mobile: number
+          visible_tablet: number
+        }
+        Insert: {
+          autoplay?: boolean
+          autoplay_speed?: number
+          id?: string
+          is_active?: boolean
+          manual_slugs?: Json
+          show_arrows?: boolean
+          show_dots?: boolean
+          show_view_all?: boolean
+          source?: string
+          subtitle?: string | null
+          title?: string
+          total_items?: number
+          updated_at?: string
+          view_all_href?: string
+          view_all_label?: string
+          visible_desktop?: number
+          visible_mobile?: number
+          visible_tablet?: number
+        }
+        Update: {
+          autoplay?: boolean
+          autoplay_speed?: number
+          id?: string
+          is_active?: boolean
+          manual_slugs?: Json
+          show_arrows?: boolean
+          show_dots?: boolean
+          show_view_all?: boolean
+          source?: string
+          subtitle?: string | null
+          title?: string
+          total_items?: number
+          updated_at?: string
+          view_all_href?: string
+          view_all_label?: string
+          visible_desktop?: number
+          visible_mobile?: number
+          visible_tablet?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
