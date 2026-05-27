@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
