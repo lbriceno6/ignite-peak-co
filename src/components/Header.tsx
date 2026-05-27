@@ -256,12 +256,13 @@ export const Header = () => {
         </div>
       )}
 
-      <nav className="hidden border-t border-border lg:block">
+      <nav className="hidden border-t border-border lg:block" style={navStyle}>
         <div className="container-x flex items-center gap-1 overflow-x-auto">
-          {categories.map((c) => (
+          {visibleCategories.map((c) => (
             <NavLink
               key={c.slug}
               to={`/categoria/${c.slug}`}
+              style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined}
               className={({ isActive }) =>
                 cn(
                   "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth",
@@ -277,6 +278,7 @@ export const Header = () => {
           </div>
         </div>
       </nav>
+
     </header>
   );
 };
