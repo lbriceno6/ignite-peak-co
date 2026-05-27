@@ -152,27 +152,26 @@ export const ProductCard = ({ product }: { product: Product }) => {
               <span>({product.reviews})</span>
             </div>
           ) : (
-            <div className="text-[11px] font-medium text-muted-foreground">
+            <div className="text-[11px] font-semibold text-primary">
               {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
             </div>
           )}
         </div>
 
-        <div className="mt-auto pt-1.5">
-          <div className="min-h-[2.5rem] flex flex-col justify-end">
+        <div className="mt-auto pt-1">
+          <div className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
             {!hasPrice ? (
-              <span className="font-display text-base text-muted-foreground">Consultar precio</span>
+              <span className="font-display text-base font-bold text-destructive">Consultar precio</span>
             ) : product.oldPrice ? (
-              <div className="flex items-baseline gap-2 flex-wrap">
-                <span className="font-display text-xl leading-none">{format(product.price)}</span>
-                <span className="text-xs text-muted-foreground line-through">
-                  Antes: {format(product.oldPrice)}
-                </span>
-              </div>
+              <>
+                <span className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
+                <span className="text-xs text-muted-foreground line-through">{format(product.oldPrice)}</span>
+              </>
             ) : (
-              <span className="font-display text-xl leading-none">{format(product.price)}</span>
+              <span className="font-display text-base font-bold text-destructive leading-none">{format(product.price)}</span>
             )}
           </div>
+
 
           {hasPrice ? (
             <Button
