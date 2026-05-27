@@ -383,13 +383,13 @@ const ProductDetail = () => {
             </div>
           )}
 
-          <div className="mt-6 flex items-stretch gap-3">
-            <div className="flex items-center rounded-md border">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Minus size={14} /></button>
-              <span className="w-10 text-center font-display text-lg">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="flex items-center justify-between rounded-md border sm:justify-start">
+              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Minus size={14} /></button>
+              <span className="w-12 text-center font-display text-lg">{qty}</span>
+              <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => {
+            <Button size="lg" variant="accent" className="w-full flex-1 sm:w-auto" onClick={() => {
               add(
                 { ...product, price: basePrice, oldPrice: undefined },
                 {
@@ -407,12 +407,13 @@ const ProductDetail = () => {
                 currency: "PEN",
               });
             }}>
-              <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
+              <ShoppingCart /> <span className="truncate">{purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}</span>
             </Button>
-            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
+            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos" className="w-full sm:w-auto">
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
+
           {(() => {
             const lines = [
               `¡Hola! Estoy interesado en ${product.name}`,
