@@ -87,6 +87,26 @@ export const CartDrawer = () => {
                   <span className="font-medium">−{format(ap.amount)}</span>
                 </div>
               ))}
+              {appliedPromos.length > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Descuento solo sobre productos participantes (al de menor precio).
+                </p>
+              )}
+              {promoNudges.map((n) => (
+                <div key={n.promotion.id} className="rounded-md border border-accent/40 bg-accent/5 p-2 text-xs">
+                  <p className="font-medium text-foreground">{n.title}</p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Agrega otro producto participante para activar el beneficio.
+                  </p>
+                  <Link
+                    to="/promociones/compra-uno-lleva-otro"
+                    onClick={() => setOpen(false)}
+                    className="mt-1 inline-block font-semibold text-accent hover:underline"
+                  >
+                    Ver productos participantes →
+                  </Link>
+                </div>
+              ))}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Envío</span>
                 <span className="font-medium">{shipping === 0 ? "Gratis" : format(shipping)}</span>
