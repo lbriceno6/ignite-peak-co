@@ -453,8 +453,9 @@ export const Header = () => {
         </div>
       )}
 
-      <nav className="relative hidden border-t border-border lg:block" style={navStyle}>
-        <div className="container-x flex items-center gap-1">
+      <nav data-nav-main className="relative hidden border-t border-border lg:block" style={navStyle}>
+        <style>{navCss}</style>
+        <div className="nav-main-list container-x flex items-center">
           {visibleCategoriesDesktop.map((c) => {
             const subs = subsByParent[c.id] || [];
             const fields = (fieldsByParent[c.id] || []).filter((f) => f.show_desktop);
@@ -464,12 +465,12 @@ export const Header = () => {
             const allCols = Array.from(new Set<number>([...Object.keys(byCol).map(Number), ...Object.keys(colFields).map(Number)])).sort((a, b) => a - b);
             const linkClass = ({ isActive }: { isActive: boolean }) =>
               cn(
-                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
-                isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
             if (!isMega) {
               return (
-                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={mainLinkStyle} className={linkClass}>
                   {labelOf(c)}
                   {c.menu_badge && (
                     <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
@@ -479,7 +480,7 @@ export const Header = () => {
             }
             return (
               <div key={c.id} className="static group">
-                <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                <NavLink to={`/categoria/${c.slug}`} style={mainLinkStyle} className={linkClass}>
                   {labelOf(c)}
                   {c.menu_badge && (
                     <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
