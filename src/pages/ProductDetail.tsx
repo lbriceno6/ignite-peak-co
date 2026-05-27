@@ -20,6 +20,8 @@ import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 import { Helmet } from "react-helmet-async";
 import { track } from "@/lib/analytics";
+import { useProductBenefits } from "@/hooks/useProductBenefits";
+import { renderBenefitIcon } from "@/components/BenefitIcon";
 
 type DbProduct = {
   id: string;
@@ -427,21 +429,8 @@ const ProductDetail = () => {
             );
           })()}
 
-          {/* Bloques de confianza */}
-          <ul className="mt-6 space-y-2 rounded-xl border bg-secondary/30 p-4 text-sm">
-            <li className="flex items-center gap-2">
-              <Truck size={16} className="text-primary" />
-              <span>Envío gratis sobre S/ 50.00 · entrega 1–3 días</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <ShieldCheck size={16} className="text-primary" />
-              <span>Garantía de devolución de 30 días</span>
-            </li>
-            <li className="flex items-center gap-2">
-              <Award size={16} className="text-primary" />
-              <span>Probado en laboratorio · Certificado GMP</span>
-            </li>
-          </ul>
+          {/* Bloques de confianza (editables desde Admin > Beneficios de compra) */}
+          <ProductBenefitsBlock />
 
         </div>
       </section>
@@ -521,6 +510,24 @@ const ProductDetail = () => {
         </section>
       )}
     </Layout>
+  );
+};
+
+const ProductBenefitsBlock = () => {
+  const { benefits, loading } = useProductBenefits(true);
+  if (loading || benefits.length === 0) return null;
+  return (
+    <ul className="mt-6 space-y-2 rounded-xl border bg-secondary/30 p-4 text-sm">
+      {benefits.map((b) => (
+        <li key={b.id} className="flex items-start gap-2">
+          <span className="mt-0.5 shrink-0">{renderBenefitIcon(b.icon as string, 16)}</span>
+          <span>
+            <span className="font-medium">{b.title}</span>
+            {b.subtitle ? <span className="text-muted-foreground"> · {b.subtitle}</span> : null}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 };
 

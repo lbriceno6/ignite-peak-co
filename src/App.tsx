@@ -72,6 +72,7 @@ import AdminTheme from "./pages/admin/AdminTheme.tsx";
 import AdminSeo from "./pages/admin/AdminSeo.tsx";
 import AdminChatAI from "./pages/admin/AdminChatAI.tsx";
 import AdminAiConfig from "./pages/admin/AdminAiConfig.tsx";
+import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
@@ -228,6 +229,7 @@ const App = () => (
               <Route path="seo" element={<AdminSeo />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
+              <Route path="benefits" element={<AdminBenefits />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

@@ -30,6 +30,7 @@ import {
   Palette,
   SlidersHorizontal,
   Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,7 @@ const defaultSections = [
       { key: "about", to: "/admin/about", label: "Página Sobre", icon: Info },
       { key: "contact", to: "/admin/contact", label: "Página Contacto", icon: Mail },
       { key: "theme", to: "/admin/theme", label: "Paleta y tipografía", icon: Palette },
+      { key: "benefits", to: "/admin/benefits", label: "Beneficios de compra", icon: ShieldCheck },
     ],
   },
   {
@@ -181,6 +183,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/about")) return get("about", "Página Sobre");
   if (p.startsWith("/admin/contact")) return get("contact", "Página Contacto");
   if (p.startsWith("/admin/theme")) return get("theme", "Paleta y tipografía");
+  if (p.startsWith("/admin/benefits")) return get("benefits", "Beneficios de compra");
   return "Admin";
 };
 
