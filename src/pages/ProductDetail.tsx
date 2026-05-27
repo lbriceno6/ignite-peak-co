@@ -267,24 +267,26 @@ const ProductDetail = () => {
           )}
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             {product.label && <Badge className="bg-accent text-accent-foreground uppercase">{product.label === "Best Seller" ? "Más vendido" : product.label === "New" ? "Nuevo" : product.label === "Offer" ? "Oferta" : product.label}</Badge>}
             {dbp.category && <span className="text-xs uppercase tracking-wider text-muted-foreground">{dbp.category}</span>}
           </div>
-          <h1 className="mt-3 font-display text-4xl uppercase leading-tight sm:text-5xl">{product.name}</h1>
-          <div className="mt-3 flex items-center gap-2">
-            <Stars rating={product.rating} size={16} />
-            <span className="text-sm font-semibold">{product.rating}</span>
-          </div>
+          <h1 className="mt-3 font-display text-2xl uppercase leading-tight break-words sm:text-4xl md:text-5xl">{product.name}</h1>
+          {product.rating > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <Stars rating={product.rating} size={16} />
+              <span className="text-sm font-semibold">{product.rating}</span>
+            </div>
+          )}
           {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
 
           <div className="mt-6 flex flex-col gap-1">
             {purchaseMode === "one_time" && product.oldPrice && (
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
             )}
-            <div className="flex items-baseline gap-3">
-              <span className="font-display text-4xl">{format(effectivePrice)}</span>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-3xl sm:text-4xl">{format(effectivePrice)}</span>
               {purchaseMode === "subscription" && (
                 <>
                   <span className="text-lg text-muted-foreground line-through">{format(basePrice)}</span>
@@ -299,6 +301,7 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
+
 
           {variants.length > 0 && (
             <div className="mt-6">
