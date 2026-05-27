@@ -416,12 +416,20 @@ const Category = () => {
         .select("*, supplier:suppliers(id, business_name, slug, logo_url)", { count: "exact" });
 
       // Route-level scope
-      if (slug.startsWith("goal-")) {
+      if (taxonomyMain) {
+        query = query.eq("category", taxonomyMain);
+        if (taxonomySub) query = query.eq("subcategory", taxonomySub);
+      } else if (slug.startsWith("goal-")) {
         query = query.eq("goal", slug.replace("goal-", ""));
       } else {
         const c = categories.find((x) => x.slug === slug);
         if (c) {
           const word = c.name.split(" ")[0];
+          query = query.ilike("category", `%${word}%`);
+        } else if (slug) {
+          // DB-backed category slug from mega menu: match by category name (best effort)
+          // Look up by direct slug-to-name isn't available client-side, so try ilike on the raw slug words.
+          const word = slug.replace(/-/g, " ");
           query = query.ilike("category", `%${word}%`);
         }
       }
