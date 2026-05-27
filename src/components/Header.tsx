@@ -164,8 +164,38 @@ export const Header = () => {
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
-    ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"],
-    { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
+    [
+      "nav_menu_max_categories",
+      "nav_menu_font_family",
+      "nav_menu_text_color",
+      "nav_menu_bg_color",
+      "nav_menu_font_weight",
+      "nav_menu_font_size_desktop",
+      "nav_menu_font_size_mobile",
+      "nav_menu_hover_color",
+      "nav_menu_text_transform",
+      "nav_menu_letter_spacing",
+      "nav_menu_item_gap_desktop",
+      "nav_menu_item_gap_tablet",
+      "nav_menu_item_gap_mobile",
+      "nav_menu_underline_active",
+    ],
+    {
+      nav_menu_max_categories: "6",
+      nav_menu_font_family: "",
+      nav_menu_text_color: "",
+      nav_menu_bg_color: "",
+      nav_menu_font_weight: "600",
+      nav_menu_font_size_desktop: "14",
+      nav_menu_font_size_mobile: "15",
+      nav_menu_hover_color: "",
+      nav_menu_text_transform: "uppercase",
+      nav_menu_letter_spacing: "0.03em",
+      nav_menu_item_gap_desktop: "32",
+      nav_menu_item_gap_tablet: "18",
+      nav_menu_item_gap_mobile: "14",
+      nav_menu_underline_active: "1",
+    },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
   const labelOf = (c: CategoryItem) => (c.menu_label && c.menu_label.trim()) || c.name;
@@ -218,6 +248,37 @@ export const Header = () => {
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
     ...(menuStyle.nav_menu_bg_color ? { backgroundColor: menuStyle.nav_menu_bg_color } : {}),
   };
+
+  const fontWeightNum = parseInt(menuStyle.nav_menu_font_weight || "600", 10) || 600;
+  const mainLinkStyle: React.CSSProperties = {
+    fontWeight: fontWeightNum,
+    fontSize: `${parseInt(menuStyle.nav_menu_font_size_desktop || "14", 10) || 14}px`,
+    textTransform: (menuStyle.nav_menu_text_transform || "uppercase") as React.CSSProperties["textTransform"],
+    letterSpacing: menuStyle.nav_menu_letter_spacing || "0.03em",
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+  };
+  const mainMobileLinkStyle: React.CSSProperties = {
+    fontWeight: fontWeightNum,
+    fontSize: `${parseInt(menuStyle.nav_menu_font_size_mobile || "15", 10) || 15}px`,
+    textTransform: (menuStyle.nav_menu_text_transform || "uppercase") as React.CSSProperties["textTransform"],
+    letterSpacing: menuStyle.nav_menu_letter_spacing || "0.03em",
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+  };
+  const hoverColor = menuStyle.nav_menu_hover_color || "";
+  const gapDesktop = parseInt(menuStyle.nav_menu_item_gap_desktop || "32", 10) || 32;
+  const gapTablet = parseInt(menuStyle.nav_menu_item_gap_tablet || "18", 10) || 18;
+  const gapMobile = parseInt(menuStyle.nav_menu_item_gap_mobile || "14", 10) || 14;
+  const showUnderline = (menuStyle.nav_menu_underline_active ?? "1") !== "0";
+
+  const navCss = `
+    [data-nav-main] a.nav-main-link:hover { ${hoverColor ? `color: ${hoverColor} !important;` : ""} }
+    [data-nav-mobile] .nav-mobile-link:hover, [data-nav-mobile] .nav-mobile-link:hover > span { ${hoverColor ? `color: ${hoverColor} !important;` : ""} }
+    [data-nav-main] .nav-main-list { column-gap: ${gapDesktop}px; row-gap: 0; }
+    @media (max-width: 1279px) { [data-nav-main] .nav-main-list { column-gap: ${gapTablet}px; } }
+    [data-nav-mobile] .nav-mobile-list { row-gap: ${gapMobile / 2}px; }
+  `;
 
   const badgeStyle = (bg?: string | null, color?: string | null): React.CSSProperties => ({
     ...(bg ? { backgroundColor: bg } : {}),
