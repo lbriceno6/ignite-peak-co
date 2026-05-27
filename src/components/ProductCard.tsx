@@ -122,19 +122,20 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
+      <div className="flex flex-1 flex-col gap-2 p-4 min-w-0">
         {subcat && (
-          <div className="text-xs uppercase tracking-wider text-muted-foreground">{subcat}</div>
+          <div className="text-xs uppercase tracking-wider text-muted-foreground truncate">{subcat}</div>
         )}
         <Link
           to={`/producto/${product.slug}`}
-          className="font-display text-lg leading-tight hover:text-accent transition-smooth"
+          className="font-display text-base sm:text-lg leading-tight line-clamp-2 break-words hover:text-accent transition-smooth"
         >
           {product.name}
         </Link>
         {benefit && (
-          <p className="text-sm text-muted-foreground line-clamp-2">{benefit}</p>
+          <p className="text-sm text-muted-foreground line-clamp-2 break-words">{benefit}</p>
         )}
+
 
         {product.supplier?.slug ? (
           <Link
