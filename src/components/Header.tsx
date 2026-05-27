@@ -337,13 +337,14 @@ export const Header = () => {
             <Link to="/">
               <Logo className="text-2xl" />
             </Link>
-            <nav className="mt-8 flex flex-col gap-1">
+            <nav data-nav-mobile className="nav-mobile-list mt-8 flex flex-col">
+              <style>{navCss}</style>
               {visibleCategoriesMobile.map((c) => {
                 const subs = (subsByParent[c.id] || []).filter((s) => s.menu_show_mobile !== false);
                 const mobileFields = (fieldsByParent[c.id] || []).filter((f) => f.show_mobile);
                 return (
                   <details key={c.id} className="group/m rounded-md">
-                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 font-medium hover:bg-secondary">
+                    <summary className="nav-mobile-link flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 hover:bg-secondary" style={mainMobileLinkStyle}>
                       <span className="inline-flex items-center gap-2">
                         {c.icon && <span>{c.icon}</span>}
                         {labelOf(c)}
