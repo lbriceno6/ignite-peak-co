@@ -12,6 +12,8 @@ import { Stars } from "@/components/Stars";
 import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
+import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 
 import heroImage from "@/assets/hero.jpg";
