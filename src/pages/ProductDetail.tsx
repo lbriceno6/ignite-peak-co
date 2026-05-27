@@ -236,17 +236,18 @@ const ProductDetail = () => {
         <meta property="product:availability" content={(dbp as any).stock > 0 ? "in stock" : "out of stock"} />
       </Helmet>
       <div className="container-x py-6">
-        <nav className="text-xs uppercase tracking-wider text-muted-foreground">
+        <nav className="flex flex-wrap gap-x-1 text-xs uppercase tracking-wider text-muted-foreground break-words">
           <Link to="/" className="hover:text-accent">Inicio</Link>
           {product.category && (<>
-            {" / "}
+            <span>/</span>
             <Link to={`/categoria/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
           </>)}
-          {" / "}<span className="text-foreground">{product.name}</span>
+          <span>/</span><span className="text-foreground break-words">{product.name}</span>
         </nav>
       </div>
 
-      <section className="container-x grid gap-10 pb-12 lg:grid-cols-2">
+      <section className="container-x grid gap-6 pb-12 md:gap-10 lg:grid-cols-2">
+
         <div>
           <div className="overflow-hidden rounded-lg bg-secondary aspect-square">
             <img src={gallery[activeImg] ?? mainImg} alt={altFor(gallery[activeImg] ?? mainImg)} className="h-full w-full object-cover" />
@@ -266,24 +267,26 @@ const ProductDetail = () => {
           )}
         </div>
 
-        <div>
+        <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             {product.label && <Badge className="bg-accent text-accent-foreground uppercase">{product.label === "Best Seller" ? "Más vendido" : product.label === "New" ? "Nuevo" : product.label === "Offer" ? "Oferta" : product.label}</Badge>}
             {dbp.category && <span className="text-xs uppercase tracking-wider text-muted-foreground">{dbp.category}</span>}
           </div>
-          <h1 className="mt-3 font-display text-4xl uppercase leading-tight sm:text-5xl">{product.name}</h1>
-          <div className="mt-3 flex items-center gap-2">
-            <Stars rating={product.rating} size={16} />
-            <span className="text-sm font-semibold">{product.rating}</span>
-          </div>
+          <h1 className="mt-3 font-display text-2xl uppercase leading-tight break-words sm:text-4xl md:text-5xl">{product.name}</h1>
+          {product.rating > 0 && (
+            <div className="mt-3 flex items-center gap-2">
+              <Stars rating={product.rating} size={16} />
+              <span className="text-sm font-semibold">{product.rating}</span>
+            </div>
+          )}
           {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
 
           <div className="mt-6 flex flex-col gap-1">
             {purchaseMode === "one_time" && product.oldPrice && (
               <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
             )}
-            <div className="flex items-baseline gap-3">
-              <span className="font-display text-4xl">{format(effectivePrice)}</span>
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="font-display text-3xl sm:text-4xl">{format(effectivePrice)}</span>
               {purchaseMode === "subscription" && (
                 <>
                   <span className="text-lg text-muted-foreground line-through">{format(basePrice)}</span>
@@ -298,6 +301,7 @@ const ProductDetail = () => {
               )}
             </div>
           </div>
+
 
           {variants.length > 0 && (
             <div className="mt-6">
@@ -379,13 +383,13 @@ const ProductDetail = () => {
             </div>
           )}
 
-          <div className="mt-6 flex items-stretch gap-3">
-            <div className="flex items-center rounded-md border">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Minus size={14} /></button>
-              <span className="w-10 text-center font-display text-lg">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-10 place-items-center hover:bg-secondary"><Plus size={14} /></button>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
+            <div className="flex items-center justify-between rounded-md border sm:justify-start">
+              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Minus size={14} /></button>
+              <span className="w-12 text-center font-display text-lg">{qty}</span>
+              <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
-            <Button size="lg" variant="accent" className="flex-1" onClick={() => {
+            <Button size="lg" variant="accent" className="w-full flex-1 sm:w-auto" onClick={() => {
               add(
                 { ...product, price: basePrice, oldPrice: undefined },
                 {
@@ -403,12 +407,13 @@ const ProductDetail = () => {
                 currency: "PEN",
               });
             }}>
-              <ShoppingCart /> {purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}
+              <ShoppingCart /> <span className="truncate">{purchaseMode === "subscription" ? `Suscribirme · ${format(effectivePrice)}` : "Añadir al carrito"}</span>
             </Button>
-            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos">
+            <Button size="lg" variant="outline" onClick={() => toggleWish(dbp.id)} aria-label="Favoritos" className="w-full sm:w-auto">
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
+
           {(() => {
             const lines = [
               `¡Hola! Estoy interesado en ${product.name}`,
@@ -487,7 +492,7 @@ const ProductDetail = () => {
 
       {faqs.length > 0 && (
         <section className="container-x pb-16">
-          <h2 className="font-display text-3xl uppercase">Preguntas frecuentes</h2>
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">Preguntas frecuentes</h2>
           <Accordion type="single" collapsible className="mt-4 max-w-3xl">
             {faqs.map((f, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
@@ -503,12 +508,13 @@ const ProductDetail = () => {
 
       {related.length > 0 && (
         <section className="container-x pb-20">
-          <h2 className="font-display text-3xl uppercase">También te puede gustar</h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">También te puede gustar</h2>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => <ProductCard key={p.id} product={toCardProduct(p)} />)}
           </div>
         </section>
       )}
+
     </Layout>
   );
 };
