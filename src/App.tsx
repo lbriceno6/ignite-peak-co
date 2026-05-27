@@ -233,6 +233,7 @@ const App = () => (
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="benefits" element={<AdminBenefits />} />
+              <Route path="product-card-typography" element={<AdminProductCardTypography />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
