@@ -125,15 +125,6 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
           )}
         </div>
 
-        {config.show_view_all && config.view_all_href && (
-          <div className="mt-8 flex justify-center">
-            <Button variant="outline" asChild>
-              <Link to={config.view_all_href}>
-                {config.view_all_label || "Ver todos los productos"} <ArrowRight size={16} />
-              </Link>
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );
