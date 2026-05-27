@@ -79,6 +79,41 @@ type GoalCard = {
   cta_href: string | null;
 };
 
+type GoalStyle = {
+  bg: string;
+  glow: string;
+  iconColor: string;
+  icon: typeof Flame;
+};
+
+const goalStylePalette: GoalStyle[] = [
+  { bg: "bg-gradient-to-br from-orange-50 to-amber-100", glow: "bg-orange-300", iconColor: "text-orange-600", icon: Flame },
+  { bg: "bg-gradient-to-br from-emerald-50 to-green-100", glow: "bg-emerald-300", iconColor: "text-emerald-600", icon: Leaf },
+  { bg: "bg-gradient-to-br from-sky-50 to-blue-100", glow: "bg-sky-300", iconColor: "text-sky-600", icon: Droplets },
+  { bg: "bg-gradient-to-br from-rose-50 to-pink-100", glow: "bg-rose-300", iconColor: "text-rose-600", icon: HeartPulse },
+  { bg: "bg-gradient-to-br from-violet-50 to-purple-100", glow: "bg-violet-300", iconColor: "text-violet-600", icon: Sparkles },
+  { bg: "bg-gradient-to-br from-stone-50 to-amber-50", glow: "bg-amber-200", iconColor: "text-amber-700", icon: Bone },
+  { bg: "bg-gradient-to-br from-cyan-50 to-teal-100", glow: "bg-teal-300", iconColor: "text-teal-600", icon: Shield },
+  { bg: "bg-gradient-to-br from-yellow-50 to-orange-100", glow: "bg-yellow-300", iconColor: "text-yellow-700", icon: Scale },
+];
+
+const goalKeywordMap: Array<{ test: RegExp; style: GoalStyle }> = [
+  { test: /energ|vital/i, style: { ...goalStylePalette[0], icon: Flame } },
+  { test: /peso|delgad|adelg/i, style: { ...goalStylePalette[7], icon: Scale } },
+  { test: /digesti|colon|estom/i, style: { ...goalStylePalette[1], icon: Leaf } },
+  { test: /articul|hueso|movil/i, style: { ...goalStylePalette[5], icon: Bone } },
+  { test: /defens|inmun/i, style: { ...goalStylePalette[6], icon: Shield } },
+  { test: /masculin|próstata|prostata/i, style: { ...goalStylePalette[2], icon: Shield } },
+  { test: /h[ií]gado|limpieza|detox/i, style: { ...goalStylePalette[1], icon: Droplets } },
+  { test: /bienestar|diario|rutina/i, style: { ...goalStylePalette[4], icon: Sparkles } },
+  { test: /coraz[oó]n|circul/i, style: { ...goalStylePalette[3], icon: HeartPulse } },
+];
+
+const getGoalStyle = (name: string, index: number): GoalStyle => {
+  const match = goalKeywordMap.find((g) => g.test.test(name));
+  return match?.style ?? goalStylePalette[index % goalStylePalette.length];
+};
+
 const toCardProduct = (p: DbProduct): Product => {
   const label = (["Best Seller", "New", "Offer"] as const).find(
     (l) => l.toLowerCase() === (p.badge ?? "").toLowerCase(),
