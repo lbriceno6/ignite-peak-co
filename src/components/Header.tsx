@@ -278,21 +278,36 @@ export const Header = () => {
 
       <nav className="hidden border-t border-border lg:block" style={navStyle}>
         <div className="container-x flex items-center gap-1 overflow-x-auto">
-          {visibleCategories.map((c) => (
-            <NavLink
-              key={c.slug}
-              to={`/categoria/${c.slug}`}
-              style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined}
-              className={({ isActive }) =>
-                cn(
-                  "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth",
-                  isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
-                )
-              }
-            >
-              {c.name}
-            </NavLink>
-          ))}
+          {visibleCategories.map((c) => {
+            const subs = subsByParent[c.id] || [];
+            const linkClass = ({ isActive }: { isActive: boolean }) =>
+              cn(
+                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1",
+                isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+              );
+            if (subs.length === 0) {
+              return (
+                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                  {c.name}
+                </NavLink>
+              );
+            }
+            return (
+              <div key={c.id} className="relative group">
+                <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                  {c.name}
+                  <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+                </NavLink>
+                <div className="invisible absolute left-0 top-full z-50 min-w-[220px] -translate-y-1 rounded-md border border-border bg-popover py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  {subs.map((s) => (
+                    <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="block px-4 py-2 text-sm text-popover-foreground hover:bg-secondary">
+                      {s.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
           <div className="ml-auto flex items-center gap-1">
             {navItems.map((n) => renderNavLink(n, "px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"))}
           </div>
