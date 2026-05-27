@@ -56,6 +56,7 @@ import AdminCatalogFilters from "./pages/admin/AdminCatalogFilters.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
+import AdminProductsCarousel from "./pages/admin/AdminProductsCarousel.tsx";
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import AdminFooter from "./pages/admin/AdminFooter.tsx";
