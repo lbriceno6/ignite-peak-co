@@ -382,7 +382,7 @@ const Category = () => {
   }, [q]);
 
   // Reset page when scope, filters, sort, pageSize or search change
-  useEffect(() => { setPage(1); }, [slug, filters, sort, pageSize, debouncedQ]);
+  useEffect(() => { setPage(1); }, [slug, subSlugParam, filters, sort, pageSize, debouncedQ]);
 
   // Load admin-managed filter options
   useEffect(() => {
@@ -486,7 +486,7 @@ const Category = () => {
       setLoading(false);
     };
     run();
-  }, [slug, filters, sort, page, pageSize, debouncedQ]);
+  }, [slug, subSlugParam, filters, sort, page, pageSize, debouncedQ]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, totalPages);

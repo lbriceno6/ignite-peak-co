@@ -123,10 +123,10 @@ const App = () => (
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/category/:slug" element={<Category />} />
-            <Route path="/categoria/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
+            <Route path="/categoria/:catSlug/:subSlug" element={<CategoryDispatcher />} />
             <Route path="/categoria/:slug" element={<CategoryDispatcher />} />
             <Route path="/categorias/:slug" element={<CategoryDispatcher />} />
-            <Route path="/categorias/:catSlug/:subSlug" element={<CategoryTaxonomy />} />
+            <Route path="/categorias/:catSlug/:subSlug" element={<CategoryDispatcher />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
             <Route path="/producto/:slug" element={<ProductDetail />} />
             <Route path="/productos/:slug" element={<ProductDetail />} />

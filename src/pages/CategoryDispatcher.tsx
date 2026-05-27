@@ -1,12 +1,8 @@
-import { useParams } from "react-router-dom";
 import Category from "./Category";
-import CategoryTaxonomy from "./CategoryTaxonomy";
-import { mainBySlug } from "@/lib/productCategories";
 
-// Despacha entre la página de taxonomía nueva (Productos / Para tu salud / Promociones)
-// y la página de Category legacy para slugs antiguos.
+// Todas las rutas de categoría/subcategoría se renderizan con la página
+// Category (incluye filtros, paginación, búsqueda, etc.). Category resuelve
+// el alcance a partir de :slug, :catSlug y :subSlug.
 export default function CategoryDispatcher() {
-  const { slug = "" } = useParams();
-  if (mainBySlug[slug]) return <CategoryTaxonomy />;
   return <Category />;
 }
