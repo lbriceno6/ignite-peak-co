@@ -11,7 +11,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
-import { useCart } from "@/store/cart";
+import { useCart, lineSubtotal } from "@/store/cart";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { useFreeShippingBar } from "@/hooks/useFreeShippingBar";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
@@ -86,7 +88,8 @@ const parseList = (val: any): string[] => {
 
 const ProductDetail = () => {
   const { slug } = useParams();
-  const { add, toggleWish, wishlist } = useCart();
+  const { add, toggleWish, wishlist, items: cartItems } = useCart();
+  const freeShip = useFreeShippingBar();
   const { format } = useCurrency();
   const subSettings = useSubscriptionSettings();
   const [loading, setLoading] = useState(true);
@@ -413,6 +416,32 @@ const ProductDetail = () => {
               <Heart className={wished ? "fill-accent text-accent" : ""} />
             </Button>
           </div>
+
+          {freeShip.enabled && freeShip.showBar && freeShip.showPdp && (() => {
+            const cartSubtotal = cartItems.reduce((s, it) => s + lineSubtotal(it), 0);
+            const withThis = cartSubtotal + effectivePrice * qty;
+            const remainingWithout = Math.max(0, freeShip.threshold - cartSubtotal);
+            const wouldAchieve = withThis >= freeShip.threshold && cartSubtotal < freeShip.threshold;
+            return (
+              <div className="mt-4 space-y-2">
+                {cartSubtotal === 0 ? (
+                  <p className="text-xs font-medium" style={{ color: "#151515" }}>
+                    🚚 Envío gratis desde {format(freeShip.threshold)}
+                  </p>
+                ) : wouldAchieve ? (
+                  <p className="text-xs font-semibold" style={{ color: freeShip.barColor }}>
+                    🎉 Agrega este producto y obtén envío gratis.
+                  </p>
+                ) : remainingWithout > 0 ? (
+                  <p className="text-xs font-medium" style={{ color: "#151515" }}>
+                    🚚 Con este producto te faltaría {format(Math.max(0, freeShip.threshold - withThis))} para envío gratis.
+                  </p>
+                ) : null}
+                <FreeShippingBar subtotal={withThis} variant="compact" surface="pdp" />
+              </div>
+            );
+          })()}
+
 
           {(() => {
             const lines = [

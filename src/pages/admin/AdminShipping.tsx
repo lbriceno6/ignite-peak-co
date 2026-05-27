@@ -22,6 +22,18 @@ const KEYS = [
   "shipping_policy_confirmation_title",
   "shipping_policy_confirmation",
   "shipping_providers_title",
+  "shipping_free_enabled",
+  "shipping_free_bar_show",
+  "shipping_free_show_cart",
+  "shipping_free_show_minicart",
+  "shipping_free_show_pdp",
+  "shipping_free_text_initial",
+  "shipping_free_text_progress",
+  "shipping_free_text_near",
+  "shipping_free_text_success",
+  "shipping_free_bar_color",
+  "shipping_free_bar_bg",
+  "shipping_free_block_bg",
 ] as const;
 
 type Provider = {
@@ -193,6 +205,27 @@ export default function AdminShipping() {
           <F k="shipping_free_threshold" label="Envío gratis a partir de (S/)" type="number" />
         </div>
         <p className="text-xs text-muted-foreground">Si el subtotal del pedido supera el umbral, el envío se calcula como gratis.</p>
+      </div>
+
+      <div className="rounded-lg border bg-background p-5 space-y-4">
+        <h2 className="font-display text-lg">Envío gratis (barra dinámica)</h2>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex items-center gap-3"><Switch checked={(m["shipping_free_enabled"] ?? "1") === "1"} onCheckedChange={(v) => set("shipping_free_enabled", v ? "1" : "0")} /><Label>Activar envío gratis</Label></div>
+          <div className="flex items-center gap-3"><Switch checked={(m["shipping_free_bar_show"] ?? "1") === "1"} onCheckedChange={(v) => set("shipping_free_bar_show", v ? "1" : "0")} /><Label>Mostrar barra de progreso</Label></div>
+          <div className="flex items-center gap-3"><Switch checked={(m["shipping_free_show_cart"] ?? "1") === "1"} onCheckedChange={(v) => set("shipping_free_show_cart", v ? "1" : "0")} /><Label>Mostrar en carrito</Label></div>
+          <div className="flex items-center gap-3"><Switch checked={(m["shipping_free_show_minicart"] ?? "1") === "1"} onCheckedChange={(v) => set("shipping_free_show_minicart", v ? "1" : "0")} /><Label>Mostrar en minicart</Label></div>
+          <div className="flex items-center gap-3"><Switch checked={(m["shipping_free_show_pdp"] ?? "1") === "1"} onCheckedChange={(v) => set("shipping_free_show_pdp", v ? "1" : "0")} /><Label>Mostrar en ficha de producto</Label></div>
+        </div>
+        <F k="shipping_free_text_initial" label="Texto inicial (usa {monto_minimo})" />
+        <F k="shipping_free_text_progress" label="Texto cuando falta (usa {monto_faltante})" />
+        <F k="shipping_free_text_near" label="Texto cuando falta poco (usa {monto_faltante})" />
+        <F k="shipping_free_text_success" label="Texto cuando se logró envío gratis" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div><Label className="text-xs">Color de la barra</Label><Input className="mt-1.5" type="color" value={m["shipping_free_bar_color"] || "#35A936"} onChange={(e) => set("shipping_free_bar_color", e.target.value)} /></div>
+          <div><Label className="text-xs">Fondo de la barra</Label><Input className="mt-1.5" type="color" value={m["shipping_free_bar_bg"] || "#D8EFD6"} onChange={(e) => set("shipping_free_bar_bg", e.target.value)} /></div>
+          <div><Label className="text-xs">Fondo del bloque</Label><Input className="mt-1.5" type="color" value={m["shipping_free_block_bg"] || "#EAF8E8"} onChange={(e) => set("shipping_free_block_bg", e.target.value)} /></div>
+        </div>
+        <p className="text-xs text-muted-foreground">Placeholders disponibles: {"{monto_minimo}"}, {"{monto_faltante}"}.</p>
       </div>
 
       <div className="rounded-lg border bg-background p-5 space-y-4">

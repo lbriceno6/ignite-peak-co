@@ -6,6 +6,7 @@ import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
@@ -86,6 +87,7 @@ export const CartDrawer = () => {
             </div>
 
             <div className="border-t bg-secondary/40 p-5 space-y-3">
+              <FreeShippingBar subtotal={Math.max(0, subtotal - promoDiscount)} variant="compact" surface="minicart" />
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">{format(subtotal)}</span>
