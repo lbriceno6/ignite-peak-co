@@ -54,6 +54,12 @@ export default function ProductForm() {
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const { mains: dynamicMains, getSubsByMainName } = useTaxonomy({ activeOnly: true });
+  const mainCategories = dynamicMains.length > 0 ? dynamicMains.map((m) => m.name) : staticMains;
+  const getSubcategories = (name?: string | null) => {
+    if (dynamicMains.length > 0) return getSubsByMainName(name).map((s) => s.name);
+    return getStaticSubs(name);
+  };
 
   const uploadToBucket = async (file: File, prefix: string) => {
     const ext = file.name.split(".").pop();
