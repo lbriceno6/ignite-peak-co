@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Autoplay from "embla-carousel-autoplay";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
+
 import { ProductCard } from "@/components/ProductCard";
 import type { Product } from "@/data/catalog";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
