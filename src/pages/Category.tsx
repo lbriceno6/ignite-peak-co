@@ -365,13 +365,15 @@ const Category = () => {
   }, [filterConfig.brand.enabled, filterConfig.supplier.enabled]);
 
   const title = useMemo(() => {
+    if (taxonomySub) return taxonomySub;
+    if (taxonomyMain) return taxonomyMain;
     if (slug.startsWith("goal-")) {
       const g = goals.find((x) => x.slug === slug.replace("goal-", ""));
       return g?.name ?? "Objetivo";
     }
     const c = categories.find((x) => x.slug === slug);
     return c?.name ?? "Todos los productos";
-  }, [slug]);
+  }, [slug, taxonomyMain, taxonomySub]);
 
   // Debounce search input
   useEffect(() => {
