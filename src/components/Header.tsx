@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useCart, cartTotals } from "@/store/cart";
-import { categories as fallbackCategories } from "@/data/catalog";
+
 import { useAuth } from "@/context/AuthContext";
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyContext";
 import { useSiteContent } from "@/hooks/useSiteContent";
