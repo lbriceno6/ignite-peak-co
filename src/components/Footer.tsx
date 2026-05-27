@@ -96,13 +96,13 @@ export const Footer = () => {
             <p className="mt-4 max-w-sm text-sm text-background/60">{content.footer_description}</p>
             <form className="mt-6 max-w-sm" onSubmit={(e) => e.preventDefault()}>
               <label className="text-xs font-bold uppercase tracking-wider text-background/80">{content.footer_newsletter_title}</label>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <Input
                   type="email"
                   placeholder="tu@correo.com"
-                  className="bg-background/10 border-background/20 text-background placeholder:text-background/50"
+                  className="w-full bg-background/10 border-background/20 text-background placeholder:text-background/50"
                 />
-                <Button type="submit" variant="accent">Suscribirme</Button>
+                <Button type="submit" variant="accent" className="w-full sm:w-auto">Suscribirme</Button>
               </div>
               <p className="mt-2 text-xs text-background/50">{content.footer_newsletter_help}</p>
             </form>
