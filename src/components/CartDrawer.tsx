@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
   const { subtotal, shipping, total: rawTotal, count } = cartTotals(items);
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
+  const promoNudges = pendingPromoNudges(items, promotions);
   const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
 
@@ -84,6 +85,26 @@ export const CartDrawer = () => {
                 <div key={ap.promotionId} className="flex justify-between text-sm text-accent">
                   <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label}</span>
                   <span className="font-medium">−{format(ap.amount)}</span>
+                </div>
+              ))}
+              {appliedPromos.length > 0 && (
+                <p className="text-[11px] text-muted-foreground">
+                  Descuento solo sobre productos participantes (al de menor precio).
+                </p>
+              )}
+              {promoNudges.map((n) => (
+                <div key={n.promotion.id} className="rounded-md border border-accent/40 bg-accent/5 p-2 text-xs">
+                  <p className="font-medium text-foreground">{n.title}</p>
+                  <p className="mt-0.5 text-muted-foreground">
+                    Agrega otro producto participante para activar el beneficio.
+                  </p>
+                  <Link
+                    to="/promociones/compra-uno-lleva-otro"
+                    onClick={() => setOpen(false)}
+                    className="mt-1 inline-block font-semibold text-accent hover:underline"
+                  >
+                    Ver productos participantes →
+                  </Link>
                 </div>
               ))}
               <div className="flex justify-between text-sm">

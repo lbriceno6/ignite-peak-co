@@ -10,7 +10,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
@@ -22,6 +22,7 @@ const Cart = () => {
   useEffect(() => { setReferral(getStoredReferral()); }, []);
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
+  const promoNudges = pendingPromoNudges(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
   const subtotal = rawSubtotal - discount - promoDiscount;
   const total = rawTotal - discount - promoDiscount;
@@ -109,6 +110,25 @@ const Cart = () => {
                 {appliedPromos.length > 0 && (
                   <p className="rounded-md bg-accent/10 p-2 text-xs text-accent">{appliedPromos[0].message}</p>
                 )}
+                {appliedPromos.length > 0 && (
+                  <p className="text-[11px] text-muted-foreground">
+                    El descuento se aplica solo a productos participantes y sobre el producto de menor precio.
+                  </p>
+                )}
+                {promoNudges.map((n) => (
+                  <div key={n.promotion.id} className="rounded-md border border-accent/40 bg-accent/5 p-2 text-xs">
+                    <p className="font-medium text-foreground">{n.title}</p>
+                    <p className="mt-0.5 text-muted-foreground">
+                      Agrega otro producto participante de la promoción para obtener el beneficio.
+                    </p>
+                    <Link
+                      to="/promociones/compra-uno-lleva-otro"
+                      className="mt-1 inline-block font-semibold text-accent hover:underline"
+                    >
+                      Ver productos participantes →
+                    </Link>
+                  </div>
+                ))}
               </div>
               <div className="mt-4 flex justify-between border-t pt-4 font-display text-2xl">
                 <span>Total</span><span>{format(total)}</span>
