@@ -7,6 +7,9 @@ import { useCart } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import type { Product } from "@/data/catalog";
 import { cn } from "@/lib/utils";
+import { usePromotions } from "@/hooks/usePromotions";
+import { promosForProduct } from "@/lib/promotions";
+import { PromoBadge } from "./PromoBadge";
 
 const WHATSAPP_BASE =
   "https://wa.me/51999999999?text=";
@@ -66,6 +69,7 @@ const trimBenefit = (s?: string, max = 90) => {
 export const ProductCard = ({ product }: { product: Product }) => {
   const { add, toggleWish, wishlist } = useCart();
   const { format } = useCurrency();
+  const { promotions } = usePromotions();
   const wished = wishlist.includes(product.id);
 
   const hasPrice = Number(product.price) > 0;
@@ -76,6 +80,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const benefit = trimBenefit(product.shortBenefit);
   const subcat = translateCategory((product as any).subcategory) || translateCategory(product.category);
   const labelEs = translateLabel(product.label);
+  const productPromos = promosForProduct(product.id, promotions).filter((p) => p.show_on_product);
 
   const waHref =
     WHATSAPP_BASE +
@@ -105,6 +110,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
               -{discount}%
             </Badge>
           )}
+          {productPromos.map((p) => (
+            <PromoBadge key={p.id} promotion={p} />
+          ))}
         </div>
         <button
           onClick={() => toggleWish(product.id)}
