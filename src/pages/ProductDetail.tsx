@@ -513,4 +513,22 @@ const ProductDetail = () => {
   );
 };
 
+const ProductBenefitsBlock = () => {
+  const { benefits, loading } = useProductBenefits(true);
+  if (loading || benefits.length === 0) return null;
+  return (
+    <ul className="mt-6 space-y-2 rounded-xl border bg-secondary/30 p-4 text-sm">
+      {benefits.map((b) => (
+        <li key={b.id} className="flex items-start gap-2">
+          <span className="mt-0.5 shrink-0">{renderBenefitIcon(b.icon as string, 16)}</span>
+          <span>
+            <span className="font-medium">{b.title}</span>
+            {b.subtitle ? <span className="text-muted-foreground"> · {b.subtitle}</span> : null}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+};
+
 export default ProductDetail;
