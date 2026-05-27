@@ -22,6 +22,18 @@ const KEYS = [
   "shipping_policy_confirmation_title",
   "shipping_policy_confirmation",
   "shipping_providers_title",
+  "shipping_free_enabled",
+  "shipping_free_bar_show",
+  "shipping_free_show_cart",
+  "shipping_free_show_minicart",
+  "shipping_free_show_pdp",
+  "shipping_free_text_initial",
+  "shipping_free_text_progress",
+  "shipping_free_text_near",
+  "shipping_free_text_success",
+  "shipping_free_bar_color",
+  "shipping_free_bar_bg",
+  "shipping_free_block_bg",
 ] as const;
 
 type Provider = {
