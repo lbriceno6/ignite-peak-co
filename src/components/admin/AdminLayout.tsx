@@ -130,6 +130,7 @@ const defaultSections = [
       { key: "about", to: "/admin/about", label: "Página Sobre", icon: Info },
       { key: "contact", to: "/admin/contact", label: "Página Contacto", icon: Mail },
       { key: "theme", to: "/admin/theme", label: "Paleta y tipografía", icon: Palette },
+      { key: "product-card-typography", to: "/admin/product-card-typography", label: "Tipografía tarjetas Home", icon: Palette },
       { key: "benefits", to: "/admin/benefits", label: "Beneficios de compra", icon: ShieldCheck },
     ],
   },
