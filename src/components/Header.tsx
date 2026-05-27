@@ -160,6 +160,7 @@ export const Header = () => {
   const [query, setQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
@@ -167,10 +168,15 @@ export const Header = () => {
     { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
-  const mains = categories
-    .filter((c) => !c.parent_id && c.show_in_menu !== false)
+  const labelOf = (c: CategoryItem) => (c.menu_label && c.menu_label.trim()) || c.name;
+  const mainsDesktop = categories
+    .filter((c) => !c.parent_id && c.show_in_menu !== false && c.menu_show_desktop !== false)
     .sort((a, b) => a.sort_order - b.sort_order);
-  const visibleCategories = mains.slice(0, maxCats);
+  const mainsMobile = categories
+    .filter((c) => !c.parent_id && c.show_in_menu !== false && c.menu_show_mobile !== false)
+    .sort((a, b) => a.sort_order - b.sort_order);
+  const visibleCategoriesDesktop = mainsDesktop.slice(0, maxCats);
+  const visibleCategoriesMobile = mainsMobile.slice(0, maxCats);
   const subsByParent: Record<string, CategoryItem[]> = {};
   for (const c of categories) {
     if (c.parent_id && c.show_in_menu !== false) {
@@ -179,13 +185,30 @@ export const Header = () => {
   }
   Object.values(subsByParent).forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
 
+  const fieldsByParent: Record<string, MenuCustomField[]> = {};
+  for (const f of customFields) {
+    if (!f.is_active || !f.parent_category_id) continue;
+    (fieldsByParent[f.parent_category_id] ||= []).push(f);
+  }
+  Object.values(fieldsByParent).forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
+
   // Group subs by column (1..N), then within column by group title
   const groupedSubs = (parentId: string) => {
-    const subs = subsByParent[parentId] || [];
+    const subs = (subsByParent[parentId] || []).filter((s) => s.menu_show_desktop !== false);
     const byCol: Record<number, CategoryItem[]> = {};
     subs.forEach((s) => {
       const col = Math.max(1, Math.min(6, s.menu_column || 1));
       (byCol[col] ||= []).push(s);
+    });
+    return byCol;
+  };
+
+  const fieldsByCol = (parentId: string) => {
+    const list = (fieldsByParent[parentId] || []).filter((f) => f.show_desktop);
+    const byCol: Record<number, MenuCustomField[]> = {};
+    list.forEach((f) => {
+      const col = Math.max(1, Math.min(6, f.column_index || 1));
+      (byCol[col] ||= []).push(f);
     });
     return byCol;
   };
@@ -196,19 +219,28 @@ export const Header = () => {
     ...(menuStyle.nav_menu_bg_color ? { backgroundColor: menuStyle.nav_menu_bg_color } : {}),
   };
 
+  const badgeStyle = (bg?: string | null, color?: string | null): React.CSSProperties => ({
+    ...(bg ? { backgroundColor: bg } : {}),
+    ...(color ? { color } : {}),
+  });
+
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [navRes, catRes] = await Promise.all([
+      const [navRes, catRes, fRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
         supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
+        (supabase.from as any)("menu_custom_fields").select("*").eq("is_active", true).order("sort_order"),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
       if (catRes.data) setCategories(catRes.data as CategoryItem[]);
+      if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
     })();
     return () => { alive = false; };
   }, []);
+
+
 
 
   const submitSearch = (e: React.FormEvent) => {
