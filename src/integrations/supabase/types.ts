@@ -209,7 +209,12 @@ export type Database = {
           description: string | null
           icon: string | null
           id: string
+          image_url: string | null
+          is_active: boolean
+          meta_description: string | null
+          meta_title: string | null
           name: string
+          parent_id: string | null
           slug: string
           sort_order: number
           type: Database["public"]["Enums"]["category_type"]
@@ -220,7 +225,12 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
+          is_active?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
           name: string
+          parent_id?: string | null
           slug: string
           sort_order?: number
           type: Database["public"]["Enums"]["category_type"]
@@ -231,13 +241,26 @@ export type Database = {
           description?: string | null
           icon?: string | null
           id?: string
+          image_url?: string | null
+          is_active?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
           name?: string
+          parent_id?: string | null
           slug?: string
           sort_order?: number
           type?: Database["public"]["Enums"]["category_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_ai_feedback: {
         Row: {

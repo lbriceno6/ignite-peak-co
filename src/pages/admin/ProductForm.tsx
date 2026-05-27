@@ -12,7 +12,8 @@ import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
 import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
-import { mainCategories, getSubcategories } from "@/lib/productCategories";
+import { mainCategories as staticMains, getSubcategories as getStaticSubs } from "@/lib/productCategories";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -53,6 +54,12 @@ export default function ProductForm() {
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const { mains: dynamicMains, getSubsByMainName } = useTaxonomy({ activeOnly: true });
+  const mainCategories = dynamicMains.length > 0 ? dynamicMains.map((m) => m.name) : staticMains;
+  const getSubcategories = (name?: string | null) => {
+    if (dynamicMains.length > 0) return getSubsByMainName(name).map((s) => s.name);
+    return getStaticSubs(name);
+  };
 
   const uploadToBucket = async (file: File, prefix: string) => {
     const ext = file.name.split(".").pop();
