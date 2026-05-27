@@ -62,10 +62,38 @@ type CustomField = {
 };
 
 const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url", "favicon_url"] as const;
-const MENU_KEYS = ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"] as const;
+const MENU_KEYS = [
+  "nav_menu_max_categories",
+  "nav_menu_font_family",
+  "nav_menu_text_color",
+  "nav_menu_bg_color",
+  "nav_menu_font_weight",
+  "nav_menu_font_size_desktop",
+  "nav_menu_font_size_mobile",
+  "nav_menu_hover_color",
+  "nav_menu_text_transform",
+  "nav_menu_letter_spacing",
+  "nav_menu_item_gap_desktop",
+  "nav_menu_item_gap_tablet",
+  "nav_menu_item_gap_mobile",
+  "nav_menu_underline_active",
+] as const;
 const FONT_OPTIONS = [
   "", "Inter", "Poppins", "Montserrat", "Roboto", "Lato", "Oswald",
   "Bebas Neue", "Playfair Display", "Raleway", "Nunito", "system-ui", "serif", "sans-serif",
+];
+const WEIGHT_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "400", label: "Normal 400" },
+  { value: "500", label: "Medium 500" },
+  { value: "600", label: "Semibold 600" },
+  { value: "700", label: "Bold 700" },
+  { value: "800", label: "Extra Bold 800" },
+];
+const TRANSFORM_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "none", label: "Normal" },
+  { value: "uppercase", label: "MAYÚSCULAS" },
+  { value: "capitalize", label: "Capitalizado" },
+  { value: "lowercase", label: "minúsculas" },
 ];
 
 const FIELD_TYPES: Array<{ value: string; label: string }> = [
@@ -80,10 +108,26 @@ const FIELD_TYPES: Array<{ value: string; label: string }> = [
 
 const db = supabase as any;
 
+const MENU_DEFAULTS: Record<string, string> = {
+  nav_menu_max_categories: "6",
+  nav_menu_font_family: "Inter",
+  nav_menu_text_color: "#151515",
+  nav_menu_bg_color: "",
+  nav_menu_font_weight: "600",
+  nav_menu_font_size_desktop: "14",
+  nav_menu_font_size_mobile: "15",
+  nav_menu_hover_color: "#35A936",
+  nav_menu_text_transform: "uppercase",
+  nav_menu_letter_spacing: "0.03em",
+  nav_menu_item_gap_desktop: "32",
+  nav_menu_item_gap_tablet: "18",
+  nav_menu_item_gap_mobile: "14",
+  nav_menu_underline_active: "1",
+};
+
 export default function AdminNavigation() {
   const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
   const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
-  const MENU_DEFAULTS: Record<string, string> = { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" };
   const [menu, setMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
   const [savedMenu, setSavedMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
   const [savingMenu, setSavingMenu] = useState(false);
