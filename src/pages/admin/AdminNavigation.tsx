@@ -437,8 +437,8 @@ export default function AdminNavigation() {
           {/* Estilo */}
           <section className="rounded-lg border bg-background p-6">
             <header className="mb-4">
-              <h2 className="font-display text-xl">Estilo del menú</h2>
-              <p className="text-sm text-muted-foreground">Máximo de categorías, tipografía y colores.</p>
+              <h2 className="font-display text-xl">Estilo del menú principal</h2>
+              <p className="text-sm text-muted-foreground">Tipografía, peso, colores, transformación y espaciado del texto del menú superior.</p>
             </header>
             <div className="grid gap-5 md:grid-cols-2">
               <div className="space-y-2">
@@ -446,17 +446,57 @@ export default function AdminNavigation() {
                 <Input type="number" min={1} max={20} value={menu.nav_menu_max_categories} onChange={(e) => setM("nav_menu_max_categories", e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs">Tipo de letra</Label>
+                <Label className="text-xs">Fuente del menú</Label>
                 <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={menu.nav_menu_font_family} onChange={(e) => setM("nav_menu_font_family", e.target.value)}>
                   {FONT_OPTIONS.map((f) => <option key={f} value={f}>{f || "Por defecto (tema)"}</option>)}
                 </select>
               </div>
               <div className="space-y-2">
+                <Label className="text-xs">Peso del texto del menú</Label>
+                <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={menu.nav_menu_font_weight} onChange={(e) => setM("nav_menu_font_weight", e.target.value)}>
+                  {WEIGHT_OPTIONS.map((w) => <option key={w.value} value={w.value} style={{ fontWeight: parseInt(w.value, 10) }}>{w.label}</option>)}
+                </select>
+                <p className="text-[11px] text-muted-foreground">Recomendado: Semibold 600. Para verlo más fuerte, usa Bold 700.</p>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Transformación de texto</Label>
+                <select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={menu.nav_menu_text_transform} onChange={(e) => setM("nav_menu_text_transform", e.target.value)}>
+                  {TRANSFORM_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Tamaño desktop (px)</Label>
+                <Input type="number" min={10} max={28} value={menu.nav_menu_font_size_desktop} onChange={(e) => setM("nav_menu_font_size_desktop", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Tamaño mobile (px)</Label>
+                <Input type="number" min={10} max={28} value={menu.nav_menu_font_size_mobile} onChange={(e) => setM("nav_menu_font_size_mobile", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Espaciado entre letras (ej. 0.03em)</Label>
+                <Input value={menu.nav_menu_letter_spacing} onChange={(e) => setM("nav_menu_letter_spacing", e.target.value)} placeholder="0.03em" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Subrayado en activo</Label>
+                <div className="flex h-10 items-center gap-2 rounded-md border px-3">
+                  <Switch checked={menu.nav_menu_underline_active !== "0"} onCheckedChange={(v) => setM("nav_menu_underline_active", v ? "1" : "0")} />
+                  <span className="text-sm text-muted-foreground">Mostrar línea inferior en la categoría activa</span>
+                </div>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-xs">Color de letra</Label>
                 <div className="flex gap-2">
-                  <Input type="color" className="h-10 w-16 p-1" value={menu.nav_menu_text_color || "#000000"} onChange={(e) => setM("nav_menu_text_color", e.target.value)} />
+                  <Input type="color" className="h-10 w-16 p-1" value={menu.nav_menu_text_color || "#151515"} onChange={(e) => setM("nav_menu_text_color", e.target.value)} />
                   <Input value={menu.nav_menu_text_color} onChange={(e) => setM("nav_menu_text_color", e.target.value)} placeholder="#151515" />
                   {menu.nav_menu_text_color && <Button variant="ghost" size="sm" onClick={() => setM("nav_menu_text_color", "")}>Limpiar</Button>}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs">Color al pasar el mouse (hover)</Label>
+                <div className="flex gap-2">
+                  <Input type="color" className="h-10 w-16 p-1" value={menu.nav_menu_hover_color || "#35A936"} onChange={(e) => setM("nav_menu_hover_color", e.target.value)} />
+                  <Input value={menu.nav_menu_hover_color} onChange={(e) => setM("nav_menu_hover_color", e.target.value)} placeholder="#35A936" />
+                  {menu.nav_menu_hover_color && <Button variant="ghost" size="sm" onClick={() => setM("nav_menu_hover_color", "")}>Limpiar</Button>}
                 </div>
               </div>
               <div className="space-y-2">
@@ -467,12 +507,62 @@ export default function AdminNavigation() {
                   {menu.nav_menu_bg_color && <Button variant="ghost" size="sm" onClick={() => setM("nav_menu_bg_color", "")}>Limpiar</Button>}
                 </div>
               </div>
+              <div className="space-y-2 md:col-span-2 grid md:grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">Separación entre ítems (desktop, px)</Label>
+                  <Input type="number" min={4} max={80} value={menu.nav_menu_item_gap_desktop} onChange={(e) => setM("nav_menu_item_gap_desktop", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Separación (tablet, px)</Label>
+                  <Input type="number" min={4} max={80} value={menu.nav_menu_item_gap_tablet} onChange={(e) => setM("nav_menu_item_gap_tablet", e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Separación (mobile, px)</Label>
+                  <Input type="number" min={4} max={60} value={menu.nav_menu_item_gap_mobile} onChange={(e) => setM("nav_menu_item_gap_mobile", e.target.value)} />
+                </div>
+              </div>
+
+              {/* Live preview */}
+              <div className="md:col-span-2">
+                <Label className="text-xs">Vista previa en vivo</Label>
+                <div
+                  className="mt-2 overflow-x-auto rounded-md border p-4"
+                  style={{ backgroundColor: menu.nav_menu_bg_color || "#ffffff" }}
+                >
+                  <div
+                    className="flex items-center"
+                    style={{ columnGap: `${parseInt(menu.nav_menu_item_gap_desktop || "32", 10) || 32}px` }}
+                  >
+                    {["PRODUCTOS", "PROTEÍNAS", "SUPERFOODS", "PARA TU SALUD", "PROMOCIONES"].map((t) => (
+                      <span
+                        key={t}
+                        className="whitespace-nowrap transition-colors"
+                        style={{
+                          fontFamily: menu.nav_menu_font_family || undefined,
+                          fontWeight: parseInt(menu.nav_menu_font_weight || "600", 10) || 600,
+                          fontSize: `${parseInt(menu.nav_menu_font_size_desktop || "14", 10) || 14}px`,
+                          color: menu.nav_menu_text_color || "#151515",
+                          textTransform: (menu.nav_menu_text_transform || "uppercase") as React.CSSProperties["textTransform"],
+                          letterSpacing: menu.nav_menu_letter_spacing || "0.03em",
+                        }}
+                        onMouseEnter={(e) => { if (menu.nav_menu_hover_color) (e.currentTarget as HTMLSpanElement).style.color = menu.nav_menu_hover_color; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLSpanElement).style.color = menu.nav_menu_text_color || "#151515"; }}
+                      >
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Pasa el mouse para ver el color hover. Los cambios se aplicarán al guardar.</p>
+              </div>
+
               <div className="md:col-span-2 flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setMenu(savedMenu)} disabled={!menuDirty || savingMenu}>Descartar</Button>
                 <Button variant="dark" onClick={saveMenu} disabled={!menuDirty || savingMenu}>{savingMenu ? "Guardando…" : "Guardar estilo"}</Button>
               </div>
             </div>
           </section>
+
 
           {/* Nav links extra (About, Contact, etc) */}
           <section className="rounded-lg border bg-background p-6">
