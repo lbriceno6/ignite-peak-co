@@ -175,6 +175,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");
   if (p.startsWith("/admin/home-blocks")) return get("home-blocks", "Secciones del home");
+  if (p.startsWith("/admin/products-carousel")) return get("products-carousel", "Carrusel de productos");
   if (p.startsWith("/admin/home")) return get("home", "Contenido del home");
   if (p.startsWith("/admin/hero-slides")) return get("hero-slides", "Carrusel hero");
   if (p.startsWith("/admin/goal-cards")) return get("goal-cards", "Tarjetas de objetivos");
