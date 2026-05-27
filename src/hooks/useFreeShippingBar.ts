@@ -93,7 +93,7 @@ export const useFreeShippingBar = () => {
     })();
 
     const channel = supabase
-      .channel("free-shipping-settings")
+      .channel(`free-shipping-settings-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "site_content" }, (payload: any) => {
         const row = payload.new ?? payload.old;
         if (!row?.key || !(FREE_SHIPPING_KEYS as readonly string[]).includes(row.key)) return;
