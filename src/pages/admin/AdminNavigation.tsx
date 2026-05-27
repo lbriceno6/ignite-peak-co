@@ -26,6 +26,10 @@ const FONT_OPTIONS = [
 export default function AdminNavigation() {
   const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
   const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
+  const MENU_DEFAULTS: Record<string, string> = { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" };
+  const [menu, setMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
+  const [savedMenu, setSavedMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
+  const [savingMenu, setSavingMenu] = useState(false);
   const [links, setLinks] = useState<NavLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingLogo, setSavingLogo] = useState(false);
@@ -36,13 +40,19 @@ export default function AdminNavigation() {
 
   const load = async () => {
     setLoading(true);
+    const allKeys = [...LOGO_KEYS, ...MENU_KEYS] as unknown as string[];
     const [c, l] = await Promise.all([
-      supabase.from("site_content").select("key,value").in("key", LOGO_KEYS as unknown as string[]),
+      supabase.from("site_content").select("key,value").in("key", allKeys),
       supabase.from("nav_links").select("*").order("sort_order").order("created_at"),
     ]);
     const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" };
-    (c.data ?? []).forEach((r: any) => { m[r.key] = r.value ?? ""; });
+    const mm: Record<string, string> = { ...MENU_DEFAULTS };
+    (c.data ?? []).forEach((r: any) => {
+      if ((LOGO_KEYS as readonly string[]).includes(r.key)) m[r.key] = r.value ?? "";
+      if ((MENU_KEYS as readonly string[]).includes(r.key) && r.value) mm[r.key] = r.value;
+    });
     setLogo(m); setSavedLogo(m);
+    setMenu(mm); setSavedMenu(mm);
     setLinks((l.data as NavLinkRow[]) ?? []);
     setLoading(false);
   };
@@ -51,6 +61,21 @@ export default function AdminNavigation() {
 
   const setL = (k: string, v: string) => setLogo((p) => ({ ...p, [k]: v }));
   const logoDirty = LOGO_KEYS.some((k) => (logo[k] ?? "") !== (savedLogo[k] ?? ""));
+  const setM = (k: string, v: string) => setMenu((p) => ({ ...p, [k]: v }));
+  const menuDirty = MENU_KEYS.some((k) => (menu[k] ?? "") !== (savedMenu[k] ?? ""));
+
+  const saveMenu = async () => {
+    setSavingMenu(true);
+    try {
+      const rows = MENU_KEYS.map((k) => ({ key: k, value: menu[k] ?? "" }));
+      const { error } = await supabase.from("site_content").upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+      toast.success("Menu settings saved");
+      load();
+    } catch (e: any) { toast.error(e.message); } finally { setSavingMenu(false); }
+  };
+
+
 
   const saveLogo = async () => {
     setSavingLogo(true);
