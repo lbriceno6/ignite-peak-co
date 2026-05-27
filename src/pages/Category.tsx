@@ -324,7 +324,11 @@ const rowToProduct = (r: any): Product => {
 };
 
 const Category = () => {
-  const { slug = "" } = useParams();
+  const params = useParams();
+  const slug = params.slug ?? params.catSlug ?? "";
+  const subSlugParam = params.subSlug ?? "";
+  const taxonomyMain = mainBySlug[slug];
+  const taxonomySub = taxonomyMain && subSlugParam ? subBySlug[slug]?.[subSlugParam] : undefined;
   const [sort, setSort] = useState("popular");
   const [filters, setFilters] = useState<FilterState>(emptyFilters);
   const [page, setPage] = useState(1);
