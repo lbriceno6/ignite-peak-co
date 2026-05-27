@@ -74,6 +74,7 @@ import AdminSeo from "./pages/admin/AdminSeo.tsx";
 import AdminChatAI from "./pages/admin/AdminChatAI.tsx";
 import AdminAiConfig from "./pages/admin/AdminAiConfig.tsx";
 import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
+import AdminProductCardTypography from "./pages/admin/AdminProductCardTypography.tsx";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
