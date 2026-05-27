@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
@@ -13,6 +13,7 @@ export const CartDrawer = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const promoNudges = pendingPromoNudges(items, promotions);
+  const perProduct = perProductPromoBreakdown(items, promotions);
   const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
 
