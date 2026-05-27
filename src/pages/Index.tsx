@@ -343,28 +343,49 @@ const Home = () => {
         return (
           <section key={b.id} className="container-x py-16">
             <div className="text-center">
-              {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
-              <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Comprar por objetivo"}</h2>
-              {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
+                {b.eyebrow || "Encuentra tu stack"}
+              </span>
+              <h2 className="mt-2 font-display text-3xl sm:text-4xl lg:text-5xl">
+                {b.title || "Comprar por objetivo"}
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+                {b.subtitle || "Explora productos según tu necesidad o estilo de vida"}
+              </p>
             </div>
-            <div className="mt-10 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-              {displayGoals.map((g, i) => (
-                <Link
-                  key={g.key}
-                  to={g.href}
-                  className="group relative flex h-44 flex-col justify-between overflow-hidden rounded-lg bg-surface-darker p-5 text-background transition-smooth hover:shadow-elevated"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-accent/20 via-transparent to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
-                  <span className="font-display text-6xl text-background/10">0{i + 1}</span>
-                  <div className="relative">
-                    <h3 className="font-display text-xl">{g.name}</h3>
-                    {g.desc && <p className="mt-1 text-xs text-background/60">{g.desc}</p>}
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold tracking-wide text-accent opacity-0 transition-smooth group-hover:opacity-100">
-                      {g.ctaLabel || "Comprar"} <ArrowRight size={14} />
-                    </span>
-                  </div>
-                </Link>
-              ))}
+
+            {/* Desktop grid / Mobile horizontal snap carousel */}
+            <div className="mt-10 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-5 sm:overflow-visible">
+              {displayGoals.map((g, i) => {
+                const style = getGoalStyle(g.name, i);
+                const Icon = style.icon;
+                return (
+                  <Link
+                    key={g.key}
+                    to={g.href}
+                    className={`group relative flex min-w-[78%] snap-start flex-col justify-between overflow-hidden rounded-2xl border border-border/40 p-6 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-elevated sm:min-w-0 ${style.bg}`}
+                    style={{ minHeight: 280 }}
+                  >
+                    {/* Soft decorative glow */}
+                    <div className={`pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl opacity-50 transition-opacity duration-500 group-hover:opacity-80 ${style.glow}`} />
+
+                    {/* Floating icon "image" */}
+                    <div className={`relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm shadow-md transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-110 ${style.iconColor}`}>
+                      <Icon size={40} strokeWidth={1.75} />
+                    </div>
+
+                    <div className="relative z-10 mt-6">
+                      <h3 className="font-display text-2xl leading-tight text-foreground">{g.name}</h3>
+                      {g.desc && (
+                        <p className="mt-2 text-sm text-foreground/70 line-clamp-2">{g.desc}</p>
+                      )}
+                      <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground/80 transition-all duration-300 group-hover:gap-2 group-hover:text-accent">
+                        {g.ctaLabel || "Ver productos"} <ArrowRight size={14} />
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         );
