@@ -71,6 +71,15 @@ const expandUnits = (items: CartItem[]) => {
   return out;
 };
 
+/** Por producto: cuánto descuento total se le aplicó y a qué promo pertenece (la primera que lo cubre). */
+export type PerProductPromo = {
+  productId: string;
+  promotionId: string;
+  label: string;
+  participating: boolean;
+  discountAmount: number; // descuento que recibió ESTE producto
+};
+
 /**
  * Calcula los descuentos por promociones. Para cada promo activa, agrupa las
  * unidades participantes de menor a mayor precio y emparejadas; al elemento
