@@ -12,6 +12,7 @@ export const CartDrawer = () => {
   const { subtotal, shipping, total: rawTotal, count } = cartTotals(items);
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
+  const promoNudges = pendingPromoNudges(items, promotions);
   const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
 
