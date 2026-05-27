@@ -117,7 +117,7 @@ export const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([]);
-  const [categories, setCategories] = useState<CategoryItem[]>(fallbackCategories);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
@@ -125,7 +125,12 @@ export const Header = () => {
     { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
-  const visibleCategories = categories.slice(0, maxCats);
+  const mains = categories.filter((c) => !c.parent_id);
+  const visibleCategories = mains.slice(0, maxCats);
+  const subsByParent: Record<string, CategoryItem[]> = {};
+  for (const c of categories) {
+    if (c.parent_id) (subsByParent[c.parent_id] ||= []).push(c);
+  }
   const navStyle: React.CSSProperties = {
     ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
@@ -137,11 +142,11 @@ export const Header = () => {
     (async () => {
       const [navRes, catRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
-        supabase.from("categories").select("slug,name,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
+        supabase.from("categories").select("id,slug,name,icon,parent_id,sort_order").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
-      if (catRes.data && catRes.data.length) setCategories(catRes.data as CategoryItem[]);
+      if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     })();
     return () => { alive = false; };
   }, []);
