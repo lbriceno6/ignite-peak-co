@@ -122,17 +122,17 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-4 min-w-0">
-        <div className="h-4 text-xs uppercase tracking-wider text-muted-foreground truncate">
+      <div className="flex flex-1 flex-col gap-1 p-3 min-w-0">
+        <div className="h-4 text-[11px] uppercase tracking-wider text-muted-foreground truncate">
           {subcat || "\u00A0"}
         </div>
         <Link
           to={`/producto/${product.slug}`}
-          className="font-display text-sm sm:text-base leading-tight line-clamp-2 break-words hover:text-accent transition-smooth min-h-[2.5rem] sm:min-h-[2.75rem]"
+          className="font-display text-sm leading-snug line-clamp-2 break-words hover:text-accent transition-smooth min-h-[2.25rem]"
         >
           {product.name}
         </Link>
-        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 break-words min-h-[2.25rem] sm:min-h-[2.5rem]">
+        <p className="text-xs text-muted-foreground line-clamp-2 break-words min-h-[2rem]">
           {benefit || "\u00A0"}
         </p>
 
@@ -145,35 +145,32 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </Link>
         ) : null}
 
-        <div className="h-5 flex items-center">
+        <div className="h-4 flex items-center">
           {product.reviews > 0 ? (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Stars rating={product.rating} />
               <span>({product.reviews})</span>
             </div>
           ) : (
-            <div className="text-xs font-medium text-muted-foreground">
+            <div className="text-[11px] font-medium text-muted-foreground">
               {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
             </div>
           )}
         </div>
 
-        <div className="mt-auto pt-2">
-          <div className="min-h-[3.25rem] flex flex-col justify-end">
+        <div className="mt-auto pt-1.5">
+          <div className="min-h-[2.5rem] flex flex-col justify-end">
             {!hasPrice ? (
-              <span className="font-display text-lg text-muted-foreground">Consultar precio</span>
+              <span className="font-display text-base text-muted-foreground">Consultar precio</span>
             ) : product.oldPrice ? (
-              <>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="font-display text-xl sm:text-2xl leading-none">{format(product.price)}</span>
-                  <span className="text-xs sm:text-sm text-muted-foreground line-through">
-                    Antes: {format(product.oldPrice)}
-                  </span>
-                </div>
-              </>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                <span className="font-display text-xl leading-none">{format(product.price)}</span>
+                <span className="text-xs text-muted-foreground line-through">
+                  Antes: {format(product.oldPrice)}
+                </span>
+              </div>
             ) : (
-              <span className="font-display text-xl sm:text-2xl leading-none">{format(product.price)}</span>
+              <span className="font-display text-xl leading-none">{format(product.price)}</span>
             )}
           </div>
 
@@ -181,7 +178,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
             <Button
               size="sm"
               variant="accent"
-              className="mt-3 w-full min-w-0 px-2 text-xs sm:text-sm"
+              className="mt-2 w-full min-w-0 px-2 text-xs"
               onClick={() => add(product)}
               aria-label={`Añadir ${product.name} al carrito`}
             >
@@ -192,7 +189,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
               size="sm"
               variant="outline"
               asChild
-              className="mt-3 w-full min-w-0 px-2 text-xs sm:text-sm"
+              className="mt-2 w-full min-w-0 px-2 text-xs"
             >
               <a href={waHref} target="_blank" rel="noopener noreferrer">
                 <MessageCircle size={14} /> <span className="truncate">Consultar por WhatsApp</span>
