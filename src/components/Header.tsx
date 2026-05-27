@@ -186,11 +186,25 @@ export const Header = () => {
               <Logo className="text-2xl" />
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
-              {visibleCategories.map((c) => (
-                <Link key={c.slug} to={`/categoria/${c.slug}`} className="rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
-                  <span className="mr-2">{c.icon}</span> {c.name}
-                </Link>
-              ))}
+              {visibleCategories.map((c) => {
+                const subs = subsByParent[c.id] || [];
+                return (
+                  <div key={c.id}>
+                    <Link to={`/categoria/${c.slug}`} className="flex items-center rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
+                      <span className="mr-2">{c.icon}</span> {c.name}
+                    </Link>
+                    {subs.length > 0 && (
+                      <div className="ml-6 flex flex-col gap-0.5 border-l pl-2">
+                        {subs.map((s) => (
+                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                            {s.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
               {navItems.length > 0 && <hr className="my-3" />}
               {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
