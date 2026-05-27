@@ -12,7 +12,8 @@ import { Upload, Loader2, X } from "lucide-react";
 import { SeoEditor } from "@/components/admin/SeoEditor";
 import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
-import { mainCategories, getSubcategories } from "@/lib/productCategories";
+import { mainCategories as staticMains, getSubcategories as getStaticSubs } from "@/lib/productCategories";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
