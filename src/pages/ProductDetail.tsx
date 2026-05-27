@@ -462,31 +462,20 @@ const ProductDetail = () => {
           {/* Franja de medios de pago */}
           <div className="mt-6 rounded-xl border bg-secondary/30 p-4">
             <p className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Medios de pago aceptados</p>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-                Visa
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="7" cy="12" r="1.5" fill="currentColor"/></svg>
-                Mastercard
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 12h4m-2-2v4"/></svg>
-                Amex
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <CreditCard size={14} />
-                PagoEfectivo
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <Smartphone size={14} />
-                Yape
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <Smartphone size={14} />
-                Plin
-              </span>
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+              {[
+                { src: "/payments/visa.svg", alt: "Visa" },
+                { src: "/payments/mastercard.svg", alt: "Mastercard" },
+                { src: "/payments/amex.svg", alt: "American Express" },
+                { src: "/payments/diners.svg", alt: "Diners Club" },
+                { src: "/payments/pagoefectivo.svg", alt: "PagoEfectivo" },
+                { src: "/payments/yape.svg", alt: "Yape" },
+                { src: "/payments/plin.svg", alt: "Plin" },
+              ].map((p) => (
+                <div key={p.alt} className="flex h-10 items-center justify-center rounded-md bg-background px-3 shadow-sm border" title={p.alt}>
+                  <img src={p.src} alt={p.alt} loading="lazy" className="h-6 w-auto object-contain" />
+                </div>
+              ))}
             </div>
           </div>
         </div>
