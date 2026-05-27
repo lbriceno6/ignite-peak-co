@@ -15,7 +15,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
-import { mainCategories, getSubcategories } from "@/lib/productCategories";
+import { mainCategories, getSubcategories, mainBySlug, subBySlug } from "@/lib/productCategories";
 import { useCatalogFilterSettings, type CatalogFilterConfig, type CatalogFilterKey } from "@/hooks/useCatalogFilterSettings";
 
 const WA_CONSULT =
