@@ -394,11 +394,13 @@ export const Header = () => {
 
       <nav className="relative hidden border-t border-border lg:block" style={navStyle}>
         <div className="container-x flex items-center gap-1">
-          {visibleCategories.map((c) => {
+          {visibleCategoriesDesktop.map((c) => {
             const subs = subsByParent[c.id] || [];
-            const isMega = (c.menu_type ?? "mega") === "mega" && subs.length > 0;
+            const fields = (fieldsByParent[c.id] || []).filter((f) => f.show_desktop);
+            const isMega = (c.menu_type ?? "mega") === "mega" && (subs.length > 0 || fields.length > 0);
             const byCol = groupedSubs(c.id);
-            const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
+            const colFields = fieldsByCol(c.id);
+            const allCols = Array.from(new Set<number>([...Object.keys(byCol).map(Number), ...Object.keys(colFields).map(Number)])).sort((a, b) => a - b);
             const linkClass = ({ isActive }: { isActive: boolean }) =>
               cn(
                 "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
@@ -407,9 +409,9 @@ export const Header = () => {
             if (!isMega) {
               return (
                 <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
-                  {c.name}
+                  {labelOf(c)}
                   {c.menu_badge && (
-                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
                   )}
                 </NavLink>
               );
@@ -417,18 +419,17 @@ export const Header = () => {
             return (
               <div key={c.id} className="static group">
                 <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
-                  {c.name}
+                  {labelOf(c)}
                   {c.menu_badge && (
-                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
                   )}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
-                {/* Mega panel — full width */}
                 <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${Math.max(cols.length, 1) + (c.featured_enabled ? 1 : 0)}, minmax(0, 1fr))` }}>
-                    {cols.map((col) => {
-                      const items = byCol[col];
-                      // group by menu_group_title within column
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${Math.max(allCols.length, 1) + (c.featured_enabled ? 1 : 0)}, minmax(0, 1fr))` }}>
+                    {allCols.map((col) => {
+                      const items = byCol[col] || [];
+                      const cFields = colFields[col] || [];
                       const groups: Record<string, CategoryItem[]> = {};
                       items.forEach((s) => {
                         const k = s.menu_group_title || "";
@@ -444,13 +445,10 @@ export const Header = () => {
                               <ul className="flex flex-col gap-1">
                                 {gitems.map((s) => (
                                   <li key={s.id}>
-                                    <Link
-                                      to={`/categoria/${c.slug}/${s.slug}`}
-                                      className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success"
-                                    >
-                                      {s.name}
+                                    <Link to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
+                                      {labelOf(s)}
                                       {s.menu_badge && (
-                                        <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                                        <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent" style={badgeStyle(s.menu_badge_bg, s.menu_badge_color)}>{s.menu_badge}</span>
                                       )}
                                     </Link>
                                   </li>
@@ -458,14 +456,12 @@ export const Header = () => {
                               </ul>
                             </div>
                           ))}
+                          {cFields.map((f) => <CustomFieldNode key={f.id} f={f} />)}
                         </div>
                       );
                     })}
                     {c.featured_enabled && (c.featured_title || c.featured_image_url) && (
-                      <Link
-                        to={c.featured_cta_href || `/categoria/${c.slug}`}
-                        className="group/feat flex flex-col overflow-hidden rounded-lg border border-border bg-secondary/50 transition-smooth hover:border-accent hover:shadow-md"
-                      >
+                      <Link to={c.featured_cta_href || `/categoria/${c.slug}`} className="group/feat flex flex-col overflow-hidden rounded-lg border border-border bg-secondary/50 transition-smooth hover:border-accent hover:shadow-md">
                         {c.featured_image_url && (
                           <img src={c.featured_image_url} alt={c.featured_title || ""} className="aspect-[16/10] w-full object-cover transition-transform group-hover/feat:scale-105" />
                         )}
@@ -491,5 +487,51 @@ export const Header = () => {
 
 
     </header>
+  );
+};
+
+const CustomFieldNode = ({ f }: { f: MenuCustomField }) => {
+  const badge = f.badge_text && (
+    <span className="ml-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase" style={{ backgroundColor: f.badge_bg || "#35a936", color: f.badge_color || "#ffffff" }}>{f.badge_text}</span>
+  );
+  if (f.field_type === "block" || f.field_type === "banner" || f.field_type === "image") {
+    return (
+      <Link to={f.href || "#"} className="group/cf flex flex-col overflow-hidden rounded-lg border border-border bg-secondary/40 transition-smooth hover:border-accent hover:shadow-md">
+        {f.image_url && <img src={f.image_url} alt={f.title} className="aspect-[16/10] w-full object-cover transition-transform group-hover/cf:scale-105" />}
+        <div className="flex flex-col gap-1 p-3">
+          <h5 className="text-sm font-semibold text-foreground inline-flex items-center">{f.title}{badge}</h5>
+          {f.subtitle && <p className="text-xs text-muted-foreground line-clamp-2">{f.subtitle}</p>}
+          {f.cta_label && <span className="mt-1 text-xs font-semibold text-accent">{f.cta_label} →</span>}
+        </div>
+      </Link>
+    );
+  }
+  if (f.field_type === "button") {
+    return (
+      <Link to={f.href || "#"} className="inline-flex items-center justify-center gap-1 rounded-md bg-accent px-3 py-2 text-xs font-semibold uppercase text-accent-foreground hover:opacity-90">
+        {f.title}{badge}
+      </Link>
+    );
+  }
+  if (f.field_type === "text") {
+    return (
+      <div className="text-xs text-muted-foreground">
+        <div className="font-semibold text-foreground inline-flex items-center">{f.title}{badge}</div>
+        {f.subtitle && <div>{f.subtitle}</div>}
+      </div>
+    );
+  }
+  if (f.field_type === "badge") {
+    return (
+      <Link to={f.href || "#"} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
+        {f.title}{badge}
+      </Link>
+    );
+  }
+  // default link
+  return (
+    <Link to={f.href || "#"} className="inline-flex items-center gap-1 py-1 text-sm text-popover-foreground hover:text-success">
+      {f.title}{badge}
+    </Link>
   );
 };
