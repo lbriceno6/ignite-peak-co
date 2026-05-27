@@ -13,7 +13,25 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 
-type CategoryItem = { id: string; slug: string; name: string; icon: string | null; parent_id: string | null };
+type CategoryItem = {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string | null;
+  parent_id: string | null;
+  sort_order: number;
+  show_in_menu?: boolean;
+  menu_column?: number;
+  menu_group_title?: string | null;
+  menu_badge?: string | null;
+  menu_type?: string;
+  featured_enabled?: boolean;
+  featured_title?: string | null;
+  featured_text?: string | null;
+  featured_cta_label?: string | null;
+  featured_cta_href?: string | null;
+  featured_image_url?: string | null;
+};
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
