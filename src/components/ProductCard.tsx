@@ -181,24 +181,25 @@ export const ProductCard = ({ product }: { product: Product }) => {
           <Button
             size="sm"
             variant="accent"
-            className="mt-2 w-full"
+            className="mt-2 w-full min-w-0 px-2 text-xs sm:text-sm"
             onClick={() => add(product)}
             aria-label={`Añadir ${product.name} al carrito`}
           >
-            <ShoppingCart size={14} /> Agregar al carrito
+            <ShoppingCart size={14} /> <span className="truncate">Agregar al carrito</span>
           </Button>
         ) : (
           <Button
             size="sm"
             variant="outline"
             asChild
-            className="mt-2 w-full"
+            className="mt-2 w-full min-w-0 px-2 text-xs sm:text-sm"
           >
             <a href={waHref} target="_blank" rel="noopener noreferrer">
-              <MessageCircle size={14} /> Consultar por WhatsApp
+              <MessageCircle size={14} /> <span className="truncate">Consultar por WhatsApp</span>
             </a>
           </Button>
         )}
+
       </div>
     </article>
   );
