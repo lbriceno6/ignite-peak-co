@@ -23,6 +23,7 @@ const Cart = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const promoNudges = pendingPromoNudges(items, promotions);
+  const perProduct = perProductPromoBreakdown(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
   const subtotal = rawSubtotal - discount - promoDiscount;
   const total = rawTotal - discount - promoDiscount;
