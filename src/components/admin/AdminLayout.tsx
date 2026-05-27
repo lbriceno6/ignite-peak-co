@@ -119,6 +119,7 @@ const defaultSections = [
       { key: "navigation", to: "/admin/navigation", label: "Logo y menú", icon: Menu },
       { key: "home", to: "/admin/home", label: "Contenido del home", icon: Home },
       { key: "home-blocks", to: "/admin/home-blocks", label: "Secciones del home", icon: Layers },
+      { key: "products-carousel", to: "/admin/products-carousel", label: "Carrusel de productos", icon: GalleryHorizontal },
       { key: "hero-slides", to: "/admin/hero-slides", label: "Carrusel hero", icon: GalleryHorizontal },
       { key: "goal-cards", to: "/admin/goal-cards", label: "Tarjetas de objetivos", icon: Tags },
       { key: "testimonials", to: "/admin/testimonials", label: "Testimonios Instagram", icon: Instagram },
@@ -174,6 +175,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.includes("/admin/blog/") && p.endsWith("/edit")) return "Editar entrada";
   if (p.startsWith("/admin/blog")) return get("blog", "Entradas de blog");
   if (p.startsWith("/admin/home-blocks")) return get("home-blocks", "Secciones del home");
+  if (p.startsWith("/admin/products-carousel")) return get("products-carousel", "Carrusel de productos");
   if (p.startsWith("/admin/home")) return get("home", "Contenido del home");
   if (p.startsWith("/admin/hero-slides")) return get("hero-slides", "Carrusel hero");
   if (p.startsWith("/admin/goal-cards")) return get("goal-cards", "Tarjetas de objetivos");

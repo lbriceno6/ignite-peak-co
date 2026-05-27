@@ -12,6 +12,8 @@ import { Stars } from "@/components/Stars";
 import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
+import { useProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
+import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 
 import heroImage from "@/assets/hero.jpg";
@@ -161,6 +163,7 @@ const Home = () => {
     "home.guides.cta_label": "Todos los artículos",
     "home.guides.cta_href": "/blog",
   });
+  const { config: carouselConfig } = useProductsCarouselConfig();
 
   const loadAll = async () => {
     const [p, c, featured, recent, hero, blk, gc] = await Promise.all([
@@ -216,6 +219,38 @@ const Home = () => {
     .slice(0, 4);
   const bestSellersDisplay = (bestSellers.length ? bestSellers : products.slice(0, 4)).map(toCardProduct);
   const moreProducts = products.slice(0, 8).map(toCardProduct);
+
+  const carouselProducts = (() => {
+    if (!carouselConfig) return [] as Product[];
+    const total = carouselConfig.total_items || 8;
+    let pool = products;
+    switch (carouselConfig.source) {
+      case "manual": {
+        const order = carouselConfig.manual_slugs;
+        const bySlug = new Map(products.map((p) => [p.slug, p]));
+        return order.map((s) => bySlug.get(s)).filter(Boolean).map((p) => toCardProduct(p as DbProduct));
+      }
+      case "best_sellers":
+        pool = [
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() === "best seller"),
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() !== "best seller"),
+        ];
+        break;
+      case "popular":
+        pool = [...products].sort((a, b) => Number(b.sale_price ?? 0) - Number(a.sale_price ?? 0));
+        break;
+      case "sale":
+        pool = products.filter((p) => p.sale_price != null && Number(p.sale_price) > 0);
+        break;
+      case "top_rated":
+        pool = [...products]; // ordering by rating happens server-side; fallback: keep as-is
+        break;
+      case "recent":
+      default:
+        pool = products; // already ordered by created_at desc from query
+    }
+    return pool.slice(0, total).map(toCardProduct);
+  })();
 
   const renderBlock = (b: HomeBlock) => {
     switch (b.block_type) {
@@ -336,28 +371,19 @@ const Home = () => {
           </section>
         );
 
-      case "best_sellers":
-        if (!bestSellersDisplay.length) return null;
+      case "best_sellers": {
+        if (!carouselConfig || !carouselConfig.is_active) return null;
+        const items = carouselProducts.length ? carouselProducts : bestSellersDisplay;
+        if (!items.length) return null;
         return (
-          <section key={b.id} className="bg-secondary/40 py-16">
-            <div className="container-x">
-              <div className="flex items-end justify-between gap-4">
-                <div>
-                  {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
-                  <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Más vendidos"}</h2>
-                </div>
-                {b.cta_label && b.cta_href && (
-                  <Link to={b.cta_href} className="hidden text-sm font-semibold tracking-wide hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
-                    {b.cta_label} <ArrowRight size={14} />
-                  </Link>
-                )}
-              </div>
-              <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                {bestSellersDisplay.map((p) => <ProductCard key={p.id} product={p} />)}
-              </div>
-            </div>
-          </section>
+          <HomeProductsCarousel
+            key={b.id}
+            config={carouselConfig}
+            products={items}
+            eyebrow={b.eyebrow}
+          />
         );
+      }
 
       case "goals": {
         const displayGoals = goalCards.length
