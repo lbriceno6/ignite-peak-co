@@ -480,11 +480,11 @@ const ProductDetail = () => {
                 PagoEfectivo
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <SmartphoneIcon />
+                <Smartphone size={14} />
                 Yape
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
-                <SmartphoneIcon />
+                <Smartphone size={14} />
                 Plin
               </span>
             </div>
