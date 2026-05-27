@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
@@ -13,6 +13,7 @@ export const CartDrawer = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const promoNudges = pendingPromoNudges(items, promotions);
+  const perProduct = perProductPromoBreakdown(items, promotions);
   const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
 
@@ -57,6 +58,14 @@ export const CartDrawer = () => {
                     {item.subscription && (
                       <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
                         <Repeat size={10} /> Cada {item.subscription.intervalDays}d · −{item.subscription.discountPercent}%
+                      </p>
+                    )}
+                    {perProduct[item.product.id]?.participating && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Sparkles size={10} /> {perProduct[item.product.id].label}
+                        {perProduct[item.product.id].discountAmount > 0 && (
+                          <span className="normal-case">· −{format(perProduct[item.product.id].discountAmount)}</span>
+                        )}
                       </p>
                     )}
                     <div className="mt-2 flex items-center justify-between">

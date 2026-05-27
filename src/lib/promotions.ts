@@ -71,6 +71,15 @@ const expandUnits = (items: CartItem[]) => {
   return out;
 };
 
+/** Por producto: cuánto descuento total se le aplicó y a qué promo pertenece (la primera que lo cubre). */
+export type PerProductPromo = {
+  productId: string;
+  promotionId: string;
+  label: string;
+  participating: boolean;
+  discountAmount: number; // descuento que recibió ESTE producto
+};
+
 /**
  * Calcula los descuentos por promociones. Para cada promo activa, agrupa las
  * unidades participantes de menor a mayor precio y emparejadas; al elemento
@@ -117,6 +126,65 @@ export const computePromotions = (
   }
 
   return { totalDiscount: Math.round(totalDiscount * 100) / 100, applied };
+};
+
+/**
+ * Devuelve, por productId, si participa en alguna promo activa y cuánto
+ * descuento total recibió ESE producto en el cálculo BOGO actual.
+ */
+export const perProductPromoBreakdown = (
+  items: CartItem[],
+  promotions: Promotion[],
+  now: Date = new Date(),
+): Record<string, PerProductPromo> => {
+  const out: Record<string, PerProductPromo> = {};
+  const units = expandUnits(items);
+
+  for (const p of promotions) {
+    if (!isPromoActiveNow(p, now)) continue;
+    if (!p.product_ids?.length) continue;
+
+    // Marca participación (aunque aún no alcance el mínimo de 2 unidades).
+    for (const pid of p.product_ids) {
+      if (!items.some((i) => i.product.id === pid)) continue;
+      if (!out[pid]) {
+        out[pid] = {
+          productId: pid,
+          promotionId: p.id,
+          label: promoLabel(p),
+          participating: true,
+          discountAmount: 0,
+        };
+      }
+    }
+
+    const participating = units
+      .map((u, idx) => ({ ...u, idx }))
+      .filter((u) => p.product_ids.includes(u.productId))
+      .sort((a, b) => a.price - b.price);
+    if (participating.length < 2) continue;
+
+    const pairs = Math.floor(participating.length / 2);
+    const maxPairs = p.usage_limit_per_order > 0 ? Math.min(pairs, p.usage_limit_per_order) : pairs;
+    if (maxPairs <= 0) continue;
+
+    const pct = p.benefit_type === "second_free" ? 100 : Math.max(0, Math.min(100, p.discount_percent));
+    for (let i = 0; i < maxPairs; i++) {
+      const u = participating[i];
+      const disc = Math.round(((u.price * pct) / 100) * 100) / 100;
+      if (!out[u.productId]) {
+        out[u.productId] = {
+          productId: u.productId,
+          promotionId: p.id,
+          label: promoLabel(p),
+          participating: true,
+          discountAmount: 0,
+        };
+      }
+      out[u.productId].discountAmount = Math.round((out[u.productId].discountAmount + disc) * 100) / 100;
+    }
+  }
+  return out;
 };
 
 /** Devuelve las promociones activas aplicables a un producto. */

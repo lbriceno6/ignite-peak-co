@@ -10,7 +10,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
@@ -23,6 +23,7 @@ const Cart = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const promoNudges = pendingPromoNudges(items, promotions);
+  const perProduct = perProductPromoBreakdown(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
   const subtotal = rawSubtotal - discount - promoDiscount;
   const total = rawTotal - discount - promoDiscount;
@@ -70,6 +71,14 @@ const Cart = () => {
                     {i.subscription && (
                       <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
                         <Repeat size={10} /> Cada {i.subscription.intervalDays}d · −{i.subscription.discountPercent}%
+                      </p>
+                    )}
+                    {perProduct[i.product.id]?.participating && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Sparkles size={10} /> {perProduct[i.product.id].label}
+                        {perProduct[i.product.id].discountAmount > 0 && (
+                          <span className="normal-case">· −{format(perProduct[i.product.id].discountAmount)} aplicado</span>
+                        )}
                       </p>
                     )}
                     <p className="mt-1 text-sm font-medium md:hidden">{format(lineUnitPrice(i))}</p>
