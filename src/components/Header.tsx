@@ -143,12 +143,29 @@ export const Header = () => {
     { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
-  const mains = categories.filter((c) => !c.parent_id);
+  const mains = categories
+    .filter((c) => !c.parent_id && c.show_in_menu !== false)
+    .sort((a, b) => a.sort_order - b.sort_order);
   const visibleCategories = mains.slice(0, maxCats);
   const subsByParent: Record<string, CategoryItem[]> = {};
   for (const c of categories) {
-    if (c.parent_id) (subsByParent[c.parent_id] ||= []).push(c);
+    if (c.parent_id && c.show_in_menu !== false) {
+      (subsByParent[c.parent_id] ||= []).push(c);
+    }
   }
+  Object.values(subsByParent).forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
+
+  // Group subs by column (1..N), then within column by group title
+  const groupedSubs = (parentId: string) => {
+    const subs = subsByParent[parentId] || [];
+    const byCol: Record<number, CategoryItem[]> = {};
+    subs.forEach((s) => {
+      const col = Math.max(1, Math.min(6, s.menu_column || 1));
+      (byCol[col] ||= []).push(s);
+    });
+    return byCol;
+  };
+
   const navStyle: React.CSSProperties = {
     ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
@@ -160,7 +177,7 @@ export const Header = () => {
     (async () => {
       const [navRes, catRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
-        supabase.from("categories").select("id,slug,name,icon,parent_id,sort_order").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
+        supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
