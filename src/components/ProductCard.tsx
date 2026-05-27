@@ -122,84 +122,84 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4 min-w-0">
-        {subcat && (
-          <div className="text-xs uppercase tracking-wider text-muted-foreground truncate">{subcat}</div>
-        )}
+      <div className="flex flex-1 flex-col gap-1.5 p-4 min-w-0">
+        <div className="h-4 text-xs uppercase tracking-wider text-muted-foreground truncate">
+          {subcat || "\u00A0"}
+        </div>
         <Link
           to={`/producto/${product.slug}`}
-          className="font-display text-base sm:text-lg leading-tight line-clamp-2 break-words hover:text-accent transition-smooth"
+          className="font-display text-sm sm:text-base leading-tight line-clamp-2 break-words hover:text-accent transition-smooth min-h-[2.5rem] sm:min-h-[2.75rem]"
         >
           {product.name}
         </Link>
-        {benefit && (
-          <p className="text-sm text-muted-foreground line-clamp-2 break-words">{benefit}</p>
-        )}
-
+        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 break-words min-h-[2.25rem] sm:min-h-[2.5rem]">
+          {benefit || "\u00A0"}
+        </p>
 
         {product.supplier?.slug ? (
           <Link
             to={`/proveedor/${product.supplier.slug}`}
-            className="inline-flex w-fit items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-accent"
+            className="inline-flex w-fit max-w-full items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-accent truncate"
           >
-            Vendido por <span className="font-semibold text-foreground">{product.supplier.business_name}</span>
+            Vendido por <span className="font-semibold text-foreground truncate">{product.supplier.business_name}</span>
           </Link>
         ) : null}
 
-        {product.reviews > 0 ? (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Stars rating={product.rating} />
-            <span>({product.reviews})</span>
-          </div>
-        ) : (
-          <div className="text-xs font-medium text-muted-foreground">
-            {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
-          </div>
-        )}
+        <div className="h-5 flex items-center">
+          {product.reviews > 0 ? (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Stars rating={product.rating} />
+              <span>({product.reviews})</span>
+            </div>
+          ) : (
+            <div className="text-xs font-medium text-muted-foreground">
+              {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
+            </div>
+          )}
+        </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
-          <div className="flex flex-col">
+        <div className="mt-auto pt-2">
+          <div className="min-h-[3.25rem] flex flex-col justify-end">
             {!hasPrice ? (
               <span className="font-display text-lg text-muted-foreground">Consultar precio</span>
             ) : product.oldPrice ? (
               <>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-accent">Precio de oferta</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="font-display text-2xl">{format(product.price)}</span>
-                  <span className="text-sm text-muted-foreground line-through">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="font-display text-xl sm:text-2xl leading-none">{format(product.price)}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground line-through">
                     Antes: {format(product.oldPrice)}
                   </span>
                 </div>
               </>
             ) : (
-              <span className="font-display text-2xl">{format(product.price)}</span>
+              <span className="font-display text-xl sm:text-2xl leading-none">{format(product.price)}</span>
             )}
           </div>
+
+          {hasPrice ? (
+            <Button
+              size="sm"
+              variant="accent"
+              className="mt-3 w-full min-w-0 px-2 text-xs sm:text-sm"
+              onClick={() => add(product)}
+              aria-label={`Añadir ${product.name} al carrito`}
+            >
+              <ShoppingCart size={14} /> <span className="truncate">Agregar al carrito</span>
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              asChild
+              className="mt-3 w-full min-w-0 px-2 text-xs sm:text-sm"
+            >
+              <a href={waHref} target="_blank" rel="noopener noreferrer">
+                <MessageCircle size={14} /> <span className="truncate">Consultar por WhatsApp</span>
+              </a>
+            </Button>
+          )}
         </div>
-
-        {hasPrice ? (
-          <Button
-            size="sm"
-            variant="accent"
-            className="mt-2 w-full min-w-0 px-2 text-xs sm:text-sm"
-            onClick={() => add(product)}
-            aria-label={`Añadir ${product.name} al carrito`}
-          >
-            <ShoppingCart size={14} /> <span className="truncate">Agregar al carrito</span>
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            asChild
-            className="mt-2 w-full min-w-0 px-2 text-xs sm:text-sm"
-          >
-            <a href={waHref} target="_blank" rel="noopener noreferrer">
-              <MessageCircle size={14} /> <span className="truncate">Consultar por WhatsApp</span>
-            </a>
-          </Button>
-        )}
-
       </div>
     </article>
   );
