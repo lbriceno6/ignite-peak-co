@@ -48,16 +48,24 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
   if (!products.length) return null;
 
   return (
-    <section className="bg-secondary/40 py-12 sm:py-16">
+    <section className="bg-secondary/40 py-10 sm:py-14">
       <div className="container-x">
-        <div className="flex items-end justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             {eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{eyebrow}</span>}
             <h2 className="mt-1 font-display text-2xl sm:text-3xl lg:text-4xl">{config.title}</h2>
             {config.subtitle && (
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">{config.subtitle}</p>
             )}
           </div>
+          {config.show_view_all && config.view_all_href && (
+            <Link
+              to={config.view_all_href}
+              className="inline-flex items-center gap-1 self-start text-sm font-semibold text-accent hover:underline sm:self-end"
+            >
+              {config.view_all_label || "Ver todos los productos"} <ArrowRight size={16} />
+            </Link>
+          )}
         </div>
 
         <div className="relative mt-6 sm:mt-8" style={style}>
