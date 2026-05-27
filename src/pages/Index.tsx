@@ -220,6 +220,38 @@ const Home = () => {
   const bestSellersDisplay = (bestSellers.length ? bestSellers : products.slice(0, 4)).map(toCardProduct);
   const moreProducts = products.slice(0, 8).map(toCardProduct);
 
+  const carouselProducts = (() => {
+    if (!carouselConfig) return [] as Product[];
+    const total = carouselConfig.total_items || 8;
+    let pool = products;
+    switch (carouselConfig.source) {
+      case "manual": {
+        const order = carouselConfig.manual_slugs;
+        const bySlug = new Map(products.map((p) => [p.slug, p]));
+        return order.map((s) => bySlug.get(s)).filter(Boolean).map((p) => toCardProduct(p as DbProduct));
+      }
+      case "best_sellers":
+        pool = [
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() === "best seller"),
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() !== "best seller"),
+        ];
+        break;
+      case "popular":
+        pool = [...products].sort((a, b) => Number(b.sale_price ?? 0) - Number(a.sale_price ?? 0));
+        break;
+      case "sale":
+        pool = products.filter((p) => p.sale_price != null && Number(p.sale_price) > 0);
+        break;
+      case "top_rated":
+        pool = [...products]; // ordering by rating happens server-side; fallback: keep as-is
+        break;
+      case "recent":
+      default:
+        pool = products; // already ordered by created_at desc from query
+    }
+    return pool.slice(0, total).map(toCardProduct);
+  })();
+
   const renderBlock = (b: HomeBlock) => {
     switch (b.block_type) {
       case "hero": {
