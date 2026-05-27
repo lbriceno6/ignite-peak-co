@@ -312,33 +312,92 @@ export const Header = () => {
       )}
 
       <nav className="hidden border-t border-border lg:block" style={navStyle}>
-        <div className="container-x flex items-center gap-1 overflow-x-auto">
+        <div className="container-x flex items-center gap-1">
           {visibleCategories.map((c) => {
             const subs = subsByParent[c.id] || [];
+            const isMega = (c.menu_type ?? "mega") === "mega" && subs.length > 0;
+            const byCol = groupedSubs(c.id);
+            const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
             const linkClass = ({ isActive }: { isActive: boolean }) =>
               cn(
-                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1",
+                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
                 isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
-            if (subs.length === 0) {
+            if (!isMega) {
               return (
                 <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
                   {c.name}
+                  {c.menu_badge && (
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                  )}
                 </NavLink>
               );
             }
             return (
-              <div key={c.id} className="relative group">
+              <div key={c.id} className="static group">
                 <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
                   {c.name}
+                  {c.menu_badge && (
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                  )}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
-                <div className="invisible absolute left-0 top-full z-50 min-w-[220px] -translate-y-1 rounded-md border border-border bg-popover py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  {subs.map((s) => (
-                    <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="block px-4 py-2 text-sm text-popover-foreground hover:bg-secondary">
-                      {s.name}
-                    </Link>
-                  ))}
+                {/* Mega panel — full width */}
+                <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${Math.max(cols.length, 1) + (c.featured_enabled ? 1 : 0)}, minmax(0, 1fr))` }}>
+                    {cols.map((col) => {
+                      const items = byCol[col];
+                      // group by menu_group_title within column
+                      const groups: Record<string, CategoryItem[]> = {};
+                      items.forEach((s) => {
+                        const k = s.menu_group_title || "";
+                        (groups[k] ||= []).push(s);
+                      });
+                      return (
+                        <div key={col} className="flex flex-col gap-5">
+                          {Object.entries(groups).map(([gtitle, gitems]) => (
+                            <div key={gtitle} className="flex flex-col gap-2">
+                              {gtitle && (
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-success">{gtitle}</h4>
+                              )}
+                              <ul className="flex flex-col gap-1">
+                                {gitems.map((s) => (
+                                  <li key={s.id}>
+                                    <Link
+                                      to={`/categoria/${c.slug}/${s.slug}`}
+                                      className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success"
+                                    >
+                                      {s.name}
+                                      {s.menu_badge && (
+                                        <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                                      )}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    {c.featured_enabled && (c.featured_title || c.featured_image_url) && (
+                      <Link
+                        to={c.featured_cta_href || `/categoria/${c.slug}`}
+                        className="group/feat flex flex-col overflow-hidden rounded-lg border border-border bg-secondary/50 transition-smooth hover:border-accent hover:shadow-md"
+                      >
+                        {c.featured_image_url && (
+                          <img src={c.featured_image_url} alt={c.featured_title || ""} className="aspect-[16/10] w-full object-cover transition-transform group-hover/feat:scale-105" />
+                        )}
+                        <div className="flex flex-1 flex-col gap-2 p-4">
+                          {c.featured_title && <h5 className="font-display text-base text-foreground">{c.featured_title}</h5>}
+                          {c.featured_text && <p className="text-xs text-muted-foreground line-clamp-3">{c.featured_text}</p>}
+                          {c.featured_cta_label && (
+                            <span className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-accent">{c.featured_cta_label} →</span>
+                          )}
+                        </div>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -348,6 +407,7 @@ export const Header = () => {
           </div>
         </div>
       </nav>
+
 
     </header>
   );
