@@ -17,6 +17,11 @@ type NavLinkRow = {
 };
 
 const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url", "favicon_url"] as const;
+const MENU_KEYS = ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"] as const;
+const FONT_OPTIONS = [
+  "", "Inter", "Poppins", "Montserrat", "Roboto", "Lato", "Oswald",
+  "Bebas Neue", "Playfair Display", "Raleway", "Nunito", "system-ui", "serif", "sans-serif",
+];
 
 export default function AdminNavigation() {
   const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
