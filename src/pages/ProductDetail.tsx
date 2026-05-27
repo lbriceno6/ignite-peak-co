@@ -428,56 +428,21 @@ const ProductDetail = () => {
           })()}
 
           {/* Bloques de confianza */}
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Lock size={18} className="text-primary" />
-              </div>
-              <h3 className="mt-3 text-sm font-bold">Pagos seguros</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Compra protegida y confiable</p>
-            </div>
-            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <CreditCard size={18} className="text-primary" />
-              </div>
-              <h3 className="mt-3 text-sm font-bold">Múltiples medios de pago</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Yape, Plin, tarjetas y más</p>
-            </div>
-            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <BadgeCheck size={18} className="text-primary" />
-              </div>
-              <h3 className="mt-3 text-sm font-bold">Garantía de satisfacción</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Compra con mayor tranquilidad</p>
-            </div>
-            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                <Globe2 size={18} className="text-primary" />
-              </div>
-              <h3 className="mt-3 text-sm font-bold">Envíos a todo el Perú</h3>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Recibe tu pedido donde estés</p>
-            </div>
-          </div>
+          <ul className="mt-6 space-y-2 rounded-xl border bg-secondary/30 p-4 text-sm">
+            <li className="flex items-center gap-2">
+              <Truck size={16} className="text-primary" />
+              <span>Envío gratis sobre S/ 50.00 · entrega 1–3 días</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-primary" />
+              <span>Garantía de devolución de 30 días</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <Award size={16} className="text-primary" />
+              <span>Probado en laboratorio · Certificado GMP</span>
+            </li>
+          </ul>
 
-          {/* Franja de medios de pago */}
-          <div className="mt-6 rounded-xl border bg-secondary/30 p-4">
-            <p className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Medios de pago aceptados</p>
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              {[
-                { src: "/payments/visa.svg", alt: "Visa" },
-                { src: "/payments/mastercard.svg", alt: "Mastercard" },
-                { src: "/payments/amex.svg", alt: "American Express" },
-                { src: "/payments/diners.svg", alt: "Diners Club" },
-                { src: "/payments/pagoefectivo.svg", alt: "PagoEfectivo" },
-                { src: "/payments/yape.svg", alt: "Yape" },
-                { src: "/payments/plin.svg", alt: "Plin" },
-              ].map((p) => (
-                <div key={p.alt} className="flex h-10 items-center justify-center rounded-md bg-background px-3 shadow-sm border" title={p.alt}>
-                  <img src={p.src} alt={p.alt} loading="lazy" className="h-6 w-auto object-contain" />
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </section>
 
