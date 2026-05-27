@@ -236,17 +236,18 @@ const ProductDetail = () => {
         <meta property="product:availability" content={(dbp as any).stock > 0 ? "in stock" : "out of stock"} />
       </Helmet>
       <div className="container-x py-6">
-        <nav className="text-xs uppercase tracking-wider text-muted-foreground">
+        <nav className="flex flex-wrap gap-x-1 text-xs uppercase tracking-wider text-muted-foreground break-words">
           <Link to="/" className="hover:text-accent">Inicio</Link>
           {product.category && (<>
-            {" / "}
+            <span>/</span>
             <Link to={`/categoria/${product.category.toLowerCase()}`} className="hover:text-accent">{product.category}</Link>
           </>)}
-          {" / "}<span className="text-foreground">{product.name}</span>
+          <span>/</span><span className="text-foreground break-words">{product.name}</span>
         </nav>
       </div>
 
-      <section className="container-x grid gap-10 pb-12 lg:grid-cols-2">
+      <section className="container-x grid gap-6 pb-12 md:gap-10 lg:grid-cols-2">
+
         <div>
           <div className="overflow-hidden rounded-lg bg-secondary aspect-square">
             <img src={gallery[activeImg] ?? mainImg} alt={altFor(gallery[activeImg] ?? mainImg)} className="h-full w-full object-cover" />
