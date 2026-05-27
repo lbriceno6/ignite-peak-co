@@ -119,6 +119,18 @@ export const Header = () => {
   const [categories, setCategories] = useState<CategoryItem[]>(fallbackCategories);
   const navigate = useNavigate();
 
+  const { content: menuStyle } = useSiteContent(
+    ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"],
+    { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
+  );
+  const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
+  const visibleCategories = categories.slice(0, maxCats);
+  const navStyle: React.CSSProperties = {
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+    ...(menuStyle.nav_menu_bg_color ? { backgroundColor: menuStyle.nav_menu_bg_color } : {}),
+  };
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -132,6 +144,7 @@ export const Header = () => {
     })();
     return () => { alive = false; };
   }, []);
+
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
