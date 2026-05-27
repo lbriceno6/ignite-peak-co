@@ -492,7 +492,7 @@ const ProductDetail = () => {
 
       {faqs.length > 0 && (
         <section className="container-x pb-16">
-          <h2 className="font-display text-3xl uppercase">Preguntas frecuentes</h2>
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">Preguntas frecuentes</h2>
           <Accordion type="single" collapsible className="mt-4 max-w-3xl">
             {faqs.map((f, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
