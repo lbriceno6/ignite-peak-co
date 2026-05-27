@@ -1,72 +1,93 @@
-# Plan: Tracking, consentimiento y atribución para Lucía
+## Promociones tipo "Segundo producto"
 
-Implementación grande dividida en fases. Cada fase es independiente y verificable.
+Voy a crear un sistema completo de promociones tipo BOGO (Buy One Get One) con dos modalidades: segundo con descuento (%) o segundo gratis (2x1).
 
-## Fase 1 — Base de datos
+### 1. Base de datos (migración)
 
-Migración única que crea/actualiza:
+Nueva tabla `promotions`:
+- `id`, `name` (nombre interno)
+- `benefit_type`: enum `'second_discount' | 'second_free'`
+- `discount_percent` (numérico, solo aplica si `second_discount`; valores libres: 25/30/40/50/70/personalizado)
+- `start_date`, `end_date` (timestamptz, nullables)
+- `usage_limit_per_order` (int, default 1)
+- `show_on_home` (bool), `show_on_product` (bool)
+- `is_active` (bool)
 
-- **Tabla nueva `visitor_tracking`**: visitor_id, session_id, user_id, páginas (first/current/last), referrer, source/medium/campaign, UTMs, gclid/fbclid/ttclid, device_type/browser/os/language, country/region/city/timezone, consent_analytics/marketing/personalization, timestamps. RLS: admin lee todo, público puede insert/update por visitor_id.
-- **Ampliar `chat_ai_sessions`**: visitor_id, referrer, source, medium, campaign, device_type, browser, os, country, city, timezone, consent_snapshot jsonb, landing_page, first_product_viewed, last_product_viewed.
-- **Ampliar `chat_ai_messages`**: visitor_id, source, current_page, referrer, utm_data jsonb, device_data jsonb, location_data jsonb.
-- **Tabla `lucia_events`**: id, visitor_id, session_id, event_type (lucia_chat_open, lucia_chat_message, lucia_product_recommendation, lucia_product_click, lucia_whatsapp_click, lucia_lead_captured), product_id, page, source, campaign, metadata jsonb, created_at. RLS: insert público, select admin.
-- Índices por visitor_id, session_id, source, country, created_at.
+Nueva tabla `promotion_products`:
+- `promotion_id` → `promotions.id`
+- `product_id` → `products.id`
+- PK compuesta
 
-## Fase 2 — Cliente: cookies, visitor_id y tracking
+GRANTs + RLS:
+- Lectura pública de promociones activas vigentes
+- Admins gestionan todo (insert/update/delete)
 
-Archivos nuevos:
+### 2. Admin: nueva página `AdminPromotions.tsx`
 
-- `src/lib/consent.ts`: gestión de `cookie_consent` en localStorage + helpers `getConsent()`, `setConsent()`, `hasConsent(category)`.
-- `src/lib/visitor.ts`: genera/lee `nutribatidos_visitor_id` (UUID, persistente) y `nutribatidos_session_id` (renovable por sesión, 30 min de inactividad).
-- `src/lib/attribution.ts`: parsea URL (UTMs, gclid/fbclid/ttclid) y referrer → devuelve `{source, medium, campaign, ...}`. Persiste primera atribución en localStorage.
-- `src/lib/device.ts`: detecta device_type, browser, os, language, timezone con `navigator` + `Intl`.
-- `src/hooks/useVisitorTracking.ts`: en cada cambio de ruta hace upsert a `visitor_tracking` con los datos disponibles según consentimiento.
+Ruta `/admin/promociones`. Lista + formulario con:
+- Nombre
+- Tipo de beneficio (radio: descuento / gratis)
+- Porcentaje (select 25/30/40/50/70 + "Personalizado" con input) — solo visible si tipo = descuento
+- Multi-select de productos participantes (buscable)
+- Fechas inicio/fin
+- Límite por pedido
+- Toggles: Mostrar en Home, Mostrar en ficha, Activo
 
-Componentes nuevos:
+Se añade entrada en el sidebar admin bajo "Catálogo".
 
-- `src/components/CookieBanner.tsx`: banner inferior con botones Aceptar todo / Rechazar / Configurar.
-- `src/components/CookiePreferencesModal.tsx`: modal con switches por categoría (necesarias bloqueadas en true).
-- Botón "Configurar cookies" añadido al `Footer.tsx`.
+### 3. Lógica de aplicación en carrito
 
-Integración en `App.tsx` / `Layout.tsx`: montar `CookieBanner` + `useVisitorTracking` global. `AnalyticsScripts` y pixels solo cargan si hay consentimiento correspondiente.
+Nuevo helper `src/lib/promotions.ts`:
+- `expandUnits(items)`: convierte CartItems en una lista plana de unidades con su precio
+- `applyPromotions(items, promotions)`: para cada promoción activa, agrupa unidades participantes en pares y aplica descuento al de **menor precio** del par
+- Retorna `{ discountTotal, appliedPromotions: [{promotionId, name, label, amount}] }`
 
-## Fase 3 — Lucía y edge function
+Hook `usePromotions()` que carga promociones vigentes activas con sus product_ids desde Supabase y cachea.
 
-- `LuciaChat.tsx`: al abrir, enviar evento `lucia_chat_open` con contexto completo. Al enviar mensaje, al hacer click en producto o WhatsApp, registrar eventos.
-- `useLuciaContext.ts`: incluir visitor_id, session_id, source, device, location en el payload enviado a `ai-chat`.
-- `supabase/functions/ai-chat/index.ts`: leer headers `x-forwarded-for`, `cf-ipcountry`, `user-agent`, `accept-language` y guardar país/IP server-side. Persistir en `chat_ai_sessions` y `chat_ai_messages` los campos nuevos. Nunca devolver IP al cliente.
-- Helper `logLuciaEvent()` en cliente para insertar en `lucia_events`.
+Integración en:
+- `src/store/cart.ts` → `cartTotals` recibe descuento de promos (o se calcula en consumidor)
+- `src/pages/Cart.tsx` → muestra línea "Promoción: X" con texto dinámico
+- `src/components/CartDrawer.tsx` → idem
+- `src/pages/Checkout.tsx` → aplica el mismo descuento al total y lo persiste en la orden como descuento adicional (en `subtotal` calculado o nuevo campo opcional). Para no tocar esquema de orders, se descuenta del subtotal antes de guardar.
 
-## Fase 4 — Admin: visitantes, atribución y conversación enriquecida
+### 4. Etiquetas en producto
 
-- `AdminChatAI.tsx`: añadir dos tabs nuevos.
-  - **Visitantes y origen**: KPIs (totales, por fuente/campaña/país/ciudad/dispositivo/navegador), tablas de páginas y productos top. Filtros: fecha, fuente, campaña, país, ciudad, dispositivo, producto, página, proveedor, con WhatsApp, con compra.
-  - **Atribución**: conversaciones / WhatsApp clicks / leads / recomendaciones por canal. Top campañas, páginas que activan Lucía, productos.
-- Modal de conversación: cabecera enriquecida con nombre, teléfono, país/ciudad, dispositivo, navegador, fuente, campaña, primera página, página de apertura, producto, proveedor/modelo, estado de cookies, clic a WhatsApp.
+En `ProductCard.tsx` y ficha de producto: si el producto está en alguna promoción activa con `show_on_product = true`, mostrar badge:
+- `2do con X% dscto` (segundo con descuento)
+- `2x1` (segundo gratis)
 
-## Fase 5 — Privacidad
+### 5. Banner en Home (opcional, mínimo)
 
-- Página `/politica-de-cookies` y actualización de `/politica-de-privacidad` con: cookies usadas, finalidades, cómo cambiar preferencias, datos de Lucía, derechos del usuario.
-- Footer: enlace a ambas + botón "Configurar cookies".
+Si hay promo con `show_on_home = true`, mostrar pequeño banner sobre el carrusel con título + subtítulo dinámicos según tipo.
 
-## Seguridad
+### Textos dinámicos (helper)
+```
+labelForPromo(p): "2do con 50% dscto" | "2x1"
+titleForPromo(p): "Compra uno y lleva otro [gratis]"
+cartMessage(p): "Promoción aplicada: ..."
+```
 
-- IP solo en logs server-side, nunca expuesta en `chat_ai_*` ni al frontend.
-- Sin GPS, sin geolocation API.
-- Consentimiento bloquea analytics/marketing/personalización.
-- RLS en todas las tablas nuevas; insert público solo por visitor_id, select solo admin.
+### Archivos a crear
+- `supabase/migrations/<ts>_promotions.sql`
+- `src/lib/promotions.ts`
+- `src/hooks/usePromotions.ts`
+- `src/pages/admin/AdminPromotions.tsx`
+- `src/components/PromoBadge.tsx`
 
-## Detalles técnicos
+### Archivos a editar
+- `src/App.tsx` — ruta admin
+- `src/components/admin/AdminLayout.tsx` — link sidebar
+- `src/components/ProductCard.tsx` — badge
+- `src/pages/ProductDetail.tsx` — badge + mensaje
+- `src/store/cart.ts` — exponer subtotal pre-descuento (ya existe)
+- `src/pages/Cart.tsx` — mostrar descuento promo
+- `src/components/CartDrawer.tsx` — mostrar descuento promo
+- `src/pages/Checkout.tsx` — aplicar descuento promo al total
+- `src/pages/Index.tsx` — banner home (si aplica)
 
-- Reutilizamos `chat_ai_settings.save_conversations` como gate adicional.
-- `visitor_tracking` se upsertea por `visitor_id` (unique). `session_id` se actualiza en cada hit.
-- Eventos `lucia_events` se insertan también si el usuario rechaza cookies (solo categoría "necesaria" = funcionamiento de Lucía), pero sin UTMs/device si no hay consentimiento de analytics.
-- Atribución "first touch" persistente + "last touch" por sesión.
+### No se toca
+- Lógica de productos / IA / editor imágenes
+- Estructura de `orders` (el descuento se refleja en `subtotal` calculado en checkout, igual que el reseller_discount)
+- Identidad visual
 
-## Orden de ejecución
-
-1. Migración (Fase 1) → esperar aprobación.
-2. Helpers cliente + banner cookies (Fase 2).
-3. Tracking + edge function (Fase 3).
-4. Admin dashboards (Fase 4).
-5. Páginas legales (Fase 5).
+¿Apruebas para implementar?

@@ -1494,6 +1494,84 @@ export type Database = {
         }
         Relationships: []
       }
+      promotion_products: {
+        Row: {
+          created_at: string
+          product_id: string
+          promotion_id: string
+        }
+        Insert: {
+          created_at?: string
+          product_id: string
+          promotion_id: string
+        }
+        Update: {
+          created_at?: string
+          product_id?: string
+          promotion_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotion_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotion_products_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      promotions: {
+        Row: {
+          benefit_type: Database["public"]["Enums"]["promotion_benefit_type"]
+          created_at: string
+          discount_percent: number
+          end_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          show_on_home: boolean
+          show_on_product: boolean
+          start_date: string | null
+          updated_at: string
+          usage_limit_per_order: number
+        }
+        Insert: {
+          benefit_type?: Database["public"]["Enums"]["promotion_benefit_type"]
+          created_at?: string
+          discount_percent?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          show_on_home?: boolean
+          show_on_product?: boolean
+          start_date?: string | null
+          updated_at?: string
+          usage_limit_per_order?: number
+        }
+        Update: {
+          benefit_type?: Database["public"]["Enums"]["promotion_benefit_type"]
+          created_at?: string
+          discount_percent?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          show_on_home?: boolean
+          show_on_product?: boolean
+          start_date?: string | null
+          updated_at?: string
+          usage_limit_per_order?: number
+        }
+        Relationships: []
+      }
       reseller_payouts: {
         Row: {
           amount: number
@@ -2920,6 +2998,7 @@ export type Database = {
         | "shipped"
         | "delivered"
         | "cancelled"
+      promotion_benefit_type: "second_discount" | "second_free"
       subscription_status: "active" | "paused" | "cancelled"
     }
     CompositeTypes: {
@@ -3058,6 +3137,7 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
+      promotion_benefit_type: ["second_discount", "second_free"],
       subscription_status: ["active", "paused", "cancelled"],
     },
   },
