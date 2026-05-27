@@ -11,7 +11,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
-import { useCart } from "@/store/cart";
+import { useCart, lineSubtotal } from "@/store/cart";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { useFreeShippingBar } from "@/hooks/useFreeShippingBar";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
@@ -86,7 +88,8 @@ const parseList = (val: any): string[] => {
 
 const ProductDetail = () => {
   const { slug } = useParams();
-  const { add, toggleWish, wishlist } = useCart();
+  const { add, toggleWish, wishlist, items: cartItems } = useCart();
+  const freeShip = useFreeShippingBar();
   const { format } = useCurrency();
   const subSettings = useSubscriptionSettings();
   const [loading, setLoading] = useState(true);
