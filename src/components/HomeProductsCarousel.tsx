@@ -5,6 +5,8 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 
 import { ProductCard } from "@/components/ProductCard";
+import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
+import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
 import type { Product } from "@/data/catalog";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 
@@ -49,7 +51,8 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
 
   return (
     <section className="bg-secondary/40 py-10 sm:py-14">
-      <div className="container-x">
+      <div className="container-x hpc-scope">
+        <HomeProductCardStylesInline />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div className="min-w-0">
             {eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{eyebrow}</span>}
@@ -129,3 +132,9 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
     </section>
   );
 }
+
+function HomeProductCardStylesInline() {
+  const { style } = useHomeProductCardStyle();
+  return <HomeProductCardStyles style={style} scope=".hpc-scope" />;
+}
+
