@@ -21,9 +21,14 @@ type CategoryItem = {
   parent_id: string | null;
   sort_order: number;
   show_in_menu?: boolean;
+  menu_show_desktop?: boolean;
+  menu_show_mobile?: boolean;
+  menu_label?: string | null;
   menu_column?: number;
   menu_group_title?: string | null;
   menu_badge?: string | null;
+  menu_badge_bg?: string | null;
+  menu_badge_color?: string | null;
   menu_type?: string;
   featured_enabled?: boolean;
   featured_title?: string | null;
@@ -31,6 +36,25 @@ type CategoryItem = {
   featured_cta_label?: string | null;
   featured_cta_href?: string | null;
   featured_image_url?: string | null;
+};
+
+type MenuCustomField = {
+  id: string;
+  parent_category_id: string | null;
+  field_type: string;
+  title: string;
+  subtitle: string | null;
+  href: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  column_index: number;
+  sort_order: number;
+  is_active: boolean;
+  show_desktop: boolean;
+  show_mobile: boolean;
+  badge_text: string | null;
+  badge_bg: string | null;
+  badge_color: string | null;
 };
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
