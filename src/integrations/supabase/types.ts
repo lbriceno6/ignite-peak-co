@@ -207,14 +207,25 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          featured_cta_href: string | null
+          featured_cta_label: string | null
+          featured_enabled: boolean
+          featured_image_url: string | null
+          featured_text: string | null
+          featured_title: string | null
           icon: string | null
           id: string
           image_url: string | null
           is_active: boolean
+          menu_badge: string | null
+          menu_column: number
+          menu_group_title: string | null
+          menu_type: string
           meta_description: string | null
           meta_title: string | null
           name: string
           parent_id: string | null
+          show_in_menu: boolean
           slug: string
           sort_order: number
           type: Database["public"]["Enums"]["category_type"]
@@ -223,14 +234,25 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          featured_cta_href?: string | null
+          featured_cta_label?: string | null
+          featured_enabled?: boolean
+          featured_image_url?: string | null
+          featured_text?: string | null
+          featured_title?: string | null
           icon?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          menu_badge?: string | null
+          menu_column?: number
+          menu_group_title?: string | null
+          menu_type?: string
           meta_description?: string | null
           meta_title?: string | null
           name: string
           parent_id?: string | null
+          show_in_menu?: boolean
           slug: string
           sort_order?: number
           type: Database["public"]["Enums"]["category_type"]
@@ -239,14 +261,25 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          featured_cta_href?: string | null
+          featured_cta_label?: string | null
+          featured_enabled?: boolean
+          featured_image_url?: string | null
+          featured_text?: string | null
+          featured_title?: string | null
           icon?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          menu_badge?: string | null
+          menu_column?: number
+          menu_group_title?: string | null
+          menu_type?: string
           meta_description?: string | null
           meta_title?: string | null
           name?: string
           parent_id?: string | null
+          show_in_menu?: boolean
           slug?: string
           sort_order?: number
           type?: Database["public"]["Enums"]["category_type"]
