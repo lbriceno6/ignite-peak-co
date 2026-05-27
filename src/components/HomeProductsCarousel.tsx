@@ -5,6 +5,8 @@ import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 
 import { ProductCard } from "@/components/ProductCard";
+import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
+import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
 import type { Product } from "@/data/catalog";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 
