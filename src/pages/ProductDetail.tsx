@@ -417,6 +417,32 @@ const ProductDetail = () => {
             </Button>
           </div>
 
+          {freeShip.enabled && freeShip.showBar && freeShip.showPdp && (() => {
+            const cartSubtotal = cartItems.reduce((s, it) => s + lineSubtotal(it), 0);
+            const withThis = cartSubtotal + effectivePrice * qty;
+            const remainingWithout = Math.max(0, freeShip.threshold - cartSubtotal);
+            const wouldAchieve = withThis >= freeShip.threshold && cartSubtotal < freeShip.threshold;
+            return (
+              <div className="mt-4 space-y-2">
+                {cartSubtotal === 0 ? (
+                  <p className="text-xs font-medium" style={{ color: "#151515" }}>
+                    🚚 Envío gratis desde {format(freeShip.threshold)}
+                  </p>
+                ) : wouldAchieve ? (
+                  <p className="text-xs font-semibold" style={{ color: freeShip.barColor }}>
+                    🎉 Agrega este producto y obtén envío gratis.
+                  </p>
+                ) : remainingWithout > 0 ? (
+                  <p className="text-xs font-medium" style={{ color: "#151515" }}>
+                    🚚 Con este producto te faltaría {format(Math.max(0, freeShip.threshold - withThis))} para envío gratis.
+                  </p>
+                ) : null}
+                <FreeShippingBar subtotal={withThis} variant="compact" surface="pdp" />
+              </div>
+            );
+          })()}
+
+
           {(() => {
             const lines = [
               `¡Hola! Estoy interesado en ${product.name}`,
