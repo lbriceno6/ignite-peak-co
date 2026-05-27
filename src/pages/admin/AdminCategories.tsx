@@ -37,6 +37,17 @@ type Category = {
   meta_description: string | null;
   sort_order: number;
   is_active: boolean;
+  show_in_menu?: boolean;
+  menu_column?: number;
+  menu_group_title?: string | null;
+  menu_badge?: string | null;
+  menu_type?: "mega" | "link";
+  featured_enabled?: boolean;
+  featured_title?: string | null;
+  featured_text?: string | null;
+  featured_cta_label?: string | null;
+  featured_cta_href?: string | null;
+  featured_image_url?: string | null;
 };
 
 const empty: Partial<Category> = {
@@ -51,6 +62,12 @@ const empty: Partial<Category> = {
   meta_description: "",
   sort_order: 0,
   is_active: true,
+  show_in_menu: true,
+  menu_column: 1,
+  menu_group_title: "",
+  menu_badge: "",
+  menu_type: "mega",
+  featured_enabled: false,
 };
 
 export default function AdminCategories() {
@@ -112,6 +129,17 @@ export default function AdminCategories() {
       meta_description: editing.meta_description || null,
       sort_order: Number(editing.sort_order) || 0,
       is_active: editing.is_active ?? true,
+      show_in_menu: editing.show_in_menu ?? true,
+      menu_column: Number(editing.menu_column) || 1,
+      menu_group_title: editing.menu_group_title || null,
+      menu_badge: editing.menu_badge || null,
+      menu_type: (editing.menu_type as "mega" | "link") ?? "mega",
+      featured_enabled: editing.featured_enabled ?? false,
+      featured_title: editing.featured_title || null,
+      featured_text: editing.featured_text || null,
+      featured_cta_label: editing.featured_cta_label || null,
+      featured_cta_href: editing.featured_cta_href || null,
+      featured_image_url: editing.featured_image_url || null,
     };
     const res = editing.id
       ? await supabase.from("categories").update(payload).eq("id", editing.id)
@@ -390,6 +418,126 @@ export default function AdminCategories() {
                 placeholder="https://..."
               />
             </div>
+
+            {/* Mega menú */}
+            <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+              <div className="text-sm font-semibold">Mega menú</div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Mostrar en menú principal</Label>
+                  <div className="flex h-10 items-center">
+                    <Switch
+                      checked={editing.show_in_menu ?? true}
+                      onCheckedChange={(v) => setEditing({ ...editing, show_in_menu: v })}
+                    />
+                  </div>
+                </div>
+                {!editing.parent_id ? (
+                  <div className="space-y-1.5">
+                    <Label>Tipo de menú</Label>
+                    <Select
+                      value={editing.menu_type ?? "mega"}
+                      onValueChange={(v) => setEditing({ ...editing, menu_type: v as "mega" | "link" })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mega">Mega menú</SelectItem>
+                        <SelectItem value="link">Enlace simple</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label>Columna (1–6)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={6}
+                      value={editing.menu_column ?? 1}
+                      onChange={(e) => setEditing({ ...editing, menu_column: Number(e.target.value) })}
+                    />
+                  </div>
+                )}
+              </div>
+              {editing.parent_id && (
+                <div className="space-y-1.5">
+                  <Label>Grupo / título de columna (opcional)</Label>
+                  <Input
+                    value={editing.menu_group_title ?? ""}
+                    onChange={(e) => setEditing({ ...editing, menu_group_title: e.target.value })}
+                    placeholder="Bienestar digestivo"
+                  />
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <Label>Etiqueta destacada (Nuevo, Oferta, 2x1...)</Label>
+                <Input
+                  value={editing.menu_badge ?? ""}
+                  onChange={(e) => setEditing({ ...editing, menu_badge: e.target.value })}
+                  placeholder="Oferta"
+                />
+              </div>
+            </div>
+
+            {/* Bloque destacado del mega menú (solo categorías principales) */}
+            {!editing.parent_id && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold">Bloque destacado del mega menú</div>
+                  <Switch
+                    checked={editing.featured_enabled ?? false}
+                    onCheckedChange={(v) => setEditing({ ...editing, featured_enabled: v })}
+                  />
+                </div>
+                {editing.featured_enabled && (
+                  <div className="space-y-3">
+                    <div className="space-y-1.5">
+                      <Label>Título</Label>
+                      <Input
+                        value={editing.featured_title ?? ""}
+                        onChange={(e) => setEditing({ ...editing, featured_title: e.target.value })}
+                        placeholder="Compra uno y lleva otro"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Texto</Label>
+                      <Textarea
+                        rows={2}
+                        value={editing.featured_text ?? ""}
+                        onChange={(e) => setEditing({ ...editing, featured_text: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label>Texto del botón</Label>
+                        <Input
+                          value={editing.featured_cta_label ?? ""}
+                          onChange={(e) => setEditing({ ...editing, featured_cta_label: e.target.value })}
+                          placeholder="Ver promoción"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Enlace del botón</Label>
+                        <Input
+                          value={editing.featured_cta_href ?? ""}
+                          onChange={(e) => setEditing({ ...editing, featured_cta_href: e.target.value })}
+                          placeholder="/promociones"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label>Imagen (URL)</Label>
+                      <Input
+                        value={editing.featured_image_url ?? ""}
+                        onChange={(e) => setEditing({ ...editing, featured_image_url: e.target.value })}
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
 
             <div className="space-y-1.5">
               <Label>SEO · Meta título</Label>

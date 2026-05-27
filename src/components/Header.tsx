@@ -13,7 +13,25 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 
-type CategoryItem = { id: string; slug: string; name: string; icon: string | null; parent_id: string | null };
+type CategoryItem = {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string | null;
+  parent_id: string | null;
+  sort_order: number;
+  show_in_menu?: boolean;
+  menu_column?: number;
+  menu_group_title?: string | null;
+  menu_badge?: string | null;
+  menu_type?: string;
+  featured_enabled?: boolean;
+  featured_title?: string | null;
+  featured_text?: string | null;
+  featured_cta_label?: string | null;
+  featured_cta_href?: string | null;
+  featured_image_url?: string | null;
+};
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 
@@ -125,12 +143,29 @@ export const Header = () => {
     { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
-  const mains = categories.filter((c) => !c.parent_id);
+  const mains = categories
+    .filter((c) => !c.parent_id && c.show_in_menu !== false)
+    .sort((a, b) => a.sort_order - b.sort_order);
   const visibleCategories = mains.slice(0, maxCats);
   const subsByParent: Record<string, CategoryItem[]> = {};
   for (const c of categories) {
-    if (c.parent_id) (subsByParent[c.parent_id] ||= []).push(c);
+    if (c.parent_id && c.show_in_menu !== false) {
+      (subsByParent[c.parent_id] ||= []).push(c);
+    }
   }
+  Object.values(subsByParent).forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
+
+  // Group subs by column (1..N), then within column by group title
+  const groupedSubs = (parentId: string) => {
+    const subs = subsByParent[parentId] || [];
+    const byCol: Record<number, CategoryItem[]> = {};
+    subs.forEach((s) => {
+      const col = Math.max(1, Math.min(6, s.menu_column || 1));
+      (byCol[col] ||= []).push(s);
+    });
+    return byCol;
+  };
+
   const navStyle: React.CSSProperties = {
     ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
@@ -142,7 +177,7 @@ export const Header = () => {
     (async () => {
       const [navRes, catRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
-        supabase.from("categories").select("id,slug,name,icon,parent_id,sort_order").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
+        supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
@@ -189,25 +224,41 @@ export const Header = () => {
               {visibleCategories.map((c) => {
                 const subs = subsByParent[c.id] || [];
                 return (
-                  <div key={c.id}>
-                    <Link to={`/categoria/${c.slug}`} className="flex items-center rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
-                      <span className="mr-2">{c.icon}</span> {c.name}
-                    </Link>
+                  <details key={c.id} className="group/m rounded-md">
+                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 font-medium hover:bg-secondary">
+                      <span className="inline-flex items-center gap-2">
+                        {c.icon && <span>{c.icon}</span>}
+                        {c.name}
+                        {c.menu_badge && (
+                          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                        )}
+                      </span>
+                      {subs.length > 0 && (
+                        <ChevronDown size={16} className="transition-transform group-open/m:rotate-180" />
+                      )}
+                    </summary>
                     {subs.length > 0 && (
-                      <div className="ml-6 flex flex-col gap-0.5 border-l pl-2">
+                      <div className="ml-4 mb-2 flex flex-col gap-0.5 border-l pl-2">
+                        <Link to={`/categoria/${c.slug}`} className="rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary">
+                          Ver toda la categoría
+                        </Link>
                         {subs.map((s) => (
-                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                          <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
                             {s.name}
+                            {s.menu_badge && (
+                              <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                            )}
                           </Link>
                         ))}
                       </div>
                     )}
-                  </div>
+                  </details>
                 );
               })}
               {navItems.length > 0 && <hr className="my-3" />}
               {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
+
 
           </SheetContent>
         </Sheet>
@@ -276,34 +327,93 @@ export const Header = () => {
         </div>
       )}
 
-      <nav className="hidden border-t border-border lg:block" style={navStyle}>
-        <div className="container-x flex items-center gap-1 overflow-x-auto">
+      <nav className="relative hidden border-t border-border lg:block" style={navStyle}>
+        <div className="container-x flex items-center gap-1">
           {visibleCategories.map((c) => {
             const subs = subsByParent[c.id] || [];
+            const isMega = (c.menu_type ?? "mega") === "mega" && subs.length > 0;
+            const byCol = groupedSubs(c.id);
+            const cols = Object.keys(byCol).map(Number).sort((a, b) => a - b);
             const linkClass = ({ isActive }: { isActive: boolean }) =>
               cn(
-                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1",
+                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
                 isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
-            if (subs.length === 0) {
+            if (!isMega) {
               return (
                 <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
                   {c.name}
+                  {c.menu_badge && (
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                  )}
                 </NavLink>
               );
             }
             return (
-              <div key={c.id} className="relative group">
+              <div key={c.id} className="static group">
                 <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
                   {c.name}
+                  {c.menu_badge && (
+                    <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                  )}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
-                <div className="invisible absolute left-0 top-full z-50 min-w-[220px] -translate-y-1 rounded-md border border-border bg-popover py-2 opacity-0 shadow-lg transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
-                  {subs.map((s) => (
-                    <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="block px-4 py-2 text-sm text-popover-foreground hover:bg-secondary">
-                      {s.name}
-                    </Link>
-                  ))}
+                {/* Mega panel — full width */}
+                <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${Math.max(cols.length, 1) + (c.featured_enabled ? 1 : 0)}, minmax(0, 1fr))` }}>
+                    {cols.map((col) => {
+                      const items = byCol[col];
+                      // group by menu_group_title within column
+                      const groups: Record<string, CategoryItem[]> = {};
+                      items.forEach((s) => {
+                        const k = s.menu_group_title || "";
+                        (groups[k] ||= []).push(s);
+                      });
+                      return (
+                        <div key={col} className="flex flex-col gap-5">
+                          {Object.entries(groups).map(([gtitle, gitems]) => (
+                            <div key={gtitle} className="flex flex-col gap-2">
+                              {gtitle && (
+                                <h4 className="text-xs font-bold uppercase tracking-wider text-success">{gtitle}</h4>
+                              )}
+                              <ul className="flex flex-col gap-1">
+                                {gitems.map((s) => (
+                                  <li key={s.id}>
+                                    <Link
+                                      to={`/categoria/${c.slug}/${s.slug}`}
+                                      className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success"
+                                    >
+                                      {s.name}
+                                      {s.menu_badge && (
+                                        <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                                      )}
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                    {c.featured_enabled && (c.featured_title || c.featured_image_url) && (
+                      <Link
+                        to={c.featured_cta_href || `/categoria/${c.slug}`}
+                        className="group/feat flex flex-col overflow-hidden rounded-lg border border-border bg-secondary/50 transition-smooth hover:border-accent hover:shadow-md"
+                      >
+                        {c.featured_image_url && (
+                          <img src={c.featured_image_url} alt={c.featured_title || ""} className="aspect-[16/10] w-full object-cover transition-transform group-hover/feat:scale-105" />
+                        )}
+                        <div className="flex flex-1 flex-col gap-2 p-4">
+                          {c.featured_title && <h5 className="font-display text-base text-foreground">{c.featured_title}</h5>}
+                          {c.featured_text && <p className="text-xs text-muted-foreground line-clamp-3">{c.featured_text}</p>}
+                          {c.featured_cta_label && (
+                            <span className="mt-auto inline-flex items-center gap-1 text-xs font-semibold text-accent">{c.featured_cta_label} →</span>
+                          )}
+                        </div>
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -313,6 +423,7 @@ export const Header = () => {
           </div>
         </div>
       </nav>
+
 
     </header>
   );
