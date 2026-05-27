@@ -164,8 +164,38 @@ export const Header = () => {
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
-    ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"],
-    { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
+    [
+      "nav_menu_max_categories",
+      "nav_menu_font_family",
+      "nav_menu_text_color",
+      "nav_menu_bg_color",
+      "nav_menu_font_weight",
+      "nav_menu_font_size_desktop",
+      "nav_menu_font_size_mobile",
+      "nav_menu_hover_color",
+      "nav_menu_text_transform",
+      "nav_menu_letter_spacing",
+      "nav_menu_item_gap_desktop",
+      "nav_menu_item_gap_tablet",
+      "nav_menu_item_gap_mobile",
+      "nav_menu_underline_active",
+    ],
+    {
+      nav_menu_max_categories: "6",
+      nav_menu_font_family: "",
+      nav_menu_text_color: "",
+      nav_menu_bg_color: "",
+      nav_menu_font_weight: "600",
+      nav_menu_font_size_desktop: "14",
+      nav_menu_font_size_mobile: "15",
+      nav_menu_hover_color: "",
+      nav_menu_text_transform: "uppercase",
+      nav_menu_letter_spacing: "0.03em",
+      nav_menu_item_gap_desktop: "32",
+      nav_menu_item_gap_tablet: "18",
+      nav_menu_item_gap_mobile: "14",
+      nav_menu_underline_active: "1",
+    },
   );
   const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
   const labelOf = (c: CategoryItem) => (c.menu_label && c.menu_label.trim()) || c.name;
@@ -218,6 +248,37 @@ export const Header = () => {
     ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
     ...(menuStyle.nav_menu_bg_color ? { backgroundColor: menuStyle.nav_menu_bg_color } : {}),
   };
+
+  const fontWeightNum = parseInt(menuStyle.nav_menu_font_weight || "600", 10) || 600;
+  const mainLinkStyle: React.CSSProperties = {
+    fontWeight: fontWeightNum,
+    fontSize: `${parseInt(menuStyle.nav_menu_font_size_desktop || "14", 10) || 14}px`,
+    textTransform: (menuStyle.nav_menu_text_transform || "uppercase") as React.CSSProperties["textTransform"],
+    letterSpacing: menuStyle.nav_menu_letter_spacing || "0.03em",
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+  };
+  const mainMobileLinkStyle: React.CSSProperties = {
+    fontWeight: fontWeightNum,
+    fontSize: `${parseInt(menuStyle.nav_menu_font_size_mobile || "15", 10) || 15}px`,
+    textTransform: (menuStyle.nav_menu_text_transform || "uppercase") as React.CSSProperties["textTransform"],
+    letterSpacing: menuStyle.nav_menu_letter_spacing || "0.03em",
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+  };
+  const hoverColor = menuStyle.nav_menu_hover_color || "";
+  const gapDesktop = parseInt(menuStyle.nav_menu_item_gap_desktop || "32", 10) || 32;
+  const gapTablet = parseInt(menuStyle.nav_menu_item_gap_tablet || "18", 10) || 18;
+  const gapMobile = parseInt(menuStyle.nav_menu_item_gap_mobile || "14", 10) || 14;
+  const showUnderline = (menuStyle.nav_menu_underline_active ?? "1") !== "0";
+
+  const navCss = `
+    [data-nav-main] a.nav-main-link:hover { ${hoverColor ? `color: ${hoverColor} !important;` : ""} }
+    [data-nav-mobile] .nav-mobile-link:hover, [data-nav-mobile] .nav-mobile-link:hover > span { ${hoverColor ? `color: ${hoverColor} !important;` : ""} }
+    [data-nav-main] .nav-main-list { column-gap: ${gapDesktop}px; row-gap: 0; }
+    @media (max-width: 1279px) { [data-nav-main] .nav-main-list { column-gap: ${gapTablet}px; } }
+    [data-nav-mobile] .nav-mobile-list { row-gap: ${gapMobile / 2}px; }
+  `;
 
   const badgeStyle = (bg?: string | null, color?: string | null): React.CSSProperties => ({
     ...(bg ? { backgroundColor: bg } : {}),
@@ -276,13 +337,14 @@ export const Header = () => {
             <Link to="/">
               <Logo className="text-2xl" />
             </Link>
-            <nav className="mt-8 flex flex-col gap-1">
+            <nav data-nav-mobile className="nav-mobile-list mt-8 flex flex-col">
+              <style>{navCss}</style>
               {visibleCategoriesMobile.map((c) => {
                 const subs = (subsByParent[c.id] || []).filter((s) => s.menu_show_mobile !== false);
                 const mobileFields = (fieldsByParent[c.id] || []).filter((f) => f.show_mobile);
                 return (
                   <details key={c.id} className="group/m rounded-md">
-                    <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 font-medium hover:bg-secondary">
+                    <summary className="nav-mobile-link flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 hover:bg-secondary" style={mainMobileLinkStyle}>
                       <span className="inline-flex items-center gap-2">
                         {c.icon && <span>{c.icon}</span>}
                         {labelOf(c)}
@@ -392,8 +454,9 @@ export const Header = () => {
         </div>
       )}
 
-      <nav className="relative hidden border-t border-border lg:block" style={navStyle}>
-        <div className="container-x flex items-center gap-1">
+      <nav data-nav-main className="relative hidden border-t border-border lg:block" style={navStyle}>
+        <style>{navCss}</style>
+        <div className="nav-main-list container-x flex items-center">
           {visibleCategoriesDesktop.map((c) => {
             const subs = subsByParent[c.id] || [];
             const fields = (fieldsByParent[c.id] || []).filter((f) => f.show_desktop);
@@ -403,12 +466,12 @@ export const Header = () => {
             const allCols = Array.from(new Set<number>([...Object.keys(byCol).map(Number), ...Object.keys(colFields).map(Number)])).sort((a, b) => a - b);
             const linkClass = ({ isActive }: { isActive: boolean }) =>
               cn(
-                "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
-                isActive ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
             if (!isMega) {
               return (
-                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                <NavLink key={c.id} to={`/categoria/${c.slug}`} style={mainLinkStyle} className={linkClass}>
                   {labelOf(c)}
                   {c.menu_badge && (
                     <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
@@ -418,7 +481,7 @@ export const Header = () => {
             }
             return (
               <div key={c.id} className="static group">
-                <NavLink to={`/categoria/${c.slug}`} style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined} className={linkClass}>
+                <NavLink to={`/categoria/${c.slug}`} style={mainLinkStyle} className={linkClass}>
                   {labelOf(c)}
                   {c.menu_badge && (
                     <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
