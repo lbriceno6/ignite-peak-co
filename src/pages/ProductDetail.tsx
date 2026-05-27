@@ -508,12 +508,13 @@ const ProductDetail = () => {
 
       {related.length > 0 && (
         <section className="container-x pb-20">
-          <h2 className="font-display text-3xl uppercase">También te puede gustar</h2>
-          <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <h2 className="font-display text-2xl uppercase sm:text-3xl">También te puede gustar</h2>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => <ProductCard key={p.id} product={toCardProduct(p)} />)}
           </div>
         </section>
       )}
+
     </Layout>
   );
 };
