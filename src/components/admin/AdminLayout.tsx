@@ -186,6 +186,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/about")) return get("about", "Página Sobre");
   if (p.startsWith("/admin/contact")) return get("contact", "Página Contacto");
   if (p.startsWith("/admin/theme")) return get("theme", "Paleta y tipografía");
+  if (p.startsWith("/admin/product-card-typography")) return get("product-card-typography", "Tipografía tarjetas Home");
   if (p.startsWith("/admin/benefits")) return get("benefits", "Beneficios de compra");
   return "Admin";
 };
