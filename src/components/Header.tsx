@@ -13,8 +13,9 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 
-type CategoryItem = { slug: string; name: string; icon: string | null };
+type CategoryItem = { id: string; slug: string; name: string; icon: string | null; parent_id: string | null };
 import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 const ModeSwitcher = () => {
   const [mode, setMode] = useState<Mode>(() => getStoredMode());
