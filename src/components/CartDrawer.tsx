@@ -1,13 +1,18 @@
 import { Link } from "react-router-dom";
-import { X, Plus, Minus, Trash2, ShoppingBag, Repeat } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag, Repeat, Sparkles } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
+import { usePromotions } from "@/hooks/usePromotions";
+import { computePromotions } from "@/lib/promotions";
 
 export const CartDrawer = () => {
   const { items, isOpen, setOpen, remove, setQty } = useCart();
-  const { subtotal, shipping, total, count } = cartTotals(items);
+  const { subtotal, shipping, total: rawTotal, count } = cartTotals(items);
+  const { promotions } = usePromotions();
+  const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
+  const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
 
   return (
@@ -75,6 +80,12 @@ export const CartDrawer = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">{format(subtotal)}</span>
               </div>
+              {appliedPromos.map((ap) => (
+                <div key={ap.promotionId} className="flex justify-between text-sm text-accent">
+                  <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label}</span>
+                  <span className="font-medium">−{format(ap.amount)}</span>
+                </div>
+              ))}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Envío</span>
                 <span className="font-medium">{shipping === 0 ? "Gratis" : format(shipping)}</span>
