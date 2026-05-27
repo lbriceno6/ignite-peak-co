@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag, Repeat, Check, X } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Tag, Repeat, Check, X, Sparkles } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,8 @@ import { useCart, cartTotals, lineSubtotal, lineUnitPrice } from "@/store/cart";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
+import { usePromotions } from "@/hooks/usePromotions";
+import { computePromotions } from "@/lib/promotions";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
@@ -18,9 +20,11 @@ const Cart = () => {
   const [referral, setReferral] = useState<StoredReferral | null>(null);
   const [codeInput, setCodeInput] = useState("");
   useEffect(() => { setReferral(getStoredReferral()); }, []);
+  const { promotions } = usePromotions();
+  const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
-  const subtotal = rawSubtotal - discount;
-  const total = rawTotal - discount;
+  const subtotal = rawSubtotal - discount - promoDiscount;
+  const total = rawTotal - discount - promoDiscount;
 
   const apply = async () => {
     const r = await applyReferralCode(codeInput);
