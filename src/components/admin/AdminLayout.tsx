@@ -31,6 +31,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   ShieldCheck,
+  Gift,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,6 +96,7 @@ const defaultSections = [
       { key: "filter-options", to: "/admin/filter-options", label: "Opciones de filtro", icon: SlidersHorizontal },
       { key: "catalog-filters", to: "/admin/catalog-filters", label: "Filtros del catálogo", icon: SlidersHorizontal },
       { key: "suppliers", to: "/admin/suppliers", label: "Proveedores", icon: Truck },
+      { key: "promotions", to: "/admin/promotions", label: "Promociones", icon: Gift },
     ],
   },
   {
@@ -165,6 +167,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/products")) return get("products", "Productos");
   if (p.startsWith("/admin/categories")) return get("categories", "Categorías");
   if (p.startsWith("/admin/suppliers")) return get("suppliers", "Proveedores");
+  if (p.startsWith("/admin/promotions") || p.startsWith("/admin/promociones")) return get("promotions", "Promociones");
   if (p.startsWith("/admin/orders/")) return "Detalle del pedido";
   if (p.startsWith("/admin/orders")) return get("orders", "Pedidos");
   if (p.startsWith("/admin/customers")) return get("customers", "Clientes");
