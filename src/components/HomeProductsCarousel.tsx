@@ -51,7 +51,8 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
 
   return (
     <section className="bg-secondary/40 py-10 sm:py-14">
-      <div className="container-x">
+      <div className="container-x hpc-scope">
+        <HomeProductCardStylesInline />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
           <div className="min-w-0">
             {eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{eyebrow}</span>}
