@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { ShoppingCart, MessageCircle, Heart, Truck, ShieldCheck, Award, Minus, Plus, Check, Repeat } from "lucide-react";
+import { ShoppingCart, MessageCircle, Heart, Truck, ShieldCheck, Award, Minus, Plus, Check, Repeat, Lock, CreditCard, BadgeCheck, Globe2, Smartphone } from "lucide-react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Stars } from "@/components/Stars";
@@ -427,11 +427,68 @@ const ProductDetail = () => {
             );
           })()}
 
-          <ul className="mt-6 grid gap-2 rounded-lg border bg-secondary/40 p-4 text-sm">
-            <li className="flex items-center gap-2"><Truck size={16} className="text-accent" /> Envío gratis sobre {format(50)} · entrega 1–3 días</li>
-            <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-accent" /> Garantía de devolución de 30 días</li>
-            <li className="flex items-center gap-2"><Award size={16} className="text-accent" /> Probado en laboratorio · Certificado GMP</li>
-          </ul>
+          {/* Bloques de confianza */}
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <Lock size={18} className="text-primary" />
+              </div>
+              <h3 className="mt-3 text-sm font-bold">Pagos seguros</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Compra protegida y confiable</p>
+            </div>
+            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <CreditCard size={18} className="text-primary" />
+              </div>
+              <h3 className="mt-3 text-sm font-bold">Múltiples medios de pago</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Yape, Plin, tarjetas y más</p>
+            </div>
+            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <BadgeCheck size={18} className="text-primary" />
+              </div>
+              <h3 className="mt-3 text-sm font-bold">Garantía de satisfacción</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Compra con mayor tranquilidad</p>
+            </div>
+            <div className="group rounded-xl border bg-background p-4 shadow-sm transition-smooth hover:-translate-y-0.5 hover:shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <Globe2 size={18} className="text-primary" />
+              </div>
+              <h3 className="mt-3 text-sm font-bold">Envíos a todo el Perú</h3>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">Recibe tu pedido donde estés</p>
+            </div>
+          </div>
+
+          {/* Franja de medios de pago */}
+          <div className="mt-6 rounded-xl border bg-secondary/30 p-4">
+            <p className="text-center text-xs font-bold uppercase tracking-wider text-muted-foreground">Medios de pago aceptados</p>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                Visa
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="7" cy="12" r="1.5" fill="currentColor"/></svg>
+                Mastercard
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 12h4m-2-2v4"/></svg>
+                Amex
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <CreditCard size={14} />
+                PagoEfectivo
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <Smartphone size={14} />
+                Yape
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-background px-3 py-1.5 text-xs font-semibold border shadow-sm">
+                <Smartphone size={14} />
+                Plin
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 
