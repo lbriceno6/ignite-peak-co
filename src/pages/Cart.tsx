@@ -10,7 +10,7 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { useShippingSettings } from "@/hooks/useShippingSettings";
 import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } from "@/components/ReferralTracker";
 import { usePromotions } from "@/hooks/usePromotions";
-import { computePromotions, pendingPromoNudges } from "@/lib/promotions";
+import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 
 const Cart = () => {
   const { items, remove, setQty } = useCart();
