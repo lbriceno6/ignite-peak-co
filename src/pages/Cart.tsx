@@ -98,8 +98,17 @@ const Cart = () => {
                     <span className="font-semibold">−{format(discount)}</span>
                   </div>
                 )}
+                {appliedPromos.map((ap) => (
+                  <div key={ap.promotionId} className="flex justify-between text-accent">
+                    <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label} · {ap.name}</span>
+                    <span className="font-semibold">−{format(ap.amount)}</span>
+                  </div>
+                ))}
                 <div className="flex justify-between"><span className="text-muted-foreground">Envío</span><span className="font-semibold">{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
                 {shipping === 0 && <p className="text-xs text-success">🎉 Calificas para envío gratis</p>}
+                {appliedPromos.length > 0 && (
+                  <p className="rounded-md bg-accent/10 p-2 text-xs text-accent">{appliedPromos[0].message}</p>
+                )}
               </div>
               <div className="mt-4 flex justify-between border-t pt-4 font-display text-2xl">
                 <span>Total</span><span>{format(total)}</span>
