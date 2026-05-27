@@ -129,6 +129,17 @@ export default function AdminCategories() {
       meta_description: editing.meta_description || null,
       sort_order: Number(editing.sort_order) || 0,
       is_active: editing.is_active ?? true,
+      show_in_menu: editing.show_in_menu ?? true,
+      menu_column: Number(editing.menu_column) || 1,
+      menu_group_title: editing.menu_group_title || null,
+      menu_badge: editing.menu_badge || null,
+      menu_type: (editing.menu_type as "mega" | "link") ?? "mega",
+      featured_enabled: editing.featured_enabled ?? false,
+      featured_title: editing.featured_title || null,
+      featured_text: editing.featured_text || null,
+      featured_cta_label: editing.featured_cta_label || null,
+      featured_cta_href: editing.featured_cta_href || null,
+      featured_image_url: editing.featured_image_url || null,
     };
     const res = editing.id
       ? await supabase.from("categories").update(payload).eq("id", editing.id)
