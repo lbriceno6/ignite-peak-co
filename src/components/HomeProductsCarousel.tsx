@@ -132,3 +132,9 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
     </section>
   );
 }
+
+function HomeProductCardStylesInline() {
+  const { style } = useHomeProductCardStyle();
+  return <HomeProductCardStyles style={style} scope=".hpc-scope" />;
+}
+
