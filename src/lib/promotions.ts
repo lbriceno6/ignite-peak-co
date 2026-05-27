@@ -122,3 +122,26 @@ export const computePromotions = (
 /** Devuelve las promociones activas aplicables a un producto. */
 export const promosForProduct = (productId: string, promotions: Promotion[], now: Date = new Date()) =>
   promotions.filter((p) => isPromoActiveNow(p, now) && p.product_ids.includes(productId));
+
+/**
+ * Devuelve promociones activas en las que el carrito tiene al menos 1 unidad
+ * participante pero aún no llega al mínimo de 2 unidades para activar el beneficio.
+ * Útil para sugerir al cliente que agregue otro producto participante.
+ */
+export const pendingPromoNudges = (
+  items: CartItem[],
+  promotions: Promotion[],
+  now: Date = new Date(),
+): { promotion: Promotion; participatingUnits: number; label: string; title: string }[] => {
+  const units = expandUnits(items);
+  const out: { promotion: Promotion; participatingUnits: number; label: string; title: string }[] = [];
+  for (const p of promotions) {
+    if (!isPromoActiveNow(p, now)) continue;
+    if (!p.product_ids?.length) continue;
+    const count = units.filter((u) => p.product_ids.includes(u.productId)).length;
+    if (count >= 1 && count < 2) {
+      out.push({ promotion: p, participatingUnits: count, label: promoLabel(p), title: promoTitle(p) });
+    }
+  }
+  return out;
+};
