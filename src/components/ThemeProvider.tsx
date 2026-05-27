@@ -9,6 +9,37 @@ import {
   type ThemeKey,
 } from "@/lib/theme";
 
+const CACHE_KEY = "lovable-theme-cache-v1";
+
+const readCache = (): Partial<Record<ThemeKey, string>> | null => {
+  if (typeof localStorage === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (map: Partial<Record<ThemeKey, string>>) => {
+  if (typeof localStorage === "undefined") return;
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+};
+
+// Apply cached theme + mode synchronously at module load, before React renders.
+// This prevents a "flash" of default colors on refresh.
+if (typeof document !== "undefined") {
+  applyMode(getStoredMode());
+  const cached = readCache();
+  applyTheme(cached ?? THEME_DEFAULTS);
+}
+
 const loadAndApply = async () => {
   const { data } = await supabase
     .from("site_content")
@@ -19,11 +50,12 @@ const loadAndApply = async () => {
     if (r.value !== null && r.value !== undefined) map[r.key as ThemeKey] = r.value as string;
   });
   applyTheme(map);
+  writeCache(map);
 };
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
-    // Apply stored light/dark preference ASAP
+    // Re-apply stored light/dark preference (in case it changed in another tab)
     applyMode(getStoredMode());
 
     let alive = true;
