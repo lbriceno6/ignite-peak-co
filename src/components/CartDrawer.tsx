@@ -80,6 +80,12 @@ export const CartDrawer = () => {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">{format(subtotal)}</span>
               </div>
+              {appliedPromos.map((ap) => (
+                <div key={ap.promotionId} className="flex justify-between text-sm text-accent">
+                  <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label}</span>
+                  <span className="font-medium">−{format(ap.amount)}</span>
+                </div>
+              ))}
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Envío</span>
                 <span className="font-medium">{shipping === 0 ? "Gratis" : format(shipping)}</span>
