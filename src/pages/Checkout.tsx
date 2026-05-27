@@ -17,7 +17,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { getStoredReferral, clearReferral, StoredReferral } from "@/components/ReferralTracker";
 import { useReseller } from "@/hooks/useReseller";
 import { Tag, Wallet } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { track } from "@/lib/analytics";
+import { usePromotions } from "@/hooks/usePromotions";
+import { computePromotions } from "@/lib/promotions";
 
 const PAY_KEYS = [
   "pay.order",
@@ -74,12 +77,14 @@ const Checkout = () => {
   const [referral, setReferral] = useState<StoredReferral | null>(null);
   const [useCredit, setUseCredit] = useState(false);
   useEffect(() => { setReferral(getStoredReferral()); }, []);
+  const { promotions } = usePromotions();
+  const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
-  const subtotal = Math.max(0, rawSubtotal - discount);
+  const subtotal = Math.max(0, rawSubtotal - discount - promoDiscount);
   const shipping = computeZoneShipping(matchedZone, rawSubtotal, shippingSettings);
   const availableCredit = reseller?.balance_credit ?? 0;
   const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
-  const total = subtotal + shipping - creditApplied;
+  const total = Math.max(0, subtotal + shipping - creditApplied);
 
   useEffect(() => {
     if (items.length === 0) return;
@@ -677,6 +682,12 @@ const Checkout = () => {
                   <span>−{format(discount)}</span>
                 </div>
               )}
+              {appliedPromos.map((ap) => (
+                <div key={ap.promotionId} className="flex justify-between text-accent">
+                  <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label} · {ap.name}</span>
+                  <span>−{format(ap.amount)}</span>
+                </div>
+              ))}
               <div className="flex justify-between"><span className="text-muted-foreground">Envío {matchedZone ? `· ${matchedZone.name}` : ""}</span><span>{shipping === 0 ? "Gratis" : format(shipping)}</span></div>
               {matchedZone?.estimated_days && (
                 <div className="flex justify-between text-xs text-muted-foreground"><span>Entrega estimada</span><span>{matchedZone.estimated_days}</span></div>
