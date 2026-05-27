@@ -277,32 +277,41 @@ export const Header = () => {
               <Logo className="text-2xl" />
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
-              {visibleCategories.map((c) => {
-                const subs = subsByParent[c.id] || [];
+              {visibleCategoriesMobile.map((c) => {
+                const subs = (subsByParent[c.id] || []).filter((s) => s.menu_show_mobile !== false);
+                const mobileFields = (fieldsByParent[c.id] || []).filter((f) => f.show_mobile);
                 return (
                   <details key={c.id} className="group/m rounded-md">
                     <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 font-medium hover:bg-secondary">
                       <span className="inline-flex items-center gap-2">
                         {c.icon && <span>{c.icon}</span>}
-                        {c.name}
+                        {labelOf(c)}
                         {c.menu_badge && (
-                          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground">{c.menu_badge}</span>
+                          <span className="rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent-foreground" style={badgeStyle(c.menu_badge_bg, c.menu_badge_color)}>{c.menu_badge}</span>
                         )}
                       </span>
-                      {subs.length > 0 && (
+                      {(subs.length > 0 || mobileFields.length > 0) && (
                         <ChevronDown size={16} className="transition-transform group-open/m:rotate-180" />
                       )}
                     </summary>
-                    {subs.length > 0 && (
+                    {(subs.length > 0 || mobileFields.length > 0) && (
                       <div className="ml-4 mb-2 flex flex-col gap-0.5 border-l pl-2">
                         <Link to={`/categoria/${c.slug}`} className="rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary">
                           Ver toda la categoría
                         </Link>
                         {subs.map((s) => (
                           <Link key={s.id} to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
-                            {s.name}
+                            {labelOf(s)}
                             {s.menu_badge && (
-                              <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent">{s.menu_badge}</span>
+                              <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent" style={badgeStyle(s.menu_badge_bg, s.menu_badge_color)}>{s.menu_badge}</span>
+                            )}
+                          </Link>
+                        ))}
+                        {mobileFields.map((f) => (
+                          <Link key={f.id} to={f.href || "#"} className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">
+                            {f.title}
+                            {f.badge_text && (
+                              <span className="rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase" style={badgeStyle(f.badge_bg || "#35a936", f.badge_color || "#ffffff")}>{f.badge_text}</span>
                             )}
                           </Link>
                         ))}
