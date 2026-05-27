@@ -218,8 +218,13 @@ export type Database = {
           image_url: string | null
           is_active: boolean
           menu_badge: string | null
+          menu_badge_bg: string | null
+          menu_badge_color: string | null
           menu_column: number
           menu_group_title: string | null
+          menu_label: string | null
+          menu_show_desktop: boolean
+          menu_show_mobile: boolean
           menu_type: string
           meta_description: string | null
           meta_title: string | null
@@ -245,8 +250,13 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           menu_badge?: string | null
+          menu_badge_bg?: string | null
+          menu_badge_color?: string | null
           menu_column?: number
           menu_group_title?: string | null
+          menu_label?: string | null
+          menu_show_desktop?: boolean
+          menu_show_mobile?: boolean
           menu_type?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -272,8 +282,13 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean
           menu_badge?: string | null
+          menu_badge_bg?: string | null
+          menu_badge_color?: string | null
           menu_column?: number
           menu_group_title?: string | null
+          menu_label?: string | null
+          menu_show_desktop?: boolean
+          menu_show_mobile?: boolean
           menu_type?: string
           meta_description?: string | null
           meta_title?: string | null
@@ -955,6 +970,69 @@ export type Database = {
           source?: string | null
           user_id?: string | null
           visitor_id?: string | null
+        }
+        Relationships: []
+      }
+      menu_custom_fields: {
+        Row: {
+          badge_bg: string | null
+          badge_color: string | null
+          badge_text: string | null
+          column_index: number
+          created_at: string
+          cta_label: string | null
+          field_type: string
+          href: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          parent_category_id: string | null
+          show_desktop: boolean
+          show_mobile: boolean
+          sort_order: number
+          subtitle: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          badge_bg?: string | null
+          badge_color?: string | null
+          badge_text?: string | null
+          column_index?: number
+          created_at?: string
+          cta_label?: string | null
+          field_type?: string
+          href?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          parent_category_id?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          badge_bg?: string | null
+          badge_color?: string | null
+          badge_text?: string | null
+          column_index?: number
+          created_at?: string
+          cta_label?: string | null
+          field_type?: string
+          href?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          parent_category_id?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          sort_order?: number
+          subtitle?: string | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
