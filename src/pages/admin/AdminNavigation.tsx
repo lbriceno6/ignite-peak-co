@@ -17,10 +17,19 @@ type NavLinkRow = {
 };
 
 const LOGO_KEYS = ["logo_text", "logo_accent", "logo_image_url", "favicon_url"] as const;
+const MENU_KEYS = ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"] as const;
+const FONT_OPTIONS = [
+  "", "Inter", "Poppins", "Montserrat", "Roboto", "Lato", "Oswald",
+  "Bebas Neue", "Playfair Display", "Raleway", "Nunito", "system-ui", "serif", "sans-serif",
+];
 
 export default function AdminNavigation() {
   const [logo, setLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
   const [savedLogo, setSavedLogo] = useState<Record<string, string>>({ logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" });
+  const MENU_DEFAULTS: Record<string, string> = { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" };
+  const [menu, setMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
+  const [savedMenu, setSavedMenu] = useState<Record<string, string>>(MENU_DEFAULTS);
+  const [savingMenu, setSavingMenu] = useState(false);
   const [links, setLinks] = useState<NavLinkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [savingLogo, setSavingLogo] = useState(false);
@@ -31,13 +40,19 @@ export default function AdminNavigation() {
 
   const load = async () => {
     setLoading(true);
+    const allKeys = [...LOGO_KEYS, ...MENU_KEYS] as unknown as string[];
     const [c, l] = await Promise.all([
-      supabase.from("site_content").select("key,value").in("key", LOGO_KEYS as unknown as string[]),
+      supabase.from("site_content").select("key,value").in("key", allKeys),
       supabase.from("nav_links").select("*").order("sort_order").order("created_at"),
     ]);
     const m: Record<string, string> = { logo_text: "", logo_accent: "", logo_image_url: "", favicon_url: "" };
-    (c.data ?? []).forEach((r: any) => { m[r.key] = r.value ?? ""; });
+    const mm: Record<string, string> = { ...MENU_DEFAULTS };
+    (c.data ?? []).forEach((r: any) => {
+      if ((LOGO_KEYS as readonly string[]).includes(r.key)) m[r.key] = r.value ?? "";
+      if ((MENU_KEYS as readonly string[]).includes(r.key) && r.value) mm[r.key] = r.value;
+    });
     setLogo(m); setSavedLogo(m);
+    setMenu(mm); setSavedMenu(mm);
     setLinks((l.data as NavLinkRow[]) ?? []);
     setLoading(false);
   };
@@ -46,6 +61,21 @@ export default function AdminNavigation() {
 
   const setL = (k: string, v: string) => setLogo((p) => ({ ...p, [k]: v }));
   const logoDirty = LOGO_KEYS.some((k) => (logo[k] ?? "") !== (savedLogo[k] ?? ""));
+  const setM = (k: string, v: string) => setMenu((p) => ({ ...p, [k]: v }));
+  const menuDirty = MENU_KEYS.some((k) => (menu[k] ?? "") !== (savedMenu[k] ?? ""));
+
+  const saveMenu = async () => {
+    setSavingMenu(true);
+    try {
+      const rows = MENU_KEYS.map((k) => ({ key: k, value: menu[k] ?? "" }));
+      const { error } = await supabase.from("site_content").upsert(rows, { onConflict: "key" });
+      if (error) throw error;
+      toast.success("Menu settings saved");
+      load();
+    } catch (e: any) { toast.error(e.message); } finally { setSavingMenu(false); }
+  };
+
+
 
   const saveLogo = async () => {
     setSavingLogo(true);
@@ -218,7 +248,103 @@ export default function AdminNavigation() {
         )}
       </section>
 
+      {/* Menu styling */}
+      <section className="rounded-lg border bg-background p-6">
+        <header className="mb-4">
+          <h2 className="font-display text-xl">Estilo del menú de categorías</h2>
+          <p className="text-sm text-muted-foreground">
+            Controla cuántas categorías se muestran en el menú principal y personaliza tipografía y colores.
+          </p>
+        </header>
+        {loading ? (
+          <p className="text-muted-foreground">Loading…</p>
+        ) : (
+          <div className="grid gap-5 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="text-xs">Máximo de categorías visibles</Label>
+              <Input
+                type="number"
+                min={1}
+                max={20}
+                value={menu.nav_menu_max_categories}
+                onChange={(e) => setM("nav_menu_max_categories", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Recomendado: 6. Las categorías extra no se mostrarán en el menú.</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Tipo de letra</Label>
+              <select
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                value={menu.nav_menu_font_family}
+                onChange={(e) => setM("nav_menu_font_family", e.target.value)}
+              >
+                {FONT_OPTIONS.map((f) => (
+                  <option key={f} value={f}>{f || "Por defecto (tema)"}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Color de letra</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  className="h-10 w-16 cursor-pointer p-1"
+                  value={menu.nav_menu_text_color || "#000000"}
+                  onChange={(e) => setM("nav_menu_text_color", e.target.value)}
+                />
+                <Input
+                  value={menu.nav_menu_text_color}
+                  onChange={(e) => setM("nav_menu_text_color", e.target.value)}
+                  placeholder="#111827 o vacío para tema"
+                />
+                {menu.nav_menu_text_color && (
+                  <Button variant="ghost" size="sm" onClick={() => setM("nav_menu_text_color", "")}>Limpiar</Button>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Color de fondo</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  className="h-10 w-16 cursor-pointer p-1"
+                  value={menu.nav_menu_bg_color || "#ffffff"}
+                  onChange={(e) => setM("nav_menu_bg_color", e.target.value)}
+                />
+                <Input
+                  value={menu.nav_menu_bg_color}
+                  onChange={(e) => setM("nav_menu_bg_color", e.target.value)}
+                  placeholder="#ffffff o vacío para tema"
+                />
+                {menu.nav_menu_bg_color && (
+                  <Button variant="ghost" size="sm" onClick={() => setM("nav_menu_bg_color", "")}>Limpiar</Button>
+                )}
+              </div>
+            </div>
+            <div className="md:col-span-2 rounded-md border p-4" style={{
+              ...(menu.nav_menu_font_family ? { fontFamily: menu.nav_menu_font_family } : {}),
+              ...(menu.nav_menu_bg_color ? { backgroundColor: menu.nav_menu_bg_color } : {}),
+              ...(menu.nav_menu_text_color ? { color: menu.nav_menu_text_color } : {}),
+            }}>
+              <p className="mb-2 text-xs uppercase tracking-wide opacity-60">Vista previa</p>
+              <div className="flex flex-wrap gap-1">
+                {["Combos", "Energía y Vitalidad", "Nutribatidos", "Productos", "Proteínas", "Creatina"].slice(0, Math.max(1, Math.min(20, parseInt(menu.nav_menu_max_categories || "6", 10) || 6))).map((c) => (
+                  <span key={c} className="px-4 py-3 text-sm font-medium uppercase tracking-wide">{c}</span>
+                ))}
+              </div>
+            </div>
+            <div className="md:col-span-2 flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setMenu(savedMenu)} disabled={!menuDirty || savingMenu}>Discard</Button>
+              <Button variant="dark" onClick={saveMenu} disabled={!menuDirty || savingMenu}>
+                {savingMenu ? "Saving…" : "Save menu"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* Nav links */}
+
       <section className="rounded-lg border bg-background p-6">
         <header className="mb-4 flex items-end justify-between gap-4">
           <div>

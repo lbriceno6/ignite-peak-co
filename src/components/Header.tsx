@@ -119,6 +119,18 @@ export const Header = () => {
   const [categories, setCategories] = useState<CategoryItem[]>(fallbackCategories);
   const navigate = useNavigate();
 
+  const { content: menuStyle } = useSiteContent(
+    ["nav_menu_max_categories", "nav_menu_font_family", "nav_menu_text_color", "nav_menu_bg_color"],
+    { nav_menu_max_categories: "6", nav_menu_font_family: "", nav_menu_text_color: "", nav_menu_bg_color: "" },
+  );
+  const maxCats = Math.max(1, Math.min(20, parseInt(menuStyle.nav_menu_max_categories || "6", 10) || 6));
+  const visibleCategories = categories.slice(0, maxCats);
+  const navStyle: React.CSSProperties = {
+    ...(menuStyle.nav_menu_font_family ? { fontFamily: menuStyle.nav_menu_font_family } : {}),
+    ...(menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : {}),
+    ...(menuStyle.nav_menu_bg_color ? { backgroundColor: menuStyle.nav_menu_bg_color } : {}),
+  };
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -132,6 +144,7 @@ export const Header = () => {
     })();
     return () => { alive = false; };
   }, []);
+
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,7 +180,7 @@ export const Header = () => {
               <Logo className="text-2xl" />
             </Link>
             <nav className="mt-8 flex flex-col gap-1">
-              {categories.map((c) => (
+              {visibleCategories.map((c) => (
                 <Link key={c.slug} to={`/categoria/${c.slug}`} className="rounded-md px-3 py-2.5 hover:bg-secondary font-medium">
                   <span className="mr-2">{c.icon}</span> {c.name}
                 </Link>
@@ -175,6 +188,7 @@ export const Header = () => {
               {navItems.length > 0 && <hr className="my-3" />}
               {navItems.map((n) => renderNavLink(n, "rounded-md px-3 py-2.5 hover:bg-secondary"))}
             </nav>
+
           </SheetContent>
         </Sheet>
 
@@ -242,12 +256,13 @@ export const Header = () => {
         </div>
       )}
 
-      <nav className="hidden border-t border-border lg:block">
+      <nav className="hidden border-t border-border lg:block" style={navStyle}>
         <div className="container-x flex items-center gap-1 overflow-x-auto">
-          {categories.map((c) => (
+          {visibleCategories.map((c) => (
             <NavLink
               key={c.slug}
               to={`/categoria/${c.slug}`}
+              style={menuStyle.nav_menu_text_color ? { color: menuStyle.nav_menu_text_color } : undefined}
               className={({ isActive }) =>
                 cn(
                   "px-4 py-3 text-sm font-medium uppercase tracking-wide whitespace-nowrap border-b-2 transition-smooth",
@@ -263,6 +278,7 @@ export const Header = () => {
           </div>
         </div>
       </nav>
+
     </header>
   );
 };
