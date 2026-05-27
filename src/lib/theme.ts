@@ -598,7 +598,7 @@ export const THEME_PRESETS: ThemePreset[] = [
       muted: "115 53% 94%",
       muted_foreground: "0 0% 40%",
       border: "115 30% 88%",
-      input: "115 30% 90%",
+      
       ring: "121 52% 44%",
     },
     {
