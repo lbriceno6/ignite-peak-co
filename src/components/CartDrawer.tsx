@@ -60,6 +60,14 @@ export const CartDrawer = () => {
                         <Repeat size={10} /> Cada {item.subscription.intervalDays}d · −{item.subscription.discountPercent}%
                       </p>
                     )}
+                    {perProduct[item.product.id]?.participating && (
+                      <p className="mt-1 inline-flex items-center gap-1 rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent">
+                        <Sparkles size={10} /> {perProduct[item.product.id].label}
+                        {perProduct[item.product.id].discountAmount > 0 && (
+                          <span className="normal-case">· −{format(perProduct[item.product.id].discountAmount)}</span>
+                        )}
+                      </p>
+                    )}
                     <div className="mt-2 flex items-center justify-between">
                       <div className="flex items-center rounded-md border">
                         <button className="p-1.5 hover:bg-secondary" onClick={() => setQty(item.product.id, item.quantity - 1)} aria-label="Disminuir">
