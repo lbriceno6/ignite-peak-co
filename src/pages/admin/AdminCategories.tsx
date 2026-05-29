@@ -35,6 +35,11 @@ type Category = {
   image_url: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  canonical_url?: string | null;
+  short_description?: string | null;
+  long_description?: string | null;
+  show_in_home?: boolean;
+  show_in_sitemap?: boolean;
   sort_order: number;
   is_active: boolean;
   show_in_menu?: boolean;
@@ -60,6 +65,11 @@ const empty: Partial<Category> = {
   image_url: "",
   meta_title: "",
   meta_description: "",
+  canonical_url: "",
+  short_description: "",
+  long_description: "",
+  show_in_home: false,
+  show_in_sitemap: true,
   sort_order: 0,
   is_active: true,
   show_in_menu: true,
@@ -153,6 +163,11 @@ export default function AdminCategories() {
       image_url: editing.image_url || null,
       meta_title: editing.meta_title || null,
       meta_description: editing.meta_description || null,
+      canonical_url: editing.canonical_url || null,
+      short_description: editing.short_description || null,
+      long_description: editing.long_description || null,
+      show_in_home: editing.show_in_home ?? false,
+      show_in_sitemap: editing.show_in_sitemap ?? true,
       sort_order: Number(editing.sort_order) || 0,
       is_active: editing.is_active ?? true,
       show_in_menu: editing.show_in_menu ?? true,
