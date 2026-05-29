@@ -87,7 +87,47 @@ export const CartDrawer = () => {
                   </div>
                 </div>
               ))}
+              {combos.length > 0 && (
+                <div className="space-y-2 rounded-md border border-accent/30 bg-accent/5 p-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">Combos activos</p>
+                  {combos.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between text-sm">
+                      <span className="inline-flex items-center gap-1 font-medium"><Package size={12} /> {c.name}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-accent">−{format(c.savings)}</span>
+                        <button onClick={() => removeCombo(c.id)} aria-label="Quitar combo">
+                          <Trash2 size={14} className="text-muted-foreground hover:text-destructive" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <ComboRecommendations
+                location="cart"
+                cartProductIds={cartProductIds}
+                cartSubtotal={subtotal}
+                freeShippingThreshold={shippingSettings.freeThreshold}
+                compact
+                maxItems={2}
+                title="Te puede interesar"
+                subtitle="Combos relacionados con tu carrito."
+                className="space-y-2"
+              />
             </div>
+
+            <div className="border-t bg-secondary/40 p-5 space-y-3">
+              <FreeShippingBar subtotal={Math.max(0, subtotal - promoDiscount)} variant="compact" surface="minicart" />
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span className="font-medium">{format(subtotal + comboDiscount)}</span>
+              </div>
+              {comboDiscount > 0 && (
+                <div className="flex justify-between text-sm text-accent">
+                  <span className="inline-flex items-center gap-1"><Package size={12} /> Descuento combos</span>
+                  <span className="font-medium">−{format(comboDiscount)}</span>
+                </div>
+              )}
 
             <div className="border-t bg-secondary/40 p-5 space-y-3">
               <FreeShippingBar subtotal={Math.max(0, subtotal - promoDiscount)} variant="compact" surface="minicart" />
