@@ -93,6 +93,7 @@ const defaultSections = [
       { key: "products", to: "/admin/products", label: "Productos", icon: Package },
       { key: "products-new", to: "/admin/products/new", label: "Nuevo producto", icon: Plus },
       { key: "categories", to: "/admin/categories", label: "Categorías", icon: Tags },
+      { key: "goals", to: "/admin/objetivos", label: "Objetivos (compra por necesidad)", icon: Gift },
       { key: "filter-options", to: "/admin/filter-options", label: "Opciones de filtro", icon: SlidersHorizontal },
       { key: "catalog-filters", to: "/admin/catalog-filters", label: "Filtros del catálogo", icon: SlidersHorizontal },
       { key: "suppliers", to: "/admin/suppliers", label: "Proveedores", icon: Truck },
@@ -167,6 +168,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.includes("/admin/products/") && p.endsWith("/edit")) return "Editar producto";
   if (p.startsWith("/admin/products")) return get("products", "Productos");
   if (p.startsWith("/admin/categories")) return get("categories", "Categorías");
+  if (p.startsWith("/admin/objetivos")) return get("goals", "Objetivos");
   if (p.startsWith("/admin/suppliers")) return get("suppliers", "Proveedores");
   if (p.startsWith("/admin/promotions") || p.startsWith("/admin/promociones")) return get("promotions", "Promociones");
   if (p.startsWith("/admin/orders/")) return "Detalle del pedido";
