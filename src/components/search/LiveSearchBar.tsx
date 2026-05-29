@@ -150,7 +150,8 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
   const hasProducts = (result?.products.length ?? 0) > 0;
   const hasCategory = !!result?.matchedCategorySlug;
   const hasDynamicSuggestions = (result?.suggestions.length ?? 0) > 0;
-  const hasAnything = hasProducts || hasCategory || hasDynamicSuggestions;
+  const hasBrands = (result?.brands?.length ?? 0) > 0;
+  const hasAnything = hasProducts || hasCategory || hasDynamicSuggestions || hasBrands;
   const hasNoResults = showPanel && !loading && result !== null && !hasAnything;
 
   const suggestions = useMemo(() => {
