@@ -12,6 +12,7 @@ import { CURRENCIES, useCurrency, type CurrencyCode } from "@/context/CurrencyCo
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
+import { intelligentSearch, buildSearchDestination } from "@/lib/intelligentSearch";
 
 type CategoryItem = {
   id: string;
@@ -161,6 +162,10 @@ export const Header = () => {
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
+  const [searchNeeds, setSearchNeeds] = useState<{ slug: string; name: string; keywords: string[]; related_category: string | null; priority: number }[]>([]);
+  const [searchHelper, setSearchHelper] = useState<string>("Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.");
+  const [showSugg, setShowSugg] = useState(false);
+  const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
 
   const { content: menuStyle } = useSiteContent(
@@ -288,15 +293,19 @@ export const Header = () => {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [navRes, catRes, fRes] = await Promise.all([
+      const [navRes, catRes, fRes, sRes, settRes] = await Promise.all([
         supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
         supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
         (supabase.from as any)("menu_custom_fields").select("*").eq("is_active", true).order("sort_order"),
+        (supabase.from as any)("search_needs").select("slug,name,keywords,related_category,priority").eq("is_active", true).order("priority"),
+        (supabase.from as any)("search_ai_settings").select("helper_text").eq("id", 1).maybeSingle(),
       ]);
       if (!alive) return;
       setNavItems((navRes.data as NavItem[]) ?? []);
       if (catRes.data) setCategories(catRes.data as CategoryItem[]);
       if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
+      if (sRes?.data) setSearchNeeds(sRes.data as any);
+      if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
     })();
     return () => { alive = false; };
   }, []);
@@ -304,11 +313,37 @@ export const Header = () => {
 
 
 
-  const submitSearch = (e: React.FormEvent) => {
+  const submitSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     const q = query.trim();
     if (!q) return;
-    navigate(`/search?q=${encodeURIComponent(q)}`);
+    setSearching(true);
+    const result = await intelligentSearch(q);
+    setSearching(false);
+    navigate(buildSearchDestination(q, result));
+    setSearchOpen(false);
+    setShowSugg(false);
+  };
+
+  const suggestions = (() => {
+    const q = query.trim().toLowerCase();
+    const list = q
+      ? searchNeeds.filter((n) =>
+          n.name.toLowerCase().includes(q) ||
+          (n.keywords || []).some((k) => k.toLowerCase().includes(q)),
+        )
+      : searchNeeds;
+    return list.slice(0, 6);
+  })();
+
+  const pickSuggestion = (n: { slug: string; name: string; related_category: string | null }) => {
+    setShowSugg(false);
+    const params = new URLSearchParams();
+    params.set("necesidad", n.slug);
+    if (n.related_category) params.set("categoria", n.related_category);
+    params.set("q", n.name);
+    navigate(`/buscar?${params.toString()}`);
+    setQuery("");
     setSearchOpen(false);
   };
 
