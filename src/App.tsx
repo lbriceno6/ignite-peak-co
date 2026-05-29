@@ -244,7 +244,7 @@ const App = () => (
               <Route path="benefits" element={<AdminBenefits />} />
               <Route path="product-card-typography" element={<AdminProductCardTypography />} />
               <Route path="promotions" element={<AdminPromotions />} />
-              <Route path="/admin/promociones" element={<AdminPromotions />} />
+              <Route path="promociones" element={<AdminPromotions />} />
               <Route path="combos" element={<AdminCombos />} />
               <Route path="combos-inteligentes" element={<AdminCombos />} />
             </Route>
