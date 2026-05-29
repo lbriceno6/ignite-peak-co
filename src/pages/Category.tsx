@@ -551,14 +551,48 @@ const Category = () => {
     { Icon: MessageCircle, text: "Atención por WhatsApp" },
   ];
 
+  const leafCat = ancestors[ancestors.length - 1];
+  const SITE_URL = "https://ignite-peak-co.lovable.app";
+  const seoTitle = leafCat?.meta_title || `${title} | Nutribatidos`;
+  const seoDesc = leafCat?.meta_description || leafCat?.short_description || `Compra ${title} en Nutribatidos. Suplementos naturales seleccionados, envíos a todo el Perú.`;
+  const canonicalPath = leafCat ? `/categoria/${leafCat.slug}` : `/categoria/${slug}`;
+  const canonical = leafCat?.canonical_url || `${SITE_URL}${canonicalPath}`;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Productos", item: `${SITE_URL}/productos` },
+      ...ancestors.map((a, i) => ({
+        "@type": "ListItem",
+        position: 3 + i,
+        name: a.name,
+        item: `${SITE_URL}/categoria/${a.slug}`,
+      })),
+    ],
+  };
+
   return (
     <Layout>
+      <SEO
+        title={seoTitle}
+        description={seoDesc}
+        canonical={canonical}
+        image={leafCat?.image_url ?? undefined}
+        jsonLd={breadcrumbJsonLd}
+      />
       <div className="bg-secondary/40 py-10">
         <div className="container-x">
-          <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-            <Link to="/" className="hover:text-accent">Inicio</Link> / <span className="text-foreground">{title}</span>
+          <nav className="text-xs uppercase tracking-wider text-muted-foreground" aria-label="Breadcrumb">
+            <Link to="/" className="hover:text-accent">Inicio</Link>
+            {" / "}
+            <Link to="/productos" className="hover:text-accent">Productos</Link>
+            {ancestors.slice(0, -1).map((a) => (
+              <span key={a.id}>{" / "}<Link to={`/categoria/${a.slug}`} className="hover:text-accent">{a.name}</Link></span>
+            ))}
+            {" / "}<span className="text-foreground">{leafCat?.name || title}</span>
           </nav>
-          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{title}</h1>
+          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{leafCat?.name || title}</h1>
           <p className="mt-2 text-muted-foreground">
             {loading ? "Cargando…" : `Mostrando ${rangeFrom}–${rangeTo} de ${total} productos`}
           </p>
