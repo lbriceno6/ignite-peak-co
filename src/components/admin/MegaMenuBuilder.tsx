@@ -86,6 +86,29 @@ export default function MegaMenuBuilder() {
   const updateNav = (parent: string, patch: Partial<NavSetting>) =>
     setNavs((ns) => ns.map((n) => (n.parent_nav === parent ? { ...n, ...patch } : n)));
 
+  const addNav = async () => {
+    const slug = prompt("Identificador único (sin espacios, ej: ofertas):")?.trim().toLowerCase();
+    if (!slug) return;
+    if (!/^[a-z0-9_-]+$/.test(slug)) return toast.error("Solo letras, números, guiones y guión bajo");
+    if (navs.some((n) => n.parent_nav === slug)) return toast.error("Ya existe ese identificador");
+    const label = prompt("Nombre visible:", "Nuevo menú")?.trim() || "Nuevo menú";
+    const href = prompt("URL (ej: /ofertas):", "/" + slug)?.trim() || "/" + slug;
+    const position = Math.max(0, ...navs.map((n) => n.position)) + 1;
+    const { error } = await sb.from("mega_menu_nav_settings").insert({ parent_nav: slug, label, href, position });
+    if (error) return toast.error(error.message);
+    setNavs((ns) => [...ns, { parent_nav: slug, label, href, position }]);
+    toast.success("Menú padre creado");
+  };
+
+  const deleteNav = async (parent: string) => {
+    if (DEFAULT_NAVS.some((d) => d.parent_nav === parent)) return toast.error("No se puede eliminar un menú por defecto");
+    if (!confirm(`¿Eliminar el menú "${parent}"? Las columnas asociadas quedarán huérfanas.`)) return;
+    const { error } = await sb.from("mega_menu_nav_settings").delete().eq("parent_nav", parent);
+    if (error) return toast.error(error.message);
+    setNavs((ns) => ns.filter((n) => n.parent_nav !== parent));
+    toast.success("Menú padre eliminado");
+  };
+
   const saveNav = async (nav: NavSetting) => {
     setSavingNav(nav.parent_nav);
     const { error } = await sb.from("mega_menu_nav_settings").upsert({
