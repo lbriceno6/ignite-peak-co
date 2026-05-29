@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
@@ -7,89 +7,162 @@ import { supabase } from "@/integrations/supabase/client";
 import { logSearch } from "@/lib/searchLog";
 import { useAuth } from "@/context/AuthContext";
 import { track } from "@/lib/analytics";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, Sparkles } from "lucide-react";
+
+const PRODUCT_COLS = "id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge";
 
 const Search = () => {
   const [params] = useSearchParams();
   const q = (params.get("q") ?? "").trim();
+  const needSlug = (params.get("necesidad") ?? "").trim();
+  const catSlug = (params.get("categoria") ?? "").trim();
+
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [didYouMean, setDidYouMean] = useState<string | null>(null);
+  const [need, setNeed] = useState<any | null>(null);
+  const [waNumber, setWaNumber] = useState<string>("14155552671");
+  const [helperWa, setHelperWa] = useState<boolean>(true);
   const { user } = useAuth();
 
+  // Load need + chat number
   useEffect(() => {
-    if (!q) { setResults([]); return; }
+    (async () => {
+      const [needRes, chatRes, settingsRes] = await Promise.all([
+        needSlug
+          ? (supabase.from as any)("search_needs").select("*").eq("slug", needSlug).maybeSingle()
+          : Promise.resolve({ data: null }),
+        (supabase.from as any)("chat_ai_settings").select("whatsapp_number").eq("id", 1).maybeSingle(),
+        (supabase.from as any)("search_ai_settings").select("fallback_whatsapp_enabled").eq("id", 1).maybeSingle(),
+      ]);
+      if (needRes?.data) setNeed(needRes.data);
+      if (chatRes?.data?.whatsapp_number) setWaNumber(chatRes.data.whatsapp_number);
+      if (typeof settingsRes?.data?.fallback_whatsapp_enabled === "boolean") setHelperWa(settingsRes.data.fallback_whatsapp_enabled);
+    })();
+  }, [needSlug]);
+
+  useEffect(() => {
     let alive = true;
     setLoading(true);
     (async () => {
-      const { data, error } = await supabase.rpc("search_products" as any, { q });
-      if (!alive) return;
-      if (error) {
-        // Fallback simple
-        const { data: fb } = await supabase
-          .from("products")
-          .select("id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge")
-          .eq("is_active", true).eq("approval_status", "approved")
-          .ilike("name", `%${q}%`).limit(40);
-        setResults(fb ?? []);
-      } else {
-        const rows = (data as any[]) ?? [];
-        // Fetch full product cards
-        const ids = rows.map((r) => r.id);
-        if (ids.length) {
-          const { data: full } = await supabase
-            .from("products")
-            .select("id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge")
-            .in("id", ids);
-          const order = new Map(ids.map((id, i) => [id, i]));
-          const sorted = (full ?? []).slice().sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
-          setResults(sorted);
-        } else {
-          setResults([]);
-        }
-        // "Did you mean" — show top match if best score < 0.4 and exists
-        const best = rows[0];
-        if (best && best.score < 0.4 && best.name) setDidYouMean(best.name); else setDidYouMean(null);
+      let rows: any[] = [];
+
+      // Priority 1: explicit need with related products
+      const productIds: string[] = need?.related_products ?? [];
+      if (productIds.length) {
+        const { data } = await supabase.from("products").select(PRODUCT_COLS)
+          .in("id", productIds).eq("is_active", true).eq("approval_status", "approved");
+        rows = data ?? [];
       }
+
+      // Priority 2: category filter
+      if (!rows.length && catSlug) {
+        const { data: cat } = await supabase.from("categories").select("id,name").eq("slug", catSlug).maybeSingle();
+        if (cat) {
+          const { data } = await supabase.from("products").select(PRODUCT_COLS)
+            .eq("category", cat.name).eq("is_active", true).eq("approval_status", "approved").limit(60);
+          rows = data ?? [];
+        }
+      }
+
+      // Priority 3: classic text search
+      if (!rows.length && q) {
+        const { data, error } = await supabase.rpc("search_products" as any, { q });
+        if (error) {
+          const { data: fb } = await supabase.from("products").select(PRODUCT_COLS)
+            .eq("is_active", true).eq("approval_status", "approved")
+            .ilike("name", `%${q}%`).limit(40);
+          rows = fb ?? [];
+        } else {
+          const ranked = (data as any[]) ?? [];
+          const ids = ranked.map((r) => r.id);
+          if (ids.length) {
+            const { data: full } = await supabase.from("products").select(PRODUCT_COLS).in("id", ids);
+            const order = new Map(ids.map((id, i) => [id, i]));
+            rows = (full ?? []).slice().sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+          }
+          const best = ranked[0];
+          if (best && best.score < 0.4 && best.name) setDidYouMean(best.name); else setDidYouMean(null);
+        }
+      }
+
+      if (!alive) return;
+      setResults(rows);
       setLoading(false);
-      // Best-effort analytics (debounced by alive flag)
-      setTimeout(() => { if (alive) logSearch({ query: q, resultsCount: 0, userId: user?.id }); }, 0);
     })();
     return () => { alive = false; };
-  }, [q, user?.id]);
+  }, [q, needSlug, catSlug, need?.id]);
 
-  // Log effective result count after results state settles
   useEffect(() => {
-    if (!q || loading) return;
-    logSearch({ query: q, resultsCount: results.length, userId: user?.id });
-    track("search", { search_term: q, results: results.length });
+    if (loading) return;
+    if (q) {
+      logSearch({ query: q, resultsCount: results.length, userId: user?.id });
+      track("search", { search_term: q, results: results.length });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading]);
 
+  const title = useMemo(() => {
+    if (need?.name) return `Productos recomendados para ${need.name}`;
+    if (catSlug) return `Productos en ${catSlug.replace(/-/g, " ")}`;
+    if (q) return `Resultados para "${q}"`;
+    return "Búsqueda";
+  }, [need, catSlug, q]);
+
+  const waUrl = `https://wa.me/${waNumber.replace(/\D/g, "")}?text=${encodeURIComponent(
+    `Hola, vi en Nutribatidos algo sobre "${q || need?.name || "una necesidad"}" y me gustaría asesoría.`,
+  )}`;
+
   return (
     <Layout>
-      <SEO title={q ? `Buscar: ${q}` : "Buscar productos"} description={`Resultados de búsqueda para "${q}"`} path={`/buscar?q=${encodeURIComponent(q)}`} />
+      <SEO title={title} description={need?.message ?? `Resultados para "${q}"`} path={`/buscar?q=${encodeURIComponent(q)}`} />
       <div className="bg-secondary/40 py-10">
         <div className="container-x">
           <nav className="text-xs uppercase tracking-wider text-muted-foreground">
             <Link to="/" className="hover:text-accent">Inicio</Link> / <span className="text-foreground">Búsqueda</span>
           </nav>
-          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">
-            {q ? <>Resultados para "{q}"</> : "Búsqueda"}
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            {loading ? "Buscando…" : `${results.length} productos encontrados`}
-          </p>
+          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{title}</h1>
+          {need?.message && (
+            <p className="mt-2 inline-flex items-center gap-2 text-muted-foreground">
+              <Sparkles size={16} className="text-accent" /> {need.message}
+            </p>
+          )}
+          {!need && (
+            <p className="mt-2 text-muted-foreground">
+              {loading ? "Buscando…" : `${results.length} productos encontrados`}
+            </p>
+          )}
           {didYouMean && !loading && (
             <p className="mt-1 text-sm text-muted-foreground">¿Quisiste decir <span className="font-medium text-foreground">{didYouMean}</span>?</p>
+          )}
+          {(need?.related_category || catSlug) && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button asChild size="sm" variant="dark">
+                <Link to={`/categoria/${need?.related_category || catSlug}`}>Ver categoría completa</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={14} className="mr-1.5" /> Consultar por WhatsApp
+                </a>
+              </Button>
+            </div>
           )}
         </div>
       </div>
 
       <div className="container-x py-10">
-        {q && !loading && results.length === 0 ? (
+        {!loading && results.length === 0 ? (
           <div className="rounded-lg border border-border p-10 text-center">
-            <p className="text-lg font-medium">Ningún producto coincide con tu búsqueda.</p>
-            <p className="mt-2 text-sm text-muted-foreground">Prueba con otra palabra como "proteína", "creatina" o "vitamina".</p>
+            <p className="text-lg font-medium">No encontramos un producto exacto.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Pero podemos ayudarte a elegir uno según tu necesidad.</p>
+            {helperWa && (
+              <Button asChild className="mt-4" variant="dark">
+                <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                  <MessageCircle size={16} className="mr-1.5" /> Hablar con Lucía por WhatsApp
+                </a>
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">

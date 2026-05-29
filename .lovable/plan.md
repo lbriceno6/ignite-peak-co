@@ -1,93 +1,119 @@
-## Promociones tipo "Segundo producto"
+# Buscador Inteligente con IA para Nutribatidos
 
-Voy a crear un sistema completo de promociones tipo BOGO (Buy One Get One) con dos modalidades: segundo con descuento (%) o segundo gratis (2x1).
+Mejora el buscador actual (`/buscar`) sin eliminarlo, agregando una capa de IA configurable desde el admin, y un sistema de "necesidades" mapeadas a categorías y productos para entender frases naturales como "me siento cansado" o "quiero algo para el gimnasio".
 
-### 1. Base de datos (migración)
+## Alcance
 
-Nueva tabla `promotions`:
-- `id`, `name` (nombre interno)
-- `benefit_type`: enum `'second_discount' | 'second_free'`
-- `discount_percent` (numérico, solo aplica si `second_discount`; valores libres: 25/30/40/50/70/personalizado)
-- `start_date`, `end_date` (timestamptz, nullables)
-- `usage_limit_per_order` (int, default 1)
-- `show_on_home` (bool), `show_on_product` (bool)
-- `is_active` (bool)
+- No se elimina ni rompe el buscador actual (`src/pages/Search.tsx`, RPC `search_products`).
+- La IA es opcional y configurable: si está apagada o falla, se usa siempre la búsqueda tradicional como fallback.
+- Sin promesas médicas. Frases neutras tipo "puede ayudarte como complemento nutricional".
 
-Nueva tabla `promotion_products`:
-- `promotion_id` → `promotions.id`
-- `product_id` → `products.id`
-- PK compuesta
+## 1. Base de datos (migración)
 
-GRANTs + RLS:
-- Lectura pública de promociones activas vigentes
-- Admins gestionan todo (insert/update/delete)
+Tabla `search_ai_settings` (singleton, id=1):
+- enabled (bool), provider (gemini/openai/deepseek/claude/off), model
+- api_key (texto, opcional)
+- prompt_template (texto, editable)
+- result_mode (productos | categorias | combos | todos)
+- min_confidence, temperature, max_tokens
+- fallback_whatsapp_enabled, helper_text
 
-### 2. Admin: nueva página `AdminPromotions.tsx`
+Tabla `search_needs`:
+- id, slug, name (ej "Energía")
+- keywords (text[]) — palabras clave normalizadas
+- intent (texto)
+- related_category (slug)
+- related_products (uuid[])
+- priority (int), is_active (bool)
+- message (texto humano para mostrar)
+- created_at, updated_at
 
-Ruta `/admin/promociones`. Lista + formulario con:
-- Nombre
-- Tipo de beneficio (radio: descuento / gratis)
-- Porcentaje (select 25/30/40/50/70 + "Personalizado" con input) — solo visible si tipo = descuento
-- Multi-select de productos participantes (buscable)
-- Fechas inicio/fin
-- Límite por pedido
-- Toggles: Mostrar en Home, Mostrar en ficha, Activo
+GRANTs estándar (anon select para `search_needs` activas y `search_ai_settings` lectura pública sin api_key; admin via service_role). RLS: lectura pública del catálogo de necesidades; escritura solo admin.
 
-Se añade entrada en el sidebar admin bajo "Catálogo".
+Seed inicial con las necesidades del brief: Energía, Digestión, Colágeno, Fitness, Sin azúcar, Nutrición diaria, Combos.
 
-### 3. Lógica de aplicación en carrito
+## 2. Edge function `intelligent-search`
 
-Nuevo helper `src/lib/promotions.ts`:
-- `expandUnits(items)`: convierte CartItems en una lista plana de unidades con su precio
-- `applyPromotions(items, promotions)`: para cada promoción activa, agrupa unidades participantes en pares y aplica descuento al de **menor precio** del par
-- Retorna `{ discountTotal, appliedPromotions: [{promotionId, name, label, amount}] }`
+`supabase/functions/intelligent-search/index.ts`:
+- Input: `{ query }`
+- Flujo:
+  1. Normaliza texto (minúsculas, sin tildes).
+  2. Lee `search_ai_settings`.
+  3. Match exacto en productos (RPC existente) y categorías.
+  4. Match en `search_needs.keywords`.
+  5. Si no hay match y IA activa, llama al proveedor (default Lovable AI Gateway con Gemini) con `prompt_template` + lista resumida de necesidades/categorías disponibles, esperando JSON:
+     ```
+     { intent, need, category, products, message }
+     ```
+  6. Devuelve `{ source: "exact"|"need"|"ai"|"none", need, category_slug, product_ids, message }`.
+- Si IA falla → devuelve `source: "none"` y deja que el frontend caiga al buscador tradicional.
 
-Hook `usePromotions()` que carga promociones vigentes activas con sus product_ids desde Supabase y cachea.
+## 3. Admin: `Configuración del Buscador IA`
 
-Integración en:
-- `src/store/cart.ts` → `cartTotals` recibe descuento de promos (o se calcula en consumidor)
-- `src/pages/Cart.tsx` → muestra línea "Promoción: X" con texto dinámico
-- `src/components/CartDrawer.tsx` → idem
-- `src/pages/Checkout.tsx` → aplica el mismo descuento al total y lo persiste en la orden como descuento adicional (en `subtotal` calculado o nuevo campo opcional). Para no tocar esquema de orders, se descuenta del subtotal antes de guardar.
+Nueva ruta `/admin/buscador-ia` (`src/pages/admin/AdminSearchAi.tsx`) con dos tabs:
 
-### 4. Etiquetas en producto
+**Tab "Configuración"**
+- Switch activar/desactivar
+- Select proveedor (Gemini / OpenAI / DeepSeek / Claude / Desactivada)
+- Input API Key (oculta, opcional — Gemini funciona con Lovable AI sin key)
+- Textarea prompt editable (con reset a default)
+- Select modo de resultado (productos/categorías/combos/todos)
+- Sliders: confianza mínima, temperatura, max tokens
+- Toggle "Mostrar botón WhatsApp si no hay resultados"
+- Input texto helper bajo el buscador
 
-En `ProductCard.tsx` y ficha de producto: si el producto está en alguna promoción activa con `show_on_product = true`, mostrar badge:
-- `2do con X% dscto` (segundo con descuento)
-- `2x1` (segundo gratis)
+**Tab "Necesidades"**
+- Tabla CRUD de `search_needs`
+- Form: nombre, slug, keywords (chips), intención, categoría relacionada (select de categorías existentes), productos relacionados (multi-select), prioridad, mensaje humano, activo
+- Botón "Sembrar necesidades base" para insertar el set inicial si la tabla está vacía
 
-### 5. Banner en Home (opcional, mínimo)
+Agregar entrada en sidebar admin (`AdminLayout`).
 
-Si hay promo con `show_on_home = true`, mostrar pequeño banner sobre el carrusel con título + subtítulo dinámicos según tipo.
+## 4. Frontend del buscador
 
-### Textos dinámicos (helper)
-```
-labelForPromo(p): "2do con 50% dscto" | "2x1"
-titleForPromo(p): "Compra uno y lleva otro [gratis]"
-cartMessage(p): "Promoción aplicada: ..."
-```
+**`src/lib/intelligentSearch.ts`**
+- `normalize(text)` (sin tildes, minúsculas).
+- `intelligentSearch(query)`: llama edge function, maneja errores con fallback.
+- Helper para construir URL destino según resultado: `/categoria/<slug>` si hay categoría, `/buscar?q=...` si hay productos sueltos.
 
-### Archivos a crear
-- `supabase/migrations/<ts>_promotions.sql`
-- `src/lib/promotions.ts`
-- `src/hooks/usePromotions.ts`
-- `src/pages/admin/AdminPromotions.tsx`
-- `src/components/PromoBadge.tsx`
+**`src/components/Header.tsx` (input de búsqueda)**
+- Al submit: llamar `intelligentSearch`, redirigir según resultado.
+- Mostrar sugerencias automáticas (derivadas de `search_needs` activas) al escribir.
+- Helper text editable bajo el input.
 
-### Archivos a editar
+**`src/pages/Search.tsx`**
+- Aceptar `?q=`, `?necesidad=`, `?categoria=`.
+- Si `necesidad` o `categoria` presentes: header tipo "Productos recomendados para Energía" + mensaje humano de la necesidad + botones (Ver categoría completa / WhatsApp Lucía).
+- Si `q=` se mantiene el flujo actual (RPC `search_products`) — sin tocar la lógica existente.
+- Si 0 resultados y IA permite WhatsApp: mostrar bloque "No encontramos un producto exacto…" con botón a Lucía/WhatsApp.
+
+## 5. Reglas de seguridad y rendimiento
+
+- Edge function valida `query` (1–200 chars).
+- Rate limit simple en memoria por IP (5 req/seg).
+- Nunca prometer cura; el prompt incluye prohibiciones explícitas.
+- Priorizar productos activos y con stock (filtro en query final).
+- Si IA falla / 429 / 402: log y caer a búsqueda tradicional silenciosamente.
+
+## Archivos a crear / modificar
+
+Crear:
+- `supabase/migrations/<ts>_search_ai.sql`
+- `supabase/functions/intelligent-search/index.ts`
+- `src/lib/intelligentSearch.ts`
+- `src/pages/admin/AdminSearchAi.tsx`
+
+Modificar:
 - `src/App.tsx` — ruta admin
 - `src/components/admin/AdminLayout.tsx` — link sidebar
-- `src/components/ProductCard.tsx` — badge
-- `src/pages/ProductDetail.tsx` — badge + mensaje
-- `src/store/cart.ts` — exponer subtotal pre-descuento (ya existe)
-- `src/pages/Cart.tsx` — mostrar descuento promo
-- `src/components/CartDrawer.tsx` — mostrar descuento promo
-- `src/pages/Checkout.tsx` — aplicar descuento promo al total
-- `src/pages/Index.tsx` — banner home (si aplica)
+- `src/components/Header.tsx` — submit del buscador + sugerencias + helper text
+- `src/pages/Search.tsx` — soporte `?necesidad=` / `?categoria=` + bloque "sin resultados"
 
-### No se toca
-- Lógica de productos / IA / editor imágenes
-- Estructura de `orders` (el descuento se refleja en `subtotal` calculado en checkout, igual que el reseller_discount)
-- Identidad visual
+No tocar: productos, carrito, checkout, promociones, mega menú, tema.
 
-¿Apruebas para implementar?
+## Detalles técnicos (resumen)
+
+- Proveedor IA default = Lovable AI Gateway (`LOVABLE_API_KEY`), modelo `google/gemini-2.5-flash`.
+- Respuesta IA forzada a JSON via system prompt; parse seguro con try/catch.
+- `search_needs.keywords` se busca con array overlap normalizado.
+- Sugerencias del header: top 5 `search_needs` ordenadas por prioridad, filtradas por substring del input.
