@@ -14,6 +14,7 @@ import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
 import { mainCategories as staticMains, getSubcategories as getStaticSubs } from "@/lib/productCategories";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { BrandSelect } from "@/components/admin/BrandSelect";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
