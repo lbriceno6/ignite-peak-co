@@ -95,6 +95,7 @@ import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
 import Goal from "./pages/Goal.tsx";
+import Goals from "./pages/Goals.tsx";
 import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
