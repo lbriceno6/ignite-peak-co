@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
+import { BrandSelect } from "@/components/admin/BrandSelect";
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -19,6 +20,7 @@ const empty = {
   category: "", stock: 0, main_image: "", gallery_images: "" as any,
   is_active: true, badge: "",
   usage_instructions: "", ingredients: "",
+  brand_id: null as string | null, brand: "",
 };
 
 const BADGES = [
@@ -169,6 +171,16 @@ export default function SupplierProductForm() {
               <SelectTrigger><SelectValue/></SelectTrigger>
               <SelectContent>{BADGES.map((b) => <SelectItem key={b.v} value={b.v}>{b.l}</SelectItem>)}</SelectContent>
             </Select>
+          </Fld>
+          <Fld label="Marca">
+            <BrandSelect
+              value={f.brand_id ?? null}
+              onChange={(id, brand) => {
+                set("brand_id", id);
+                if (brand) set("brand", brand.name);
+                if (!id) set("brand", "");
+              }}
+            />
           </Fld>
         </div>
 
