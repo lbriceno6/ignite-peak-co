@@ -640,6 +640,278 @@ export type Database = {
         }
         Relationships: []
       }
+      combo_config: {
+        Row: {
+          ai_enabled: boolean
+          ai_prompt: string
+          ai_provider: string | null
+          id: string
+          max_recommendations: number
+          show_in_cart: boolean
+          show_in_category: boolean
+          show_in_checkout: boolean
+          show_in_home: boolean
+          show_in_product: boolean
+          show_in_search: boolean
+          updated_at: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          ai_prompt?: string
+          ai_provider?: string | null
+          id?: string
+          max_recommendations?: number
+          show_in_cart?: boolean
+          show_in_category?: boolean
+          show_in_checkout?: boolean
+          show_in_home?: boolean
+          show_in_product?: boolean
+          show_in_search?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          ai_prompt?: string
+          ai_provider?: string | null
+          id?: string
+          max_recommendations?: number
+          show_in_cart?: boolean
+          show_in_category?: boolean
+          show_in_checkout?: boolean
+          show_in_home?: boolean
+          show_in_product?: boolean
+          show_in_search?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      combo_events: {
+        Row: {
+          amount: number | null
+          combo_id: string
+          created_at: string
+          event_type: string
+          id: string
+          order_id: string | null
+          source_location: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          combo_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          order_id?: string | null
+          source_location?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          combo_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          order_id?: string | null
+          source_location?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_events_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      combo_products: {
+        Row: {
+          combo_id: string
+          created_at: string
+          id: string
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          combo_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          combo_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_products_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      combo_rules: {
+        Row: {
+          category_id: string | null
+          combo_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max_cart_total: number | null
+          min_cart_total: number | null
+          need_tag: string | null
+          priority: string
+          product_id: string | null
+          rule_type: string
+        }
+        Insert: {
+          category_id?: string | null
+          combo_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_cart_total?: number | null
+          min_cart_total?: number | null
+          need_tag?: string | null
+          priority?: string
+          product_id?: string | null
+          rule_type: string
+        }
+        Update: {
+          category_id?: string | null
+          combo_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max_cart_total?: number | null
+          min_cart_total?: number | null
+          need_tag?: string | null
+          priority?: string
+          product_id?: string | null
+          rule_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combo_rules_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_rules_combo_id_fkey"
+            columns: ["combo_id"]
+            isOneToOne: false
+            referencedRelation: "combos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "combo_rules_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      combos: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          discount_type: string
+          discount_value: number
+          display_locations: string[]
+          ends_at: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          need_tag: string | null
+          price_combo: number
+          price_normal: number
+          priority: string
+          slug: string
+          starts_at: string | null
+          stat_cart_adds: number
+          stat_purchases: number
+          stat_revenue: number
+          stat_views: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          display_locations?: string[]
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          need_tag?: string | null
+          price_combo?: number
+          price_normal?: number
+          priority?: string
+          slug: string
+          starts_at?: string | null
+          stat_cart_adds?: number
+          stat_purchases?: number
+          stat_revenue?: number
+          stat_views?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          discount_type?: string
+          discount_value?: number
+          display_locations?: string[]
+          ends_at?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          need_tag?: string | null
+          price_combo?: number
+          price_normal?: number
+          priority?: string
+          slug?: string
+          starts_at?: string | null
+          stat_cart_adds?: number
+          stat_purchases?: number
+          stat_revenue?: number
+          stat_views?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "combos_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
