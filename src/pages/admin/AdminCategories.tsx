@@ -116,10 +116,36 @@ export default function AdminCategories() {
   const openEdit = (c: Category) => { setEditing(c); setOpen(true); };
 
   const save = async () => {
-    if (!editing.name?.trim()) return toast.error("El nombre es obligatorio");
+    if (!editing.name?.trim()) return toast.error("El nombre visible es obligatorio");
+    const newSlug = (editing.slug || slugify(editing.name!)).trim();
+
+    // Validación de formato del slug
+    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(newSlug)) {
+      return toast.error(
+        "Slug inválido. Usa solo minúsculas, números y guiones medios. Sin tildes, ñ, espacios ni caracteres especiales.",
+      );
+    }
+
+    // Duplicados (excluyendo la propia)
+    const dupQ = supabase.from("categories").select("id").eq("slug", newSlug).eq("type", (editing.type as any) ?? "product");
+    const { data: dup } = await dupQ;
+    if ((dup ?? []).some((r: any) => r.id !== editing.id)) {
+      return toast.error("Ya existe otra categoría con este slug.");
+    }
+
+    // Detectar cambio de slug en edición → confirmar y crear redirect 301
+    const prev = editing.id ? items.find((c) => c.id === editing.id) : null;
+    const slugChanged = !!prev && prev.slug !== newSlug;
+    if (slugChanged) {
+      const ok = confirm(
+        "Cambiar el slug modificará la URL de esta categoría. Se creará una redirección 301 automática para proteger el SEO.\n\n¿Continuar?",
+      );
+      if (!ok) return;
+    }
+
     const payload = {
       name: editing.name!.trim(),
-      slug: (editing.slug || slugify(editing.name!)).trim(),
+      slug: newSlug,
       type: (editing.type as "product" | "blog") ?? "product",
       parent_id: editing.parent_id || null,
       description: editing.description || null,
@@ -145,10 +171,22 @@ export default function AdminCategories() {
       ? await supabase.from("categories").update(payload).eq("id", editing.id)
       : await supabase.from("categories").insert(payload);
     if (res.error) return toast.error(res.error.message);
+
+    if (slugChanged && prev) {
+      const from_path = `/categoria/${prev.slug}`;
+      const to_path = `/categoria/${newSlug}`;
+      const { error: rErr } = await (supabase as any)
+        .from("seo_redirects")
+        .upsert({ from_path, to_path, status_code: 301, active: true }, { onConflict: "from_path" });
+      if (rErr) toast.error(`Categoría guardada, pero la redirección falló: ${rErr.message}`);
+      else toast.success(`Redirección 301 creada: ${from_path} → ${to_path}`);
+    }
+
     toast.success(editing.id ? "Categoría actualizada" : "Categoría creada");
     setOpen(false);
     load();
   };
+
 
   const toggleActive = async (c: Category) => {
     const { error } = await supabase
