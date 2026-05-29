@@ -207,47 +207,65 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
           .eq("approval_status", "approved")
       : null;
 
-  const [searchRes, explicitRes] = await Promise.all([
+  const brandsQuery = (supabase.from as any)("brands")
+    .select("id,name,slug,logo_url")
+    .eq("is_active", true)
+    .or(terms.map((t) => `name.ilike.%${t}%,slug.ilike.%${t}%`).join(","))
+    .limit(5);
+
+  const [searchRes, explicitRes, brandsRes] = await Promise.all([
     productsQuery,
     explicitProductsQuery ?? Promise.resolve({ data: [], count: 0 } as any),
+    brandsQuery,
   ]);
 
   if (searchRes.error) {
     console.warn("[liveSearch] products query error", searchRes.error);
   }
 
+  const brands: LiveBrand[] = ((brandsRes?.data as any[]) ?? []).map((b) => ({
+    id: b.id, name: b.name, slug: b.slug, logo_url: b.logo_url,
+  }));
+
   const seen = new Set<string>();
   const ordered: any[] = [];
   for (const r of (explicitRes.data ?? []) as any[]) {
-    if (!seen.has(r.id)) {
-      seen.add(r.id);
-      ordered.push(r);
-    }
+    if (!seen.has(r.id)) { seen.add(r.id); ordered.push(r); }
   }
   for (const r of (searchRes.data ?? []) as any[]) {
-    if (!seen.has(r.id)) {
-      seen.add(r.id);
-      ordered.push(r);
+    if (!seen.has(r.id)) { seen.add(r.id); ordered.push(r); }
+  }
+
+  // If a brand matched but no products by brand were returned, fetch products of that brand
+  if (brands.length > 0) {
+    const brandIds = brands.map((b) => b.id);
+    const { data: brandProducts } = await supabase
+      .from("products")
+      .select(PRODUCT_COLS)
+      .in("brand_id", brandIds)
+      .eq("is_active", true)
+      .eq("approval_status", "approved")
+      .order("stock", { ascending: false })
+      .limit(max * 2);
+    for (const r of (brandProducts ?? []) as any[]) {
+      if (!seen.has(r.id)) { seen.add(r.id); ordered.push(r); }
     }
   }
 
   const products = ordered.map(rowToProduct);
 
   const suggestions = Array.from(
-    new Set(
-      [
-        ...needHits.map((n) => n.name),
-        ...maps
-          .filter((m) => terms.some((t) => norm(m.keyword).includes(t)))
-          .map((m) => m.keyword),
-        ...terms.filter((t) => t !== q),
-      ],
-    ),
+    new Set([
+      ...needHits.map((n) => n.name),
+      ...maps.filter((m) => terms.some((t) => norm(m.keyword).includes(t))).map((m) => m.keyword),
+      ...terms.filter((t) => t !== q),
+    ]),
   ).slice(0, 8);
 
   return {
     products,
     suggestions,
+    brands,
     totalEstimated: Math.max(searchRes.count ?? products.length, products.length),
     matchedNeedSlug: matchedNeed?.slug ?? null,
     matchedNeedName: matchedNeed?.name ?? null,
