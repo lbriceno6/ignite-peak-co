@@ -261,7 +261,7 @@ export default function MegaMenuBuilder() {
                           <Select value={col.parent_nav} onValueChange={(v) => updateColumn(col.id, { parent_nav: v })}>
                             <SelectTrigger><SelectValue/></SelectTrigger>
                             <SelectContent>
-                              {PARENT_NAVS.map((n) => <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>)}
+                              {navs.map((n) => <SelectItem key={n.parent_nav} value={n.parent_nav}>{n.label}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
