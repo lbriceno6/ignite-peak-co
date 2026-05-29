@@ -21,6 +21,7 @@ import { Sparkles } from "lucide-react";
 import { track } from "@/lib/analytics";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions } from "@/lib/promotions";
+import { trackComboEvent } from "@/lib/smartCombos";
 
 const PAY_KEYS = [
   "pay.order",
