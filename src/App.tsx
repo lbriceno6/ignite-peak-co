@@ -77,6 +77,7 @@ import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
 import AdminProductCardTypography from "./pages/admin/AdminProductCardTypography.tsx";
 import AdminPromotions from "./pages/admin/AdminPromotions.tsx";
+import AdminCombos from "./pages/admin/AdminCombos.tsx";
 import { ThemeProvider } from "./components/ThemeProvider";
 import Shipping from "./pages/policies/Shipping.tsx";
 import Returns from "./pages/policies/Returns.tsx";
@@ -243,7 +244,9 @@ const App = () => (
               <Route path="benefits" element={<AdminBenefits />} />
               <Route path="product-card-typography" element={<AdminProductCardTypography />} />
               <Route path="promotions" element={<AdminPromotions />} />
-              <Route path="promociones" element={<AdminPromotions />} />
+              <Route path="/admin/promociones" element={<AdminPromotions />} />
+              <Route path="combos" element={<AdminCombos />} />
+              <Route path="combos-inteligentes" element={<AdminCombos />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
