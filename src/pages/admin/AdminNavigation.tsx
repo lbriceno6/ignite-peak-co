@@ -587,6 +587,8 @@ export default function AdminNavigation() {
 
         {/* ===== MEGA MENÚ ===== */}
         <TabsContent value="mega" className="space-y-6">
+          <MegaMenuBuilder />
+
           <section className="rounded-lg border bg-background p-6">
             <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
