@@ -539,16 +539,7 @@ export const Header = () => {
 
       {searchOpen && (
         <div className="border-t border-border p-3 lg:hidden">
-          <form onSubmit={submitSearch} className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar productos..."
-              className="h-11 pl-10 bg-secondary"
-              autoFocus
-            />
-          </form>
+          <LiveSearchBar autoFocus onClose={() => setSearchOpen(false)} />
         </div>
       )}
 
