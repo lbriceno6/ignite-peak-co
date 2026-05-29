@@ -309,7 +309,7 @@ export const Header = () => {
     ]);
     // Set mega menu FIRST so the conditional rendering knows whether to hide
     // the legacy categories/goals before they get a chance to paint.
-    setMegaMenu(megaRes ?? { columns: [], items: [], categories: {}, goals: {}, redirects: {} });
+    setMegaMenu(megaRes ?? { columns: [], items: [], categories: {}, goals: {}, redirects: {}, navSettings: {} });
     setNavItems((navRes.data as NavItem[]) ?? []);
     if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
