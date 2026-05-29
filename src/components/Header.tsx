@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle, Sun, Moon, Monitor } from "lucide-react";
+import { Search, User, ShoppingBag, Menu, MessageCircle, Heart, X, LogOut, Package, UserCircle, Sun, Moon, Monitor, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
