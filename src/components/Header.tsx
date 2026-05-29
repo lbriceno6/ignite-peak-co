@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 import { intelligentSearch, buildSearchDestination } from "@/lib/intelligentSearch";
 import { loadMegaMenu, columnsByNav, itemsForColumn, resolveItemHref, type MegaMenuData } from "@/lib/megaMenu";
+import { LiveSearchBar } from "@/components/search/LiveSearchBar";
 
 type CategoryItem = {
   id: string;
