@@ -147,7 +147,11 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
   )}`;
 
   const showPanel = open && query.trim().length >= 2;
-  const hasNoResults = showPanel && !loading && result && result.products.length === 0;
+  const hasProducts = (result?.products.length ?? 0) > 0;
+  const hasCategory = !!result?.matchedCategorySlug;
+  const hasDynamicSuggestions = (result?.suggestions.length ?? 0) > 0;
+  const hasAnything = hasProducts || hasCategory || hasDynamicSuggestions;
+  const hasNoResults = showPanel && !loading && result !== null && !hasAnything;
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
