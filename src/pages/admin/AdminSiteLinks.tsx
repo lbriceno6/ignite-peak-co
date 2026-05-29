@@ -120,6 +120,9 @@ export default function AdminSiteLinks() {
         </p>
       </div>
 
+      <CategoriesLinksTable />
+
+
       {Object.entries(grouped).map(([group, items]) => (
         <Card key={group}>
           <CardHeader>
