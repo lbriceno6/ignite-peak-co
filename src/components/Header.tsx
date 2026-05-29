@@ -583,7 +583,7 @@ export const Header = () => {
                               <ul className="flex flex-col gap-1">
                                 {gitems.map((s) => (
                                   <li key={s.id}>
-                                    <Link to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
+                                    <Link to={`/categoria/${s.slug}`} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
                                       {labelOf(s)}
                                       {s.menu_badge && (
                                         <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent" style={badgeStyle(s.menu_badge_bg, s.menu_badge_color)}>{s.menu_badge}</span>
