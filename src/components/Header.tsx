@@ -409,8 +409,8 @@ export const Header = () => {
               {megaMenu && (["products", "goals"] as const).map((nav) => {
                 const cols = columnsByNav(megaMenu, nav).filter((c) => c.show_mobile);
                 if (cols.length === 0) return null;
-                const topLabel = nav === "products" ? "Productos" : "Compra por objetivo";
-                const topHref = nav === "products" ? "/productos" : "/objetivos";
+                const topLabel = megaMenu.navSettings[nav]?.label || (nav === "products" ? "Productos" : "Compra por objetivo");
+                const topHref = megaMenu.navSettings[nav]?.href || (nav === "products" ? "/productos" : "/objetivos");
                 return (
                   <details key={`mm-${nav}`} className="group/m rounded-md">
                     <summary className="nav-mobile-link flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 hover:bg-secondary" style={mainMobileLinkStyle}>
