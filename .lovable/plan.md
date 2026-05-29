@@ -1,79 +1,119 @@
-## Módulo de Marcas (Brands) para Nutribatidos
+# Sistema Global de Filtros del Catálogo
 
-### 1. Base de datos (migración)
+Unificar todos los filtros del ecommerce bajo un único módulo admin "Filtros del Catálogo". Todas las páginas de listado de productos consumirán la misma configuración.
 
-**Tabla `brands`** (nueva):
-- `id`, `name`, `slug` (único), `logo_url`, `banner_url`
-- `short_description`, `long_description`
+## 1. Base de datos (migración)
+
+**Tabla `catalog_filters`** (definición de cada filtro):
+- `id`, `name`, `slug` (único), `filter_type` (enum: category, subcategory, brand, price, ingredient, benefit, need, goal, tag, stock, promotion, flag, combo, featured, new)
 - `is_active` (bool), `display_order` (int)
-- `seo_title`, `seo_description`
-- `created_at`, `updated_at` (con trigger)
+- `selection_type` (`single` | `multi`)
+- `show_desktop`, `show_mobile`, `default_open` (bool)
+- `pages_visibility` (jsonb array: `["catalog","category","subcategory","brand","search","need","promotions","combos","featured","new","related"]`)
+- `ui_widget` (`checkbox` | `range` | `chips` | `toggle`) — derivado del tipo
+- timestamps
 
-GRANT: `anon` y `authenticated` SELECT (solo activas vía RLS), admin write, `service_role` ALL.
+**Tabla `catalog_filter_options`** (opciones de cada filtro):
+- `id`, `filter_id` (FK), `name`, `slug`, `value` (text), `image_url`, `color`
+- `display_order`, `is_active`
+- timestamps
+- Unique (`filter_id`, `slug`)
 
-**Tabla `products`**: agregar `brand_id uuid` con FK `ON DELETE SET NULL` → `brands.id`. Mantener columna `brand` (texto) existente para no romper nada; el nuevo flujo usa `brand_id` y, opcionalmente, sincroniza `brand` con el nombre.
+**Tabla `product_filter_values`** (relación producto ↔ opción):
+- `id`, `product_id` (FK), `filter_id` (FK), `option_id` (FK nullable, para tipos abiertos como precio), `value` (text, opcional para valores numéricos)
+- Unique (`product_id`, `filter_id`, `option_id`)
+- Índices por `product_id` y por (`filter_id`, `option_id`)
 
-**Storage**: bucket público `brand-assets` para logos/banners, con políticas (lectura pública, escritura admin).
+GRANTs: lectura `anon`/`authenticated` (sólo activos vía RLS), escritura admin, ALL `service_role`.
 
-### 2. Admin · `/admin/brands`
+Seed inicial: migrar los filtros existentes (precio, categoría, subcategoría, necesidad, presentación, sabor, marca, disponibilidad, valoración) desde la configuración actual `catalog_filter_settings` y `filter_options` a las nuevas tablas, conservando orden y estado.
 
-Nueva entrada en `AdminLayout` ("Marcas", icon `Award`). Páginas:
+## 2. Admin · `/admin/filters` (reemplaza/expande módulo actual)
 
-- **Listado** (`AdminBrands.tsx`): tabla con logo, nombre, slug, descripción, estado, **cantidad de productos asociados** (count via `products.brand_id`), botones Editar/Eliminar.
-- **Form crear/editar** (`AdminBrandForm.tsx`): todos los campos del brief; slug auto-generado desde el nombre, editable; subida de logo y banner al bucket `brand-assets`; switch estado; SEO; orden.
-- **Eliminar**: dialog confirmación. Si la marca tiene productos, ofrecer 3 opciones: reasignar a otra marca (select), quitar marca (set NULL), cancelar.
+**Listado** (`AdminCatalogFilters.tsx` rewrite):
+- Tabla con todos los filtros: nombre, tipo, opciones (count), páginas donde aparece (chips), estado, orden, acciones.
+- Drag-handle o flechas para ordenar.
+- Botones: Nuevo filtro, Restaurar recomendados.
 
-### 3. Integración con productos
+**Form crear/editar** (`AdminCatalogFilterForm.tsx`):
+- Nombre, slug (auto), tipo, selección única/múltiple
+- Switches: activo, desktop, móvil, abierto por defecto
+- Multi-select de páginas (catálogo, categoría, subcategoría, marca, búsqueda, necesidad, promociones, combos, destacados, nuevos, relacionados)
+- Editor de opciones inline (nombre, slug, valor, color, imagen opcional, orden, activo) con add/remove/reorder
+- Para tipos `price`/`stock`/`featured`/`new`/`promotion` las opciones se infieren — no se editan manualmente
 
-En `ProductForm.tsx` y `SupplierProductForm.tsx`:
-- Nuevo campo "Marca" (Select con búsqueda usando `Command`), cargado desde `brands` activas.
-- Botón "Crear nueva marca" → dialog inline para crear sin salir del form.
-- Al guardar, persistir `brand_id` y opcionalmente espejar `brand` (texto) con el nombre.
+**Eliminar** con confirmación; borra cascada de opciones y values.
 
-### 4. Página pública `/marca/:slug`
+## 3. Hook único de consumo
 
-Nuevo `BrandPage.tsx` (ruta agregada en `App.tsx`):
-- Header con logo, banner, nombre, descripción.
-- SEO con `<SEO />` usando `seo_title`/`seo_description`.
-- Grid de productos de la marca, con filtros básicos (categoría, precio, disponibilidad) — reutilizar `ProductCard`.
+`useCatalogFilters(page: PageKey)`:
+- Carga filtros activos donde `pages_visibility` incluye `page`
+- Devuelve filtros ordenados con sus opciones activas
+- Cachea con react-query patrón existente
 
-### 5. Buscador
+`useFilteredProducts({ page, baseQuery, selected })`:
+- Recibe filtros seleccionados desde URL
+- Construye query Supabase con joins a `product_filter_values`
+- Devuelve productos + contadores por opción (facets)
 
-En `liveSearch.ts`:
-- Añadir consulta paralela a `brands` por `name`/`slug` ILIKE.
-- Devolver `brands[]` en el resultado.
-- También buscar productos por `brand_id` cuando una marca coincide.
+## 4. Componente UI compartido
 
-En `LiveSearchBar.tsx`: nueva sección "MARCAS" en el dropdown con logo pequeño + nombre, link a `/marca/:slug`.
+`<CatalogFiltersPanel page="..." />`:
+- Renderiza todos los filtros configurados según tipo
+- Sidebar desktop / Sheet móvil (un solo componente, `useIsMobile`)
+- Lee/escribe estado en URL (`?marca=...&necesidad=...&precio=30-80`)
+- Botón "Limpiar filtros", contador de productos, contador por opción
+- Empty state con "No encontramos productos" + limpiar
 
-### 6. Tarjeta de producto
+`<CatalogPageLayout>`: layout grid filtros izquierda + productos derecha + grid 4 col.
 
-En `ProductCard.tsx` (y card del buscador): mostrar el nombre de la marca encima del nombre del producto, en texto pequeño/muted. Solo si existe marca activa; nunca mostrar "Sin marca" en la tienda pública.
+## 5. Integración en páginas
 
-### 7. Reglas
+Reemplazar la lógica de filtros local en:
+- `src/pages/Category.tsx` (page="category")
+- `src/pages/CategoryTaxonomy.tsx` (page="subcategory")
+- `src/pages/BrandPage.tsx` (page="brand")
+- `src/pages/Search.tsx` (page="search")
+- `src/pages/Goal.tsx` (page="need")
+- `src/pages/SeoLanding.tsx` o `/promociones` (page="promotions")
+- Página combos (page="combos")
+- Sección destacados/nuevos si tienen ruta propia
 
-- Slug único enforced por DB unique constraint.
-- Placeholder `/placeholder.svg` cuando no haya logo.
-- Solo marcas con `is_active=true` visibles en tienda pública (RLS).
-- Admin ve todas (RLS con `has_role(...,'admin')`).
-- Productos sin marca: en admin se muestra "Sin marca"; en público se omite.
+Todas las páginas: mismo `<CatalogFiltersPanel>` + mismo grid. La página sólo añade su filtro base (categoría=X, marca=Y, query=q) y delega el resto.
 
-### Archivos a crear/editar
+## 6. Form de producto
+
+En `ProductForm.tsx` y `SupplierProductForm.tsx`: sección "Atributos filtrables" que muestra los filtros con tipo entity (marca, categoría, ingredientes, beneficios, necesidades, etiquetas) y permite asignar opciones al producto → escribe en `product_filter_values`. Campos directos del producto (precio, stock, is_featured, is_new) ya existen y no se duplican.
+
+## 7. Reglas
+
+- Filtros con `is_active=false` ocultos en toda la tienda; admin los ve.
+- Página que no esté en `pages_visibility` no muestra ese filtro.
+- Si un producto no tiene un valor de filtro, simplemente no aparece bajo esa opción (no se rompe).
+- URL es la fuente de verdad del estado de filtros.
+
+## Archivos a crear/editar
 
 **Nuevos:**
-- `supabase/migrations/<ts>_brands.sql`
-- `src/pages/admin/AdminBrands.tsx`
-- `src/pages/admin/AdminBrandForm.tsx`
-- `src/pages/BrandPage.tsx`
-- `src/hooks/useBrands.ts`
-- `src/components/admin/BrandSelect.tsx` (selector + quick create)
+- `supabase/migrations/<ts>_catalog_filters_unified.sql`
+- `src/hooks/useCatalogFilters.ts`
+- `src/hooks/useFilteredProducts.ts`
+- `src/components/catalog/CatalogFiltersPanel.tsx`
+- `src/components/catalog/CatalogPageLayout.tsx`
+- `src/pages/admin/AdminCatalogFilterForm.tsx`
 
 **Editar:**
-- `src/components/admin/AdminLayout.tsx` (nuevo item)
-- `src/App.tsx` (rutas `/admin/brands`, `/admin/brands/new`, `/admin/brands/:id/edit`, `/marca/:slug`)
-- `src/pages/admin/ProductForm.tsx` y `src/pages/supplier/SupplierProductForm.tsx` (campo marca)
-- `src/lib/liveSearch.ts` y `src/components/search/LiveSearchBar.tsx` (búsqueda + UI de marcas)
-- `src/components/ProductCard.tsx` (mostrar marca encima del nombre)
-- `src/integrations/supabase/types.ts` se regenera automáticamente tras la migración.
+- `src/pages/admin/AdminCatalogFilters.tsx` (rewrite a listado CRUD)
+- `src/pages/admin/AdminFilterOptions.tsx` (deprecar/redirigir al nuevo)
+- `src/App.tsx` (rutas admin nuevas)
+- `src/components/admin/AdminLayout.tsx` (renombrar item)
+- Páginas de listado: `Category.tsx`, `CategoryTaxonomy.tsx`, `BrandPage.tsx`, `Search.tsx`, `Goal.tsx`, combos, promociones
+- `ProductForm.tsx`, `SupplierProductForm.tsx` (atributos filtrables)
+
+## Notas técnicas
+
+- Diseño actual se conserva: mismo grid 4 columnas, mismo sidebar de filtros, mismos componentes shadcn (Accordion, Checkbox, Slider, Sheet).
+- Migración no rompe datos: mantiene `products.brand`, `products.category`, etc. — sólo añade capa de mapeo.
+- Trabajo grande: ~10 archivos nuevos + ~8 ediciones. Se hará en una sola pasada tras tu aprobación.
 
 ¿Apruebas que avancemos con esta implementación?
