@@ -254,6 +254,10 @@ const App = () => (
               <Route path="promotions" element={<AdminPromotions />} />
               <Route path="promociones" element={<AdminPromotions />} />
               <Route path="combos" element={<AdminCombos />} />
+              <Route path="brands" element={<AdminBrands />} />
+              <Route path="brands/new" element={<AdminBrandForm />} />
+              <Route path="brands/:id/edit" element={<AdminBrandForm />} />
+              <Route path="marcas" element={<AdminBrands />} />
               <Route path="combos-inteligentes" element={<AdminCombos />} />
             </Route>
 
