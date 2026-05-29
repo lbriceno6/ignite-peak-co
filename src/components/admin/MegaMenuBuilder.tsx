@@ -57,25 +57,48 @@ export default function MegaMenuBuilder() {
   const [items, setItems] = useState<Item[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [navs, setNavs] = useState<NavSetting[]>(DEFAULT_NAVS);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingNav, setSavingNav] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [c, i, ca, go] = await Promise.all([
+    const [c, i, ca, go, nv] = await Promise.all([
       sb.from("mega_menu_columns").select("*").order("parent_nav").order("position"),
       sb.from("mega_menu_items").select("*").order("position"),
       sb.from("categories").select("id,name,slug").eq("is_active", true).order("name"),
       sb.from("goals").select("id,name,slug").eq("is_active", true).order("name"),
+      sb.from("mega_menu_nav_settings").select("*").order("position"),
     ]);
     setColumns((c.data ?? []) as Column[]);
     setItems((i.data ?? []) as Item[]);
     setCats((ca.data ?? []) as Cat[]);
     setGoals((go.data ?? []) as Goal[]);
+    const fetched = (nv.data ?? []) as NavSetting[];
+    const merged = DEFAULT_NAVS.map((d) => fetched.find((f) => f.parent_nav === d.parent_nav) || d);
+    setNavs(merged);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
+
+  const updateNav = (parent: string, patch: Partial<NavSetting>) =>
+    setNavs((ns) => ns.map((n) => (n.parent_nav === parent ? { ...n, ...patch } : n)));
+
+  const saveNav = async (nav: NavSetting) => {
+    setSavingNav(nav.parent_nav);
+    const { error } = await sb.from("mega_menu_nav_settings").upsert({
+      parent_nav: nav.parent_nav,
+      label: nav.label,
+      href: nav.href,
+      position: nav.position,
+    }, { onConflict: "parent_nav" });
+    setSavingNav(null);
+    if (error) return toast.error(error.message);
+    toast.success("Nombre del menú guardado");
+  };
+
 
   const addColumn = async () => {
     const maxPos = Math.max(0, ...columns.filter((c) => c.parent_nav === "products").map((c) => c.position));
