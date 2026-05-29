@@ -538,8 +538,6 @@ export const Header = () => {
         </div>
       )}
 
-      {(() => null)()}
-      {/* Compute new mega menu columns */}
       <nav data-nav-main className="relative hidden border-t border-border lg:block" style={navStyle}>
         <style>{navCss}</style>
         <div className="nav-main-list container-x flex items-center">
