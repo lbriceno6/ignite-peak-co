@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
+import CategoriesLinksTable from "@/components/admin/CategoriesLinksTable";
 
 type Row = {
   id: string;
@@ -118,6 +119,9 @@ export default function AdminSiteLinks() {
           Edit the label and destination of every reusable link across the site in one place.
         </p>
       </div>
+
+      <CategoriesLinksTable />
+
 
       {Object.entries(grouped).map(([group, items]) => (
         <Card key={group}>
