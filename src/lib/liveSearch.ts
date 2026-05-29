@@ -4,9 +4,12 @@ import type { Product } from "@/data/catalog";
 
 export type LiveProduct = Product & { stock: number };
 
+export type LiveBrand = { id: string; name: string; slug: string; logo_url: string | null };
+
 export type LiveSearchResult = {
   products: LiveProduct[];
   suggestions: string[];
+  brands: LiveBrand[];
   totalEstimated: number;
   matchedNeedSlug?: string | null;
   matchedNeedName?: string | null;
