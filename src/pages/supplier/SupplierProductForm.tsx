@@ -172,6 +172,16 @@ export default function SupplierProductForm() {
               <SelectContent>{BADGES.map((b) => <SelectItem key={b.v} value={b.v}>{b.l}</SelectItem>)}</SelectContent>
             </Select>
           </Fld>
+          <Fld label="Marca">
+            <BrandSelect
+              value={f.brand_id ?? null}
+              onChange={(id, brand) => {
+                set("brand_id", id);
+                if (brand) set("brand", brand.name);
+                if (!id) set("brand", "");
+              }}
+            />
+          </Fld>
         </div>
 
         <Fld label="Imagen principal">
