@@ -8,10 +8,18 @@ export type CartItem = {
   flavor?: string;
   size?: string;
   subscription?: { intervalDays: number; discountPercent: number };
+  comboId?: string;
+};
+
+export type CartCombo = {
+  id: string; // combo_id
+  name: string;
+  savings: number; // currency amount (positive)
 };
 
 type CartState = {
   items: CartItem[];
+  combos: CartCombo[];
   isOpen: boolean;
   wishlist: string[];
   add: (
@@ -21,14 +29,18 @@ type CartState = {
       size?: string;
       quantity?: number;
       subscription?: { intervalDays: number; discountPercent: number };
+      comboId?: string;
     },
   ) => void;
+  addCombo: (combo: { id: string; name: string; savings: number }, products: Array<{ product: Product; quantity: number }>) => void;
+  removeCombo: (comboId: string) => void;
   remove: (id: string) => void;
   setQty: (id: string, qty: number) => void;
   clear: () => void;
   setOpen: (open: boolean) => void;
   toggleWish: (id: string) => void;
 };
+
 
 const sameLine = (a: CartItem, b: { product: Product; flavor?: string; size?: string; subscription?: CartItem["subscription"] }) =>
   a.product.id === b.product.id &&
