@@ -7,6 +7,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/para-tu-salud</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://ignite-peak-co.lovable.app/categoria/colagenos</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
@@ -85,7 +91,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/Proteinas</loc>
+    <loc>https://ignite-peak-co.lovable.app/categoria/productos</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -109,13 +115,13 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/productos</loc>
+    <loc>https://ignite-peak-co.lovable.app/categoria/suplementos</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/para-tu-salud</loc>
+    <loc>https://ignite-peak-co.lovable.app/categoria/creatine</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -123,12 +129,6 @@
   <url>
     <loc>https://ignite-peak-co.lovable.app/categoria/promociones</loc>
     <lastmod>2026-05-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/creatine</loc>
-    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -181,7 +181,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/suplementos</loc>
+    <loc>https://ignite-peak-co.lovable.app/categoria/Proteinas</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
