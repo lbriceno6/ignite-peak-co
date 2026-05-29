@@ -266,6 +266,52 @@ export default function AdminSearchAi() {
             </div>
           </div>
 
+          <div className="rounded-md border border-border bg-secondary/40 p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-base">Sugerencias en vivo</Label>
+                <p className="text-xs text-muted-foreground">
+                  Mostrar panel desplegable con productos y sugerencias mientras el cliente escribe.
+                </p>
+              </div>
+              <Switch
+                checked={form.live_suggestions_enabled}
+                onCheckedChange={(v) => setForm((p) => ({ ...p, live_suggestions_enabled: v }))}
+              />
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Productos visibles en el desplegable</Label>
+                <Input
+                  type="number"
+                  min={2}
+                  max={12}
+                  value={form.max_products}
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, max_products: Math.max(2, Math.min(12, Number(e.target.value) || 4)) }))
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Sugerencias manuales (separadas por coma)</Label>
+                <Input
+                  value={(form.manual_suggestions ?? []).join(", ")}
+                  onChange={(e) =>
+                    setForm((p) => ({
+                      ...p,
+                      manual_suggestions: e.target.value
+                        .split(",")
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                    }))
+                  }
+                  placeholder="omega 3, vitaminas, colágeno…"
+                />
+              </div>
+            </div>
+          </div>
+
+
           <div className="flex justify-end pt-2">
             <Button variant="dark" onClick={save} disabled={saving}>
               {saving ? "Guardando…" : "Guardar configuración"}
