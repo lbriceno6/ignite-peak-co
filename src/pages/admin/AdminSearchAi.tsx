@@ -69,6 +69,9 @@ const DEFAULTS: Settings = {
   max_tokens: 600,
   fallback_whatsapp_enabled: true,
   helper_text: "Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.",
+  live_suggestions_enabled: true,
+  max_products: 4,
+  manual_suggestions: ["omega 3", "vitaminas", "bienestar", "omegas", "colágeno", "energía", "digestión"],
 };
 
 const EMPTY_NEED: Need = {
