@@ -14,6 +14,7 @@ import { ProductAiAssistant } from "@/components/admin/ProductAiAssistant";
 import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
 import { mainCategories as staticMains, getSubcategories as getStaticSubs } from "@/lib/productCategories";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
+import { BrandSelect } from "@/components/admin/BrandSelect";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -39,6 +40,8 @@ const empty = {
   subscription_intervals: "30,60,90",
   size_variants: "" as any,
   supplier_id: null as string | null,
+  brand_id: null as string | null,
+  brand: "",
 };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -251,6 +254,13 @@ export default function ProductForm() {
             </Select>
           </Field>
         </div>
+
+        <Field label="Marca">
+          <BrandSelect
+            value={f.brand_id ?? null}
+            onChange={(id, brand) => setF((p: any) => ({ ...p, brand_id: id, brand: brand?.name ?? (id ? p.brand : "") }))}
+          />
+        </Field>
 
         <Field label="Presentaciones / variantes de peso (una por línea, formato: etiqueta|precio, ej. 1kg|49.90)">
           <Textarea rows={4} placeholder={"500g|29.90\n1kg|49.90\n2kg|89.90"} value={f.size_variants}

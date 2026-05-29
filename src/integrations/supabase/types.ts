@@ -161,6 +161,54 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          banner_url: string | null
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          long_description: string | null
+          name: string
+          seo_description: string | null
+          seo_title: string | null
+          short_description: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          long_description?: string | null
+          name: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          long_description?: string | null
+          name?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          short_description?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_items: {
         Row: {
           created_at: string
@@ -1861,6 +1909,7 @@ export type Database = {
           approval_status: string
           badge: string | null
           brand: string | null
+          brand_id: string | null
           category: string | null
           created_at: string
           description: string | null
@@ -1897,6 +1946,7 @@ export type Database = {
           approval_status?: string
           badge?: string | null
           brand?: string | null
+          brand_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -1933,6 +1983,7 @@ export type Database = {
           approval_status?: string
           badge?: string | null
           brand?: string | null
+          brand_id?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
@@ -1966,6 +2017,13 @@ export type Database = {
           usage_instructions?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_supplier_id_fkey"
             columns: ["supplier_id"]

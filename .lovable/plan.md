@@ -1,78 +1,79 @@
-# Plan: Buscador avanzado Nutribatidos
+## Módulo de Marcas (Brands) para Nutribatidos
 
-Voy a construir un buscador en vivo con panel desplegable de 2 columnas, búsqueda por necesidad/categoría/etiquetas/ingredientes, y configuración admin.
+### 1. Base de datos (migración)
 
-## 1. Base de datos (migración)
+**Tabla `brands`** (nueva):
+- `id`, `name`, `slug` (único), `logo_url`, `banner_url`
+- `short_description`, `long_description`
+- `is_active` (bool), `display_order` (int)
+- `seo_title`, `seo_description`
+- `created_at`, `updated_at` (con trigger)
 
-Nueva tabla `search_settings` (singleton id=1):
-- `live_suggestions_enabled` bool
-- `max_products` int (default 4)
-- `manual_suggestions` text[] (default omega 3, vitaminas, bienestar, omegas, colágeno, energía, digestión)
-- `ai_enabled` bool, `ai_provider` text, `ai_model` text, `ai_prompt` text
+GRANT: `anon` y `authenticated` SELECT (solo activas vía RLS), admin write, `service_role` ALL.
 
-Nueva tabla `search_keyword_map`:
-- `keyword` text, `product_ids` uuid[], `category_slug` text, `need_slug` text
+**Tabla `products`**: agregar `brand_id uuid` con FK `ON DELETE SET NULL` → `brands.id`. Mantener columna `brand` (texto) existente para no romper nada; el nuevo flujo usa `brand_id` y, opcionalmente, sincroniza `brand` con el nombre.
 
-Reutilizar `search_needs` existente (ya hay keywords → categoría/productos). Sembrar con: energia, digestion, colageno, fitness, sin-azucar.
+**Storage**: bucket público `brand-assets` para logos/banners, con políticas (lectura pública, escritura admin).
 
-GRANTs para anon (lectura pública), authenticated, service_role. Admin write vía `has_role`.
+### 2. Admin · `/admin/brands`
 
-## 2. Componente `LiveSearchBar` (reemplaza el input del Header)
+Nueva entrada en `AdminLayout` ("Marcas", icon `Award`). Páginas:
 
-- Lupa a la **derecha**, placeholder "Buscar por necesidad: cansancio, digestión, colágeno..."
-- Debounce 200ms, activa con ≥2 chars
-- Panel flotante absoluto debajo del input (full width desktop, modal-like en móvil)
-- Click fuera / ESC / botón X cierra
-- Enter → `/buscar?q=...`
+- **Listado** (`AdminBrands.tsx`): tabla con logo, nombre, slug, descripción, estado, **cantidad de productos asociados** (count via `products.brand_id`), botones Editar/Eliminar.
+- **Form crear/editar** (`AdminBrandForm.tsx`): todos los campos del brief; slug auto-generado desde el nombre, editable; subida de logo y banner al bucket `brand-assets`; switch estado; SEO; orden.
+- **Eliminar**: dialog confirmación. Si la marca tiene productos, ofrecer 3 opciones: reasignar a otra marca (select), quitar marca (set NULL), cancelar.
 
-### Lógica de búsqueda (client-side sobre query a Supabase)
-1. Match exacto en `search_needs.keywords` → expande a `related_products` + sinónimos.
-2. Query a `products` con `or(name.ilike, category.ilike, brand.ilike, short_description.ilike, tags.cs)` filtrado por `is_active` y `approval_status='approved'`.
-3. Ordenar: stock>0 primero, luego rating.
-4. Si 0 resultados → mensaje + botón WhatsApp.
+### 3. Integración con productos
 
-### Panel (desktop 2 columnas, móvil 1 columna apilada)
-- **Izquierda "SUGERENCIAS"**: chips desde `search_settings.manual_suggestions` + necesidades coincidentes con la query. Click → ejecuta búsqueda con ese término.
-- **Derecha "PRODUCTOS PARA {QUERY}"**: hasta N tarjetas con imagen, marca, nombre, precio, badge stock, botón "Añadir al carrito" (verde si stock, gris "No disponible" si no), corazón favorito.
-- Footer: "Ver todos los X productos" → `/buscar?q=...`
+En `ProductForm.tsx` y `SupplierProductForm.tsx`:
+- Nuevo campo "Marca" (Select con búsqueda usando `Command`), cargado desde `brands` activas.
+- Botón "Crear nueva marca" → dialog inline para crear sin salir del form.
+- Al guardar, persistir `brand_id` y opcionalmente espejar `brand` (texto) con el nombre.
 
-## 3. Integración carrito
-- Usar `useCart` (store/cart.ts) existente; `addItem` + toast "Producto agregado al carrito".
+### 4. Página pública `/marca/:slug`
 
-## 4. Admin: `/admin/search-config` (nueva página)
+Nuevo `BrandPage.tsx` (ruta agregada en `App.tsx`):
+- Header con logo, banner, nombre, descripción.
+- SEO con `<SEO />` usando `seo_title`/`seo_description`.
+- Grid de productos de la marca, con filtros básicos (categoría, precio, disponibilidad) — reutilizar `ProductCard`.
 
-Tabs/secciones:
-- **General**: switches live suggestions, slider max productos
-- **Sugerencias manuales**: editor de lista (chips)
-- **Mapa de palabras → productos**: tabla CRUD sobre `search_keyword_map`
-- **Necesidades → categorías**: enlace a editor de `search_needs` (ya existe en `AdminSearchAi`)
-- **IA**: switch on/off, select proveedor (Gemini/OpenAI/DeepSeek/Claude/Off), input modelo, textarea prompt, botón guardar API key (usa `add_secret`)
+### 5. Buscador
 
-Agregar entrada al sidebar admin.
+En `liveSearch.ts`:
+- Añadir consulta paralela a `brands` por `name`/`slug` ILIKE.
+- Devolver `brands[]` en el resultado.
+- También buscar productos por `brand_id` cuando una marca coincide.
 
-## 5. Header
-Reemplazar el input actual por `<LiveSearchBar />`. Mantener ruta `/buscar` actual intacta.
+En `LiveSearchBar.tsx`: nueva sección "MARCAS" en el dropdown con logo pequeño + nombre, link a `/marca/:slug`.
 
-## Archivos
+### 6. Tarjeta de producto
+
+En `ProductCard.tsx` (y card del buscador): mostrar el nombre de la marca encima del nombre del producto, en texto pequeño/muted. Solo si existe marca activa; nunca mostrar "Sin marca" en la tienda pública.
+
+### 7. Reglas
+
+- Slug único enforced por DB unique constraint.
+- Placeholder `/placeholder.svg` cuando no haya logo.
+- Solo marcas con `is_active=true` visibles en tienda pública (RLS).
+- Admin ve todas (RLS con `has_role(...,'admin')`).
+- Productos sin marca: en admin se muestra "Sin marca"; en público se omite.
+
+### Archivos a crear/editar
 
 **Nuevos:**
-- `supabase/migrations/<ts>_search_settings.sql`
-- `src/components/search/LiveSearchBar.tsx`
-- `src/components/search/SearchResultsPanel.tsx`
-- `src/hooks/useSearchSettings.ts`
-- `src/lib/liveSearch.ts` (función de búsqueda combinada)
-- `src/pages/admin/AdminSearchConfig.tsx`
+- `supabase/migrations/<ts>_brands.sql`
+- `src/pages/admin/AdminBrands.tsx`
+- `src/pages/admin/AdminBrandForm.tsx`
+- `src/pages/BrandPage.tsx`
+- `src/hooks/useBrands.ts`
+- `src/components/admin/BrandSelect.tsx` (selector + quick create)
 
-**Editados:**
-- `src/components/Header.tsx` (usar nuevo componente)
-- `src/App.tsx` (ruta admin)
-- `src/components/admin/AdminLayout.tsx` (link sidebar)
+**Editar:**
+- `src/components/admin/AdminLayout.tsx` (nuevo item)
+- `src/App.tsx` (rutas `/admin/brands`, `/admin/brands/new`, `/admin/brands/:id/edit`, `/marca/:slug`)
+- `src/pages/admin/ProductForm.tsx` y `src/pages/supplier/SupplierProductForm.tsx` (campo marca)
+- `src/lib/liveSearch.ts` y `src/components/search/LiveSearchBar.tsx` (búsqueda + UI de marcas)
+- `src/components/ProductCard.tsx` (mostrar marca encima del nombre)
+- `src/integrations/supabase/types.ts` se regenera automáticamente tras la migración.
 
-## Detalles técnicos
-
-- Búsqueda combinada en `liveSearch.ts`: 1 query a `search_needs` (cacheada) + 1 query a `products` con `.or()` ilike multi-campo + `.eq('is_active',true).eq('approval_status','approved').order('stock',{ascending:false}).limit(maxProducts*2)`. Dedupe por id.
-- Sugerencias dinámicas: manual_suggestions filtradas por `includes(query)` + necesidades cuyos keywords matchean.
-- Móvil: panel ocupa viewport (fixed top), con backdrop. Desktop: absolute bajo el input.
-- No tocar `intelligent-search` edge function existente; el live search es client-only para latencia baja. La IA del admin se usará en futuro/Search.tsx.
-
-¿Apruebas para implementar?
+¿Apruebas que avancemos con esta implementación?
