@@ -309,7 +309,7 @@ export const Header = () => {
     ]);
     // Set mega menu FIRST so the conditional rendering knows whether to hide
     // the legacy categories/goals before they get a chance to paint.
-    setMegaMenu(megaRes ?? { columns: [], items: [], categories: {}, goals: {}, redirects: {} });
+    setMegaMenu(megaRes ?? { columns: [], items: [], categories: {}, goals: {}, redirects: {}, navSettings: {} });
     setNavItems((navRes.data as NavItem[]) ?? []);
     if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
@@ -409,8 +409,8 @@ export const Header = () => {
               {megaMenu && (["products", "goals"] as const).map((nav) => {
                 const cols = columnsByNav(megaMenu, nav).filter((c) => c.show_mobile);
                 if (cols.length === 0) return null;
-                const topLabel = nav === "products" ? "Productos" : "Compra por objetivo";
-                const topHref = nav === "products" ? "/productos" : "/objetivos";
+                const topLabel = megaMenu.navSettings[nav]?.label || (nav === "products" ? "Productos" : "Compra por objetivo");
+                const topHref = megaMenu.navSettings[nav]?.href || (nav === "products" ? "/productos" : "/objetivos");
                 return (
                   <details key={`mm-${nav}`} className="group/m rounded-md">
                     <summary className="nav-mobile-link flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 hover:bg-secondary" style={mainMobileLinkStyle}>
@@ -560,10 +560,13 @@ export const Header = () => {
                 "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
                 isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
+            const navCfg = megaMenu?.navSettings["products"];
+            const navLabel = navCfg?.label || "Productos";
+            const navHref = navCfg?.href || "/productos";
             return (
               <div className="static group">
-                <NavLink to="/productos" style={mainLinkStyle} className={linkClass}>
-                  Productos
+                <NavLink to={navHref} style={mainLinkStyle} className={linkClass}>
+                  {navLabel}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
                 <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
@@ -700,10 +703,13 @@ export const Header = () => {
                 "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
                 isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
+            const goalsNav = megaMenu?.navSettings["goals"];
+            const goalsLabel = goalsNav?.label || "Compra por objetivo";
+            const goalsHref = goalsNav?.href || "/objetivos";
             return (
               <div className="static group">
-                <NavLink to="/objetivos" style={mainLinkStyle} className={linkClass}>
-                  Compra por objetivo
+                <NavLink to={goalsHref} style={mainLinkStyle} className={linkClass}>
+                  {goalsLabel}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
                 <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">

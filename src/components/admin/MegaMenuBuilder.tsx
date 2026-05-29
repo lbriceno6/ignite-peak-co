@@ -45,9 +45,11 @@ type Item = {
 type Cat = { id: string; name: string; slug: string };
 type Goal = { id: string; name: string; slug: string };
 
-const PARENT_NAVS = [
-  { value: "products", label: "Productos" },
-  { value: "goals", label: "Compra por objetivo" },
+type NavSetting = { parent_nav: string; label: string; href: string; position: number };
+
+const DEFAULT_NAVS: NavSetting[] = [
+  { parent_nav: "products", label: "Productos", href: "/productos", position: 1 },
+  { parent_nav: "goals", label: "Compra por objetivo", href: "/objetivos", position: 2 },
 ];
 
 export default function MegaMenuBuilder() {
@@ -55,25 +57,48 @@ export default function MegaMenuBuilder() {
   const [items, setItems] = useState<Item[]>([]);
   const [cats, setCats] = useState<Cat[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
+  const [navs, setNavs] = useState<NavSetting[]>(DEFAULT_NAVS);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [savingNav, setSavingNav] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const [c, i, ca, go] = await Promise.all([
+    const [c, i, ca, go, nv] = await Promise.all([
       sb.from("mega_menu_columns").select("*").order("parent_nav").order("position"),
       sb.from("mega_menu_items").select("*").order("position"),
       sb.from("categories").select("id,name,slug").eq("is_active", true).order("name"),
       sb.from("goals").select("id,name,slug").eq("is_active", true).order("name"),
+      sb.from("mega_menu_nav_settings").select("*").order("position"),
     ]);
     setColumns((c.data ?? []) as Column[]);
     setItems((i.data ?? []) as Item[]);
     setCats((ca.data ?? []) as Cat[]);
     setGoals((go.data ?? []) as Goal[]);
+    const fetched = (nv.data ?? []) as NavSetting[];
+    const merged = DEFAULT_NAVS.map((d) => fetched.find((f) => f.parent_nav === d.parent_nav) || d);
+    setNavs(merged);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
+
+  const updateNav = (parent: string, patch: Partial<NavSetting>) =>
+    setNavs((ns) => ns.map((n) => (n.parent_nav === parent ? { ...n, ...patch } : n)));
+
+  const saveNav = async (nav: NavSetting) => {
+    setSavingNav(nav.parent_nav);
+    const { error } = await sb.from("mega_menu_nav_settings").upsert({
+      parent_nav: nav.parent_nav,
+      label: nav.label,
+      href: nav.href,
+      position: nav.position,
+    }, { onConflict: "parent_nav" });
+    setSavingNav(null);
+    if (error) return toast.error(error.message);
+    toast.success("Nombre del menú guardado");
+  };
+
 
   const addColumn = async () => {
     const maxPos = Math.max(0, ...columns.filter((c) => c.parent_nav === "products").map((c) => c.position));
@@ -181,13 +206,41 @@ export default function MegaMenuBuilder() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {PARENT_NAVS.map((nav) => (
-          <div key={nav.value} className="space-y-3">
+        <div className="rounded-md border bg-secondary/30 p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Nombres de los menús padre
+          </h3>
+          <div className="space-y-3">
+            {navs.map((nav) => (
+              <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
+                <div className="md:col-span-4">
+                  <Label className="text-xs">Identificador</Label>
+                  <Input value={nav.parent_nav} disabled />
+                </div>
+                <div className="md:col-span-3">
+                  <Label className="text-xs">Nombre visible</Label>
+                  <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
+                </div>
+                <div className="md:col-span-3">
+                  <Label className="text-xs">URL "Ver todo"</Label>
+                  <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Button size="sm" className="w-full" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
+                    {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>} Guardar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {navs.map((nav) => (
+          <div key={nav.parent_nav} className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Menú: {nav.label}
             </h3>
             <Accordion type="multiple" className="space-y-2">
-              {(colsByNav[nav.value] || []).map((col) => {
+              {(colsByNav[nav.parent_nav] || []).map((col) => {
                 const colItems = items
                   .filter((i) => i.column_id === col.id)
                   .sort((a, b) => a.position - b.position);
@@ -208,7 +261,7 @@ export default function MegaMenuBuilder() {
                           <Select value={col.parent_nav} onValueChange={(v) => updateColumn(col.id, { parent_nav: v })}>
                             <SelectTrigger><SelectValue/></SelectTrigger>
                             <SelectContent>
-                              {PARENT_NAVS.map((n) => <SelectItem key={n.value} value={n.value}>{n.label}</SelectItem>)}
+                              {navs.map((n) => <SelectItem key={n.parent_nav} value={n.parent_nav}>{n.label}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -265,7 +318,7 @@ export default function MegaMenuBuilder() {
                 );
               })}
             </Accordion>
-            {(colsByNav[nav.value] || []).length === 0 && (
+            {(colsByNav[nav.parent_nav] || []).length === 0 && (
               <p className="text-sm text-muted-foreground">Aún no hay columnas para este menú.</p>
             )}
           </div>
