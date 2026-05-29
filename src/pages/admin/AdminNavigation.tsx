@@ -231,13 +231,18 @@ export default function AdminNavigation() {
 
   const moveLink = async (id: string, dir: -1 | 1) => {
     const idx = links.findIndex((s) => s.id === id);
-    const swap = links[idx + dir];
-    if (!swap) return;
-    const cur = links[idx];
-    await Promise.all([
-      supabase.from("nav_links").update({ sort_order: swap.sort_order }).eq("id", cur.id),
-      supabase.from("nav_links").update({ sort_order: cur.sort_order }).eq("id", swap.id),
-    ]);
+    if (idx < 0) return;
+    const target = idx + dir;
+    if (target < 0 || target >= links.length) return;
+    const reordered = [...links];
+    const [moved] = reordered.splice(idx, 1);
+    reordered.splice(target, 0, moved);
+    setLinks(reordered.map((r, i) => ({ ...r, sort_order: i })));
+    const { error } = await (supabase.from("nav_links") as any).upsert(
+      reordered.map((r, i) => ({ id: r.id, sort_order: i })),
+      { onConflict: "id" }
+    );
+    if (error) toast.error(error.message);
     load();
   };
 
@@ -250,13 +255,23 @@ export default function AdminNavigation() {
   const moveCat = async (id: string, dir: -1 | 1) => {
     const list = roots;
     const idx = list.findIndex((c) => c.id === id);
-    const swap = list[idx + dir];
-    if (!swap) return;
-    const cur = list[idx];
-    await Promise.all([
-      supabase.from("categories").update({ sort_order: swap.sort_order }).eq("id", cur.id),
-      supabase.from("categories").update({ sort_order: cur.sort_order }).eq("id", swap.id),
-    ]);
+    if (idx < 0) return;
+    const target = idx + dir;
+    if (target < 0 || target >= list.length) return;
+    const reordered = [...list];
+    const [moved] = reordered.splice(idx, 1);
+    reordered.splice(target, 0, moved);
+    // Reindex sort_order sequentially for root categories
+    const updates = reordered.map((c, i) => ({ id: c.id, sort_order: i }));
+    setCats((prev) => prev.map((c) => {
+      const u = updates.find((x) => x.id === c.id);
+      return u ? { ...c, sort_order: u.sort_order } : c;
+    }));
+    const results = await Promise.all(
+      updates.map((u) => supabase.from("categories").update({ sort_order: u.sort_order }).eq("id", u.id))
+    );
+    const err = results.find((r) => r.error)?.error;
+    if (err) toast.error(err.message);
     load();
   };
 
