@@ -14,13 +14,36 @@
 
 ## Categorías
 
-- [Pre-Workout](https://ignite-peak-co.lovable.app/categoria/pre-workout)
 - [Snacks](https://ignite-peak-co.lovable.app/categoria/snacks)
 - [Accessories](https://ignite-peak-co.lovable.app/categoria/accessories)
-- [Creatina](https://ignite-peak-co.lovable.app/categoria/creatine)
+- [Para tu salud](https://ignite-peak-co.lovable.app/categoria/para-tu-salud)
 - [Vitaminas](https://ignite-peak-co.lovable.app/categoria/vitamins)
 - [Amino Acidos](https://ignite-peak-co.lovable.app/categoria/amino-acids)
+- [Nutribatidos](https://ignite-peak-co.lovable.app/categoria/nutribatidos)
+- [Superfoods Andinos](https://ignite-peak-co.lovable.app/categoria/superfoods-andinos)
+- [Proteínas y Colágeno](https://ignite-peak-co.lovable.app/categoria/proteinas-y-colageno)
+- [Energía y Vitalidad](https://ignite-peak-co.lovable.app/categoria/energia-y-vitalidad)
+- [Próstata y Salud Masculina](https://ignite-peak-co.lovable.app/categoria/prostata-y-salud-masculina)
+- [Hígado y Limpieza Natural](https://ignite-peak-co.lovable.app/categoria/higado-y-limpieza-natural)
+- [Combos](https://ignite-peak-co.lovable.app/categoria/combos)
+- [Ofertas](https://ignite-peak-co.lovable.app/categoria/ofertas)
+- [Más vendidos](https://ignite-peak-co.lovable.app/categoria/mas-vendidos)
+- [Nuevos productos](https://ignite-peak-co.lovable.app/categoria/nuevos-productos)
+- [Pre-Workout](https://ignite-peak-co.lovable.app/categoria/pre-workout)
+- [Creatina](https://ignite-peak-co.lovable.app/categoria/creatine)
+- [Aceites Naturales](https://ignite-peak-co.lovable.app/categoria/aceites-naturales)
+- [Plantas Naturales](https://ignite-peak-co.lovable.app/categoria/plantas-naturales)
+- [Semillas y Cereales](https://ignite-peak-co.lovable.app/categoria/semillas-y-cereales)
+- [Productos](https://ignite-peak-co.lovable.app/categoria/productos)
 - [Proteinas](https://ignite-peak-co.lovable.app/categoria/Proteinas)
+- [Promociones](https://ignite-peak-co.lovable.app/categoria/promociones)
+- [Digestión y Colon](https://ignite-peak-co.lovable.app/categoria/digestion-y-colon)
+- [Articulaciones y Huesos](https://ignite-peak-co.lovable.app/categoria/articulaciones-y-huesos)
+- [Control de Peso](https://ignite-peak-co.lovable.app/categoria/control-de-peso)
+- [Defensas e Inmunidad](https://ignite-peak-co.lovable.app/categoria/defensas-e-inmunidad)
+- [Corazón y Circulación](https://ignite-peak-co.lovable.app/categoria/corazon-y-circulacion)
+- [Riñones y Vías Urinarias](https://ignite-peak-co.lovable.app/categoria/rinones-y-vias-urinarias)
+- [Piel, Cabello y Uñas](https://ignite-peak-co.lovable.app/categoria/piel-cabello-y-unas)
 
 
 
@@ -33,14 +56,15 @@
 - [Creatine HCL](https://ignite-peak-co.lovable.app/producto/creatine-hcl)
 - [Pre-Workout Pump X](https://ignite-peak-co.lovable.app/producto/pre-workout-pump-x)
 - [BCAA Recovery+](https://ignite-peak-co.lovable.app/producto/bcaa-recovery-plus)
-- [Omega 3 Ultra](https://ignite-peak-co.lovable.app/producto/omega-3-ultra)
 - [Multivitamínico Daily](https://ignite-peak-co.lovable.app/producto/multivitaminico-daily)
+- [Omega 3 Ultra](https://ignite-peak-co.lovable.app/producto/omega-3-ultra)
 - [BCAA Recovery 2:1:1](https://ignite-peak-co.lovable.app/producto/bcaa-recovery)
 - [Vegan Protein Blend](https://ignite-peak-co.lovable.app/producto/vegan-protein)
 - [Flexacil Ultra+ 600gr](https://ignite-peak-co.lovable.app/producto/iso-whey-elite)
-- [Flexacil Ultra](https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra)
 - [Mass Gainer Extreme](https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme)
+- [Flexacil Ultra](https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra)
 - [Flora Fit - Equilibrio Digestivo](https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo)
+- [Aceite de Oliva Extra Virgen](https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen)
 
 
 ## Blog

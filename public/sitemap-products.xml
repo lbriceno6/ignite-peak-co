@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/ignite-pre-workout</loc>
-    <lastmod>2026-05-19</lastmod>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -43,14 +43,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/omega-3-ultra</loc>
+    <loc>https://ignite-peak-co.lovable.app/producto/multivitaminico-daily</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/multivitaminico-daily</loc>
-    <lastmod>2026-05-21</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/omega-3-ultra</loc>
+    <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -73,20 +73,26 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra</loc>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo</loc>
-    <lastmod>2026-05-22</lastmod>
+    <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
