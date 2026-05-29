@@ -69,7 +69,7 @@ const Checkout = () => {
   const { items, combos, clear } = useCart();
   useShippingSettings();
   const { zones } = useShippingZones();
-  const { subtotal: rawSubtotal, discount: comboDiscount } = cartTotals(items, combos);
+  const { itemsSubtotal: rawSubtotal, discount: comboDiscount } = cartTotals(items, combos);
   const { format } = useCurrency();
   const { user } = useAuth();
   const { reseller, refresh: refreshReseller } = useReseller();
