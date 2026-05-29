@@ -1,130 +1,164 @@
+# Combos Inteligentes — Plan de implementación
 
-## Resultado esperado
+Objetivo: subir el ticket promedio con combos manuales + reglas + IA opcional, integrados al carrito actual sin romper nada. Todo administrable desde un nuevo módulo.
 
-Un mega menú profesional, escalable y editable desde el admin:
-- Limpio como Organa: columnas con listado simple y enlace "Ver todo".
-- Escalable como iHerb: navegación por producto y por objetivo, hasta 3 niveles.
-- URLs cortas: `/categoria/[slug]`, `/objetivo/[slug]`.
-- Mobile en acordeón.
-- Mantiene SEO (enlaces reales, slug independiente del nombre visible, respeta redirecciones, oculta inactivos).
+## Alcance
 
-## Arquitectura
+Incluye:
+- Base de datos para combos, sus productos, reglas, configuración global y métricas.
+- Panel admin "Combos Inteligentes" (CRUD + reglas + config IA + métricas).
+- Widgets en frontend: página de producto, carrito (drawer), checkout, home, búsqueda, categorías.
+- Función `smartComboRecommendation()` que decide qué combos mostrar.
+- Edge function `combo-ai-recommend` que llama Lovable AI / DeepSeek si la IA está activa, con fallback a reglas manuales.
+- Tracking de eventos: vista, add-to-cart, comprado.
 
-Hoy el menú se arma a partir de `categories.menu_column / menu_group_title / parent_id` + `menu_custom_fields`. Es funcional pero acoplado: cada cambio editorial implica tocar categorías.
+Fuera de alcance (lo dejamos para iteración 2 si lo pides):
+- Test A/B con grupos.
+- Reportes exportables CSV (solo verás métricas en la UI).
+- Combos por proveedor / multi-marca con reparto de comisión (heredamos commission de cada producto como hoy).
 
-Voy a introducir un **constructor de mega menú** independiente, sin romper lo existente:
+## Base de datos
 
 ```text
-mega_menu_columns           (una columna por entrada de menú principal)
- ├─ parent_nav: "products" | "goals" | <slug nav_links>   ← a qué item top se asocia
- ├─ title (editable)         ← p.ej. "Superfoods Andinos"
- ├─ position (orden)
- ├─ see_all_label, see_all_href  ← "Ver todo" editable
- ├─ show_desktop / show_mobile
- └─ is_active
+combos
+ ├─ id, name, slug, description, image_url
+ ├─ price_normal (calculado server-side al guardar)
+ ├─ price_combo
+ ├─ discount_value, discount_type ('amount'|'percent')
+ ├─ is_active, starts_at, ends_at
+ ├─ priority ('high'|'medium'|'low')
+ ├─ need_tag (energía, fitness, digestión, colágeno, sin azúcar, bienestar, promo)
+ ├─ category_id (opcional → categories.id)
+ ├─ display_locations text[]  (product, cart, checkout, search, home, category)
+ └─ stats: views, cart_adds, purchases, revenue (denormalizado, actualizado por triggers/edge fn)
 
-mega_menu_items             (items dentro de cada columna)
- ├─ column_id → mega_menu_columns
- ├─ display_label            ← nombre visible; NO toca slug
- ├─ link_type: "category" | "goal" | "page" | "url"
- ├─ category_id / goal_id / url
- ├─ icon, image_url (opcional)
- ├─ open_in_new_tab
- ├─ position
- ├─ show_desktop / show_mobile
- ├─ is_active
- └─ seo_note (texto interno)
+combo_products
+ └─ id, combo_id, product_id, quantity
+
+combo_rules
+ ├─ id, combo_id
+ ├─ rule_type ('view_product'|'cart_has_product'|'cart_min_total'|'free_shipping_gap'|'need_search'|'cart_has_category')
+ ├─ product_id, category_id, need_tag
+ ├─ min_cart_total, max_cart_total
+ ├─ priority, is_active
+
+combo_config (singleton)
+ ├─ ai_enabled, ai_provider ('gemini'|'openai'|'deepseek'|'claude'|null)
+ ├─ ai_prompt (texto editable, viene con default)
+ ├─ max_recommendations (default 3)
+ ├─ show_in_product, show_in_cart, show_in_checkout, show_in_search, show_in_home, show_in_category
+ └─ updated_at
+
+combo_events
+ └─ id, combo_id, event_type ('view'|'cart_add'|'purchase'), order_id, user_id, source_location, created_at
 ```
 
-Resolución de URL en el frontend:
-- `category` → busca slug actual en `categories` (si cambia, link se actualiza solo).
-- `goal` → `/objetivo/{slug}` de `goals`.
-- `page` → ruta interna fija.
-- `url` → URL personalizada.
-- Antes de renderizar, se filtran categorías/objetivos inactivos y se aplica `seo_redirects` activas para apuntar siempre a la URL canónica.
+RLS: lectura pública de `combos`, `combo_products`, `combo_rules`, `combo_config` (solo activos para anon). Escritura solo admin. `combo_events` insert por todos (incluyendo anon para `view`), select solo admin. GRANTs explícitos.
 
-## Base de datos (migración)
+Las API keys de IA (`api_key` del brief) NO van en DB pública. Usamos las secrets ya existentes: `LOVABLE_API_KEY` (Lovable AI: gemini/openai/claude) y `DEEPSEEK_API_KEY`. En `combo_config` solo guardamos qué proveedor usar.
 
-1. Crear `mega_menu_columns` y `mega_menu_items` con GRANTs + RLS:
-   - SELECT público para activos.
-   - ALL para admins.
-2. Triggers `set_updated_at`.
-3. Backfill desde lo que ya hay: convertir cada `parent_id` raíz con subs en una columna; convertir cada sub en item tipo `category`. Items extra desde `menu_custom_fields` mantienen su tipo.
-4. Seed inicial alineado con el ejemplo del brief (Productos, Compra por objetivo, Superfoods Andinos, Proteínas y Colágeno, Packs y Promos) usando `INSERT … ON CONFLICT DO NOTHING` por `title`.
+## Lógica de recomendación
+
+`src/lib/smartCombos.ts` exporta:
+
+```ts
+smartComboRecommendation({
+  productSlug?, cart, needTag?, location, freeShippingThreshold
+}) → ComboRecommendation[]
+```
+
+Flujo:
+1. Carga `combo_config` + combos activos vigentes (`starts_at/ends_at`) + reglas + productos.
+2. Filtra por `display_locations` que incluya `location`.
+3. Evalúa reglas por `rule_type` y arma score (prioridad + match cantidad de reglas).
+4. Excluye combos cuyos productos no tengan stock o ya estén completos en el carrito.
+5. Excluye duplicados; máx `max_recommendations` (default 3).
+6. Si `ai_enabled`: llama edge function `combo-ai-recommend` que recibe contexto + lista de combos candidatos y devuelve subset reordenado con `reason` y `message` (la IA NO inventa combos, solo elige y redacta copy). Si falla → fallback a la lista local.
+
+Reglas especiales:
+- `free_shipping_gap`: si `cart_total < threshold`, recomienda combos/productos del rango [gap, gap+30%].
+- `convert_to_combo`: detecta si carrito ya contiene `>=` 1 producto de un combo y aún le faltan otros → CTA "Convertir mi carrito en combo".
+
+## Edge function
+
+`supabase/functions/combo-ai-recommend/index.ts`:
+- Recibe `{ candidates, context }`.
+- Según `combo_config.ai_provider` arma payload:
+  - gemini/openai/claude → Lovable AI Gateway (`google/gemini-3-flash-preview` por defecto).
+  - deepseek → API DeepSeek con `DEEPSEEK_API_KEY`.
+- Devuelve `{ recommendations: [{ combo_id, reason, message }] }`.
+- Manejo de 429/402 con mensaje claro.
 
 ## Frontend
 
-### Header desktop (`src/components/Header.tsx`)
-- Reemplazar el árbol actual basado en `categories.menu_column` por un fetch de `mega_menu_columns + items` agrupado por `parent_nav`.
-- Render: panel ancho con grid de columnas; cada columna = título en bold + lista de items + enlace "Ver todo" en color de acento.
-- Items resueltos a `<Link>` reales con `href` correcto (SEO). Si `open_in_new_tab`, añadir `target="_blank" rel="noopener"`.
-- Mantener realtime: subscripción a `mega_menu_columns`, `mega_menu_items`, `categories`, `goals`, `seo_redirects` para recargar.
+Nuevos:
+- `src/components/combos/ComboCard.tsx` — tarjeta combo (imagen, productos, precio tachado, ahorro, botón).
+- `src/components/combos/ComboRecommendations.tsx` — wrapper con título/mensaje, llama `smartComboRecommendation` y renderiza N tarjetas.
+- `src/components/combos/ConvertToComboBanner.tsx` — banner "Convierte tu carrito en combo".
+- `src/hooks/useComboRecommendations.ts` — fetch + cache + invalidación cuando cambia el carrito.
 
-### Mobile (acordeón)
-- Reusar el mismo dataset, render como `<Accordion>` shadcn con tres niveles (columna → item → sub si el item es categoría con hijos visibles).
-- Respetar `show_mobile`.
+Integraciones (sin romper nada):
+- `src/pages/ProductDetail.tsx` → debajo de "Agregar al carrito" muestra `<ComboRecommendations location="product" productSlug={p.slug} />`.
+- `src/components/CartDrawer.tsx` → bloque "Recomendado para completar tu pedido" + mensaje dinámico envío gratis (reusa `useFreeShippingBar`).
+- `src/pages/Checkout.tsx` → bloque previo al botón "Pagar", solo 1 recomendación.
+- `src/pages/Index.tsx` → bloque opcional "Combos destacados" si `show_in_home`.
+- `src/pages/Search.tsx` → recomendación si la búsqueda mapea a un `need_tag`.
+- `src/pages/Category.tsx` → recomendación filtrada por `category_id`.
 
-### Página índice `/objetivos`
-- Listar `goals` activos como tarjetas con imagen, nombre y `short_description`.
-- SEO: `title`, `meta_description`, canonical y JSON-LD `CollectionPage`.
-
-### Resolución de redirecciones
-- Helper `resolveCanonicalPath(path)` que consulta cache local de `seo_redirects` y devuelve `to_path` si está activa. Aplicado al armar `href` del menú.
+Carrito: nueva acción `addComboToCart(comboId)` en `src/store/cart.ts`:
+- Valida stock de todos los productos.
+- Agrega cada producto del combo.
+- Marca los ítems con `combo_id` y aplica precio prorrateado para que el subtotal cuadre con `price_combo`.
+- Si algún producto no tiene stock → toast y NO agrega nada.
 
 ## Admin
 
-Nueva sección "Gestión de Mega Menú" dentro de **Enlaces de sitio**:
+Ruta `/admin/combos` (nuevo ítem en `AdminLayout.tsx`):
 
-```text
-[+ Nueva columna]
-┌──────────────────────────────────────────────┐
-│ ▼ Productos                                  │
-│   Título: Superfoods Andinos                 │
-│   Asociado a: Productos (nav top)            │
-│   Mostrar: ☑ desktop ☑ mobile  ☑ activo     │
-│   "Ver todo" → /categoria/superfoods-andinos │
-│   Items (drag & drop):                       │
-│    • Maca         [categoría]  ☑ ☑ ✎ 🗑     │
-│    • Cañihua      [categoría]  ☑ ☑ ✎ 🗑     │
-│    • Pack energía [URL]        ☑ ☑ ✎ 🗑     │
-│   [+ Agregar item]                           │
-└──────────────────────────────────────────────┘
-```
+- Tabla de combos con filtros (estado, necesidad, vigencia).
+- Form crear/editar combo:
+  - Datos básicos, imagen (storage bucket nuevo `combo-images`).
+  - Selector de productos con cantidad.
+  - Precio normal autocalculado, input de precio combo o descuento (%/S/).
+  - Vigencia, prioridad, necesidad, categoría, ubicaciones (checkboxes).
+- Sub-tab "Reglas": CRUD de `combo_rules` con tipo + parámetros condicionales.
+- Sub-tab "Configuración IA": toggle, proveedor, prompt editable, max recomendaciones, ubicaciones globales.
+- Sub-tab "Métricas": vistas, adds, compras, ingresos, ticket promedio antes/después (vista materializada simple sobre `combo_events` + `orders`).
 
-Formulario de item:
-- Nombre visible (no toca slug).
-- Tipo: categoría / objetivo / página / URL.
-- Selector dinámico según tipo (autocompletar categorías y objetivos).
-- Icono, imagen, abrir en nueva pestaña, mostrar desktop/mobile, activo, orden, nota SEO interna.
+Archivos:
+- `src/pages/admin/AdminCombos.tsx`
+- `src/components/admin/combos/ComboForm.tsx`
+- `src/components/admin/combos/ComboRulesEditor.tsx`
+- `src/components/admin/combos/ComboConfigPanel.tsx`
+- `src/components/admin/combos/ComboMetricsPanel.tsx`
 
-Vista previa: panel a la derecha que renderiza el mega menú con los datos en edición (sin publicar).
+## Tracking
 
-Archivos nuevos:
-- `src/components/admin/MegaMenuBuilder.tsx`
-- `src/components/admin/MegaMenuColumnEditor.tsx`
-- `src/components/admin/MegaMenuItemEditor.tsx`
-- `src/components/admin/MegaMenuPreview.tsx`
-- `src/pages/Goals.tsx` (índice `/objetivos`)
-- `src/lib/megaMenu.ts` (loader + cache + resolveCanonicalPath)
+- `combo_events` se inserta cuando:
+  - `view`: el widget se monta y el combo entra a viewport.
+  - `cart_add`: se llama `addComboToCart`.
+  - `purchase`: al pasar el pedido a estado `confirmed` (trigger en `orders` o lectura desde admin).
+- Métricas se calculan con `read_query` en el panel admin (sin tablas extra).
 
-Archivos editados:
-- `src/components/Header.tsx` (desktop + mobile).
-- `src/pages/admin/AdminSiteLinks.tsx` (montar el builder).
-- `src/App.tsx` (ruta `/objetivos`).
-- `scripts/generate-sitemap.ts` (ya incluye goals; agregar `/objetivos`).
+## Compliance / copy
 
-## Compatibilidad y migración suave
+- En `ComboCard` y mensajes IA: forzar disclaimer "complemento nutricional". El prompt base ya lo incluye y validamos por reglas en frontend (lista negra: "cura", "trata", "enfermedad").
 
-- No elimino `menu_custom_fields` ni los campos `menu_*` de `categories` en esta iteración; quedan como fallback si `mega_menu_columns` está vacío, para que nada se rompa al desplegar.
-- Si el admin guarda al menos una columna en el nuevo builder, el Header usa el nuevo sistema; si no hay ninguna, sigue usando el árbol actual.
+## Pasos de entrega
 
-## Fuera de alcance de este sprint
+1. Migración SQL (tablas + RLS + GRANTs + storage bucket `combo-images`).
+2. Seed mínimo: 1 combo demo, 1 regla `view_product`, `combo_config` con defaults.
+3. `smartCombos.ts` + hook + componentes UI.
+4. Integración en ProductDetail, CartDrawer, Checkout, Home, Search, Category.
+5. `addComboToCart` en el store.
+6. Edge function `combo-ai-recommend`.
+7. Admin (`AdminCombos` + tabs).
+8. Tracking + panel de métricas.
+9. Smoke test manual + sitemap (no aplica), verificar build.
 
-- Drag & drop entre columnas se entrega con orden manual por inputs numéricos + flechas; podemos añadir DnD después si lo pides.
-- Versionado/borrador del menú (publicar vs draft): por ahora "guardar" publica directo; vista previa en admin antes de guardar.
+## Confirmaciones que necesito
 
-## Confirmaciones que necesito antes de implementar
-
-1. ¿OK con crear las dos tablas nuevas (`mega_menu_columns`, `mega_menu_items`) y dejar el sistema actual como fallback? Es lo más seguro y reversible.
-2. ¿El item top "Compra por objetivo" debe ser una opción fija del nav superior, o uno más en `nav_links` administrable?
-3. ¿Quieres que el seed inicial copie el ejemplo del brief (Productos / Compra por objetivo / Superfoods / Proteínas / Packs), o prefieres empezar vacío y configurarlo tú?
+1. ¿La API key de proveedores la dejamos en secrets (`DEEPSEEK_API_KEY` ya existe, los otros vía `LOVABLE_API_KEY`) o quieres un campo en admin para cada proveedor? **Recomiendo secrets** por seguridad.
+2. Para el precio del combo dentro del carrito, ¿prefieres (a) prorratear el descuento entre los ítems del combo o (b) agregar los productos a precio normal y aplicar una línea de descuento "Combo X — Ahorro S/16"? **Recomiendo (b)**, más transparente.
+3. ¿OK con que las métricas se vean en admin pero sin export CSV en esta iteración?
+4. ¿El tracking de `view` puede correr como anon insert en `combo_events`? Sin eso solo medimos usuarios logueados.
