@@ -292,18 +292,20 @@ export const Header = () => {
   });
 
   const loadMenu = async () => {
-    const [navRes, catRes, fRes, sRes, settRes] = await Promise.all([
+    const [navRes, catRes, fRes, sRes, settRes, goalsRes] = await Promise.all([
       supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
       supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       (supabase.from as any)("menu_custom_fields").select("*").eq("is_active", true).order("sort_order"),
       (supabase.from as any)("search_needs").select("slug,name,keywords,related_category,priority").eq("is_active", true).order("priority"),
       (supabase.from as any)("search_ai_settings").select("helper_text").eq("id", 1).maybeSingle(),
+      (supabase.from as any)("goals").select("id,name,slug,image_url,short_description").eq("is_active", true).eq("show_in_mega_menu", true).order("sort_order"),
     ]);
     setNavItems((navRes.data as NavItem[]) ?? []);
     if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
     if (sRes?.data) setSearchNeeds(sRes.data as any);
     if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
+    if (goalsRes?.data) setGoals(goalsRes.data as any);
   };
 
   useEffect(() => {
