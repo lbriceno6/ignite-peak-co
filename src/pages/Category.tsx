@@ -313,7 +313,7 @@ const rowToProduct = (r: any): Product => {
     goal: r.goal ? [r.goal] : [],
     flavors: r.flavor ? [r.flavor] : undefined,
     sizes: r.size ? [r.size] : undefined,
-    brand: r.brand ?? "Nutribatidos",
+    brand: r.brand ?? "",
     subscriptionEnabled: r.subscription_enabled,
     subscriptionDiscountPercent: r.subscription_discount_percent ? Number(r.subscription_discount_percent) : undefined,
     subscriptionIntervals: r.subscription_intervals ?? undefined,
@@ -372,11 +372,14 @@ const Category = () => {
   // Load brand/supplier facets only when those filters are enabled
   useEffect(() => {
     if (filterConfig.brand.enabled) {
-      supabase.from("products").select("brand").not("brand", "is", null).then(({ data }) => {
-        const set = new Set<string>();
-        (data ?? []).forEach((r: any) => { if (r.brand) set.add(r.brand); });
-        setBrands(Array.from(set).sort());
-      });
+      // Cargar SOLO marcas reales activas desde la tabla brands (no usar el campo libre products.brand)
+      (supabase.from as any)("brands")
+        .select("name")
+        .eq("is_active", true)
+        .order("name")
+        .then(({ data }: any) => {
+          setBrands(((data ?? []) as any[]).map((b) => b.name).filter(Boolean));
+        });
     }
     if (filterConfig.supplier.enabled) {
       supabase.from("suppliers").select("id, business_name").eq("status", "approved").then(({ data }) => {
