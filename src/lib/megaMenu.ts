@@ -49,12 +49,13 @@ export type MegaMenuData = {
 };
 
 export async function loadMegaMenu(): Promise<MegaMenuData> {
-  const [cols, items, cats, goals, redirects] = await Promise.all([
+  const [cols, items, cats, goals, redirects, navs] = await Promise.all([
     sb.from("mega_menu_columns").select("*").eq("is_active", true).order("position"),
     sb.from("mega_menu_items").select("*").eq("is_active", true).order("position"),
     sb.from("categories").select("id,slug,name,is_active"),
     sb.from("goals").select("id,slug,name,is_active"),
     sb.from("seo_redirects").select("from_path,to_path,active").eq("active", true),
+    sb.from("mega_menu_nav_settings").select("*"),
   ]);
 
   const catMap: MegaMenuData["categories"] = {};
@@ -63,6 +64,11 @@ export async function loadMegaMenu(): Promise<MegaMenuData> {
   (goals.data ?? []).forEach((g: any) => { goalMap[g.id] = g; });
   const redirMap: Record<string, string> = {};
   (redirects.data ?? []).forEach((r: any) => { redirMap[r.from_path] = r.to_path; });
+  const navMap: Record<string, MegaMenuNavSetting> = {
+    products: { parent_nav: "products", label: "Productos", href: "/productos", position: 1 },
+    goals: { parent_nav: "goals", label: "Compra por objetivo", href: "/objetivos", position: 2 },
+  };
+  (navs.data ?? []).forEach((n: any) => { navMap[n.parent_nav] = n; });
 
   return {
     columns: (cols.data ?? []) as MegaMenuColumn[],
@@ -70,6 +76,7 @@ export async function loadMegaMenu(): Promise<MegaMenuData> {
     categories: catMap,
     goals: goalMap,
     redirects: redirMap,
+    navSettings: navMap,
   };
 }
 
