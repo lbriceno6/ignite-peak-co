@@ -13,6 +13,7 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 import { intelligentSearch, buildSearchDestination } from "@/lib/intelligentSearch";
+import { loadMegaMenu, columnsByNav, itemsForColumn, resolveItemHref, type MegaMenuData } from "@/lib/megaMenu";
 
 type CategoryItem = {
   id: string;
