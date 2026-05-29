@@ -498,39 +498,9 @@ export const Header = () => {
         </Link>
 
         <div className="ml-6 hidden flex-1 lg:block">
-          <form onSubmit={submitSearch} className="relative max-w-xl">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              value={query}
-              onChange={(e) => { setQuery(e.target.value); setShowSugg(true); }}
-              onFocus={() => setShowSugg(true)}
-              onBlur={() => setTimeout(() => setShowSugg(false), 150)}
-              placeholder="Buscar por necesidad: cansancio, digestión, colágeno…"
-              className="h-11 pl-10 bg-secondary border-transparent focus-visible:bg-background"
-            />
-            {showSugg && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-md border bg-popover p-2 shadow-lg">
-                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Sugerencias
-                </div>
-                {suggestions.map((n) => (
-                  <button
-                    key={n.slug}
-                    type="button"
-                    onMouseDown={(e) => { e.preventDefault(); pickSuggestion(n); }}
-                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-secondary"
-                  >
-                    <Sparkles size={14} className="text-accent" />
-                    <span className="font-medium">Productos para {n.name.toLowerCase()}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-            {searching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">…</div>
-            )}
-            <p className="mt-1 px-1 text-[11px] text-muted-foreground">{searchHelper}</p>
-          </form>
+          <div className="max-w-xl">
+            <LiveSearchBar />
+          </div>
         </div>
 
         <div className="ml-auto flex items-center gap-1">
