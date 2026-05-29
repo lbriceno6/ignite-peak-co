@@ -7,32 +7,26 @@ import { SEO } from "@/components/SEO";
 import { resolveProductImage } from "@/lib/productImage";
 import type { Product } from "@/data/catalog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { CatalogFiltersPanel } from "@/components/catalog/CatalogFiltersPanel";
+import { applyCatalogFilters, type SelectedFilters } from "@/lib/catalogFilterEngine";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
 
 const sb = supabase as any;
 
 type Brand = {
-  id: string;
-  name: string;
-  slug: string;
-  logo_url: string | null;
-  banner_url: string | null;
-  short_description: string | null;
-  long_description: string | null;
-  seo_title: string | null;
-  seo_description: string | null;
+  id: string; name: string; slug: string;
+  logo_url: string | null; banner_url: string | null;
+  short_description: string | null; long_description: string | null;
+  seo_title: string | null; seo_description: string | null;
 };
 
-const rowToProduct = (r: any): Product => {
+const rowToProduct = (r: any, brandName: string): Product => {
   const price = Number(r.price ?? 0) || 0;
   const sale = Number(r.sale_price ?? 0) || 0;
   const hasSale = sale > 0 && sale < price;
   return {
-    id: r.id,
-    slug: r.slug,
-    name: r.name,
+    id: r.id, slug: r.slug, name: r.name,
     shortBenefit: r.short_description ?? "",
     price: hasSale ? sale : price,
     oldPrice: hasSale ? price : undefined,
@@ -42,7 +36,7 @@ const rowToProduct = (r: any): Product => {
     image: resolveProductImage(r.main_image),
     category: r.category ?? "",
     goal: [],
-    brand: r.brand ?? "",
+    brand: brandName,
   };
 };
 
@@ -51,58 +45,30 @@ export default function BrandPage() {
   const [brand, setBrand] = useState<Brand | null>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [selectedCats, setSelectedCats] = useState<string[]>([]);
-  const [inStockOnly, setInStockOnly] = useState(false);
-  const [maxPrice, setMaxPrice] = useState<number | null>(null);
+  const [selected, setSelected] = useState<SelectedFilters>({});
+  const { filters } = useCatalogFilters("brand");
 
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: b } = await sb
-        .from("brands")
+      const { data: b } = await sb.from("brands")
         .select("id,name,slug,logo_url,banner_url,short_description,long_description,seo_title,seo_description")
-        .eq("slug", slug)
-        .eq("is_active", true)
-        .maybeSingle();
+        .eq("slug", slug).eq("is_active", true).maybeSingle();
       if (!b) { setBrand(null); setLoading(false); return; }
       setBrand(b as Brand);
-      const { data: p } = await sb
-        .from("products")
-        .select("id,slug,name,short_description,price,sale_price,main_image,category,rating,brand,stock,badge")
-        .eq("brand_id", b.id)
-        .eq("is_active", true)
-        .eq("approval_status", "approved")
-        .order("stock", { ascending: false })
-        .order("rating", { ascending: false });
+      const { data: p } = await sb.from("products")
+        .select("id,slug,name,short_description,price,sale_price,main_image,category,subcategory,rating,brand,stock,badge,is_featured,is_new")
+        .eq("brand_id", b.id).eq("is_active", true).eq("approval_status", "approved")
+        .order("stock", { ascending: false }).order("rating", { ascending: false });
       setProducts(p ?? []);
       setLoading(false);
     })();
   }, [slug]);
 
-  const categories = useMemo(() => {
-    const s = new Set<string>();
-    products.forEach((p) => { if (p.category) s.add(p.category); });
-    return Array.from(s).sort();
-  }, [products]);
-
-  const priceMax = useMemo(
-    () => Math.max(0, ...products.map((p) => Number(p.sale_price || p.price) || 0)),
-    [products],
+  const filtered = useMemo(
+    () => applyCatalogFilters(products, selected, filters),
+    [products, selected, filters],
   );
-
-  const filtered = useMemo(() => {
-    return products.filter((p) => {
-      if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
-      if (selectedCats.length && !selectedCats.includes(p.category)) return false;
-      if (inStockOnly && (Number(p.stock) || 0) <= 0) return false;
-      if (maxPrice != null) {
-        const price = Number(p.sale_price || p.price) || 0;
-        if (price > maxPrice) return false;
-      }
-      return true;
-    });
-  }, [products, search, selectedCats, inStockOnly, maxPrice]);
 
   if (loading) {
     return (
@@ -144,11 +110,8 @@ export default function BrandPage() {
 
         <header className="mb-8 flex flex-col items-start gap-4 md:flex-row md:items-center">
           {brand.logo_url && (
-            <img
-              src={brand.logo_url}
-              alt={`Logo ${brand.name}`}
-              className="h-20 w-20 rounded-lg border bg-background object-contain p-2"
-            />
+            <img src={brand.logo_url} alt={`Logo ${brand.name}`}
+              className="h-20 w-20 rounded-lg border bg-background object-contain p-2" />
           )}
           <div className="flex-1">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Marca</p>
@@ -165,68 +128,36 @@ export default function BrandPage() {
           </div>
         )}
 
-        <div className="grid gap-8 md:grid-cols-[240px_1fr]">
-          <aside className="space-y-6">
-            <div>
-              <h3 className="mb-2 text-sm font-semibold">Buscar</h3>
-              <Input
-                placeholder="Buscar en la marca…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            {categories.length > 0 && (
-              <div>
-                <h3 className="mb-2 text-sm font-semibold">Categoría</h3>
-                <ul className="space-y-2">
-                  {categories.map((c) => (
-                    <li key={c} className="flex items-center gap-2">
-                      <Checkbox
-                        id={`cat-${c}`}
-                        checked={selectedCats.includes(c)}
-                        onCheckedChange={(v) => {
-                          setSelectedCats((prev) =>
-                            v ? [...prev, c] : prev.filter((x) => x !== c),
-                          );
-                        }}
-                      />
-                      <label htmlFor={`cat-${c}`} className="text-sm">{c}</label>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            <div>
-              <h3 className="mb-2 text-sm font-semibold">Precio máximo</h3>
-              <Input
-                type="number"
-                placeholder={`Hasta ${priceMax.toFixed(0)}`}
-                value={maxPrice ?? ""}
-                onChange={(e) => setMaxPrice(e.target.value ? Number(e.target.value) : null)}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox
-                id="instock"
-                checked={inStockOnly}
-                onCheckedChange={(v) => setInStockOnly(!!v)}
-              />
-              <label htmlFor="instock" className="text-sm">Solo disponibles</label>
-            </div>
-          </aside>
-
+        <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
+          <CatalogFiltersPanel
+            page="brand"
+            products={products}
+            selected={selected}
+            onChange={setSelected}
+            className="hidden lg:block"
+          />
           <section>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {filtered.length} producto{filtered.length === 1 ? "" : "s"}
-            </p>
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <p className="text-sm text-muted-foreground">
+                {filtered.length} producto{filtered.length === 1 ? "" : "s"}
+              </p>
+              <CatalogFiltersPanel
+                page="brand"
+                products={products}
+                selected={selected}
+                onChange={setSelected}
+                className="lg:hidden"
+              />
+            </div>
             {filtered.length === 0 ? (
               <div className="rounded-lg border border-dashed p-10 text-center text-muted-foreground">
-                No hay productos que coincidan con los filtros.
+                <p>No encontramos productos con estos filtros.</p>
+                <Button variant="outline" className="mt-4" onClick={() => setSelected({})}>Limpiar filtros</Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {filtered.map((p) => (
-                  <ProductCard key={p.id} product={{ ...rowToProduct(p), brand: brand.name }} />
+                  <ProductCard key={p.id} product={rowToProduct(p, brand.name)} />
                 ))}
               </div>
             )}
