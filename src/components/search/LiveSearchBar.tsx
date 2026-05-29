@@ -266,6 +266,29 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                       </li>
                     ))}
                   </ul>
+                  {hasBrands && (
+                    <div className="mt-4">
+                      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Marcas</h4>
+                      <ul className="flex flex-col gap-1">
+                        {result!.brands.map((b) => (
+                          <li key={b.id}>
+                            <Link
+                              to={`/marca/${b.slug}`}
+                              onClick={() => setOpen(false)}
+                              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-secondary"
+                            >
+                              {b.logo_url ? (
+                                <img src={b.logo_url} alt={b.name} className="h-5 w-5 rounded object-contain bg-muted/30" />
+                              ) : (
+                                <span className="h-5 w-5 rounded bg-muted" />
+                              )}
+                              <span className="truncate">{b.name}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
 
                 {/* RIGHT: Products */}
