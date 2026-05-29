@@ -560,10 +560,13 @@ export const Header = () => {
                 "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
                 isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               );
+            const navCfg = megaMenu?.navSettings["products"];
+            const navLabel = navCfg?.label || "Productos";
+            const navHref = navCfg?.href || "/productos";
             return (
               <div className="static group">
-                <NavLink to="/productos" style={mainLinkStyle} className={linkClass}>
-                  Productos
+                <NavLink to={navHref} style={mainLinkStyle} className={linkClass}>
+                  {navLabel}
                   <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
                 </NavLink>
                 <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
