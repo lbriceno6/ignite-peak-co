@@ -123,9 +123,11 @@ export default function AdminSiteLinks() {
         </p>
       </div>
 
+      <MegaMenuBuilder />
       <CategoriesLinksTable />
       <GoalsLinksTable />
       <RedirectsManager />
+
 
 
       {Object.entries(grouped).map(([group, items]) => (
