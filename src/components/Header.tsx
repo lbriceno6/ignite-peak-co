@@ -620,6 +620,46 @@ export const Header = () => {
               </div>
             );
           })}
+          {goals.length > 0 && (
+            <div className="static group">
+              <NavLink
+                to="/objetivos"
+                style={mainLinkStyle}
+                className={({ isActive }) =>
+                  cn(
+                    "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                    isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                  )
+                }
+              >
+                Compra por objetivo
+                <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+              </NavLink>
+              <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="container-x grid grid-cols-2 gap-4 py-8 md:grid-cols-3 lg:grid-cols-4">
+                  {goals.map((g) => (
+                    <Link
+                      key={g.id}
+                      to={`/objetivo/${g.slug}`}
+                      className="group/g flex items-center gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-smooth hover:border-accent hover:shadow-md"
+                    >
+                      {g.image_url ? (
+                        <img src={g.image_url} alt={g.name} className="h-12 w-12 shrink-0 rounded object-cover" />
+                      ) : (
+                        <div className="h-12 w-12 shrink-0 rounded bg-accent/10" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-foreground">{g.name}</div>
+                        {g.short_description && (
+                          <div className="line-clamp-2 text-xs text-muted-foreground">{g.short_description}</div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="ml-auto flex items-center gap-1">
             {navItems.map((n) => renderNavLink(n, "px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"))}
           </div>
