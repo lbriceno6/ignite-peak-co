@@ -17,6 +17,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
 import { mainCategories, getSubcategories, mainBySlug, subBySlug } from "@/lib/productCategories";
 import { useCatalogFilterSettings, type CatalogFilterConfig, type CatalogFilterKey } from "@/hooks/useCatalogFilterSettings";
+import { SEO } from "@/components/SEO";
+import { getCategoryAncestors, type CategoryNode } from "@/lib/categoryTree";
 
 const WA_CONSULT =
   "https://wa.me/51999999999?text=" +
@@ -347,6 +349,13 @@ const Category = () => {
   const { config: filterConfig } = useCatalogFilterSettings();
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliersList, setSuppliersList] = useState<{ id: string; name: string }[]>([]);
+  const [ancestors, setAncestors] = useState<CategoryNode[]>([]);
+
+  useEffect(() => {
+    let alive = true;
+    getCategoryAncestors(slug).then((chain) => { if (alive) setAncestors(chain); });
+    return () => { alive = false; };
+  }, [slug]);
 
   // Load brand/supplier facets only when those filters are enabled
   useEffect(() => {
