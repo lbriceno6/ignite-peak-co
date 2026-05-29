@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { X, Plus, Minus, Trash2, ShoppingBag, Repeat, Sparkles } from "lucide-react";
+import { X, Plus, Minus, Trash2, ShoppingBag, Repeat, Sparkles, Package } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useCart, cartTotals, lineSubtotal } from "@/store/cart";
@@ -7,16 +7,19 @@ import { useCurrency } from "@/context/CurrencyContext";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import { shippingSettings } from "@/store/cart";
 
 export const CartDrawer = () => {
-  const { items, isOpen, setOpen, remove, setQty } = useCart();
-  const { subtotal, shipping, total: rawTotal, count } = cartTotals(items);
+  const { items, combos, isOpen, setOpen, remove, setQty, removeCombo } = useCart();
+  const { subtotal, shipping, total: rawTotal, count, discount: comboDiscount } = cartTotals(items, combos);
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const promoNudges = pendingPromoNudges(items, promotions);
   const perProduct = perProductPromoBreakdown(items, promotions);
   const total = Math.max(0, rawTotal - promoDiscount);
   const { format } = useCurrency();
+  const cartProductIds = items.map((i) => i.product.id);
 
   return (
     <Sheet open={isOpen} onOpenChange={setOpen}>
