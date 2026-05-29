@@ -7,6 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Upload, Loader2, Trash2, ArrowUp, ArrowDown, Plus, Image as ImageIcon, Eye, Monitor, Tablet, Smartphone } from "lucide-react";
+import MegaMenuBuilder from "@/components/admin/MegaMenuBuilder";
+
 
 type NavLinkRow = {
   id: string;
@@ -587,6 +589,8 @@ export default function AdminNavigation() {
 
         {/* ===== MEGA MENÚ ===== */}
         <TabsContent value="mega" className="space-y-6">
+          <MegaMenuBuilder />
+
           <section className="rounded-lg border bg-background p-6">
             <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
               <div>
