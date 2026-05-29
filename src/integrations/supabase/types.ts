@@ -233,6 +233,56 @@ export type Database = {
         }
         Relationships: []
       }
+      catalog_filter_options: {
+        Row: {
+          color: string | null
+          created_at: string
+          display_order: number
+          filter_id: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          filter_id: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          filter_id?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_filter_options_filter_id_fkey"
+            columns: ["filter_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_filters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catalog_filter_settings: {
         Row: {
           config: Json
@@ -247,6 +297,57 @@ export type Database = {
         Update: {
           config?: Json
           id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      catalog_filters: {
+        Row: {
+          created_at: string
+          default_open: boolean
+          display_order: number
+          filter_type: string
+          id: string
+          is_active: boolean
+          name: string
+          pages_visibility: Json
+          selection_type: string
+          show_desktop: boolean
+          show_mobile: boolean
+          slug: string
+          ui_widget: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_open?: boolean
+          display_order?: number
+          filter_type: string
+          id?: string
+          is_active?: boolean
+          name: string
+          pages_visibility?: Json
+          selection_type?: string
+          show_desktop?: boolean
+          show_mobile?: boolean
+          slug: string
+          ui_widget?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_open?: boolean
+          display_order?: number
+          filter_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          pages_visibility?: Json
+          selection_type?: string
+          show_desktop?: boolean
+          show_mobile?: boolean
+          slug?: string
+          ui_widget?: string
           updated_at?: string
         }
         Relationships: []
@@ -1868,6 +1969,55 @@ export type Database = {
           value?: number | null
         }
         Relationships: []
+      }
+      product_filter_values: {
+        Row: {
+          created_at: string
+          filter_id: string
+          id: string
+          option_id: string | null
+          product_id: string
+          value: string | null
+        }
+        Insert: {
+          created_at?: string
+          filter_id: string
+          id?: string
+          option_id?: string | null
+          product_id: string
+          value?: string | null
+        }
+        Update: {
+          created_at?: string
+          filter_id?: string
+          id?: string
+          option_id?: string | null
+          product_id?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_filter_values_filter_id_fkey"
+            columns: ["filter_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_filters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_filter_values_option_id_fkey"
+            columns: ["option_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_filter_options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_filter_values_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_search_terms: {
         Row: {
