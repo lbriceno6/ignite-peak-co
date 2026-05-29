@@ -24,6 +24,9 @@ type Settings = {
   max_tokens: number;
   fallback_whatsapp_enabled: boolean;
   helper_text: string;
+  live_suggestions_enabled: boolean;
+  max_products: number;
+  manual_suggestions: string[];
 };
 
 type Need = {
