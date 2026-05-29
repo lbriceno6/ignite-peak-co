@@ -1934,6 +1934,57 @@ export type Database = {
         }
         Relationships: []
       }
+      search_ai_settings: {
+        Row: {
+          api_key: string | null
+          created_at: string
+          enabled: boolean
+          fallback_whatsapp_enabled: boolean
+          helper_text: string
+          id: number
+          max_tokens: number
+          min_confidence: number
+          model: string
+          prompt_template: string
+          provider: string
+          result_mode: string
+          temperature: number
+          updated_at: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string
+          enabled?: boolean
+          fallback_whatsapp_enabled?: boolean
+          helper_text?: string
+          id?: number
+          max_tokens?: number
+          min_confidence?: number
+          model?: string
+          prompt_template?: string
+          provider?: string
+          result_mode?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string
+          enabled?: boolean
+          fallback_whatsapp_enabled?: boolean
+          helper_text?: string
+          id?: number
+          max_tokens?: number
+          min_confidence?: number
+          model?: string
+          prompt_template?: string
+          provider?: string
+          result_mode?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       search_logs: {
         Row: {
           clicked_product_id: string | null
@@ -1961,6 +2012,51 @@ export type Database = {
           query?: string
           results_count?: number
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      search_needs: {
+        Row: {
+          created_at: string
+          id: string
+          intent: string | null
+          is_active: boolean
+          keywords: string[]
+          message: string | null
+          name: string
+          priority: number
+          related_category: string | null
+          related_products: string[]
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          is_active?: boolean
+          keywords?: string[]
+          message?: string | null
+          name: string
+          priority?: number
+          related_category?: string | null
+          related_products?: string[]
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          is_active?: boolean
+          keywords?: string[]
+          message?: string | null
+          name?: string
+          priority?: number
+          related_category?: string | null
+          related_products?: string[]
+          slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
