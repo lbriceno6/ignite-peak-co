@@ -611,6 +611,29 @@ const Category = () => {
         </div>
       </div>
 
+      {children.length > 0 && (
+        <div className="container-x pt-8">
+          <h2 className="mb-4 font-display text-xl uppercase">Subcategorías</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {children.map((c) => (
+              <Link
+                key={c.id}
+                to={`/categoria/${c.slug}`}
+                className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-center transition-smooth hover:border-accent hover:shadow-md"
+              >
+                {c.image_url ? (
+                  <img src={c.image_url} alt={c.name} className="aspect-square w-full rounded object-cover" />
+                ) : (
+                  <div className="aspect-square w-full rounded bg-accent/10" />
+                )}
+                <span className="text-sm font-medium text-foreground group-hover:text-accent">{c.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+
       <div className="container-x grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
           <div className="mb-4 flex items-center justify-between">
