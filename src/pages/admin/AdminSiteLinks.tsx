@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
+import CategoriesLinksTable from "@/components/admin/CategoriesLinksTable";
 
 type Row = {
   id: string;
