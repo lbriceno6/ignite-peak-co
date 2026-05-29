@@ -151,7 +151,7 @@ const SEARCH_FIELDS = [
 export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchResult> {
   const q = norm(query);
   if (!q || q.length < 2) {
-    return { products: [], suggestions: [], totalEstimated: 0, expandedTerms: [] };
+    return { products: [], suggestions: [], brands: [], totalEstimated: 0, expandedTerms: [] };
   }
 
   const { needs, maps } = await loadCache();
