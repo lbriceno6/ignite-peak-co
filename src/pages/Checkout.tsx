@@ -81,7 +81,7 @@ const Checkout = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
-  const subtotal = Math.max(0, rawSubtotal - discount - promoDiscount);
+  const subtotal = Math.max(0, rawSubtotal - discount - promoDiscount - comboDiscount);
   const shipping = computeZoneShipping(matchedZone, rawSubtotal, shippingSettings);
   const availableCredit = reseller?.balance_credit ?? 0;
   const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
