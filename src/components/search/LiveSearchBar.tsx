@@ -35,7 +35,7 @@ type Props = {
 export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
   const navigate = useNavigate();
   const { add, toggleWish, wishlist } = useCart();
-  const { formatPrice } = useCurrency();
+  const { format: formatPrice } = useCurrency();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
