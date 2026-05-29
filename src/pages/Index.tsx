@@ -631,6 +631,8 @@ const Home = () => {
   };
 
   return (
+    <Layout>
+      <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Superalimentos andinos y medicina natural" fallbackDescription="Maca, cañihua, espirulina y fórmulas naturales peruanas para el bienestar diario." />
       {blocks.map(renderBlock)}
       <div className="container py-8">
         <ComboRecommendations
@@ -641,10 +643,8 @@ const Home = () => {
       </div>
       <InstagramTestimonials />
     </Layout>
-
-      <InstagramTestimonials />
-    </Layout>
   );
 };
 
 export default Home;
+
