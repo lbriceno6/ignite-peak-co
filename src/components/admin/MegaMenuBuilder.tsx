@@ -86,6 +86,29 @@ export default function MegaMenuBuilder() {
   const updateNav = (parent: string, patch: Partial<NavSetting>) =>
     setNavs((ns) => ns.map((n) => (n.parent_nav === parent ? { ...n, ...patch } : n)));
 
+  const addNav = async () => {
+    const slug = prompt("Identificador único (sin espacios, ej: ofertas):")?.trim().toLowerCase();
+    if (!slug) return;
+    if (!/^[a-z0-9_-]+$/.test(slug)) return toast.error("Solo letras, números, guiones y guión bajo");
+    if (navs.some((n) => n.parent_nav === slug)) return toast.error("Ya existe ese identificador");
+    const label = prompt("Nombre visible:", "Nuevo menú")?.trim() || "Nuevo menú";
+    const href = prompt("URL (ej: /ofertas):", "/" + slug)?.trim() || "/" + slug;
+    const position = Math.max(0, ...navs.map((n) => n.position)) + 1;
+    const { error } = await sb.from("mega_menu_nav_settings").insert({ parent_nav: slug, label, href, position });
+    if (error) return toast.error(error.message);
+    setNavs((ns) => [...ns, { parent_nav: slug, label, href, position }]);
+    toast.success("Menú padre creado");
+  };
+
+  const deleteNav = async (parent: string) => {
+    if (DEFAULT_NAVS.some((d) => d.parent_nav === parent)) return toast.error("No se puede eliminar un menú por defecto");
+    if (!confirm(`¿Eliminar el menú "${parent}"? Las columnas asociadas quedarán huérfanas.`)) return;
+    const { error } = await sb.from("mega_menu_nav_settings").delete().eq("parent_nav", parent);
+    if (error) return toast.error(error.message);
+    setNavs((ns) => ns.filter((n) => n.parent_nav !== parent));
+    toast.success("Menú padre eliminado");
+  };
+
   const saveNav = async (nav: NavSetting) => {
     setSavingNav(nav.parent_nav);
     const { error } = await sb.from("mega_menu_nav_settings").upsert({
@@ -207,31 +230,46 @@ export default function MegaMenuBuilder() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-md border bg-secondary/30 p-4">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Nombres de los menús padre
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Nombres de los menús padre
+            </h3>
+            <Button size="sm" variant="outline" onClick={addNav}><Plus size={14}/> Agregar menú padre</Button>
+          </div>
           <div className="space-y-3">
-            {navs.map((nav) => (
-              <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
-                <div className="md:col-span-4">
-                  <Label className="text-xs">Identificador</Label>
-                  <Input value={nav.parent_nav} disabled />
+            {navs.map((nav) => {
+              const isDefault = DEFAULT_NAVS.some((d) => d.parent_nav === nav.parent_nav);
+              return (
+                <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">Identificador</Label>
+                    <Input value={nav.parent_nav} disabled />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">Nombre visible</Label>
+                    <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">URL "Ver todo"</Label>
+                    <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-1">
+                    <Label className="text-xs">Pos</Label>
+                    <Input type="number" value={nav.position} onChange={(e) => updateNav(nav.parent_nav, { position: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <div className="flex gap-1 md:col-span-2">
+                    <Button size="sm" className="flex-1" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
+                      {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
+                    </Button>
+                    {!isDefault && (
+                      <Button size="sm" variant="destructive" onClick={() => deleteNav(nav.parent_nav)}>
+                        <Trash2 size={14}/>
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="md:col-span-3">
-                  <Label className="text-xs">Nombre visible</Label>
-                  <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
-                </div>
-                <div className="md:col-span-3">
-                  <Label className="text-xs">URL "Ver todo"</Label>
-                  <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
-                </div>
-                <div className="md:col-span-2">
-                  <Button size="sm" className="w-full" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
-                    {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>} Guardar
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         {navs.map((nav) => (
