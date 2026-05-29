@@ -181,6 +181,8 @@ const App = () => (
             <Route path="/promotions/buy-one-get-one" element={<PromotionParticipants />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
             <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
+            <Route path="/marca/:slug" element={<BrandPage />} />
+            <Route path="/brand/:slug" element={<BrandPage />} />
 
             {/* Marketplace / Suppliers */}
             <Route path="/vende-con-nosotros" element={<SellWithUs />} />
