@@ -32,12 +32,20 @@ export type MegaMenuItem = {
   seo_note: string | null;
 };
 
+export type MegaMenuNavSetting = {
+  parent_nav: string;
+  label: string;
+  href: string;
+  position: number;
+};
+
 export type MegaMenuData = {
   columns: MegaMenuColumn[];
   items: MegaMenuItem[];
   categories: Record<string, { slug: string; name: string; is_active: boolean }>;
   goals: Record<string, { slug: string; name: string; is_active: boolean }>;
   redirects: Record<string, string>;
+  navSettings: Record<string, MegaMenuNavSetting>;
 };
 
 export async function loadMegaMenu(): Promise<MegaMenuData> {
