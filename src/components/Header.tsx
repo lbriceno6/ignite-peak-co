@@ -681,7 +681,59 @@ export const Header = () => {
               </div>
             );
           })}
-          {goals.length > 0 && (
+          {(() => {
+            const goalCols = megaMenu ? columnsByNav(megaMenu, "goals").filter((c) => c.show_desktop) : [];
+            if (goalCols.length === 0) return null;
+            const linkClass = ({ isActive }: { isActive: boolean }) =>
+              cn(
+                "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+              );
+            return (
+              <div className="static group">
+                <NavLink to="/objetivos" style={mainLinkStyle} className={linkClass}>
+                  Compra por objetivo
+                  <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+                </NavLink>
+                <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${goalCols.length}, minmax(0, 1fr))` }}>
+                    {goalCols.map((col) => (
+                      <div key={col.id} className="flex flex-col gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-success">{col.title}</h4>
+                        <ul className="flex flex-col gap-1">
+                          {itemsForColumn(megaMenu!, col.id, "desktop").map((it) => {
+                            const href = resolveItemHref(it, megaMenu!);
+                            if (!href) return null;
+                            const isExternal = /^https?:\/\//.test(href);
+                            const className = "inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success";
+                            return (
+                              <li key={it.id}>
+                                {isExternal || it.open_in_new_tab ? (
+                                  <a href={href} target={it.open_in_new_tab ? "_blank" : undefined} rel="noopener noreferrer" className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </a>
+                                ) : (
+                                  <Link to={href} className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {col.see_all_href && (
+                          <Link to={col.see_all_href} className="mt-1 text-xs font-semibold uppercase tracking-wider text-accent hover:underline">
+                            {col.see_all_label || "Ver todo"} →
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          {goals.length > 0 && !(megaMenu && columnsByNav(megaMenu, "goals").filter((c) => c.show_desktop).length > 0) && (
             <div className="static group">
               <NavLink
                 to="/objetivos"
