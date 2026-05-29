@@ -205,6 +205,7 @@ export type Database = {
       }
       categories: {
         Row: {
+          canonical_url: string | null
           created_at: string
           description: string | null
           featured_cta_href: string | null
@@ -217,6 +218,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_active: boolean
+          long_description: string | null
           menu_badge: string | null
           menu_badge_bg: string | null
           menu_badge_color: string | null
@@ -230,13 +232,20 @@ export type Database = {
           meta_title: string | null
           name: string
           parent_id: string | null
+          related_category_ids: string[]
+          related_goal_ids: string[]
+          related_product_ids: string[]
+          short_description: string | null
+          show_in_home: boolean
           show_in_menu: boolean
+          show_in_sitemap: boolean
           slug: string
           sort_order: number
           type: Database["public"]["Enums"]["category_type"]
           updated_at: string
         }
         Insert: {
+          canonical_url?: string | null
           created_at?: string
           description?: string | null
           featured_cta_href?: string | null
@@ -249,6 +258,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          long_description?: string | null
           menu_badge?: string | null
           menu_badge_bg?: string | null
           menu_badge_color?: string | null
@@ -262,13 +272,20 @@ export type Database = {
           meta_title?: string | null
           name: string
           parent_id?: string | null
+          related_category_ids?: string[]
+          related_goal_ids?: string[]
+          related_product_ids?: string[]
+          short_description?: string | null
+          show_in_home?: boolean
           show_in_menu?: boolean
+          show_in_sitemap?: boolean
           slug: string
           sort_order?: number
           type: Database["public"]["Enums"]["category_type"]
           updated_at?: string
         }
         Update: {
+          canonical_url?: string | null
           created_at?: string
           description?: string | null
           featured_cta_href?: string | null
@@ -281,6 +298,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_active?: boolean
+          long_description?: string | null
           menu_badge?: string | null
           menu_badge_bg?: string | null
           menu_badge_color?: string | null
@@ -294,7 +312,13 @@ export type Database = {
           meta_title?: string | null
           name?: string
           parent_id?: string | null
+          related_category_ids?: string[]
+          related_goal_ids?: string[]
+          related_product_ids?: string[]
+          short_description?: string | null
+          show_in_home?: boolean
           show_in_menu?: boolean
+          show_in_sitemap?: boolean
           slug?: string
           sort_order?: number
           type?: Database["public"]["Enums"]["category_type"]
@@ -810,6 +834,72 @@ export type Database = {
           name?: string
           slug?: string
           sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      goals: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          long_description: string | null
+          meta_description: string | null
+          name: string
+          related_category_ids: string[]
+          related_product_ids: string[]
+          short_description: string | null
+          show_in_home: boolean
+          show_in_mega_menu: boolean
+          show_in_menu: boolean
+          show_in_sitemap: boolean
+          slug: string
+          sort_order: number
+          title_seo: string | null
+          updated_at: string
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          long_description?: string | null
+          meta_description?: string | null
+          name: string
+          related_category_ids?: string[]
+          related_product_ids?: string[]
+          short_description?: string | null
+          show_in_home?: boolean
+          show_in_mega_menu?: boolean
+          show_in_menu?: boolean
+          show_in_sitemap?: boolean
+          slug: string
+          sort_order?: number
+          title_seo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          long_description?: string | null
+          meta_description?: string | null
+          name?: string
+          related_category_ids?: string[]
+          related_product_ids?: string[]
+          short_description?: string | null
+          show_in_home?: boolean
+          show_in_mega_menu?: boolean
+          show_in_menu?: boolean
+          show_in_sitemap?: boolean
+          slug?: string
+          sort_order?: number
+          title_seo?: string | null
           updated_at?: string
         }
         Relationships: []
