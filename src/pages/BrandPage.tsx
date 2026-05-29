@@ -57,7 +57,7 @@ export default function BrandPage() {
       if (!b) { setBrand(null); setLoading(false); return; }
       setBrand(b as Brand);
       const { data: p } = await sb.from("products")
-        .select("id,slug,name,short_description,price,sale_price,main_image,category,subcategory,rating,brand,stock,badge,is_featured,is_new")
+        .select("id,slug,name,short_description,price,sale_price,main_image,category,subcategory,rating,brand,stock,badge,ingredients,goal")
         .eq("brand_id", b.id).eq("is_active", true).eq("approval_status", "approved")
         .order("stock", { ascending: false }).order("rating", { ascending: false });
       setProducts(p ?? []);

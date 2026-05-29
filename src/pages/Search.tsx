@@ -15,7 +15,7 @@ import { CatalogFiltersPanel } from "@/components/catalog/CatalogFiltersPanel";
 import { applyCatalogFilters, type SelectedFilters } from "@/lib/catalogFilterEngine";
 import { useCatalogFilters } from "@/hooks/useCatalogFilters";
 
-const PRODUCT_COLS = "id, slug, name, short_description, price, sale_price, main_image, category, subcategory, rating, brand, gallery_images, size_variants, stock, badge, is_featured, is_new";
+const PRODUCT_COLS = "id, slug, name, short_description, price, sale_price, main_image, category, subcategory, rating, brand, gallery_images, size_variants, stock, badge, ingredients, goal";
 
 const rowToProduct = (r: any): Product => {
   const priceN = Number(r.price ?? 0) || 0;
