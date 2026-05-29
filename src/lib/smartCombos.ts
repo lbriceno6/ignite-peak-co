@@ -162,9 +162,7 @@ export async function smartComboRecommendation(
     const products = productsByCombo.get(combo.id) ?? [];
     if (products.length === 0) continue;
 
-    // stock check
     const outOfStock = products.some((p) => (p.product?.stock ?? 0) < p.quantity);
-    if (outOfStock) continue;
 
     // skip if every product already in cart
     const allInCart = products.every((p) => cartProductSet.has(p.product_id));
@@ -232,10 +230,11 @@ export async function smartComboRecommendation(
     if (!matched) continue;
 
     const savings = Math.max(0, Number(combo.price_normal) - Number(combo.price_combo));
+    if (outOfStock) score -= 25;
     candidates.push({
       combo,
       products,
-      reason: "",
+      reason: outOfStock ? "Hay productos del combo sin stock; te mostramos la opción para que puedas ajustar el combo." : "",
       message: sanitizeCopy(
         combo.description ?? "Combina bien con tu compra.",
         "Combina bien con tu compra como complemento nutricional.",

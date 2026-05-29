@@ -1,43 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/ignite-pre-workout</loc>
-    <lastmod>2026-05-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/daily-multi-vitamin</loc>
-    <lastmod>2026-05-19</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/pro-shaker-700</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/protein-bar-crunch</loc>
-    <lastmod>2026-05-19</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/pro-shaker-700</loc>
-    <lastmod>2026-05-19</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/ignite-pre-workout</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/daily-multi-vitamin</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/omega-3-ultra</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/creatine-hcl</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/pre-workout-pump-x</loc>
-    <lastmod>2026-05-21</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/bcaa-recovery-plus</loc>
     <lastmod>2026-05-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -49,26 +43,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/omega-3-ultra</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/bcaa-recovery-plus</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/bcaa-recovery</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/vegan-protein</loc>
-    <lastmod>2026-05-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/iso-whey-elite</loc>
-    <lastmod>2026-05-19</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/pre-workout-pump-x</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -85,6 +67,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/vegan-protein</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/bcaa-recovery</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/iso-whey-elite</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
@@ -92,6 +92,12 @@
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/Omega 3</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
