@@ -230,31 +230,46 @@ export default function MegaMenuBuilder() {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="rounded-md border bg-secondary/30 p-4">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-            Nombres de los menús padre
-          </h3>
+          <div className="mb-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+              Nombres de los menús padre
+            </h3>
+            <Button size="sm" variant="outline" onClick={addNav}><Plus size={14}/> Agregar menú padre</Button>
+          </div>
           <div className="space-y-3">
-            {navs.map((nav) => (
-              <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
-                <div className="md:col-span-4">
-                  <Label className="text-xs">Identificador</Label>
-                  <Input value={nav.parent_nav} disabled />
+            {navs.map((nav) => {
+              const isDefault = DEFAULT_NAVS.some((d) => d.parent_nav === nav.parent_nav);
+              return (
+                <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">Identificador</Label>
+                    <Input value={nav.parent_nav} disabled />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">Nombre visible</Label>
+                    <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-3">
+                    <Label className="text-xs">URL "Ver todo"</Label>
+                    <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
+                  </div>
+                  <div className="md:col-span-1">
+                    <Label className="text-xs">Pos</Label>
+                    <Input type="number" value={nav.position} onChange={(e) => updateNav(nav.parent_nav, { position: parseInt(e.target.value) || 0 })} />
+                  </div>
+                  <div className="flex gap-1 md:col-span-2">
+                    <Button size="sm" className="flex-1" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
+                      {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>}
+                    </Button>
+                    {!isDefault && (
+                      <Button size="sm" variant="destructive" onClick={() => deleteNav(nav.parent_nav)}>
+                        <Trash2 size={14}/>
+                      </Button>
+                    )}
+                  </div>
                 </div>
-                <div className="md:col-span-3">
-                  <Label className="text-xs">Nombre visible</Label>
-                  <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
-                </div>
-                <div className="md:col-span-3">
-                  <Label className="text-xs">URL "Ver todo"</Label>
-                  <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
-                </div>
-                <div className="md:col-span-2">
-                  <Button size="sm" className="w-full" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
-                    {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>} Guardar
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
         {navs.map((nav) => (
