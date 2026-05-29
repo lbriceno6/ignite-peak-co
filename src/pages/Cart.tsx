@@ -14,9 +14,9 @@ import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from 
 import { FreeShippingBar } from "@/components/FreeShippingBar";
 
 const Cart = () => {
-  const { items, remove, setQty } = useCart();
+  const { items, combos, remove, setQty, removeCombo } = useCart();
   useShippingSettings();
-  const { subtotal: rawSubtotal, shipping, total: rawTotal } = cartTotals(items);
+  const { subtotal: rawSubtotal, shipping, total: rawTotal, discount: comboDiscount } = cartTotals(items, combos);
   const { format } = useCurrency();
   const [referral, setReferral] = useState<StoredReferral | null>(null);
   const [codeInput, setCodeInput] = useState("");

@@ -65,10 +65,10 @@ const CopyableRow = ({ label, value }: { label: string; value: string }) => {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, clear } = useCart();
+  const { items, combos, clear } = useCart();
   useShippingSettings();
   const { zones } = useShippingZones();
-  const { subtotal: rawSubtotal } = cartTotals(items);
+  const { subtotal: rawSubtotal, discount: comboDiscount } = cartTotals(items, combos);
   const { format } = useCurrency();
   const { user } = useAuth();
   const { reseller, refresh: refreshReseller } = useReseller();
