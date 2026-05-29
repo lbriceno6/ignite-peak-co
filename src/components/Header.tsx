@@ -318,6 +318,9 @@ export const Header = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => loadMenu())
       .on("postgres_changes", { event: "*", schema: "public", table: "menu_custom_fields" }, () => loadMenu())
       .on("postgres_changes", { event: "*", schema: "public", table: "nav_links" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_columns" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_items" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "seo_redirects" }, () => loadMenu())
       .subscribe();
     const onFocus = () => loadMenu();
     const onVis = () => { if (document.visibilityState === "visible") loadMenu(); };
