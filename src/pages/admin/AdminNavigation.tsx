@@ -7,6 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Upload, Loader2, Trash2, ArrowUp, ArrowDown, Plus, Image as ImageIcon, Eye, Monitor, Tablet, Smartphone } from "lucide-react";
+import MegaMenuBuilder from "@/components/admin/MegaMenuBuilder";
+
 
 type NavLinkRow = {
   id: string;
