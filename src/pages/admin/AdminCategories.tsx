@@ -389,27 +389,45 @@ export default function AdminCategories() {
             </div>
 
             <div className="space-y-1.5">
-              <Label>Nombre *</Label>
+              <Label>Nombre visible de categoría *</Label>
               <Input
                 value={editing.name ?? ""}
                 onChange={(e) =>
                   setEditing((p) => ({
                     ...p,
                     name: e.target.value,
+                    // Solo auto-generar slug al crear; al editar nunca se cambia automáticamente
                     slug: p.id ? p.slug : slugify(e.target.value),
                   }))
                 }
               />
+              <p className="text-xs text-muted-foreground">
+                Puedes cambiarlo libremente sin afectar la URL ni el SEO.
+              </p>
             </div>
 
             <div className="space-y-1.5">
-              <Label>Slug</Label>
+              <Label>Slug SEO</Label>
               <Input
                 value={editing.slug ?? ""}
                 onChange={(e) => setEditing({ ...editing, slug: e.target.value })}
-                placeholder="auto desde el nombre"
+                placeholder="ej: proteinas-y-colageno"
               />
+              <p className="text-xs text-muted-foreground">
+                Solo minúsculas, números y guiones medios. Sin tildes, ñ ni espacios.
+              </p>
+              {editing.id && items.find((c) => c.id === editing.id)?.slug !== (editing.slug ?? "") && (
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-2 text-xs text-amber-900">
+                  Cambiar el slug modificará la URL de esta categoría. Se creará una redirección 301 automática para proteger el SEO.
+                </div>
+              )}
+              {editing.slug && (
+                <p className="text-xs text-muted-foreground">
+                  URL: <code>/categoria/{editing.slug}</code>
+                </p>
+              )}
             </div>
+
 
             <div className="space-y-1.5">
               <Label>Descripción corta</Label>
