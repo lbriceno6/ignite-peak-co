@@ -161,6 +161,7 @@ export const Header = () => {
   const [query, setQuery] = useState("");
   const [navItems, setNavItems] = useState<NavItem[]>([]);
   const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [goals, setGoals] = useState<{ id: string; name: string; slug: string; image_url: string | null; short_description: string | null }[]>([]);
   const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
   const [searchNeeds, setSearchNeeds] = useState<{ slug: string; name: string; keywords: string[]; related_category: string | null; priority: number }[]>([]);
   const [searchHelper, setSearchHelper] = useState<string>("Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.");
@@ -291,18 +292,20 @@ export const Header = () => {
   });
 
   const loadMenu = async () => {
-    const [navRes, catRes, fRes, sRes, settRes] = await Promise.all([
+    const [navRes, catRes, fRes, sRes, settRes, goalsRes] = await Promise.all([
       supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
       supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       (supabase.from as any)("menu_custom_fields").select("*").eq("is_active", true).order("sort_order"),
       (supabase.from as any)("search_needs").select("slug,name,keywords,related_category,priority").eq("is_active", true).order("priority"),
       (supabase.from as any)("search_ai_settings").select("helper_text").eq("id", 1).maybeSingle(),
+      (supabase.from as any)("goals").select("id,name,slug,image_url,short_description").eq("is_active", true).eq("show_in_mega_menu", true).order("sort_order"),
     ]);
     setNavItems((navRes.data as NavItem[]) ?? []);
     if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
     if (sRes?.data) setSearchNeeds(sRes.data as any);
     if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
+    if (goalsRes?.data) setGoals(goalsRes.data as any);
   };
 
   useEffect(() => {
@@ -583,7 +586,7 @@ export const Header = () => {
                               <ul className="flex flex-col gap-1">
                                 {gitems.map((s) => (
                                   <li key={s.id}>
-                                    <Link to={`/categoria/${c.slug}/${s.slug}`} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
+                                    <Link to={`/categoria/${s.slug}`} className="inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success">
                                       {labelOf(s)}
                                       {s.menu_badge && (
                                         <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-accent" style={badgeStyle(s.menu_badge_bg, s.menu_badge_color)}>{s.menu_badge}</span>
@@ -617,6 +620,46 @@ export const Header = () => {
               </div>
             );
           })}
+          {goals.length > 0 && (
+            <div className="static group">
+              <NavLink
+                to="/objetivos"
+                style={mainLinkStyle}
+                className={({ isActive }) =>
+                  cn(
+                    "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                    isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+                  )
+                }
+              >
+                Compra por objetivo
+                <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+              </NavLink>
+              <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                <div className="container-x grid grid-cols-2 gap-4 py-8 md:grid-cols-3 lg:grid-cols-4">
+                  {goals.map((g) => (
+                    <Link
+                      key={g.id}
+                      to={`/objetivo/${g.slug}`}
+                      className="group/g flex items-center gap-3 rounded-lg border border-border bg-secondary/40 p-3 transition-smooth hover:border-accent hover:shadow-md"
+                    >
+                      {g.image_url ? (
+                        <img src={g.image_url} alt={g.name} className="h-12 w-12 shrink-0 rounded object-cover" />
+                      ) : (
+                        <div className="h-12 w-12 shrink-0 rounded bg-accent/10" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-foreground">{g.name}</div>
+                        {g.short_description && (
+                          <div className="line-clamp-2 text-xs text-muted-foreground">{g.short_description}</div>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           <div className="ml-auto flex items-center gap-1">
             {navItems.map((n) => renderNavLink(n, "px-4 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"))}
           </div>

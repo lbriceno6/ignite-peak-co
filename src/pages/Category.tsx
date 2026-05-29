@@ -350,10 +350,22 @@ const Category = () => {
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliersList, setSuppliersList] = useState<{ id: string; name: string }[]>([]);
   const [ancestors, setAncestors] = useState<CategoryNode[]>([]);
+  const [children, setChildren] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
     let alive = true;
-    getCategoryAncestors(slug).then((chain) => { if (alive) setAncestors(chain); });
+    getCategoryAncestors(slug).then(async (chain) => {
+      if (!alive) return;
+      setAncestors(chain);
+      const leaf = chain[chain.length - 1];
+      if (leaf) {
+        const { getCategoryChildren } = await import("@/lib/categoryTree");
+        const kids = await getCategoryChildren(leaf.id);
+        if (alive) setChildren(kids);
+      } else {
+        setChildren([]);
+      }
+    });
     return () => { alive = false; };
   }, [slug]);
 
@@ -539,14 +551,48 @@ const Category = () => {
     { Icon: MessageCircle, text: "Atención por WhatsApp" },
   ];
 
+  const leafCat = ancestors[ancestors.length - 1];
+  const SITE_URL = "https://ignite-peak-co.lovable.app";
+  const seoTitle = leafCat?.meta_title || `${title} | Nutribatidos`;
+  const seoDesc = leafCat?.meta_description || leafCat?.short_description || `Compra ${title} en Nutribatidos. Suplementos naturales seleccionados, envíos a todo el Perú.`;
+  const canonicalPath = leafCat ? `/categoria/${leafCat.slug}` : `/categoria/${slug}`;
+  const canonical = leafCat?.canonical_url || `${SITE_URL}${canonicalPath}`;
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Productos", item: `${SITE_URL}/productos` },
+      ...ancestors.map((a, i) => ({
+        "@type": "ListItem",
+        position: 3 + i,
+        name: a.name,
+        item: `${SITE_URL}/categoria/${a.slug}`,
+      })),
+    ],
+  };
+
   return (
     <Layout>
+      <SEO
+        title={seoTitle}
+        description={seoDesc}
+        canonical={canonical}
+        image={leafCat?.image_url ?? undefined}
+        jsonLd={breadcrumbJsonLd}
+      />
       <div className="bg-secondary/40 py-10">
         <div className="container-x">
-          <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-            <Link to="/" className="hover:text-accent">Inicio</Link> / <span className="text-foreground">{title}</span>
+          <nav className="text-xs uppercase tracking-wider text-muted-foreground" aria-label="Breadcrumb">
+            <Link to="/" className="hover:text-accent">Inicio</Link>
+            {" / "}
+            <Link to="/productos" className="hover:text-accent">Productos</Link>
+            {ancestors.slice(0, -1).map((a) => (
+              <span key={a.id}>{" / "}<Link to={`/categoria/${a.slug}`} className="hover:text-accent">{a.name}</Link></span>
+            ))}
+            {" / "}<span className="text-foreground">{leafCat?.name || title}</span>
           </nav>
-          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{title}</h1>
+          <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{leafCat?.name || title}</h1>
           <p className="mt-2 text-muted-foreground">
             {loading ? "Cargando…" : `Mostrando ${rangeFrom}–${rangeTo} de ${total} productos`}
           </p>
@@ -564,6 +610,29 @@ const Category = () => {
           ))}
         </div>
       </div>
+
+      {children.length > 0 && (
+        <div className="container-x pt-8">
+          <h2 className="mb-4 font-display text-xl uppercase">Subcategorías</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {children.map((c) => (
+              <Link
+                key={c.id}
+                to={`/categoria/${c.slug}`}
+                className="group flex flex-col items-center gap-2 rounded-lg border border-border bg-secondary/40 p-3 text-center transition-smooth hover:border-accent hover:shadow-md"
+              >
+                {c.image_url ? (
+                  <img src={c.image_url} alt={c.name} className="aspect-square w-full rounded object-cover" />
+                ) : (
+                  <div className="aspect-square w-full rounded bg-accent/10" />
+                )}
+                <span className="text-sm font-medium text-foreground group-hover:text-accent">{c.name}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
 
       <div className="container-x grid gap-8 py-10 lg:grid-cols-[260px_1fr]">
         <aside className="hidden lg:block">
