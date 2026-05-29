@@ -131,6 +131,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3 min-w-0">
+        {product.brand && product.brand !== "Sin marca" && (
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
+            {product.brand}
+          </div>
+        )}
         <div data-pc="category" className="h-4 text-[11px] uppercase tracking-wider text-muted-foreground truncate">
           {subcat || "\u00A0"}
         </div>
