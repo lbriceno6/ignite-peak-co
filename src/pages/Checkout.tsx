@@ -21,6 +21,7 @@ import { Sparkles } from "lucide-react";
 import { track } from "@/lib/analytics";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions } from "@/lib/promotions";
+import { trackComboEvent } from "@/lib/smartCombos";
 
 const PAY_KEYS = [
   "pay.order",
@@ -65,10 +66,10 @@ const CopyableRow = ({ label, value }: { label: string; value: string }) => {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { items, clear } = useCart();
+  const { items, combos, clear } = useCart();
   useShippingSettings();
   const { zones } = useShippingZones();
-  const { subtotal: rawSubtotal } = cartTotals(items);
+  const { itemsSubtotal: rawSubtotal, discount: comboDiscount } = cartTotals(items, combos);
   const { format } = useCurrency();
   const { user } = useAuth();
   const { reseller, refresh: refreshReseller } = useReseller();
@@ -80,7 +81,7 @@ const Checkout = () => {
   const { promotions } = usePromotions();
   const { totalDiscount: promoDiscount, applied: appliedPromos } = computePromotions(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
-  const subtotal = Math.max(0, rawSubtotal - discount - promoDiscount);
+  const subtotal = Math.max(0, rawSubtotal - discount - promoDiscount - comboDiscount);
   const shipping = computeZoneShipping(matchedZone, rawSubtotal, shippingSettings);
   const availableCredit = reseller?.balance_credit ?? 0;
   const creditApplied = useCredit && availableCredit > 0 ? Math.min(availableCredit, subtotal + shipping) : 0;
@@ -371,6 +372,9 @@ const Checkout = () => {
         items: items.length,
         payment_method: selected,
       });
+      for (const c of combos) {
+        trackComboEvent(c.id, "purchase", { orderId: order.id, amount: c.savings });
+      }
       clear();
       clearReferral();
       if (creditApplied > 0) refreshReseller();

@@ -24,6 +24,7 @@ import { Helmet } from "react-helmet-async";
 import { track } from "@/lib/analytics";
 import { useProductBenefits } from "@/hooks/useProductBenefits";
 import { renderBenefitIcon } from "@/components/BenefitIcon";
+import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
 
 type DbProduct = {
   id: string;
@@ -534,7 +535,16 @@ const ProductDetail = () => {
       )}
 
       <ProductReviews productId={dbp.id} />
+      <div className="container-x pb-6">
+        <ComboRecommendations
+          location="product"
+          productId={dbp.id}
+          productSlug={dbp.slug}
+          productCategoryId={(dbp as any).category_id ?? undefined}
+        />
+      </div>
 
+      <ProductReviews productId={dbp.id} />
       {related.length > 0 && (
         <section className="container-x pb-20">
           <h2 className="font-display text-2xl uppercase sm:text-3xl">También te puede gustar</h2>

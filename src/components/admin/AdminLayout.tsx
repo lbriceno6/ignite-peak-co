@@ -98,6 +98,7 @@ const defaultSections = [
       { key: "catalog-filters", to: "/admin/catalog-filters", label: "Filtros del catálogo", icon: SlidersHorizontal },
       { key: "suppliers", to: "/admin/suppliers", label: "Proveedores", icon: Truck },
       { key: "promotions", to: "/admin/promotions", label: "Promociones", icon: Gift },
+      { key: "combos", to: "/admin/combos", label: "Combos Inteligentes", icon: Sparkles },
     ],
   },
   {
