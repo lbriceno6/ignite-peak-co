@@ -16,7 +16,7 @@ import { FreeShippingBar } from "@/components/FreeShippingBar";
 const Cart = () => {
   const { items, combos, remove, setQty, removeCombo } = useCart();
   useShippingSettings();
-  const { subtotal: rawSubtotal, shipping, total: rawTotal, discount: comboDiscount } = cartTotals(items, combos);
+  const { itemsSubtotal: rawSubtotal, shipping, total: rawTotal, discount: comboDiscount } = cartTotals(items, combos);
   const { format } = useCurrency();
   const [referral, setReferral] = useState<StoredReferral | null>(null);
   const [codeInput, setCodeInput] = useState("");
@@ -26,7 +26,7 @@ const Cart = () => {
   const promoNudges = pendingPromoNudges(items, promotions);
   const perProduct = perProductPromoBreakdown(items, promotions);
   const discount = referral ? Math.round(rawSubtotal * referral.customer_discount_percent) / 100 : 0;
-  const subtotal = rawSubtotal - discount - promoDiscount;
+  const subtotal = rawSubtotal - discount - promoDiscount - comboDiscount;
   const total = rawTotal - discount - promoDiscount;
 
   const apply = async () => {
