@@ -53,6 +53,7 @@ import BlogForm from "./pages/admin/BlogForm.tsx";
 import AdminCategories from "./pages/admin/AdminCategories.tsx";
 import AdminFilterOptions from "./pages/admin/AdminFilterOptions.tsx";
 import AdminCatalogFilters from "./pages/admin/AdminCatalogFilters.tsx";
+import AdminCatalogFilterForm from "./pages/admin/AdminCatalogFilterForm.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
@@ -225,6 +226,8 @@ const App = () => (
               <Route path="objetivos" element={<AdminGoals />} />
               <Route path="filter-options" element={<AdminFilterOptions />} />
               <Route path="catalog-filters" element={<AdminCatalogFilters />} />
+              <Route path="catalog-filters/new" element={<AdminCatalogFilterForm />} />
+              <Route path="catalog-filters/:id/edit" element={<AdminCatalogFilterForm />} />
               <Route path="suppliers" element={<AdminSuppliers />} />
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
