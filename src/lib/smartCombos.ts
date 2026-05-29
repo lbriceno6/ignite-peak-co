@@ -209,19 +209,25 @@ export async function smartComboRecommendation(
       }
     }
 
-    // implicit matches when no rules: category match or need match
-    if (ruleSet.length === 0) {
-      if (ctx.productCategoryId && combo.category_id === ctx.productCategoryId) {
-        matched = true;
-        score += 15;
-      }
-      if (ctx.needTag && combo.need_tag === ctx.needTag) {
-        matched = true;
-        score += 15;
-      }
-      // home/checkout: allow without explicit match, just by priority
-      if (ctx.location === "home" || ctx.location === "checkout") matched = true;
+    // implicit matches: category/need match (work alongside rules)
+    if (ctx.productCategoryId && combo.category_id === ctx.productCategoryId) {
+      matched = true;
+      score += 15;
     }
+    if (ctx.needTag && combo.need_tag === ctx.needTag) {
+      matched = true;
+      score += 15;
+    }
+    // home/checkout/category/search: always show by priority (showcase locations)
+    if (
+      ctx.location === "home" ||
+      ctx.location === "checkout" ||
+      ctx.location === "category" ||
+      ctx.location === "search"
+    ) {
+      matched = true;
+    }
+
 
     if (!matched) continue;
 
