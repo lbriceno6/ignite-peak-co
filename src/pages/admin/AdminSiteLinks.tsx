@@ -9,6 +9,7 @@ import { Loader2, Save } from "lucide-react";
 import CategoriesLinksTable from "@/components/admin/CategoriesLinksTable";
 import GoalsLinksTable from "@/components/admin/GoalsLinksTable";
 import RedirectsManager from "@/components/admin/RedirectsManager";
+import MegaMenuBuilder from "@/components/admin/MegaMenuBuilder";
 
 type Row = {
   id: string;
