@@ -7,20 +7,14 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/accessories</loc>
-    <lastmod>2026-05-15</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/categoria/colagenos</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/para-tu-salud</loc>
-    <lastmod>2026-05-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/vitamins</loc>
-    <lastmod>2026-05-19</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/categoria/colagenos-funcionales</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -91,14 +85,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/pre-workout</loc>
-    <lastmod>2026-05-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/creatine</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/categoria/Proteinas</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -122,19 +110,31 @@
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/categoria/productos</loc>
-    <lastmod>2026-05-27</lastmod>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/categoria/Proteinas</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/categoria/para-tu-salud</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/categoria/promociones</loc>
     <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/creatine</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/accessories</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -177,6 +177,36 @@
   <url>
     <loc>https://ignite-peak-co.lovable.app/categoria/piel-cabello-y-unas</loc>
     <lastmod>2026-05-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/suplementos</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/pre-workout</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/vitamins</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/colageno-bovino</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/categoria/colageno-marino</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
