@@ -206,13 +206,41 @@ export default function MegaMenuBuilder() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {PARENT_NAVS.map((nav) => (
-          <div key={nav.value} className="space-y-3">
+        <div className="rounded-md border bg-secondary/30 p-4">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+            Nombres de los menús padre
+          </h3>
+          <div className="space-y-3">
+            {navs.map((nav) => (
+              <div key={nav.parent_nav} className="grid items-end gap-2 md:grid-cols-12">
+                <div className="md:col-span-4">
+                  <Label className="text-xs">Identificador</Label>
+                  <Input value={nav.parent_nav} disabled />
+                </div>
+                <div className="md:col-span-3">
+                  <Label className="text-xs">Nombre visible</Label>
+                  <Input value={nav.label} onChange={(e) => updateNav(nav.parent_nav, { label: e.target.value })} />
+                </div>
+                <div className="md:col-span-3">
+                  <Label className="text-xs">URL "Ver todo"</Label>
+                  <Input value={nav.href} onChange={(e) => updateNav(nav.parent_nav, { href: e.target.value })} />
+                </div>
+                <div className="md:col-span-2">
+                  <Button size="sm" className="w-full" onClick={() => saveNav(nav)} disabled={savingNav === nav.parent_nav}>
+                    {savingNav === nav.parent_nav ? <Loader2 size={14} className="animate-spin"/> : <Save size={14}/>} Guardar
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        {navs.map((nav) => (
+          <div key={nav.parent_nav} className="space-y-3">
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
               Menú: {nav.label}
             </h3>
             <Accordion type="multiple" className="space-y-2">
-              {(colsByNav[nav.value] || []).map((col) => {
+              {(colsByNav[nav.parent_nav] || []).map((col) => {
                 const colItems = items
                   .filter((i) => i.column_id === col.id)
                   .sort((a, b) => a.position - b.position);
