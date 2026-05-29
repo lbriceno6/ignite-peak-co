@@ -34,16 +34,24 @@ async function fetchDynamic(): Promise<Dyn> {
   const out: Dyn = { products: [], posts: [], cats: [], landings: [] };
   try {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
-    const [{ data: products }, { data: posts }, { data: cats }, { data: landings }] = await Promise.all([
+    const [{ data: products }, { data: posts }, { data: cats }, { data: landings }, { data: goals }, { data: redirects }] = await Promise.all([
       sb.from("products").select("slug, name, updated_at").eq("is_active", true).eq("approval_status", "approved"),
       sb.from("blog_posts").select("slug, title, published_at, updated_at").eq("is_published", true),
-      sb.from("categories").select("slug, name, type, updated_at"),
+      sb.from("categories").select("slug, name, type, updated_at, show_in_sitemap, is_active"),
       sb.from("seo_landing_pages").select("kind, slug, title, updated_at").eq("is_published", true),
+      (sb.from as any)("goals").select("slug, name, updated_at, show_in_sitemap, is_active"),
+      (sb.from as any)("seo_redirects").select("from_path").eq("active", true),
     ]);
-    (products ?? []).forEach((p: any) => out.products.push({ path: `/producto/${p.slug}`, title: p.name, lastmod: (p.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.8" }));
-    (posts ?? []).forEach((p: any) => out.posts.push({ path: `/blog/${p.slug}`, title: p.title, lastmod: ((p.updated_at || p.published_at) || "").slice(0, 10) || undefined, changefreq: "monthly", priority: "0.6" }));
-    (cats ?? []).filter((c: any) => c.type === "product").forEach((c: any) => out.cats.push({ path: `/categoria/${c.slug}`, title: c.name, lastmod: (c.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.7" }));
-    (landings ?? []).forEach((l: any) => out.landings.push({ path: `/${l.kind}/${l.slug}`, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }));
+    const blocked = new Set<string>(((redirects as any[]) ?? []).map((r) => r.from_path));
+    (products ?? []).forEach((p: any) => { const path = `/producto/${p.slug}`; if (!blocked.has(path)) out.products.push({ path, title: p.name, lastmod: (p.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.8" }); });
+    (posts ?? []).forEach((p: any) => { const path = `/blog/${p.slug}`; if (!blocked.has(path)) out.posts.push({ path, title: p.title, lastmod: ((p.updated_at || p.published_at) || "").slice(0, 10) || undefined, changefreq: "monthly", priority: "0.6" }); });
+    (cats ?? [])
+      .filter((c: any) => c.type === "product" && c.is_active !== false && c.show_in_sitemap !== false)
+      .forEach((c: any) => { const path = `/categoria/${c.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: c.name, lastmod: (c.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.7" }); });
+    ((goals as any[]) ?? [])
+      .filter((g: any) => g.is_active !== false && g.show_in_sitemap !== false)
+      .forEach((g: any) => { const path = `/objetivo/${g.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: g.name, lastmod: (g.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
+    (landings ?? []).forEach((l: any) => { const path = `/${l.kind}/${l.slug}`; if (!blocked.has(path)) out.landings.push({ path, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
   } catch (e) {
     console.warn("sitemap: dynamic fetch failed, using static only:", (e as Error).message);
   }
