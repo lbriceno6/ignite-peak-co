@@ -19,6 +19,8 @@ import { resolveProductImage } from "@/lib/productImage";
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
+import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+
 
 type HeroSlide = {
   id: string;
@@ -632,9 +634,17 @@ const Home = () => {
     <Layout>
       <SeoFromMeta entityType="page" entityId="home" path="/" fallbackTitle="Nutribatidos · Superalimentos andinos y medicina natural" fallbackDescription="Maca, cañihua, espirulina y fórmulas naturales peruanas para el bienestar diario." />
       {blocks.map(renderBlock)}
+      <div className="container py-8">
+        <ComboRecommendations
+          location="home"
+          title="Combos recomendados"
+          subtitle="Ahorra comprando productos que combinan bien."
+        />
+      </div>
       <InstagramTestimonials />
     </Layout>
   );
 };
 
 export default Home;
+
