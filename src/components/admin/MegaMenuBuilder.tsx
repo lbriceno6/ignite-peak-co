@@ -318,7 +318,7 @@ export default function MegaMenuBuilder() {
                 );
               })}
             </Accordion>
-            {(colsByNav[nav.value] || []).length === 0 && (
+            {(colsByNav[nav.parent_nav] || []).length === 0 && (
               <p className="text-sm text-muted-foreground">Aún no hay columnas para este menú.</p>
             )}
           </div>
