@@ -94,6 +94,8 @@ import SupplierOrders from "./pages/supplier/SupplierOrders.tsx";
 import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
+import Goal from "./pages/Goal.tsx";
+import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
 import { CookieBanner } from "@/components/CookieBanner";
@@ -167,7 +169,7 @@ const App = () => (
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* SEO landing pages */}
-            <Route path="/objetivo/:slug" element={<SeoLanding kind="objetivo" />} />
+            <Route path="/objetivo/:slug" element={<Goal />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
             <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
 
@@ -209,6 +211,7 @@ const App = () => (
               <Route path="blog/new" element={<BlogForm />} />
               <Route path="blog/:id/edit" element={<BlogForm />} />
               <Route path="categories" element={<AdminCategories />} />
+              <Route path="objetivos" element={<AdminGoals />} />
               <Route path="filter-options" element={<AdminFilterOptions />} />
               <Route path="catalog-filters" element={<AdminCatalogFilters />} />
               <Route path="suppliers" element={<AdminSuppliers />} />
