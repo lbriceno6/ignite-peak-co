@@ -128,13 +128,6 @@ export const CartDrawer = () => {
                   <span className="font-medium">−{format(comboDiscount)}</span>
                 </div>
               )}
-
-            <div className="border-t bg-secondary/40 p-5 space-y-3">
-              <FreeShippingBar subtotal={Math.max(0, subtotal - promoDiscount)} variant="compact" surface="minicart" />
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-medium">{format(subtotal)}</span>
-              </div>
               {appliedPromos.map((ap) => (
                 <div key={ap.promotionId} className="flex justify-between text-sm text-accent">
                   <span className="inline-flex items-center gap-1"><Sparkles size={12} /> {ap.label}</span>
