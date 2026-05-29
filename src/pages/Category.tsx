@@ -350,10 +350,22 @@ const Category = () => {
   const [brands, setBrands] = useState<string[]>([]);
   const [suppliersList, setSuppliersList] = useState<{ id: string; name: string }[]>([]);
   const [ancestors, setAncestors] = useState<CategoryNode[]>([]);
+  const [children, setChildren] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
     let alive = true;
-    getCategoryAncestors(slug).then((chain) => { if (alive) setAncestors(chain); });
+    getCategoryAncestors(slug).then(async (chain) => {
+      if (!alive) return;
+      setAncestors(chain);
+      const leaf = chain[chain.length - 1];
+      if (leaf) {
+        const { getCategoryChildren } = await import("@/lib/categoryTree");
+        const kids = await getCategoryChildren(leaf.id);
+        if (alive) setChildren(kids);
+      } else {
+        setChildren([]);
+      }
+    });
     return () => { alive = false; };
   }, [slug]);
 
