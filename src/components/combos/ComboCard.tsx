@@ -20,7 +20,8 @@ export function ComboCard({ recommendation, location, compact }: Props) {
   const { format } = useCurrency();
   const rootRef = useRef<HTMLDivElement>(null);
   const viewedRef = useRef(false);
-  const outOfStockItems = products.filter((p) => (p.product?.stock ?? 0) < p.quantity);
+  const unavailableItems = products.filter((p) => !p.product || (p.product.stock ?? 0) < p.quantity);
+  const unavailableLabels = unavailableItems.map((p) => p.product?.name ?? "Producto no disponible");
 
   useEffect(() => {
     if (viewedRef.current) return;
@@ -40,8 +41,8 @@ export function ComboCard({ recommendation, location, compact }: Props) {
   }, [combo.id, location]);
 
   const onAdd = () => {
-    if (outOfStockItems.length > 0) {
-      toast.error("Este combo tiene productos sin stock. Edita el combo o reemplaza esos productos.");
+    if (unavailableItems.length > 0) {
+      toast.error("Este combo tiene productos sin stock o no disponibles. Revisa esos productos.");
       return;
     }
     const productList = products
@@ -87,9 +88,9 @@ export function ComboCard({ recommendation, location, compact }: Props) {
             Incluye: {products.map((p) => p.product?.name).filter(Boolean).join(" + ")}
           </p>
           {reason && <p className="text-xs italic text-muted-foreground">{reason}</p>}
-          {outOfStockItems.length > 0 && (
+          {unavailableItems.length > 0 && (
             <p className="rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-              Sin stock: {outOfStockItems.map((p) => p.product?.name).filter(Boolean).join(", ")}
+              No disponible: {unavailableLabels.join(", ")}
             </p>
           )}
           <div className="flex items-baseline gap-2 pt-1">
@@ -101,8 +102,8 @@ export function ComboCard({ recommendation, location, compact }: Props) {
               </span>
             )}
           </div>
-          <Button size="sm" variant="accent" className="mt-2 w-full" onClick={onAdd} disabled={outOfStockItems.length > 0}>
-            <ShoppingCart size={14} /> {outOfStockItems.length > 0 ? "No disponible" : "Agregar combo"}
+          <Button size="sm" variant="accent" className="mt-2 w-full" onClick={onAdd} disabled={unavailableItems.length > 0}>
+            <ShoppingCart size={14} /> {unavailableItems.length > 0 ? "No disponible" : "Agregar combo"}
           </Button>
         </div>
       </div>
