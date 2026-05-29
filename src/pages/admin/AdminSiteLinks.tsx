@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Loader2, Save } from "lucide-react";
 import CategoriesLinksTable from "@/components/admin/CategoriesLinksTable";
+import GoalsLinksTable from "@/components/admin/GoalsLinksTable";
+import RedirectsManager from "@/components/admin/RedirectsManager";
 
 type Row = {
   id: string;
@@ -121,6 +123,8 @@ export default function AdminSiteLinks() {
       </div>
 
       <CategoriesLinksTable />
+      <GoalsLinksTable />
+      <RedirectsManager />
 
 
       {Object.entries(grouped).map(([group, items]) => (

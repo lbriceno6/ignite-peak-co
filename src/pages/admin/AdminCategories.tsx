@@ -35,6 +35,11 @@ type Category = {
   image_url: string | null;
   meta_title: string | null;
   meta_description: string | null;
+  canonical_url?: string | null;
+  short_description?: string | null;
+  long_description?: string | null;
+  show_in_home?: boolean;
+  show_in_sitemap?: boolean;
   sort_order: number;
   is_active: boolean;
   show_in_menu?: boolean;
@@ -60,6 +65,11 @@ const empty: Partial<Category> = {
   image_url: "",
   meta_title: "",
   meta_description: "",
+  canonical_url: "",
+  short_description: "",
+  long_description: "",
+  show_in_home: false,
+  show_in_sitemap: true,
   sort_order: 0,
   is_active: true,
   show_in_menu: true,
@@ -153,6 +163,11 @@ export default function AdminCategories() {
       image_url: editing.image_url || null,
       meta_title: editing.meta_title || null,
       meta_description: editing.meta_description || null,
+      canonical_url: editing.canonical_url || null,
+      short_description: editing.short_description || null,
+      long_description: editing.long_description || null,
+      show_in_home: editing.show_in_home ?? false,
+      show_in_sitemap: editing.show_in_sitemap ?? true,
       sort_order: Number(editing.sort_order) || 0,
       is_active: editing.is_active ?? true,
       show_in_menu: editing.show_in_menu ?? true,
@@ -641,6 +656,31 @@ export default function AdminCategories() {
                 value={editing.meta_description ?? ""}
                 onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
               />
+            </div>
+            <div className="space-y-1.5">
+              <Label>URL canónica</Label>
+              <Input
+                value={editing.canonical_url ?? ""}
+                placeholder="https://midominio.com/categoria/slug"
+                onChange={(e) => setEditing({ ...editing, canonical_url: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Descripción larga SEO</Label>
+              <Textarea rows={4}
+                value={editing.long_description ?? ""}
+                onChange={(e) => setEditing({ ...editing, long_description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={editing.show_in_home ?? false}
+                  onCheckedChange={(v) => setEditing({ ...editing, show_in_home: v })} /> Mostrar en home
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={editing.show_in_sitemap ?? true}
+                  onCheckedChange={(v) => setEditing({ ...editing, show_in_sitemap: v })} /> Incluir en sitemap
+              </label>
             </div>
           </div>
           <DialogFooter>
