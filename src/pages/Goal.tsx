@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 import SeoLanding from "./SeoLanding";
+import { CatalogFiltersPanel, applyCatalogFilters } from "@/components/catalog/CatalogFiltersPanel";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
+import type { SelectedFilters } from "@/lib/catalogFilterEngine";
 
 const SITE_URL = "https://ignite-peak-co.lovable.app";
 const sb: any = supabase;
@@ -29,6 +32,8 @@ export default function Goal() {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFoundInGoals, setNotFoundInGoals] = useState(false);
+  const [selected, setSelected] = useState<SelectedFilters>({});
+  const { filters: catalogFilters } = useCatalogFilters("need");
 
   useEffect(() => {
     if (!slug) return;
@@ -74,7 +79,11 @@ export default function Goal() {
     return () => { alive = false; };
   }, [slug]);
 
-  // Fallback to existing SeoLanding when no managed goal exists
+  const filtered = useMemo(
+    () => applyCatalogFilters(products, selected, catalogFilters),
+    [products, selected, catalogFilters],
+  );
+
   if (notFoundInGoals) return <SeoLanding kind="objetivo" />;
 
   const title = goal?.title_seo || goal?.name || "Objetivo";
@@ -118,19 +127,34 @@ export default function Goal() {
         ) : products.length === 0 ? (
           <p className="text-muted-foreground">No hay productos asociados a este objetivo todavía.</p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-            {products.map((p) => (
-              <ProductCard key={p.id} product={{
-                id: p.id, slug: p.slug, name: p.name,
-                shortBenefit: p.short_description ?? "",
-                price: Number(p.sale_price ?? p.price ?? 0),
-                oldPrice: p.sale_price ? Number(p.price) : undefined,
-                rating: Number(p.rating ?? 0), reviews: 0,
-                image: p.main_image ?? "/placeholder.svg",
-                category: p.category ?? "", goal: [], brand: p.brand ?? "",
-                label: p.badge as any,
-              }} />
-            ))}
+          <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+            <CatalogFiltersPanel
+              page="need"
+              products={products}
+              selected={selected}
+              onChange={setSelected}
+              className="lg:sticky lg:top-24 lg:self-start"
+            />
+            <div>
+              {filtered.length === 0 ? (
+                <p className="text-muted-foreground">No hay productos que coincidan con los filtros.</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                  {filtered.map((p) => (
+                    <ProductCard key={p.id} product={{
+                      id: p.id, slug: p.slug, name: p.name,
+                      shortBenefit: p.short_description ?? "",
+                      price: Number(p.sale_price ?? p.price ?? 0),
+                      oldPrice: p.sale_price ? Number(p.price) : undefined,
+                      rating: Number(p.rating ?? 0), reviews: 0,
+                      image: p.main_image ?? "/placeholder.svg",
+                      category: p.category ?? "", goal: [], brand: p.brand ?? "",
+                      label: p.badge as any,
+                    }} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
