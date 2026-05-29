@@ -123,6 +123,8 @@ export default function AdminSiteLinks() {
       </div>
 
       <CategoriesLinksTable />
+      <GoalsLinksTable />
+      <RedirectsManager />
 
 
       {Object.entries(grouped).map(([group, items]) => (
