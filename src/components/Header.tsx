@@ -13,6 +13,7 @@ import { useSiteContent } from "@/hooks/useSiteContent";
 import { supabase } from "@/integrations/supabase/client";
 import { applyMode, getStoredMode, setStoredMode, type Mode } from "@/lib/theme";
 import { intelligentSearch, buildSearchDestination } from "@/lib/intelligentSearch";
+import { loadMegaMenu, columnsByNav, itemsForColumn, resolveItemHref, type MegaMenuData } from "@/lib/megaMenu";
 
 type CategoryItem = {
   id: string;
@@ -163,6 +164,7 @@ export const Header = () => {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [goals, setGoals] = useState<{ id: string; name: string; slug: string; image_url: string | null; short_description: string | null }[]>([]);
   const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
+  const [megaMenu, setMegaMenu] = useState<MegaMenuData | null>(null);
   const [searchNeeds, setSearchNeeds] = useState<{ slug: string; name: string; keywords: string[]; related_category: string | null; priority: number }[]>([]);
   const [searchHelper, setSearchHelper] = useState<string>("Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.");
   const [showSugg, setShowSugg] = useState(false);
@@ -306,6 +308,7 @@ export const Header = () => {
     if (sRes?.data) setSearchNeeds(sRes.data as any);
     if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
     if (goalsRes?.data) setGoals(goalsRes.data as any);
+    try { setMegaMenu(await loadMegaMenu()); } catch { /* ignore */ }
   };
 
   useEffect(() => {
@@ -315,6 +318,9 @@ export const Header = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => loadMenu())
       .on("postgres_changes", { event: "*", schema: "public", table: "menu_custom_fields" }, () => loadMenu())
       .on("postgres_changes", { event: "*", schema: "public", table: "nav_links" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_columns" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "mega_menu_items" }, () => loadMenu())
+      .on("postgres_changes", { event: "*", schema: "public", table: "seo_redirects" }, () => loadMenu())
       .subscribe();
     const onFocus = () => loadMenu();
     const onVis = () => { if (document.visibilityState === "visible") loadMenu(); };
@@ -393,7 +399,50 @@ export const Header = () => {
             </Link>
             <nav data-nav-mobile className="nav-mobile-list mt-8 flex flex-col">
               <style>{navCss}</style>
-              {visibleCategoriesMobile.map((c) => {
+              {megaMenu && (["products", "goals"] as const).map((nav) => {
+                const cols = columnsByNav(megaMenu, nav).filter((c) => c.show_mobile);
+                if (cols.length === 0) return null;
+                const topLabel = nav === "products" ? "Productos" : "Compra por objetivo";
+                const topHref = nav === "products" ? "/productos" : "/objetivos";
+                return (
+                  <details key={`mm-${nav}`} className="group/m rounded-md">
+                    <summary className="nav-mobile-link flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-2.5 hover:bg-secondary" style={mainMobileLinkStyle}>
+                      <span>{topLabel}</span>
+                      <ChevronDown size={16} className="transition-transform group-open/m:rotate-180" />
+                    </summary>
+                    <div className="ml-2 mb-2 flex flex-col gap-2 border-l pl-2">
+                      <Link to={topHref} className="rounded-md px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary">Ver todo</Link>
+                      {cols.map((col) => (
+                        <details key={col.id} className="group/c rounded-md">
+                          <summary className="flex cursor-pointer list-none items-center justify-between rounded-md px-3 py-1.5 text-sm font-semibold hover:bg-secondary">
+                            <span>{col.title}</span>
+                            <ChevronDown size={14} className="transition-transform group-open/c:rotate-180" />
+                          </summary>
+                          <div className="ml-3 flex flex-col gap-0.5 border-l pl-2">
+                            {itemsForColumn(megaMenu, col.id, "mobile").map((it) => {
+                              const href = resolveItemHref(it, megaMenu);
+                              if (!href) return null;
+                              const isExternal = /^https?:\/\//.test(href);
+                              const className = "inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground";
+                              return isExternal || it.open_in_new_tab ? (
+                                <a key={it.id} href={href} target={it.open_in_new_tab ? "_blank" : undefined} rel="noopener noreferrer" className={className}>{it.icon}{it.icon ? " " : ""}{it.display_label}</a>
+                              ) : (
+                                <Link key={it.id} to={href} className={className}>{it.icon}{it.icon ? " " : ""}{it.display_label}</Link>
+                              );
+                            })}
+                            {col.see_all_href && (
+                              <Link to={col.see_all_href} className="rounded-md px-3 py-1.5 text-xs font-semibold text-accent hover:bg-secondary">
+                                {col.see_all_label || "Ver todo"} →
+                              </Link>
+                            )}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
+              {!(megaMenu && columnsByNav(megaMenu, "products").filter((c) => c.show_mobile).length > 0) && visibleCategoriesMobile.map((c) => {
                 const subs = (subsByParent[c.id] || []).filter((s) => s.menu_show_mobile !== false);
                 const mobileFields = (fieldsByParent[c.id] || []).filter((f) => f.show_mobile);
                 return (
@@ -535,7 +584,62 @@ export const Header = () => {
       <nav data-nav-main className="relative hidden border-t border-border lg:block" style={navStyle}>
         <style>{navCss}</style>
         <div className="nav-main-list container-x flex items-center">
-          {visibleCategoriesDesktop.map((c) => {
+          {(() => {
+            const productsCols = megaMenu ? columnsByNav(megaMenu, "products").filter((c) => c.show_desktop) : [];
+            if (productsCols.length === 0) return null;
+            const linkClass = ({ isActive }: { isActive: boolean }) =>
+              cn(
+                "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+              );
+            return (
+              <div className="static group">
+                <NavLink to="/productos" style={mainLinkStyle} className={linkClass}>
+                  Productos
+                  <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+                </NavLink>
+                <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${productsCols.length}, minmax(0, 1fr))` }}>
+                    {productsCols.map((col) => (
+                      <div key={col.id} className="flex flex-col gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-success">{col.title}</h4>
+                        <ul className="flex flex-col gap-1">
+                          {itemsForColumn(megaMenu!, col.id, "desktop").map((it) => {
+                            const href = resolveItemHref(it, megaMenu!);
+                            if (!href) return null;
+                            const isExternal = /^https?:\/\//.test(href);
+                            const className = "inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success";
+                            return (
+                              <li key={it.id}>
+                                {isExternal || it.open_in_new_tab ? (
+                                  <a href={href} target={it.open_in_new_tab ? "_blank" : undefined} rel="noopener noreferrer" className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </a>
+                                ) : (
+                                  <Link to={href} className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {col.see_all_href && (
+                          <Link to={col.see_all_href} className="mt-1 text-xs font-semibold uppercase tracking-wider text-accent hover:underline">
+                            {col.see_all_label || "Ver todo"} →
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          {(megaMenu && columnsByNav(megaMenu, "products").filter((c) => c.show_desktop).length > 0
+            ? []
+            : visibleCategoriesDesktop
+          ).map((c) => {
             const subs = subsByParent[c.id] || [];
             const fields = (fieldsByParent[c.id] || []).filter((f) => f.show_desktop);
             const isMega = (c.menu_type ?? "mega") === "mega" && (subs.length > 0 || fields.length > 0);
@@ -620,7 +724,59 @@ export const Header = () => {
               </div>
             );
           })}
-          {goals.length > 0 && (
+          {(() => {
+            const goalCols = megaMenu ? columnsByNav(megaMenu, "goals").filter((c) => c.show_desktop) : [];
+            if (goalCols.length === 0) return null;
+            const linkClass = ({ isActive }: { isActive: boolean }) =>
+              cn(
+                "nav-main-link py-3 whitespace-nowrap border-b-2 transition-smooth inline-flex items-center gap-1.5",
+                isActive && showUnderline ? "border-accent text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+              );
+            return (
+              <div className="static group">
+                <NavLink to="/objetivos" style={mainLinkStyle} className={linkClass}>
+                  Compra por objetivo
+                  <ChevronDown size={14} className="opacity-60 transition-transform group-hover:rotate-180" />
+                </NavLink>
+                <div className="invisible absolute left-0 right-0 top-full z-50 -translate-y-1 border-t border-border bg-popover opacity-0 shadow-xl transition-all group-hover:visible group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="container-x grid gap-8 py-8" style={{ gridTemplateColumns: `repeat(${goalCols.length}, minmax(0, 1fr))` }}>
+                    {goalCols.map((col) => (
+                      <div key={col.id} className="flex flex-col gap-2">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-success">{col.title}</h4>
+                        <ul className="flex flex-col gap-1">
+                          {itemsForColumn(megaMenu!, col.id, "desktop").map((it) => {
+                            const href = resolveItemHref(it, megaMenu!);
+                            if (!href) return null;
+                            const isExternal = /^https?:\/\//.test(href);
+                            const className = "inline-flex items-center gap-2 py-1 text-sm text-popover-foreground hover:text-success";
+                            return (
+                              <li key={it.id}>
+                                {isExternal || it.open_in_new_tab ? (
+                                  <a href={href} target={it.open_in_new_tab ? "_blank" : undefined} rel="noopener noreferrer" className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </a>
+                                ) : (
+                                  <Link to={href} className={className}>
+                                    {it.icon && <span>{it.icon}</span>}{it.display_label}
+                                  </Link>
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        {col.see_all_href && (
+                          <Link to={col.see_all_href} className="mt-1 text-xs font-semibold uppercase tracking-wider text-accent hover:underline">
+                            {col.see_all_label || "Ver todo"} →
+                          </Link>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+          {goals.length > 0 && !(megaMenu && columnsByNav(megaMenu, "goals").filter((c) => c.show_desktop).length > 0) && (
             <div className="static group">
               <NavLink
                 to="/objetivos"

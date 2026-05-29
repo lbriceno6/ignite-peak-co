@@ -1063,6 +1063,116 @@ export type Database = {
         }
         Relationships: []
       }
+      mega_menu_columns: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          parent_nav: string
+          position: number
+          see_all_href: string | null
+          see_all_label: string | null
+          show_desktop: boolean
+          show_mobile: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_nav?: string
+          position?: number
+          see_all_href?: string | null
+          see_all_label?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          parent_nav?: string
+          position?: number
+          see_all_href?: string | null
+          see_all_label?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      mega_menu_items: {
+        Row: {
+          category_id: string | null
+          column_id: string
+          created_at: string
+          display_label: string
+          goal_id: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          link_type: string
+          open_in_new_tab: boolean
+          position: number
+          seo_note: string | null
+          show_desktop: boolean
+          show_mobile: boolean
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          column_id: string
+          created_at?: string
+          display_label: string
+          goal_id?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_type?: string
+          open_in_new_tab?: boolean
+          position?: number
+          seo_note?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          column_id?: string
+          created_at?: string
+          display_label?: string
+          goal_id?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          link_type?: string
+          open_in_new_tab?: boolean
+          position?: number
+          seo_note?: string | null
+          show_desktop?: boolean
+          show_mobile?: boolean
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mega_menu_items_column_id_fkey"
+            columns: ["column_id"]
+            isOneToOne: false
+            referencedRelation: "mega_menu_columns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_custom_fields: {
         Row: {
           badge_bg: string | null

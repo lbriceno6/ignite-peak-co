@@ -95,6 +95,7 @@ import SupplierProfile from "./pages/supplier/SupplierProfile.tsx";
 import Unsubscribe from "./pages/Unsubscribe.tsx";
 import SeoLanding from "./pages/SeoLanding.tsx";
 import Goal from "./pages/Goal.tsx";
+import Goals from "./pages/Goals.tsx";
 import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
@@ -169,6 +170,7 @@ const App = () => (
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* SEO landing pages */}
+            <Route path="/objetivos" element={<Goals />} />
             <Route path="/objetivo/:slug" element={<Goal />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
             <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
