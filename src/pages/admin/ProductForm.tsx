@@ -40,6 +40,8 @@ const empty = {
   subscription_intervals: "30,60,90",
   size_variants: "" as any,
   supplier_id: null as string | null,
+  brand_id: null as string | null,
+  brand: "",
 };
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
