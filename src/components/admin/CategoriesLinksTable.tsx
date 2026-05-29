@@ -98,15 +98,41 @@ export default function CategoriesLinksTable() {
     if (error) { setSaving(false); return toast.error(error.message); }
 
     if (slugChanged) {
-      const from_path = `/categoria/${editing.slug}`;
-      const to_path = `/categoria/${form.slug.trim()}`;
-      const { error: rErr } = await sb.from("seo_redirects").upsert(
-        { from_path, to_path, status_code: 301, active: true },
-        { onConflict: "from_path" },
-      );
-      if (rErr) toast.error(`Categoría guardada, pero la redirección falló: ${rErr.message}`);
-      else toast.success(`Redirección 301 creada: ${from_path} → ${to_path}`);
+      const newSlug = form.slug.trim();
+      const redirects: Array<{ from_path: string; to_path: string; status_code: number; active: boolean }> = [];
+      if (editing.parent_id) {
+        const parent = byId[editing.parent_id];
+        if (parent) {
+          redirects.push({
+            from_path: `/categoria/${parent.slug}/${editing.slug}`,
+            to_path: `/categoria/${parent.slug}/${newSlug}`,
+            status_code: 301, active: true,
+          });
+        }
+        redirects.push({
+          from_path: `/categoria/${editing.slug}`,
+          to_path: `/categoria/${newSlug}`,
+          status_code: 301, active: true,
+        });
+      } else {
+        redirects.push({
+          from_path: `/categoria/${editing.slug}`,
+          to_path: `/categoria/${newSlug}`,
+          status_code: 301, active: true,
+        });
+        cats.filter((x) => x.parent_id === editing.id).forEach((child) => {
+          redirects.push({
+            from_path: `/categoria/${editing.slug}/${child.slug}`,
+            to_path: `/categoria/${newSlug}/${child.slug}`,
+            status_code: 301, active: true,
+          });
+        });
+      }
+      const { error: rErr } = await sb.from("seo_redirects").upsert(redirects, { onConflict: "from_path" });
+      if (rErr) toast.error(`Categoría guardada, pero las redirecciones fallaron: ${rErr.message}`);
+      else toast.success(`${redirects.length} redirección(es) 301 creada(s)`);
     }
+
     setSaving(false);
     setEditing(null);
     toast.success("Categoría actualizada");

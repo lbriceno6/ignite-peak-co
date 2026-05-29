@@ -313,8 +313,17 @@ export const Header = () => {
       .on("postgres_changes", { event: "*", schema: "public", table: "menu_custom_fields" }, () => loadMenu())
       .on("postgres_changes", { event: "*", schema: "public", table: "nav_links" }, () => loadMenu())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    const onFocus = () => loadMenu();
+    const onVis = () => { if (document.visibilityState === "visible") loadMenu(); };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, []);
+
 
 
 

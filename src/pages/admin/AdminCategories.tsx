@@ -173,14 +173,46 @@ export default function AdminCategories() {
     if (res.error) return toast.error(res.error.message);
 
     if (slugChanged && prev) {
-      const from_path = `/categoria/${prev.slug}`;
-      const to_path = `/categoria/${newSlug}`;
+      const redirects: Array<{ from_path: string; to_path: string; status_code: number; active: boolean }> = [];
+      if (prev.parent_id) {
+        // Subcategoría: redirige la ruta anidada usando el slug del padre.
+        const parent = items.find((x) => x.id === prev.parent_id);
+        if (parent) {
+          redirects.push({
+            from_path: `/categoria/${parent.slug}/${prev.slug}`,
+            to_path: `/categoria/${parent.slug}/${newSlug}`,
+            status_code: 301, active: true,
+          });
+        }
+        redirects.push({
+          from_path: `/categoria/${prev.slug}`,
+          to_path: `/categoria/${newSlug}`,
+          status_code: 301, active: true,
+        });
+      } else {
+        // Categoría padre: redirige el padre y todos sus hijos.
+        redirects.push({
+          from_path: `/categoria/${prev.slug}`,
+          to_path: `/categoria/${newSlug}`,
+          status_code: 301, active: true,
+        });
+        items
+          .filter((x) => x.parent_id === prev.id)
+          .forEach((child) => {
+            redirects.push({
+              from_path: `/categoria/${prev.slug}/${child.slug}`,
+              to_path: `/categoria/${newSlug}/${child.slug}`,
+              status_code: 301, active: true,
+            });
+          });
+      }
       const { error: rErr } = await (supabase as any)
         .from("seo_redirects")
-        .upsert({ from_path, to_path, status_code: 301, active: true }, { onConflict: "from_path" });
-      if (rErr) toast.error(`Categoría guardada, pero la redirección falló: ${rErr.message}`);
-      else toast.success(`Redirección 301 creada: ${from_path} → ${to_path}`);
+        .upsert(redirects, { onConflict: "from_path" });
+      if (rErr) toast.error(`Categoría guardada, pero las redirecciones fallaron: ${rErr.message}`);
+      else toast.success(`${redirects.length} redirección(es) 301 creada(s)`);
     }
+
 
     toast.success(editing.id ? "Categoría actualizada" : "Categoría creada");
     setOpen(false);
