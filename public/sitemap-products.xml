@@ -85,13 +85,25 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo</loc>
-    <lastmod>2026-05-27</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/bioprost</loc>
+    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen</loc>
+    <lastmod>2026-05-29</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
