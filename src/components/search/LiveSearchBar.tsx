@@ -147,7 +147,11 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
   )}`;
 
   const showPanel = open && query.trim().length >= 2;
-  const hasNoResults = showPanel && !loading && result && result.products.length === 0;
+  const hasProducts = (result?.products.length ?? 0) > 0;
+  const hasCategory = !!result?.matchedCategorySlug;
+  const hasDynamicSuggestions = (result?.suggestions.length ?? 0) > 0;
+  const hasAnything = hasProducts || hasCategory || hasDynamicSuggestions;
+  const hasNoResults = showPanel && !loading && result !== null && !hasAnything;
 
   const suggestions = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -272,7 +276,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                     <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
                       <Loader2 size={16} className="animate-spin" /> Buscando…
                     </div>
-                  ) : (
+                  ) : hasProducts ? (
                     <ul className="flex flex-col divide-y divide-border">
                       {(result?.products ?? []).slice(0, settings.max_products).map((p) => {
                         const inStock = p.stock > 0;
@@ -351,6 +355,23 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                         );
                       })}
                     </ul>
+                  ) : hasCategory ? (
+                    <div className="rounded-md border border-dashed border-border p-4 text-sm">
+                      <p className="text-muted-foreground">
+                        No hay productos exactos, pero encontramos una categoría relacionada:
+                      </p>
+                      <Link
+                        to={`/buscar?q=${encodeURIComponent(query.trim())}&categoria=${encodeURIComponent(result!.matchedCategorySlug!)}`}
+                        onClick={() => setOpen(false)}
+                        className="mt-2 inline-block font-medium text-accent hover:underline"
+                      >
+                        Ver productos de esta categoría →
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className="py-6 text-center text-sm text-muted-foreground">
+                      Prueba con otra palabra o elige una sugerencia.
+                    </p>
                   )}
 
                   {result && result.products.length > 0 && (

@@ -6,23 +6,76 @@ export type LiveProduct = Product & { stock: number };
 
 export type LiveSearchResult = {
   products: LiveProduct[];
-  suggestions: string[]; // dynamic suggestion terms (need names matched)
+  suggestions: string[];
   totalEstimated: number;
   matchedNeedSlug?: string | null;
   matchedNeedName?: string | null;
   matchedCategorySlug?: string | null;
+  expandedTerms: string[];
 };
 
+// NOTE: `tags` column does NOT exist on products. Don't add it back.
 const PRODUCT_COLS =
-  "id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, badge, stock, tags, ingredients";
+  "id, slug, name, short_description, description, price, sale_price, main_image, category, subcategory, main_ingredient, rating, brand, badge, stock";
 
 const norm = (s: string) =>
   (s || "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+
+// Built-in synonym / partial-term dictionary. Keys are the *partial* a user
+// might type; values are full terms we should ALSO search for.
+const SYNONYMS: Record<string, string[]> = {
+  col: ["colageno", "articulaciones", "piel", "huesos"],
+  cola: ["colageno"],
+  colag: ["colageno"],
+  ome: ["omega", "omega 3"],
+  omeg: ["omega", "omega 3"],
+  mac: ["maca", "energia"],
+  maca: ["maca", "energia"],
+  can: ["cansancio", "energia", "fatiga"],
+  cans: ["cansancio", "energia"],
+  ener: ["energia", "vitalidad", "maca"],
+  vit: ["vitamina", "vitaminas"],
+  dig: ["digestion", "digestivo", "estomago"],
+  diges: ["digestion", "digestivo"],
+  inf: ["inflamacion", "antiinflamatorio"],
+  gim: ["gimnasio", "fitness", "proteina"],
+  fit: ["fitness", "proteina", "gimnasio"],
+  prot: ["proteina"],
+  "sin az": ["sin azucar", "stevia", "endulzante"],
+  "sin azu": ["sin azucar"],
+  azu: ["azucar", "sin azucar"],
+  rel: ["relajacion", "estres", "sueno"],
+  est: ["estres", "ansiedad"],
+  sue: ["sueno", "dormir", "melatonina"],
+  inm: ["inmunidad", "defensas"],
+  def: ["defensas", "inmunidad"],
+  hue: ["huesos", "calcio", "colageno"],
+  pie: ["piel", "colageno", "belleza"],
+  bell: ["belleza", "piel", "cabello"],
+  cab: ["cabello", "biotina"],
+  art: ["articulaciones", "colageno"],
+};
+
+const expandQuery = (q: string): string[] => {
+  const base = norm(q);
+  if (!base) return [];
+  const out = new Set<string>([base]);
+  // Synonym hits: any dictionary key that the query starts with, OR that starts with the query
+  for (const key of Object.keys(SYNONYMS)) {
+    if (base.startsWith(key) || key.startsWith(base)) {
+      out.add(key);
+      for (const v of SYNONYMS[key]) out.add(norm(v));
+    }
+  }
+  // Cap to avoid massive OR
+  return Array.from(out).slice(0, 8);
+};
 
 const rowToProduct = (r: any): LiveProduct => {
   const price = Number(r.price ?? 0) || 0;
@@ -61,7 +114,6 @@ type MapRow = {
   need_slug: string | null;
 };
 
-// Simple in-memory cache
 let cache: { needs: NeedRow[]; maps: MapRow[]; ts: number } | null = null;
 const CACHE_MS = 60_000;
 
@@ -83,26 +135,38 @@ async function loadCache() {
   return cache;
 }
 
+const SEARCH_FIELDS = [
+  "name",
+  "short_description",
+  "description",
+  "category",
+  "subcategory",
+  "brand",
+  "main_ingredient",
+];
+
 export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchResult> {
   const q = norm(query);
   if (!q || q.length < 2) {
-    return { products: [], suggestions: [], totalEstimated: 0 };
+    return { products: [], suggestions: [], totalEstimated: 0, expandedTerms: [] };
   }
 
   const { needs, maps } = await loadCache();
+  const terms = expandQuery(q);
 
-  // 1) Match keyword map
+  // Match keyword map (partial)
   const mapHit = maps.find((m) => {
     const k = norm(m.keyword);
-    return k && (k === q || k.includes(q) || q.includes(k));
+    return k && terms.some((t) => k.includes(t) || t.includes(k));
   });
 
-  // 2) Match needs by keyword/name
+  // Match needs by keyword/name (partial)
   const needHits = needs.filter((n) => {
-    if (norm(n.name).includes(q)) return true;
+    const name = norm(n.name);
+    if (terms.some((t) => name.includes(t) || t.includes(name))) return true;
     return (n.keywords ?? []).some((k) => {
       const kn = norm(k);
-      return kn && (kn === q || kn.includes(q) || q.includes(kn));
+      return kn && terms.some((t) => kn.includes(t) || t.includes(kn));
     });
   });
 
@@ -113,24 +177,22 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     ...(matchedNeed?.related_products ?? []),
   ]);
 
-  // 3) Query products: by name/category/brand/short_description/tags/ingredients
-  const like = `%${q}%`;
-  const orClauses = [
-    `name.ilike.${like}`,
-    `short_description.ilike.${like}`,
-    `category.ilike.${like}`,
-    `brand.ilike.${like}`,
-  ].join(",");
+  // Build OR across all terms × all fields
+  const orClauses: string[] = [];
+  for (const t of terms) {
+    const like = `%${t}%`;
+    for (const f of SEARCH_FIELDS) orClauses.push(`${f}.ilike.${like}`);
+  }
 
   const productsQuery = supabase
     .from("products")
     .select(PRODUCT_COLS, { count: "exact" })
     .eq("is_active", true)
     .eq("approval_status", "approved")
-    .or(orClauses)
+    .or(orClauses.join(","))
     .order("stock", { ascending: false })
     .order("rating", { ascending: false })
-    .limit(Math.max(max * 3, 12));
+    .limit(Math.max(max * 4, 16));
 
   const explicitProductsQuery =
     explicitIds.size > 0
@@ -147,9 +209,12 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     explicitProductsQuery ?? Promise.resolve({ data: [], count: 0 } as any),
   ]);
 
+  if (searchRes.error) {
+    console.warn("[liveSearch] products query error", searchRes.error);
+  }
+
   const seen = new Set<string>();
   const ordered: any[] = [];
-  // Prioritize explicit (need/keyword map) products first
   for (const r of (explicitRes.data ?? []) as any[]) {
     if (!seen.has(r.id)) {
       seen.add(r.id);
@@ -163,14 +228,17 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     }
   }
 
-  // Tag-based filter (in JS, since `tags` may be array)
   const products = ordered.map(rowToProduct);
 
   const suggestions = Array.from(
     new Set(
-      needHits
-        .map((n) => n.name)
-        .concat(maps.filter((m) => norm(m.keyword).includes(q)).map((m) => m.keyword)),
+      [
+        ...needHits.map((n) => n.name),
+        ...maps
+          .filter((m) => terms.some((t) => norm(m.keyword).includes(t)))
+          .map((m) => m.keyword),
+        ...terms.filter((t) => t !== q),
+      ],
     ),
   ).slice(0, 8);
 
@@ -181,6 +249,7 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     matchedNeedSlug: matchedNeed?.slug ?? null,
     matchedNeedName: matchedNeed?.name ?? null,
     matchedCategorySlug,
+    expandedTerms: terms,
   };
 }
 
