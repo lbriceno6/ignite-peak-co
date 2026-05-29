@@ -45,9 +45,11 @@ type Item = {
 type Cat = { id: string; name: string; slug: string };
 type Goal = { id: string; name: string; slug: string };
 
-const PARENT_NAVS = [
-  { value: "products", label: "Productos" },
-  { value: "goals", label: "Compra por objetivo" },
+type NavSetting = { parent_nav: string; label: string; href: string; position: number };
+
+const DEFAULT_NAVS: NavSetting[] = [
+  { parent_nav: "products", label: "Productos", href: "/productos", position: 1 },
+  { parent_nav: "goals", label: "Compra por objetivo", href: "/objetivos", position: 2 },
 ];
 
 export default function MegaMenuBuilder() {
