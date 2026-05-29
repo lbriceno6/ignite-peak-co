@@ -2414,6 +2414,9 @@ export type Database = {
           fallback_whatsapp_enabled: boolean
           helper_text: string
           id: number
+          live_suggestions_enabled: boolean
+          manual_suggestions: string[]
+          max_products: number
           max_tokens: number
           min_confidence: number
           model: string
@@ -2430,6 +2433,9 @@ export type Database = {
           fallback_whatsapp_enabled?: boolean
           helper_text?: string
           id?: number
+          live_suggestions_enabled?: boolean
+          manual_suggestions?: string[]
+          max_products?: number
           max_tokens?: number
           min_confidence?: number
           model?: string
@@ -2446,6 +2452,9 @@ export type Database = {
           fallback_whatsapp_enabled?: boolean
           helper_text?: string
           id?: number
+          live_suggestions_enabled?: boolean
+          manual_suggestions?: string[]
+          max_products?: number
           max_tokens?: number
           min_confidence?: number
           model?: string
@@ -2453,6 +2462,39 @@ export type Database = {
           provider?: string
           result_mode?: string
           temperature?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      search_keyword_map: {
+        Row: {
+          category_slug: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          keyword: string
+          need_slug: string | null
+          product_ids: string[]
+          updated_at: string
+        }
+        Insert: {
+          category_slug?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword: string
+          need_slug?: string | null
+          product_ids?: string[]
+          updated_at?: string
+        }
+        Update: {
+          category_slug?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          keyword?: string
+          need_slug?: string | null
+          product_ids?: string[]
           updated_at?: string
         }
         Relationships: []
