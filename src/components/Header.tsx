@@ -164,6 +164,7 @@ export const Header = () => {
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [goals, setGoals] = useState<{ id: string; name: string; slug: string; image_url: string | null; short_description: string | null }[]>([]);
   const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
+  const [megaMenu, setMegaMenu] = useState<MegaMenuData | null>(null);
   const [searchNeeds, setSearchNeeds] = useState<{ slug: string; name: string; keywords: string[]; related_category: string | null; priority: number }[]>([]);
   const [searchHelper, setSearchHelper] = useState<string>("Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.");
   const [showSugg, setShowSugg] = useState(false);
