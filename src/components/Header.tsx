@@ -308,6 +308,7 @@ export const Header = () => {
     if (sRes?.data) setSearchNeeds(sRes.data as any);
     if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
     if (goalsRes?.data) setGoals(goalsRes.data as any);
+    try { setMegaMenu(await loadMegaMenu()); } catch { /* ignore */ }
   };
 
   useEffect(() => {
