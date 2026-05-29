@@ -1594,6 +1594,30 @@ export type Database = {
           },
         ]
       }
+      mega_menu_nav_settings: {
+        Row: {
+          href: string
+          label: string
+          parent_nav: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          href: string
+          label: string
+          parent_nav: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          href?: string
+          label?: string
+          parent_nav?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_custom_fields: {
         Row: {
           badge_bg: string | null
