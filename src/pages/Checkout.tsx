@@ -370,11 +370,11 @@ const Checkout = () => {
         value: total,
         currency: "PEN",
         items: items.length,
+        payment_method: selected,
       });
       for (const c of combos) {
         trackComboEvent(c.id, "purchase", { orderId: order.id, amount: c.savings });
       }
-      });
       clear();
       clearReferral();
       if (creditApplied > 0) refreshReseller();
