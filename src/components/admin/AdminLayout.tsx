@@ -94,6 +94,7 @@ const defaultSections = [
       { key: "products", to: "/admin/products", label: "Productos", icon: Package },
       { key: "products-new", to: "/admin/products/new", label: "Nuevo producto", icon: Plus },
       { key: "categories", to: "/admin/categories", label: "Categorías", icon: Tags },
+      { key: "brands", to: "/admin/brands", label: "Marcas", icon: Award },
       { key: "goals", to: "/admin/objetivos", label: "Objetivos (compra por necesidad)", icon: Gift },
       { key: "filter-options", to: "/admin/filter-options", label: "Opciones de filtro", icon: SlidersHorizontal },
       { key: "catalog-filters", to: "/admin/catalog-filters", label: "Filtros del catálogo", icon: SlidersHorizontal },
