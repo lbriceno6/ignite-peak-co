@@ -170,6 +170,7 @@ const App = () => (
             <Route path="/unsubscribe" element={<Unsubscribe />} />
 
             {/* SEO landing pages */}
+            <Route path="/objetivos" element={<Goals />} />
             <Route path="/objetivo/:slug" element={<Goal />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
             <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
