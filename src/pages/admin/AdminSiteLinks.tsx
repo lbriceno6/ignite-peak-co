@@ -123,7 +123,6 @@ export default function AdminSiteLinks() {
         </p>
       </div>
 
-      <MegaMenuBuilder />
       <CategoriesLinksTable />
       <GoalsLinksTable />
       <RedirectsManager />
