@@ -220,7 +220,7 @@ const SidebarBody = ({
       <ArrowLeft size={14} /> Volver a la tienda
     </Link>
     <div className="mb-8 px-1 font-display text-2xl">
-      VOLT<span className="text-accent">RA</span>
+      Nutri<span className="text-accent">batidos</span>
       <span className="ml-2 text-xs font-medium text-muted-foreground">Admin</span>
     </div>
     <nav className="flex flex-col gap-6">
