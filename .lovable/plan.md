@@ -1,100 +1,130 @@
 
-# Estructura SEO de categorías y objetivos — URLs cortas con jerarquía interna
+## Resultado esperado
 
-## Resumen
-Mantener `/categoria/[slug]` como única URL pública (flat), pero permitir jerarquía ilimitada interna usada SOLO para breadcrumbs, mega menú, filtros, sitemap y SEO interno. Añadir navegación por objetivo (`/objetivo/[slug]`) y centralizar la gestión en "Enlaces de sitio".
+Un mega menú profesional, escalable y editable desde el admin:
+- Limpio como Organa: columnas con listado simple y enlace "Ver todo".
+- Escalable como iHerb: navegación por producto y por objetivo, hasta 3 niveles.
+- URLs cortas: `/categoria/[slug]`, `/objetivo/[slug]`.
+- Mobile en acordeón.
+- Mantiene SEO (enlaces reales, slug independiente del nombre visible, respeta redirecciones, oculta inactivos).
 
-## 1. Base de datos (migración)
+## Arquitectura
 
-**Tabla `categories`** (ya existe) — añadir/asegurar columnas:
-- `canonical_url` text, `long_description` text, `short_description` text (ya hay `description`)
-- `show_in_home` bool, `show_in_sitemap` bool default true
-- `related_category_ids` uuid[], `related_product_ids` uuid[], `related_goal_ids` uuid[]
-- Validar slug único global (no por type) para soportar URL plana
+Hoy el menú se arma a partir de `categories.menu_column / menu_group_title / parent_id` + `menu_custom_fields`. Es funcional pero acoplado: cada cambio editorial implica tocar categorías.
 
-**Nueva tabla `goals`** (objetivos de compra):
-- id, name, slug (único), title_seo, meta_description, image_url, short_description, long_description, canonical_url, is_active, show_in_home, show_in_menu, show_in_mega_menu, sort_order, related_category_ids uuid[], related_product_ids uuid[]
-- RLS: público lee activos; admin gestiona. GRANT correspondiente.
-
-**Tabla `seo_redirects`** (ya existe) — sin cambios; se sigue usando para 301.
-
-## 2. Resolución de URL plana con jerarquía interna
-
-Dado que el slug es único globalmente:
-- `/categoria/:slug` resuelve la categoría por slug en cualquier nivel
-- Se calcula la cadena de padres (`parent_id` recursivo) para breadcrumbs
-- Se añade helper `getCategoryAncestors(slug)` en `src/lib/categoryTree.ts`
-
-Migrar la ruta anidada `/categoria/:catSlug/:subSlug` a redirect 301: si existe el slug hijo, redirigir a `/categoria/:subSlug`. Generar redirects automáticos para todas las rutas antiguas largas existentes (script de migración: por cada categoría con padre, insertar redirect `/categoria/{parentSlug}/{slug}` → `/categoria/{slug}`).
-
-## 3. Frontend
-
-**`src/pages/Category.tsx`**:
-- Resolver siempre por `:slug` final
-- Breadcrumb completo subiendo por `parent_id`
-- JSON-LD `BreadcrumbList` con la jerarquía completa
-- Canonical = `canonical_url` || `/categoria/{slug}`
-- Mostrar subcategorías como tarjetas si existen hijos
-- Banner, descripción corta, conteo de productos
-
-**Nueva página `src/pages/Goal.tsx`** en `/objetivo/:slug`:
-- Lee goal, muestra productos relacionados (unión de related_product_ids + productos de related_category_ids)
-- SEO completo + BreadcrumbList: Inicio > Objetivos > {Goal}
-
-**`Header.tsx` mega menú**: añadir sección "Compra por objetivo" leyendo `goals` activos `show_in_mega_menu`. Soportar 3 niveles desde `categories` (ya soporta padre/hijo; añadir tercer nivel renderizando nietos bajo hijos).
-
-## 4. Admin
-
-**`AdminCategories.tsx`**: extender formulario con todos los campos nuevos (canonical, long_description, show_in_home, show_in_sitemap, relacionados via multi-select). Mantener lógica actual de slug manual + alerta + redirect 301. Soportar selección de padre a cualquier nivel.
-
-**Nuevo `AdminGoals.tsx` + ruta `/admin/objetivos`**: CRUD completo de goals con mismos campos SEO.
-
-**"Enlaces de sitio" (`AdminSiteLinks.tsx`)** — añadir tres bloques:
-1. `CategoriesLinksTable` (ya existe) — extender con columnas: Nivel, Canónica, Mostrar en menú/home, botón "Ver en tienda"
-2. Nuevo `GoalsLinksTable` — mismas columnas para objetivos
-3. Nuevo `RedirectsManager` — CRUD de `seo_redirects` (URL anterior, URL nueva, 301 fijo, fecha, activo, categoría asociada inferida)
-
-## 5. Sitemap
-
-Generación dinámica desde `categories` + `goals` activos `show_in_sitemap`. Actualizar `scripts/generate-sitemap.ts` para leer de Supabase y filtrar inactivos. Excluir URLs en `seo_redirects.from_path`.
-
-## 6. Reglas de slug
-
-Reutilizar `SLUG_RE` ya existente + validación de unicidad global (no por type). Mostrar error claro si existe.
-
-## Detalles técnicos
+Voy a introducir un **constructor de mega menú** independiente, sin romper lo existente:
 
 ```text
-URL pública:        /categoria/colageno-bovino
-Resolución:         categories.slug = 'colageno-bovino' (nivel 3)
-Breadcrumb:         Inicio > Productos > Proteínas y Colágeno > Colágenos > Colágeno Bovino
-                    (subiendo parent_id recursivamente)
-Canonical:          https://domain/categoria/colageno-bovino
-URL antigua:        /categoria/proteinas-y-colageno/colagenos/colageno-bovino
-                    → 301 → /categoria/colageno-bovino (RedirectGate ya lo maneja)
+mega_menu_columns           (una columna por entrada de menú principal)
+ ├─ parent_nav: "products" | "goals" | <slug nav_links>   ← a qué item top se asocia
+ ├─ title (editable)         ← p.ej. "Superfoods Andinos"
+ ├─ position (orden)
+ ├─ see_all_label, see_all_href  ← "Ver todo" editable
+ ├─ show_desktop / show_mobile
+ └─ is_active
+
+mega_menu_items             (items dentro de cada columna)
+ ├─ column_id → mega_menu_columns
+ ├─ display_label            ← nombre visible; NO toca slug
+ ├─ link_type: "category" | "goal" | "page" | "url"
+ ├─ category_id / goal_id / url
+ ├─ icon, image_url (opcional)
+ ├─ open_in_new_tab
+ ├─ position
+ ├─ show_desktop / show_mobile
+ ├─ is_active
+ └─ seo_note (texto interno)
 ```
 
-Archivos a crear:
-- `src/lib/categoryTree.ts` — helpers ancestros/descendientes
-- `src/pages/Goal.tsx`
-- `src/pages/admin/AdminGoals.tsx`
-- `src/components/admin/GoalsLinksTable.tsx`
-- `src/components/admin/RedirectsManager.tsx`
-- Migración para `goals` + columnas nuevas en `categories` + backfill de redirects para rutas anidadas existentes
+Resolución de URL en el frontend:
+- `category` → busca slug actual en `categories` (si cambia, link se actualiza solo).
+- `goal` → `/objetivo/{slug}` de `goals`.
+- `page` → ruta interna fija.
+- `url` → URL personalizada.
+- Antes de renderizar, se filtran categorías/objetivos inactivos y se aplica `seo_redirects` activas para apuntar siempre a la URL canónica.
 
-Archivos a editar:
-- `src/App.tsx` (rutas `/objetivo/:slug`, `/admin/objetivos`)
-- `src/pages/Category.tsx` (breadcrumb jerárquico, JSON-LD, canonical, subcategorías)
-- `src/pages/admin/AdminCategories.tsx` (campos nuevos)
-- `src/pages/admin/AdminSiteLinks.tsx` (montar GoalsLinksTable + RedirectsManager)
-- `src/components/admin/CategoriesLinksTable.tsx` (columnas extra)
-- `src/components/Header.tsx` (sección "Compra por objetivo", 3 niveles)
-- `src/components/admin/AdminLayout.tsx` (link a Objetivos)
-- `scripts/generate-sitemap.ts`
+## Base de datos (migración)
 
-## Notas
-- La URL plana exige slug único global → la migración debe detectar y reportar duplicados antes de aplicar el índice único; si hay conflictos, los reportamos al admin sin romper datos.
-- No se elimina la ruta anidada: queda como compatibilidad redirigida.
-- Lucia chat / búsqueda inteligente / Header realtime ya implementados no se tocan.
+1. Crear `mega_menu_columns` y `mega_menu_items` con GRANTs + RLS:
+   - SELECT público para activos.
+   - ALL para admins.
+2. Triggers `set_updated_at`.
+3. Backfill desde lo que ya hay: convertir cada `parent_id` raíz con subs en una columna; convertir cada sub en item tipo `category`. Items extra desde `menu_custom_fields` mantienen su tipo.
+4. Seed inicial alineado con el ejemplo del brief (Productos, Compra por objetivo, Superfoods Andinos, Proteínas y Colágeno, Packs y Promos) usando `INSERT … ON CONFLICT DO NOTHING` por `title`.
 
-¿Apruebas este plan para implementarlo?
+## Frontend
+
+### Header desktop (`src/components/Header.tsx`)
+- Reemplazar el árbol actual basado en `categories.menu_column` por un fetch de `mega_menu_columns + items` agrupado por `parent_nav`.
+- Render: panel ancho con grid de columnas; cada columna = título en bold + lista de items + enlace "Ver todo" en color de acento.
+- Items resueltos a `<Link>` reales con `href` correcto (SEO). Si `open_in_new_tab`, añadir `target="_blank" rel="noopener"`.
+- Mantener realtime: subscripción a `mega_menu_columns`, `mega_menu_items`, `categories`, `goals`, `seo_redirects` para recargar.
+
+### Mobile (acordeón)
+- Reusar el mismo dataset, render como `<Accordion>` shadcn con tres niveles (columna → item → sub si el item es categoría con hijos visibles).
+- Respetar `show_mobile`.
+
+### Página índice `/objetivos`
+- Listar `goals` activos como tarjetas con imagen, nombre y `short_description`.
+- SEO: `title`, `meta_description`, canonical y JSON-LD `CollectionPage`.
+
+### Resolución de redirecciones
+- Helper `resolveCanonicalPath(path)` que consulta cache local de `seo_redirects` y devuelve `to_path` si está activa. Aplicado al armar `href` del menú.
+
+## Admin
+
+Nueva sección "Gestión de Mega Menú" dentro de **Enlaces de sitio**:
+
+```text
+[+ Nueva columna]
+┌──────────────────────────────────────────────┐
+│ ▼ Productos                                  │
+│   Título: Superfoods Andinos                 │
+│   Asociado a: Productos (nav top)            │
+│   Mostrar: ☑ desktop ☑ mobile  ☑ activo     │
+│   "Ver todo" → /categoria/superfoods-andinos │
+│   Items (drag & drop):                       │
+│    • Maca         [categoría]  ☑ ☑ ✎ 🗑     │
+│    • Cañihua      [categoría]  ☑ ☑ ✎ 🗑     │
+│    • Pack energía [URL]        ☑ ☑ ✎ 🗑     │
+│   [+ Agregar item]                           │
+└──────────────────────────────────────────────┘
+```
+
+Formulario de item:
+- Nombre visible (no toca slug).
+- Tipo: categoría / objetivo / página / URL.
+- Selector dinámico según tipo (autocompletar categorías y objetivos).
+- Icono, imagen, abrir en nueva pestaña, mostrar desktop/mobile, activo, orden, nota SEO interna.
+
+Vista previa: panel a la derecha que renderiza el mega menú con los datos en edición (sin publicar).
+
+Archivos nuevos:
+- `src/components/admin/MegaMenuBuilder.tsx`
+- `src/components/admin/MegaMenuColumnEditor.tsx`
+- `src/components/admin/MegaMenuItemEditor.tsx`
+- `src/components/admin/MegaMenuPreview.tsx`
+- `src/pages/Goals.tsx` (índice `/objetivos`)
+- `src/lib/megaMenu.ts` (loader + cache + resolveCanonicalPath)
+
+Archivos editados:
+- `src/components/Header.tsx` (desktop + mobile).
+- `src/pages/admin/AdminSiteLinks.tsx` (montar el builder).
+- `src/App.tsx` (ruta `/objetivos`).
+- `scripts/generate-sitemap.ts` (ya incluye goals; agregar `/objetivos`).
+
+## Compatibilidad y migración suave
+
+- No elimino `menu_custom_fields` ni los campos `menu_*` de `categories` en esta iteración; quedan como fallback si `mega_menu_columns` está vacío, para que nada se rompa al desplegar.
+- Si el admin guarda al menos una columna en el nuevo builder, el Header usa el nuevo sistema; si no hay ninguna, sigue usando el árbol actual.
+
+## Fuera de alcance de este sprint
+
+- Drag & drop entre columnas se entrega con orden manual por inputs numéricos + flechas; podemos añadir DnD después si lo pides.
+- Versionado/borrador del menú (publicar vs draft): por ahora "guardar" publica directo; vista previa en admin antes de guardar.
+
+## Confirmaciones que necesito antes de implementar
+
+1. ¿OK con crear las dos tablas nuevas (`mega_menu_columns`, `mega_menu_items`) y dejar el sistema actual como fallback? Es lo más seguro y reversible.
+2. ¿El item top "Compra por objetivo" debe ser una opción fija del nav superior, o uno más en `nav_links` administrable?
+3. ¿Quieres que el seed inicial copie el ejemplo del brief (Productos / Compra por objetivo / Superfoods / Proteínas / Packs), o prefieres empezar vacío y configurarlo tú?
