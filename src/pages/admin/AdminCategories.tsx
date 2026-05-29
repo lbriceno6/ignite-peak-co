@@ -657,6 +657,31 @@ export default function AdminCategories() {
                 onChange={(e) => setEditing({ ...editing, meta_description: e.target.value })}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>URL canónica</Label>
+              <Input
+                value={editing.canonical_url ?? ""}
+                placeholder="https://midominio.com/categoria/slug"
+                onChange={(e) => setEditing({ ...editing, canonical_url: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Descripción larga SEO</Label>
+              <Textarea rows={4}
+                value={editing.long_description ?? ""}
+                onChange={(e) => setEditing({ ...editing, long_description: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3 rounded-lg border bg-muted/30 p-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={editing.show_in_home ?? false}
+                  onCheckedChange={(v) => setEditing({ ...editing, show_in_home: v })} /> Mostrar en home
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Switch checked={editing.show_in_sitemap ?? true}
+                  onCheckedChange={(v) => setEditing({ ...editing, show_in_sitemap: v })} /> Incluir en sitemap
+              </label>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
