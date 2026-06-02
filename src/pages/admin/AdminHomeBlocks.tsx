@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, Loader2, ArrowUp, ArrowDown, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
+import { Upload, Loader2, ArrowUp, ArrowDown, Image as ImageIcon, Eye, EyeOff, Copy } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Block = {
   id: string;
@@ -62,6 +66,33 @@ export default function AdminHomeBlocks() {
     load();
   };
 
+  const duplicate = async (b: Block) => {
+    try {
+      const suffix = Math.random().toString(36).slice(2, 7);
+      const newKey = `${b.block_key}-copy-${suffix}`.slice(0, 80);
+      const maxOrder = blocks.reduce((m, x) => Math.max(m, x.sort_order), 0);
+      const { error } = await supabase.from("home_blocks").insert({
+        block_key: newKey,
+        block_type: b.block_type,
+        sort_order: maxOrder + 1,
+        is_active: false,
+        eyebrow: b.eyebrow,
+        title: b.title ? `Copia de ${b.title}` : `Copia de ${b.block_key}`,
+        subtitle: b.subtitle,
+        cta_label: b.cta_label,
+        cta_href: b.cta_href,
+        cta2_label: b.cta2_label,
+        cta2_href: b.cta2_href,
+        image_url: b.image_url,
+      });
+      if (error) throw error;
+      toast.success("Sección duplicada correctamente (oculta).");
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
@@ -86,6 +117,7 @@ export default function AdminHomeBlocks() {
               onChanged={load}
               onMoveUp={() => move(b.id, -1)}
               onMoveDown={() => move(b.id, 1)}
+              onDuplicate={() => duplicate(b)}
             />
           ))}
         </div>
@@ -95,10 +127,10 @@ export default function AdminHomeBlocks() {
 }
 
 function BlockEditor({
-  block, isFirst, isLast, position, onChanged, onMoveUp, onMoveDown,
+  block, isFirst, isLast, position, onChanged, onMoveUp, onMoveDown, onDuplicate,
 }: {
   block: Block; isFirst: boolean; isLast: boolean; position: number;
-  onChanged: () => void; onMoveUp: () => void; onMoveDown: () => void;
+  onChanged: () => void; onMoveUp: () => void; onMoveDown: () => void; onDuplicate: () => void;
 }) {
   const [f, setF] = useState<Block>(block);
   const [saving, setSaving] = useState(false);
@@ -171,6 +203,25 @@ function BlockEditor({
           <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast} aria-label="Move down">
             <ArrowDown size={16} />
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Duplicar sección" title="Duplicar sección">
+                <Copy size={16} />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Deseas duplicar esta sección?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se creará una copia exacta de "{f.title || meta.name}" como <strong>oculta</strong>, al final del listado. Podrás editarla sin afectar la original.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={onDuplicate}>Duplicar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
