@@ -91,7 +91,6 @@ export function AiCartRecommendations({
   const [picks, setPicks] = useState<Pick[] | null>(null);
   const [signals, setSignals] = useState<BrowseSignal[]>([]);
   const [intents, setIntents] = useState<Intent[]>([]);
-  if (!enabled) return null;
 
   // 1) Load active products + browse signals + intents in parallel
   useEffect(() => {
@@ -226,6 +225,7 @@ export function AiCartRecommendations({
     return m;
   }, [allProducts]);
 
+  if (!enabled) return null;
   if (!picks || !picks.length) return null;
   const rendered = picks
     .map((pk) => ({ pk, product: productsBySlug.get(pk.slug) }))
