@@ -75,6 +75,10 @@ export function PromotionsCarousel({ block, products }: Props) {
   const mode: "auto" | "manual" = settings.carousel_mode === "manual" ? "manual" : "auto";
   const manualIds: string[] = Array.isArray(settings.promotion_ids) ? settings.promotion_ids : [];
   const maxProducts: number = Number(settings.max_products ?? 0); // 0 = sin límite
+  const perViewDesktopRaw = Number(settings.products_per_view_desktop ?? 4);
+  const perViewDesktop = Math.min(6, Math.max(2, Number.isFinite(perViewDesktopRaw) ? perViewDesktopRaw : 4));
+  const perViewTablet = Math.min(perViewDesktop, 3);
+
 
   // Build the ordered list of products that have an active, visible-in-carousel promo.
   const items = useMemo(() => {
@@ -156,10 +160,11 @@ export function PromotionsCarousel({ block, products }: Props) {
 
         <div
           className="relative mt-6 sm:mt-8"
-          style={{ ["--cv-m" as any]: "1", ["--cv-t" as any]: "2", ["--cv-d" as any]: "4" }}
+          style={{ ["--cv-m" as any]: "1", ["--cv-t" as any]: String(perViewTablet), ["--cv-d" as any]: String(perViewDesktop) }}
         >
           <Carousel
-            opts={{ align: "start", loop: items.length > 4, dragFree: false }}
+            opts={{ align: "start", loop: items.length > perViewDesktop, dragFree: false }}
+
             setApi={setApi}
             className="w-full"
           >
@@ -174,7 +179,7 @@ export function PromotionsCarousel({ block, products }: Props) {
               ))}
             </CarouselContent>
 
-            {items.length > 4 && (
+            {items.length > perViewDesktop && (
               <>
                 <button
                   type="button"
