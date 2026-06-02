@@ -400,6 +400,7 @@ const Home = () => {
               subtitle: b.subtitle,
               cta_label: b.cta_label,
               cta_href: b.cta_href,
+              settings: b.settings ?? {},
             }}
             products={products}
           />
