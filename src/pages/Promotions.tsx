@@ -6,6 +6,10 @@ import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { usePromotions } from "@/hooks/usePromotions";
 import { isPromoActiveNow, promoLabel, promoTitle, promoSubtitle } from "@/lib/promotions";
+import { CatalogFiltersPanel, applyCatalogFilters } from "@/components/catalog/CatalogFiltersPanel";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
+import type { SelectedFilters } from "@/lib/catalogFilterEngine";
+import { DynamicPricingBanner } from "@/components/pricing/DynamicPricingBanner";
 import type { Product } from "@/data/catalog";
 
 type DbProduct = {
