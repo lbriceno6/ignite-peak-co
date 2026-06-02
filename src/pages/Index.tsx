@@ -73,6 +73,7 @@ type HomeBlock = {
   cta2_label: string | null;
   cta2_href: string | null;
   image_url: string | null;
+  settings: Record<string, any> | null;
 };
 
 type GoalCard = {
