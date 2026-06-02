@@ -75,6 +75,10 @@ export function PromotionsCarousel({ block, products }: Props) {
   const mode: "auto" | "manual" = settings.carousel_mode === "manual" ? "manual" : "auto";
   const manualIds: string[] = Array.isArray(settings.promotion_ids) ? settings.promotion_ids : [];
   const maxProducts: number = Number(settings.max_products ?? 0); // 0 = sin límite
+  const perViewDesktopRaw = Number(settings.products_per_view_desktop ?? 4);
+  const perViewDesktop = Math.min(6, Math.max(2, Number.isFinite(perViewDesktopRaw) ? perViewDesktopRaw : 4));
+  const perViewTablet = Math.min(perViewDesktop, 3);
+
 
   // Build the ordered list of products that have an active, visible-in-carousel promo.
   const items = useMemo(() => {
