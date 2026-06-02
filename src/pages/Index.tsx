@@ -48,6 +48,9 @@ type DbProduct = {
   main_image: string | null;
   gallery_images?: any;
   badge: string | null;
+  brand_id?: string | null;
+  rating?: number | null;
+  created_at?: string;
 };
 
 type DbCategory = { name: string; slug: string; icon: string | null; sort_order: number };
