@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import {
   Sparkles, ShoppingCart, CreditCard, Search, Home, Eye, PackageCheck,
-  Activity, ExternalLink, FlaskConical, TrendingUp,
+  Activity, ExternalLink, FlaskConical, TrendingUp, Target,
 } from "lucide-react";
 import {
   useAllAiBlockToggles,
@@ -28,6 +28,7 @@ import {
 } from "@/hooks/useAiBlockToggles";
 import { AiPromptLab } from "@/components/admin/AiPromptLab";
 import { AiConversionMetrics } from "@/components/admin/AiConversionMetrics";
+import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
 
 type Metrics = {
   productViews: number;
@@ -172,11 +173,16 @@ export default function AdminAiControl() {
           <TabsTrigger value="blocks">Bloques IA</TabsTrigger>
           <TabsTrigger value="metrics">Métricas</TabsTrigger>
           <TabsTrigger value="conversion"><TrendingUp size={14} className="mr-1" /> Conversión IA</TabsTrigger>
+          <TabsTrigger value="attribution"><Target size={14} className="mr-1" /> Atribución</TabsTrigger>
           <TabsTrigger value="prompts"><FlaskConical size={14} className="mr-1" /> Prompt Lab</TabsTrigger>
         </TabsList>
 
         <TabsContent value="conversion" className="pt-4">
           <AiConversionMetrics />
+        </TabsContent>
+
+        <TabsContent value="attribution" className="pt-4">
+          <AiAttributionFunnel />
         </TabsContent>
 
         <TabsContent value="prompts" className="pt-4">

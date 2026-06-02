@@ -24,6 +24,7 @@ import { computePromotions } from "@/lib/promotions";
 import { trackComboEvent } from "@/lib/smartCombos";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
+import { getVisitorId } from "@/lib/visitor";
 
 const PAY_KEYS = [
   "pay.order",
@@ -311,7 +312,8 @@ const Checkout = () => {
           referral_source: referral?.source ?? null,
           reseller_discount_applied: discount,
           store_credit_used: creditApplied,
-        })
+          visitor_id: getVisitorId(),
+        } as any)
         .select("id, order_code")
         .single();
       if (oErr || !order) throw oErr ?? new Error("No se pudo crear el pedido");
