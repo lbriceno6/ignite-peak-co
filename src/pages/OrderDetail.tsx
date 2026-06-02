@@ -14,7 +14,7 @@ import { XCircle, Loader2 } from "lucide-react";
 import { AiPostPurchaseInsights } from "@/components/order/AiPostPurchaseInsights";
 
 type Order = any;
-type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
+type Item = { id: string; product_slug: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
 
 const statusLabel: Record<string, string> = {
   pending: "Pendiente", confirmed: "Confirmado", preparing: "En preparación",
