@@ -947,10 +947,20 @@ const Home = () => {
               if (!title) return null;
               const palette = defaultPalette[idx % defaultPalette.length];
               const href = it.customUrl || (cat ? `/categoria/${cat.slug}` : "#");
-              const image =
-                (it.customImageUrl && String(it.customImageUrl).trim()) ||
-                (cat?.image_url as string | null | undefined) ||
-                null;
+              const pick = (...vals: any[]) => {
+                for (const v of vals) {
+                  if (typeof v === "string" && v.trim()) return v.trim();
+                }
+                return null;
+              };
+              const image = pick(
+                it.uploaded_image_url,
+                it.custom_image_url,
+                it.customImageUrl,
+                it.image_url,
+                cat?.image_url,
+                (cat as any)?.image,
+              );
               return {
                 title,
                 image,
