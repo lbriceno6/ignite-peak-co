@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import {
   Sparkles, ShoppingCart, CreditCard, Search, Home, Eye, PackageCheck,
-  Activity, ExternalLink, FlaskConical, TrendingUp, Target,
+  Activity, ExternalLink, FlaskConical, TrendingUp, Target, Mail,
 } from "lucide-react";
 import {
   useAllAiBlockToggles,
@@ -30,6 +30,7 @@ import { AiPromptLab } from "@/components/admin/AiPromptLab";
 import { AiConversionMetrics } from "@/components/admin/AiConversionMetrics";
 import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
 import { AiAbTesting } from "@/components/admin/AiAbTesting";
+import { AiEmailLog } from "@/components/admin/AiEmailLog";
 
 type Metrics = {
   productViews: number;
@@ -176,6 +177,7 @@ export default function AdminAiControl() {
           <TabsTrigger value="conversion"><TrendingUp size={14} className="mr-1" /> Conversión IA</TabsTrigger>
           <TabsTrigger value="attribution"><Target size={14} className="mr-1" /> Atribución</TabsTrigger>
           <TabsTrigger value="ab"><FlaskConical size={14} className="mr-1" /> A/B</TabsTrigger>
+          <TabsTrigger value="emails"><Mail size={14} className="mr-1" /> Emails IA</TabsTrigger>
           <TabsTrigger value="prompts"><FlaskConical size={14} className="mr-1" /> Prompt Lab</TabsTrigger>
         </TabsList>
 
@@ -189,6 +191,10 @@ export default function AdminAiControl() {
 
         <TabsContent value="ab" className="pt-4">
           <AiAbTesting />
+        </TabsContent>
+
+        <TabsContent value="emails" className="pt-4">
+          <AiEmailLog />
         </TabsContent>
 
         <TabsContent value="prompts" className="pt-4">

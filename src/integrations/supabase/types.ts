@@ -38,6 +38,65 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_email_log: {
+        Row: {
+          ai_picks: Json | null
+          ai_prompt_id: string | null
+          ai_thank_you: string | null
+          ai_variant: string | null
+          created_at: string
+          email_type: string
+          error: string | null
+          id: string
+          order_code: string | null
+          order_id: string | null
+          recipient_email: string
+          source: string | null
+          status: string
+          template_name: string | null
+        }
+        Insert: {
+          ai_picks?: Json | null
+          ai_prompt_id?: string | null
+          ai_thank_you?: string | null
+          ai_variant?: string | null
+          created_at?: string
+          email_type?: string
+          error?: string | null
+          id?: string
+          order_code?: string | null
+          order_id?: string | null
+          recipient_email: string
+          source?: string | null
+          status?: string
+          template_name?: string | null
+        }
+        Update: {
+          ai_picks?: Json | null
+          ai_prompt_id?: string | null
+          ai_thank_you?: string | null
+          ai_variant?: string | null
+          created_at?: string
+          email_type?: string
+          error?: string | null
+          id?: string
+          order_code?: string | null
+          order_id?: string | null
+          recipient_email?: string
+          source?: string | null
+          status?: string
+          template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_email_log_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_product_settings: {
         Row: {
           claude_api_key: string | null

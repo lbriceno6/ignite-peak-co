@@ -383,6 +383,11 @@ const Checkout = () => {
       clearReferral();
       if (creditApplied > 0) refreshReseller();
 
+      // Fase 14 — Email transaccional con recomendaciones IA (no bloquea el flujo)
+      supabase.functions.invoke("send-order-email", {
+        body: { order_id: order.id },
+      }).catch(() => {});
+
 
 
 
