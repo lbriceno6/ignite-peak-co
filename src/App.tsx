@@ -255,6 +255,7 @@ const App = () => (
               <Route path="reseller-tiers" element={<AdminResellerTiers />} />
               <Route path="reseller-payouts" element={<AdminResellerPayouts />} />
               <Route path="seo" element={<AdminSeo />} />
+              <Route path="ia-control" element={<AdminAiControl />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="buscador-ia" element={<AdminSearchAi />} />

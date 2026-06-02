@@ -151,6 +151,7 @@ const defaultSections = [
     key: "ai",
     label: "Asistente IA",
     items: [
+      { key: "ia-control", to: "/admin/ia-control", label: "Panel de Control IA", icon: Sparkles },
       { key: "chat-ia", to: "/admin/chat-ia", label: "Chat IA · Lucía", icon: Sparkles },
       { key: "ai-config", to: "/admin/ai-config", label: "Configuración de IA", icon: Sparkles },
       { key: "search-ai", to: "/admin/buscador-ia", label: "Configuración del Buscador IA", icon: Search },
