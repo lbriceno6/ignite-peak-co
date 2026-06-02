@@ -44,6 +44,22 @@ function parseJsonLoose(s: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+async function getActivePrompt(name: string, fallback: string): Promise<string> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return fallback;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ _function_name: name }),
+    });
+    if (!r.ok) return fallback;
+    const out = await r.json();
+    return typeof out === "string" && out.trim() ? out : fallback;
+  } catch { return fallback; }
+}
+
 function heuristic(body: Body) {
   const purchasedSlugs = new Set(body.items.map((i) => i.slug));
   const purchasedCats = new Set(
@@ -107,7 +123,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Eres el asistente post-compra de Nutribatidos (suplementos y nutrición).
+    const defaultSystem = `Eres el asistente post-compra de Nutribatidos (suplementos y nutrición).
 Acaban de hacer un pedido. Devuelve un JSON con tres campos:
 1) "thank_you": frase breve (máx 22 palabras), en español, cálida, personalizada según la intención si existe. Sin emojis.
 2) "picks": hasta ${max} próximos productos del catálogo que complementen lo comprado.
@@ -116,6 +132,7 @@ Acaban de hacer un pedido. Devuelve un JSON con tres campos:
    - "reason" en español, máx 6 palabras (p.ej. "Refuerza tu rutina", "Va con tu objetivo").
 3) "reorder_days": número entero estimado de días hasta que se acaben los consumibles comprados (típicamente 25-45 según cantidad). Si no aplica, usa null.
 Devuelve SOLO JSON: {"thank_you":"...","picks":[{"slug":"...","reason":"..."}],"reorder_days": 30}`;
+    const system = await getActivePrompt("ai-post-purchase", defaultSystem);
 
     const user = JSON.stringify({
       order_code: body.order_code ?? null,

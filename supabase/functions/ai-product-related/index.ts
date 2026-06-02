@@ -47,6 +47,22 @@ function parseJsonLoose(s: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+async function getActivePrompt(name: string, fallback: string): Promise<string> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return fallback;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ _function_name: name }),
+    });
+    if (!r.ok) return fallback;
+    const out = await r.json();
+    return typeof out === "string" && out.trim() ? out : fallback;
+  } catch { return fallback; }
+}
+
 function heuristic(body: Body): Pick[] {
   const currentCat = (body.product.category ?? "").toLowerCase();
   const seenCats = new Set(
@@ -103,7 +119,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
+    const defaultSystem = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
 Tarea: dado un producto actual que un cliente está viendo, su intención de compra y su historial reciente,
 elegir hasta ${max} productos RELACIONADOS o complementarios del catálogo.
 Reglas estrictas:
@@ -113,6 +129,7 @@ Reglas estrictas:
 - Si hay intención clara (intent_name), refuerza esa intención.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu pre-entreno", "Para tu objetivo: energía", "Lo más comprado junto".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
+    const system = await getActivePrompt("ai-product-related", defaultSystem);
 
     const user = JSON.stringify({
       product: body.product,

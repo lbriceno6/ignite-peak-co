@@ -50,6 +50,29 @@ function parseJsonLoose(s: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+// Fetches the admin-edited active prompt from the DB if any; falls back otherwise.
+async function getActivePrompt(name: string, fallback: string): Promise<string> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return fallback;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt`, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ _function_name: name }),
+    });
+    if (!r.ok) return fallback;
+    const out = await r.json();
+    return typeof out === "string" && out.trim() ? out : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 function heuristic(body: Body): Pick[] {
   const cartSlugs = new Set(body.cart.map((c) => c.slug));
   const cartCats = new Set(
@@ -114,7 +137,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
+    const defaultSystem = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
 Tu tarea: dado un carrito y un catálogo, elegir hasta ${max} productos COMPLEMENTARIOS que tengan sentido sumar.
 Reglas estrictas:
 - Solo puedes devolver "slug" que aparezcan en el catálogo provisto.
@@ -122,6 +145,7 @@ Reglas estrictas:
 - Si hay "free_shipping_gap" > 0, prioriza productos cuyo precio acerque al envío gratis sin pasarse demasiado.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu proteína", "Te acerca al envío gratis", "Para tu objetivo: energía".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
+    const system = await getActivePrompt("ai-cart-recommendations", defaultSystem);
 
     const user = JSON.stringify({
       cart: body.cart,

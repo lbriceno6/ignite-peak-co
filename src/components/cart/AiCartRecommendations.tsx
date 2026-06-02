@@ -25,6 +25,7 @@ import {
   type Intent,
 } from "@/lib/userPersonalization";
 import { useAiBlockEnabled, type AiBlockKey } from "@/hooks/useAiBlockToggles";
+import { logAiRecoClick, type AiRecoSource } from "@/lib/recoEvents";
 
 type Pick = { slug: string; reason: string };
 
@@ -254,39 +255,50 @@ export function AiCartRecommendations({
 
       {variant === "compact" ? (
         <div className="space-y-2">
-          {rendered.map(({ pk, product }) => (
-            <div
-              key={product.id}
-              className="flex items-center gap-3 rounded-md border bg-background p-2"
-            >
-              <img
-                src={product.image}
-                alt={product.name}
-                className="h-12 w-12 flex-shrink-0 rounded bg-secondary object-cover"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{product.name}</p>
-                <p className="truncate text-[11px] text-accent">{pk.reason}</p>
-              </div>
-              <button
-                onClick={() => add(product)}
-                className="rounded-md bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90"
+          {rendered.map(({ pk, product }, idx) => {
+            const source: AiRecoSource = toggleKey === "checkout_recommendations" ? "ai_checkout" : "ai_cart";
+            return (
+              <div
+                key={product.id}
+                className="flex items-center gap-3 rounded-md border bg-background p-2"
+                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx })}
               >
-                Añadir
-              </button>
-            </div>
-          ))}
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="h-12 w-12 flex-shrink-0 rounded bg-secondary object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{product.name}</p>
+                  <p className="truncate text-[11px] text-accent">{pk.reason}</p>
+                </div>
+                <button
+                  onClick={(e) => { e.stopPropagation(); add(product); logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx }); }}
+                  className="rounded-md bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90"
+                >
+                  Añadir
+                </button>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {rendered.map(({ pk, product }) => (
-            <div key={product.id} className="relative">
-              <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground shadow">
-                <Sparkles size={10} /> {pk.reason}
-              </span>
-              <ProductCard product={product} />
-            </div>
-          ))}
+          {rendered.map(({ pk, product }, idx) => {
+            const source: AiRecoSource = toggleKey === "checkout_recommendations" ? "ai_checkout" : "ai_cart";
+            return (
+              <div
+                key={product.id}
+                className="relative"
+                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx })}
+              >
+                <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground shadow">
+                  <Sparkles size={10} /> {pk.reason}
+                </span>
+                <ProductCard product={product} />
+              </div>
+            );
+          })}
         </div>
       )}
     </section>
