@@ -57,7 +57,7 @@ type PromotionRow = { id: string; name: string; is_active: boolean };
 const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolean; hasCta: boolean; hasCta2: boolean }> = {
   hero:                { name: "Hero carousel",            desc: "Slides edited from the “Hero carousel” page.",                              hasImage: false, hasCta: false, hasCta2: false },
   categories:          { name: "Categories grid",          desc: "Auto-populated from your categories.",                                       hasImage: false, hasCta: false, hasCta2: false },
-  best_sellers:        { name: "Best sellers",             desc: "Products tagged as “best seller”.",                                          hasImage: false, hasCta: true,  hasCta2: false },
+  best_sellers:        { name: "Carrusel de productos",    desc: "Configura qué productos se muestran y cómo se comporta el carrusel en desktop, tablet y mobile.", hasImage: false, hasCta: false, hasCta2: false },
   goals:               { name: "Shop by goal",             desc: "Goal cards.",                                                                hasImage: false, hasCta: false, hasCta2: false },
   promo:               { name: "Promo banner",             desc: "Big promo banner with image and CTA.",                                        hasImage: true,  hasCta: true,  hasCta2: false },
   products_grid:       { name: "More products grid",       desc: "Grid of latest products.",                                                    hasImage: false, hasCta: false, hasCta2: false },
