@@ -99,6 +99,7 @@ import SeoLanding from "./pages/SeoLanding.tsx";
 import Goal from "./pages/Goal.tsx";
 import Goals from "./pages/Goals.tsx";
 import PromotionParticipants from "./pages/PromotionParticipants.tsx";
+import Promotions from "./pages/Promotions.tsx";
 import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import AdminBrands from "./pages/admin/AdminBrands.tsx";
 import AdminBrandForm from "./pages/admin/AdminBrandForm.tsx";
@@ -178,6 +179,8 @@ const App = () => (
             {/* SEO landing pages */}
             <Route path="/objetivos" element={<Goals />} />
             <Route path="/objetivo/:slug" element={<Goal />} />
+            <Route path="/promociones" element={<Promotions />} />
+            <Route path="/promotions" element={<Promotions />} />
             <Route path="/promociones/compra-uno-lleva-otro" element={<PromotionParticipants />} />
             <Route path="/promotions/buy-one-get-one" element={<PromotionParticipants />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />

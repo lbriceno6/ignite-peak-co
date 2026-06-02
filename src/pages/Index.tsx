@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
+import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 
 import heroImage from "@/assets/hero.jpg";
@@ -386,6 +387,24 @@ const Home = () => {
           />
         );
       }
+
+      case "promotions_carousel":
+        return (
+          <PromotionsCarousel
+            key={b.id}
+            block={{
+              id: b.id,
+              eyebrow: b.eyebrow,
+              title: b.title,
+              subtitle: b.subtitle,
+              cta_label: b.cta_label,
+              cta_href: b.cta_href,
+            }}
+            products={products}
+          />
+        );
+
+
 
       case "goals": {
         const displayGoals = goalCards.length
