@@ -74,11 +74,13 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   video:               { name: "Video destacado",          desc: "Video embebido de YouTube, Vimeo o MP4.",                                    hasImage: false, hasCta: true,  hasCta2: false },
   new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
   category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
+  double_promo_banners:{ name: "Banners dobles promocionales", desc: "Dos banners promocionales lado a lado con imágenes editables y enlaces.", hasImage: false, hasCta: false, hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
   "promo", "promotions_carousel", "best_sellers", "products_grid", "new_products", "categories",
   "category_showcase",
+  "double_promo_banners",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
   "custom_simple", "custom_html",
