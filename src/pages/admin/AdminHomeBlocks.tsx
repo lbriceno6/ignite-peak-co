@@ -75,6 +75,7 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
   category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
   double_promo_banners:{ name: "Banners dobles promocionales", desc: "Dos banners promocionales lado a lado con imágenes editables y enlaces.", hasImage: false, hasCta: false, hasCta2: false },
+  instagram_testimonials: { name: "Testimonios Instagram",  desc: "Tarjetas tipo reel/story con imagen o video, nombre y valoración.",         hasImage: false, hasCta: false, hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
@@ -83,6 +84,7 @@ const SELECTABLE_TYPES = [
   "double_promo_banners",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
+  "instagram_testimonials",
   "custom_simple", "custom_html",
 ];
 
@@ -102,6 +104,7 @@ const DEFAULT_BLOCKS: Array<Pick<Block, "block_key" | "block_type" | "sort_order
   { block_key: "promotions_carousel",  block_type: "promotions_carousel",  sort_order: 90, is_active: true,  title: "Promociones para usted" },
   { block_key: "blog",                 block_type: "blog",                 sort_order: 93, is_active: true,  title: "Guías y consejos" },
   { block_key: "trust",                block_type: "trust",                sort_order: 94, is_active: true,  title: "Garantías" },
+  { block_key: "instagram_testimonials", block_type: "instagram_testimonials", sort_order: 96, is_active: true, title: "SÍGUENOS EN INSTAGRAM" },
 ];
 
 export default function AdminHomeBlocks() {
@@ -271,13 +274,30 @@ export default function AdminHomeBlocks() {
               { id: "banner_2", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 2", open_new_tab: false, is_active: true, sort_order: 2 },
             ],
           }
+        : type === "instagram_testimonials"
+        ? {
+            eyebrow: "Comunidad",
+            subtitle: "Historias reales de quienes confían en nuestros productos.",
+            desktopColumns: 4,
+            mobileLayout: "carousel",
+            showButton: false,
+            buttonText: "Ver Instagram",
+            buttonUrl: "https://instagram.com/",
+            backgroundColor: "",
+            spacingTop: 64,
+            spacingBottom: 64,
+            limit: 8,
+          }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
       block_key: newKey,
       block_type: type,
       sort_order: maxOrder + 10,
       is_active: false,
-      title: type === "category_showcase" ? "NUESTRAS CATEGORÍAS" : meta.name,
+      title:
+        type === "category_showcase" ? "NUESTRAS CATEGORÍAS"
+        : type === "instagram_testimonials" ? "SÍGUENOS EN INSTAGRAM"
+        : meta.name,
       settings: defaultSettings,
     } as any);
     if (error) { toast.error(error.message); return; }
@@ -769,6 +789,13 @@ function BlockEditor({
 
           {block.block_type === "double_promo_banners" && (
             <DoublePromoBannersSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "instagram_testimonials" && (
+            <InstagramTestimonialsSettings
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
             />
@@ -1955,6 +1982,145 @@ function DoubleBannerImageField({
             onChange={(e) => onChange({ custom_image_url: e.target.value })}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function InstagramTestimonialsSettings({
+  settings,
+  onChange,
+}: {
+  settings: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const bg = typeof settings.backgroundColor === "string" ? settings.backgroundColor : "";
+  const desktopColumns = Number(settings.desktopColumns ?? 4);
+  const mobileLayout = settings.mobileLayout === "grid" ? "grid" : "carousel";
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Configuración Testimonios Instagram
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Eyebrow (etiqueta)</Label>
+          <Input
+            value={settings.eyebrow ?? ""}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+            placeholder="Comunidad"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Subtítulo</Label>
+          <Input
+            value={settings.subtitle ?? ""}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+            placeholder="Historias reales…"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Columnas en escritorio</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={String(desktopColumns)}
+            onChange={(e) => onChange({ desktopColumns: Number(e.target.value) })}
+          >
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Diseño en móvil</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={mobileLayout}
+            onChange={(e) => onChange({ mobileLayout: e.target.value })}
+          >
+            <option value="carousel">Carrusel</option>
+            <option value="grid">Grilla</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Máximo de testimonios (0 = todos)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.limit ?? 0}
+            onChange={(e) => onChange({ limit: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Color de fondo (opcional)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input type="color" value={bg || "#ffffff"} onChange={(e) => onChange({ backgroundColor: e.target.value })} className="h-9 w-16 p-1" />
+            <Input value={bg} onChange={(e) => onChange({ backgroundColor: e.target.value })} placeholder="#ffffff o vacío" />
+            {bg && <Button variant="ghost" size="sm" onClick={() => onChange({ backgroundColor: "" })}>Quitar</Button>}
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado superior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingTop ?? 64}
+            onChange={(e) => onChange({ spacingTop: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado inferior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingBottom ?? 64}
+            onChange={(e) => onChange({ spacingBottom: Number(e.target.value) || 0 })}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-md border bg-background p-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch
+            checked={!!settings.showButton}
+            onCheckedChange={(v) => onChange({ showButton: v })}
+          />
+          Mostrar botón de Instagram
+        </label>
+        {settings.showButton && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Texto del botón</Label>
+              <Input
+                value={settings.buttonText ?? ""}
+                onChange={(e) => onChange({ buttonText: e.target.value })}
+                placeholder="Ver Instagram"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">URL del botón</Label>
+              <Input
+                value={settings.buttonUrl ?? ""}
+                onChange={(e) => onChange({ buttonUrl: e.target.value })}
+                placeholder="https://instagram.com/usuario"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-md border bg-background p-3 text-sm">
+        <p className="font-semibold">Testimonios (imagen / video)</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Cada testimonio (subir imagen o video, nombre, valoración, orden, activo/inactivo) se administra desde la sección{" "}
+          <a href="/admin/testimonials" className="font-semibold text-accent underline">
+            Testimonios Instagram
+          </a>
+          . Aquí controlas el diseño, los textos y la visibilidad de la sección en el Home.
+        </p>
       </div>
     </div>
   );

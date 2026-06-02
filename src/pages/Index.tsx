@@ -584,6 +584,28 @@ const Home = () => {
         );
       }
 
+      case "instagram_testimonials": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        return (
+          <InstagramTestimonials
+            key={b.id}
+            eyebrow={s.eyebrow ?? "Comunidad"}
+            title={b.title || "Síguenos en Instagram"}
+            subtitle={s.subtitle ?? b.subtitle ?? "Historias reales de quienes confían en nuestros productos."}
+            desktopColumns={Number(s.desktopColumns) || 4}
+            mobileLayout={s.mobileLayout === "grid" ? "grid" : "carousel"}
+            showButton={!!s.showButton}
+            buttonText={s.buttonText ?? "Ver Instagram"}
+            buttonUrl={s.buttonUrl ?? ""}
+            backgroundColor={typeof s.backgroundColor === "string" ? s.backgroundColor : ""}
+            spacingTop={typeof s.spacingTop === "number" ? s.spacingTop : 64}
+            spacingBottom={typeof s.spacingBottom === "number" ? s.spacingBottom : 64}
+            limit={Number(s.limit) || undefined}
+          />
+        );
+      }
+
+
 
       case "products_grid":
         if (!moreProducts.length) return null;
@@ -1173,7 +1195,7 @@ const Home = () => {
           subtitle="Ahorra comprando productos que combinan bien."
         />
       </div>
-      <InstagramTestimonials />
+      
     </Layout>
   );
 };
