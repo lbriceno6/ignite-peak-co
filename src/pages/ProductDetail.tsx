@@ -22,6 +22,7 @@ import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 import { Helmet } from "react-helmet-async";
 import { track } from "@/lib/analytics";
+import { logBrowseEvent } from "@/lib/recoEvents";
 import { useProductBenefits } from "@/hooks/useProductBenefits";
 import { renderBenefitIcon } from "@/components/BenefitIcon";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
