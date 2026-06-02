@@ -22,6 +22,8 @@ import { track } from "@/lib/analytics";
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions } from "@/lib/promotions";
 import { trackComboEvent } from "@/lib/smartCombos";
+import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
 
 const PAY_KEYS = [
   "pay.order",
