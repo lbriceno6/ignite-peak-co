@@ -21,6 +21,7 @@ import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import DOMPurify from "dompurify";
 
 
 type HeroSlide = {
