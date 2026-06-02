@@ -257,6 +257,8 @@ const App = () => (
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="buscador-ia" element={<AdminSearchAi />} />
+              <Route path="ia-recomendaciones" element={<AdminAIRecommendations />} />
+              <Route path="ia-intenciones" element={<AdminPurchaseIntents />} />
               <Route path="benefits" element={<AdminBenefits />} />
               <Route path="product-card-typography" element={<AdminProductCardTypography />} />
               <Route path="promotions" element={<AdminPromotions />} />
