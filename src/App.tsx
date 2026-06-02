@@ -76,6 +76,7 @@ import AdminChatAI from "./pages/admin/AdminChatAI.tsx";
 import AdminAiConfig from "./pages/admin/AdminAiConfig.tsx";
 import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminAIRecommendations from "./pages/admin/AdminAIRecommendations.tsx";
+import AdminAiControl from "./pages/admin/AdminAiControl.tsx";
 import AdminPurchaseIntents from "./pages/admin/AdminPurchaseIntents.tsx";
 import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
 import AdminProductCardTypography from "./pages/admin/AdminProductCardTypography.tsx";
