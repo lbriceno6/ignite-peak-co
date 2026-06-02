@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Save, Play, RotateCcw, History } from "lucide-react";
+import { Save, Play, RotateCcw, History, Wand2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type FnDef = {
   name: string;
@@ -87,6 +88,8 @@ export function AiPromptLab() {
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
   const [output, setOutput] = useState<string>("");
+  const [optimizing, setOptimizing] = useState(false);
+  const [suggestion, setSuggestion] = useState<{ prompt: string; rationale: string; metrics: any } | null>(null);
 
   const def = useMemo(() => FUNCTIONS.find((f) => f.name === fnName)!, [fnName]);
   const activeVersion = useMemo(() => versions.find((v) => v.is_active) ?? null, [versions]);
@@ -153,6 +156,35 @@ export function AiPromptLab() {
     }
   };
 
+  const optimizeWithAi = async () => {
+    setOptimizing(true);
+    setSuggestion(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-prompt-optimizer", {
+        body: { function_name: fnName },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setSuggestion({
+        prompt: (data as any).suggested_prompt ?? "",
+        rationale: (data as any).rationale ?? "",
+        metrics: (data as any).metrics_used ?? {},
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo generar sugerencia");
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setPrompt(suggestion.prompt);
+    setNotes(`Sugerido por IA — CVR base ${suggestion.metrics?.cvr_pct ?? 0}%`);
+    setSuggestion(null);
+    toast.success("Pegado en el editor — revisa y guarda para activar");
+  };
+
   return (
     <div className="space-y-4">
       <Card>
@@ -211,6 +243,9 @@ export function AiPromptLab() {
             <Button variant="secondary" onClick={runTest} disabled={running}>
               <Play size={14} className="mr-1" /> {running ? "Ejecutando…" : "Probar con payload de muestra"}
             </Button>
+            <Button variant="outline" onClick={optimizeWithAi} disabled={optimizing}>
+              <Wand2 size={14} className="mr-1" /> {optimizing ? "Analizando métricas…" : "Sugerir mejora con IA"}
+            </Button>
           </div>
           {output && (
             <pre className="mt-2 max-h-96 overflow-auto rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap">
@@ -256,6 +291,34 @@ export function AiPromptLab() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!suggestion} onOpenChange={(o) => !o && setSuggestion(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Wand2 size={16} /> Sugerencia de prompt</DialogTitle>
+            <DialogDescription>
+              Generada a partir de los últimos 30 días: {suggestion?.metrics?.total_clicks ?? 0} clicks,{" "}
+              {suggestion?.metrics?.attributed_orders ?? 0} pedidos atribuidos, CVR {suggestion?.metrics?.cvr_pct ?? 0}%.
+            </DialogDescription>
+          </DialogHeader>
+          {suggestion && (
+            <div className="space-y-3">
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Razonamiento</p>
+                <pre className="max-h-40 overflow-auto rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap">{suggestion.rationale}</pre>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nuevo system prompt</p>
+                <Textarea value={suggestion.prompt} onChange={(e) => setSuggestion({ ...suggestion, prompt: e.target.value })} rows={14} className="font-mono text-xs" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSuggestion(null)}>Descartar</Button>
+            <Button onClick={applySuggestion}>Pegar en el editor</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
