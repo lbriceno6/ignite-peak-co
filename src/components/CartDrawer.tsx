@@ -115,6 +115,12 @@ export const CartDrawer = () => {
                 subtitle="Combos relacionados con tu carrito."
                 className="space-y-2"
               />
+              <AiCartRecommendations
+                cartSubtotal={Math.max(0, subtotal - promoDiscount)}
+                max={3}
+                variant="compact"
+                title="Sugerencias para ti"
+              />
             </div>
 
             <div className="border-t bg-secondary/40 p-5 space-y-3">
