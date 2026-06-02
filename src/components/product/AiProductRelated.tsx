@@ -17,6 +17,7 @@ import {
   type Intent,
 } from "@/lib/userPersonalization";
 import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
+import { logAiRecoClick } from "@/lib/recoEvents";
 
 type Props = {
   productSlug: string;
