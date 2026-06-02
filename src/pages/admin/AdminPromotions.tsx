@@ -576,12 +576,16 @@ const AdminPromotions = () => {
               <div className="mt-2 max-h-56 overflow-y-auto rounded-md border">
                 {filteredProducts.slice(0, 100).map((p) => {
                   const selected = editing.product_ids.includes(p.id);
+                  const conflict = !selected ? takenByOther.get(p.id) : null;
+                  const disabled = !!conflict;
                   return (
                     <button
                       key={p.id} type="button" onClick={() => toggleProduct(p.id)}
-                      className={`flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm last:border-0 hover:bg-secondary ${
-                        selected ? "bg-accent/10" : ""
-                      }`}
+                      disabled={disabled}
+                      title={conflict ? `Ya está en la promoción "${conflict.name}"` : undefined}
+                      className={`flex w-full items-center gap-2 border-b px-3 py-2 text-left text-sm last:border-0 ${
+                        disabled ? "cursor-not-allowed opacity-50" : "hover:bg-secondary"
+                      } ${selected ? "bg-accent/10" : ""}`}
                     >
                       <span className={`grid h-4 w-4 place-items-center rounded border ${
                         selected ? "border-accent bg-accent text-accent-foreground" : "border-border"
@@ -589,6 +593,11 @@ const AdminPromotions = () => {
                         {selected && <Check size={10} />}
                       </span>
                       <span className="flex-1 truncate">{p.name}</span>
+                      {conflict && (
+                        <span className="truncate text-[10px] uppercase tracking-wider text-muted-foreground">
+                          En: {conflict.name}
+                        </span>
+                      )}
                       <span className="text-xs text-muted-foreground">{p.price.toFixed(2)}</span>
                     </button>
                   );
@@ -597,6 +606,9 @@ const AdminPromotions = () => {
                   <p className="p-3 text-xs text-muted-foreground">Sin resultados.</p>
                 )}
               </div>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Un producto solo puede pertenecer a una promoción a la vez. Los productos ya asignados a otra promoción aparecen deshabilitados.
+              </p>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
