@@ -178,6 +178,8 @@ const App = () => (
             {/* SEO landing pages */}
             <Route path="/objetivos" element={<Goals />} />
             <Route path="/objetivo/:slug" element={<Goal />} />
+            <Route path="/promociones" element={<Promotions />} />
+            <Route path="/promotions" element={<Promotions />} />
             <Route path="/promociones/compra-uno-lleva-otro" element={<PromotionParticipants />} />
             <Route path="/promotions/buy-one-get-one" element={<PromotionParticipants />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
