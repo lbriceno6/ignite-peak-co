@@ -51,6 +51,7 @@ export function AiPostPurchaseInsights({ orderCode, items }: Props) {
   const { format } = useCurrency();
   const [thankYou, setThankYou] = useState<string>("");
   const [picks, setPicks] = useState<Pick[]>([]);
+  const [promptMeta, setPromptMeta] = useState<{ id: string | null; variant: string | null }>({ id: null, variant: null });
   const [reorderDays, setReorderDays] = useState<number | null>(null);
   const [catalog, setCatalog] = useState<Record<string, CatalogRow>>({});
   const [loading, setLoading] = useState(true);
@@ -112,6 +113,7 @@ export function AiPostPurchaseInsights({ orderCode, items }: Props) {
         setThankYou(data?.thank_you ?? "");
         setPicks(Array.isArray(data?.picks) ? data.picks : []);
         setReorderDays(Number.isFinite(data?.reorder_days) ? data.reorder_days : null);
+        setPromptMeta({ id: data?.ai_prompt_id ?? null, variant: data?.ai_variant ?? null });
       } catch {
         // silent fail
       } finally {
