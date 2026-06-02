@@ -74,11 +74,13 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   video:               { name: "Video destacado",          desc: "Video embebido de YouTube, Vimeo o MP4.",                                    hasImage: false, hasCta: true,  hasCta2: false },
   new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
   category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
+  double_promo_banners:{ name: "Banners dobles promocionales", desc: "Dos banners promocionales lado a lado con imágenes editables y enlaces.", hasImage: false, hasCta: false, hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
   "promo", "promotions_carousel", "best_sellers", "products_grid", "new_products", "categories",
   "category_showcase",
+  "double_promo_banners",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
   "custom_simple", "custom_html",
@@ -253,6 +255,21 @@ export default function AdminHomeBlocks() {
             autoLimit: 4,
             animations: true,
             items: DEFAULT_SHOWCASE_ITEMS,
+          }
+        : type === "double_promo_banners"
+        ? {
+            containerWidth: "normal",
+            backgroundColor: "",
+            spacingTop: 40,
+            spacingBottom: 40,
+            rounded: true,
+            shadow: true,
+            hoverEffect: true,
+            aspectRatio: "16/7",
+            banners: [
+              { id: "banner_1", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 1", open_new_tab: false, is_active: true, sort_order: 1 },
+              { id: "banner_2", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 2", open_new_tab: false, is_active: true, sort_order: 2 },
+            ],
           }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
@@ -745,6 +762,13 @@ function BlockEditor({
 
           {block.block_type === "category_showcase" && (
             <CategoryShowcaseSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "double_promo_banners" && (
+            <DoublePromoBannersSettings
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
             />
@@ -1676,3 +1700,262 @@ function ShowcaseImageField({
   );
 }
 
+
+type DoubleBanner = {
+  id: string;
+  uploaded_image_url?: string;
+  custom_image_url?: string;
+  link_url?: string;
+  alt_text?: string;
+  open_new_tab?: boolean;
+  is_active?: boolean;
+  sort_order?: number;
+};
+
+function DoublePromoBannersSettings({
+  settings,
+  onChange,
+}: {
+  settings: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const banners: DoubleBanner[] = Array.isArray(settings.banners) && settings.banners.length >= 1
+    ? settings.banners
+    : [
+        { id: "banner_1", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción 1", open_new_tab: false, is_active: true, sort_order: 1 },
+        { id: "banner_2", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción 2", open_new_tab: false, is_active: true, sort_order: 2 },
+      ];
+
+  const updateBanner = (idx: number, patch: Partial<DoubleBanner>) => {
+    const next = banners.map((b, i) => (i === idx ? { ...b, ...patch } : b));
+    onChange({ banners: next });
+  };
+
+  const containerWidth = settings.containerWidth === "full" ? "full" : "normal";
+  const aspectRatio = settings.aspectRatio || "16/7";
+  const bg = typeof settings.backgroundColor === "string" ? settings.backgroundColor : "";
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Banners dobles promocionales
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Ancho del contenedor</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={containerWidth}
+            onChange={(e) => onChange({ containerWidth: e.target.value })}
+          >
+            <option value="normal">Normal (contenido)</option>
+            <option value="full">Completo (full width)</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Relación de aspecto</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={aspectRatio}
+            onChange={(e) => onChange({ aspectRatio: e.target.value })}
+          >
+            <option value="16/7">16 / 7 (recomendado)</option>
+            <option value="21/9">21 / 9 (más panorámico)</option>
+            <option value="16/9">16 / 9</option>
+            <option value="4/3">4 / 3</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado superior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingTop ?? 40}
+            onChange={(e) => onChange({ spacingTop: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado inferior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingBottom ?? 40}
+            onChange={(e) => onChange({ spacingBottom: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Label className="text-xs">Color de fondo (opcional)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input type="color" value={bg || "#ffffff"} onChange={(e) => onChange({ backgroundColor: e.target.value })} className="h-9 w-16 p-1" />
+            <Input value={bg} onChange={(e) => onChange({ backgroundColor: e.target.value })} placeholder="#ffffff o vacío" />
+            {bg && <Button variant="ghost" size="sm" onClick={() => onChange({ backgroundColor: "" })}>Quitar</Button>}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={!!settings.rounded} onCheckedChange={(v) => onChange({ rounded: v })} />
+          Bordes redondeados
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={!!settings.shadow} onCheckedChange={(v) => onChange({ shadow: v })} />
+          Sombra suave
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={!!settings.hoverEffect} onCheckedChange={(v) => onChange({ hoverEffect: v })} />
+          Efecto hover
+        </label>
+      </div>
+
+      <div className="space-y-3">
+        {banners.map((banner, idx) => (
+          <div key={banner.id || idx} className="rounded-md border bg-background p-3 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold">Banner {idx + 1}</p>
+              <label className="flex items-center gap-2 text-xs">
+                <Switch
+                  checked={banner.is_active !== false}
+                  onCheckedChange={(v) => updateBanner(idx, { is_active: v })}
+                />
+                Activo
+              </label>
+            </div>
+
+            <DoubleBannerImageField
+              banner={banner}
+              onChange={(patch) => updateBanner(idx, patch)}
+            />
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <Label className="text-xs">Enlace del banner (URL)</Label>
+                <Input
+                  value={banner.link_url || ""}
+                  onChange={(e) => updateBanner(idx, { link_url: e.target.value })}
+                  placeholder="/promociones o https://..."
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Texto alternativo (alt)</Label>
+                <Input
+                  value={banner.alt_text || ""}
+                  onChange={(e) => updateBanner(idx, { alt_text: e.target.value })}
+                  placeholder="Descripción de la imagen"
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <Switch
+                checked={!!banner.open_new_tab}
+                onCheckedChange={(v) => updateBanner(idx, { open_new_tab: v })}
+              />
+              Abrir enlace en nueva pestaña
+            </label>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DoubleBannerImageField({
+  banner,
+  onChange,
+}: {
+  banner: DoubleBanner;
+  onChange: (patch: Partial<DoubleBanner>) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const uploaded = banner.uploaded_image_url?.trim() || "";
+  const manual = banner.custom_image_url?.trim() || "";
+  const preview = uploaded || manual;
+
+  const handleFile = async (file?: File | null) => {
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (file.type && !allowed.includes(file.type)) {
+      toast.error("Formato no válido. Usa JPG, PNG o WEBP.");
+      return;
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("La imagen supera 4MB.");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `double-promo-banners/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("blog-images")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
+      onChange({ uploaded_image_url: data.publicUrl });
+      toast.success("Imagen subida");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Imagen del banner</Label>
+      <div className="flex items-start gap-3">
+        <div className="h-20 w-40 shrink-0 overflow-hidden rounded-md border bg-muted/30 grid place-items-center">
+          {preview ? (
+            <img
+              src={preview}
+              alt="preview"
+              className="h-full w-full object-cover"
+              onError={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = "0.2")}
+            />
+          ) : (
+            <span className="text-[10px] text-muted-foreground">Sin imagen</span>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => handleFile(e.target.files?.[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Subiendo…" : uploaded ? "Reemplazar imagen" : "Subir imagen"}
+            </Button>
+            {(uploaded || manual) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange({ uploaded_image_url: "", custom_image_url: "" })}
+              >
+                Eliminar imagen
+              </Button>
+            )}
+          </div>
+          <Input
+            placeholder="O pega una URL de imagen"
+            value={manual}
+            onChange={(e) => onChange({ custom_image_url: e.target.value })}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
