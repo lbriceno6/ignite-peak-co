@@ -56,7 +56,7 @@ export type AppliedPromo = {
   message: string;
 };
 
-const variantOf = (p: Pick<Promotion, "variant" | "benefit_type">): PromotionVariant =>
+const variantOf = (p: PromoLike): PromotionVariant =>
   (p.variant as PromotionVariant) || (p.benefit_type as PromotionVariant) || "second_discount";
 
 type PromoLike = {
@@ -97,17 +97,17 @@ export const promoLabel = (p: PromoLike): string => {
 };
 
 /** Título dinámico para banner y ficha. */
-export const promoTitle = (p: Pick<Promotion, "variant" | "benefit_type">): string => {
-  const v = variantOf(p);
+export const promoTitle = (p: PromoLike): string => {
+  const v = variantOfLoose(p);
   return VARIANT_LABELS[v] ?? "Promoción";
 };
 
 /** Subtítulo / mensaje comercial. Usa benefit_message si está. */
 export const promoSubtitle = (
-  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "benefit_message" | "min_quantity" | "discount_amount">,
+  p: PromoLike,
 ): string => {
   if (p.benefit_message && p.benefit_message.trim()) return p.benefit_message.trim();
-  const v = variantOf(p);
+  const v = variantOfLoose(p);
   const pct = Math.round(p.discount_percent || 0);
   switch (v) {
     case "second_free":
@@ -131,10 +131,10 @@ const fillProgress = (tpl: string, missing: number): string =>
 
 /** Mensaje en carrito cuando la promo está aplicada. */
 export const promoCartMessage = (
-  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "discount_amount" | "cart_msg_applied">,
+  p: PromoLike,
 ): string => {
   if (p.cart_msg_applied && p.cart_msg_applied.trim()) return p.cart_msg_applied.trim();
-  const v = variantOf(p);
+  const v = variantOfLoose(p);
   const pct = Math.round(p.discount_percent || 0);
   switch (v) {
     case "second_free":
@@ -155,11 +155,11 @@ export const promoCartMessage = (
 
 /** Mensaje en carrito cuando falta(n) unidad(es) para activar la promo. */
 export const promoCartProgress = (
-  p: Pick<Promotion, "variant" | "benefit_type" | "min_quantity" | "cart_msg_progress">,
+  p: PromoLike,
   missing: number,
 ): string => {
   if (p.cart_msg_progress && p.cart_msg_progress.trim()) return fillProgress(p.cart_msg_progress, missing);
-  const v = variantOf(p);
+  const v = variantOfLoose(p);
   if (v === "custom") return `Agrega ${missing} producto${missing > 1 ? "s" : ""} más para activar la promoción.`;
   return `Agrega ${missing} producto${missing > 1 ? "s" : ""} más para activar esta promoción.`;
 };
@@ -208,7 +208,7 @@ const computeForUnits = (
   p: Promotion,
   units: { productId: string; price: number }[],
 ): { totalDiscount: number; perUnit: number[] } => {
-  const v = variantOf(p);
+  const v = variantOfLoose(p);
   const pct = Math.max(0, Math.min(100, p.discount_percent || 0));
   const perUnit: number[] = new Array(units.length).fill(0);
   if (!units.length) return { totalDiscount: 0, perUnit };
@@ -386,7 +386,7 @@ export const pendingPromoNudges = (
   for (const p of promotions) {
     if (!isPromoActiveNow(p, now)) continue;
     if (!p.product_ids?.length) continue;
-    const v = variantOf(p);
+    const v = variantOfLoose(p);
     const count = units.filter((u) => p.product_ids.includes(u.productId)).length;
     if (count < 1) continue;
 
