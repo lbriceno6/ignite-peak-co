@@ -90,6 +90,7 @@ export function AiCartRecommendations({
   const shipping = useFreeShippingBar();
   const [allProducts, setAllProducts] = useState<Array<Product & { id: string }> | null>(null);
   const [picks, setPicks] = useState<Pick[] | null>(null);
+  const [promptMeta, setPromptMeta] = useState<{ id: string | null; variant: string | null }>({ id: null, variant: null });
   const [signals, setSignals] = useState<BrowseSignal[]>([]);
   const [intents, setIntents] = useState<Intent[]>([]);
 
@@ -171,6 +172,7 @@ export function AiCartRecommendations({
         if (!active) return;
         if (!error && Array.isArray((data as any)?.picks) && (data as any).picks.length) {
           setPicks((data as any).picks as Pick[]);
+          setPromptMeta({ id: (data as any).ai_prompt_id ?? null, variant: (data as any).ai_variant ?? null });
           return;
         }
       } catch {
