@@ -1,6 +1,9 @@
 // Intelligent search edge function for Nutribatidos
-// Receives a free-text query, tries exact / keyword / AI interpretation,
-// and returns a structured result for the frontend to render.
+// Receives a free-text query, tries keyword + AI interpretation against
+// two sources of truth:
+//   - public.search_needs (legacy "necesidades")
+//   - public.purchase_intents (Fase 1 - Home Inteligente IA)
+// Returns a structured result for the frontend to render.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -27,9 +30,16 @@ type Need = {
   related_products: string[];
   message: string | null;
   priority: number;
+  // optional extras coming from purchase_intents
+  banner_image?: string | null;
+  cta_text?: string | null;
+  cta_url?: string | null;
+  title?: string | null;
+  subtitle?: string | null;
+  source?: "need" | "intent";
 };
 
-type Settings = {
+type LegacySettings = {
   enabled: boolean;
   provider: string;
   model: string;
@@ -41,67 +51,36 @@ type Settings = {
   fallback_whatsapp_enabled: boolean;
 };
 
-const PROVIDER_ENDPOINTS: Record<string, string> = {
-  gemini: "https://ai.gateway.lovable.dev/v1/chat/completions",
-  openai: "https://ai.gateway.lovable.dev/v1/chat/completions",
-  deepseek: "https://api.deepseek.com/v1/chat/completions",
-  claude: "https://api.anthropic.com/v1/messages",
+type RecoSettings = {
+  enabled: boolean;
+  provider: string;
+  model: string;
+  temperature: number;
+  system_prompt: string;
+  api_key_secret_name: string | null;
+  base_url: string | null;
 };
 
-async function callAi(settings: Settings, query: string, needs: Need[]) {
-  const needList = needs
-    .map((n) => `- ${n.name} (slug=${n.slug}, categoria=${n.related_category ?? ""}, keywords=${n.keywords.join(", ")})`)
-    .join("\n");
-  const system = `${settings.prompt_template}\n\nLISTA DE NECESIDADES DISPONIBLES:\n${needList}`;
-
-  const provider = settings.provider;
-  if (provider === "claude") {
-    const key = settings.api_key;
-    if (!key) throw new Error("Claude requires api_key");
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: settings.model || "claude-3-5-haiku-20241022",
-        max_tokens: settings.max_tokens,
-        system,
-        messages: [{ role: "user", content: query }],
-      }),
-    });
-    const j = await r.json();
-    return j?.content?.[0]?.text ?? "";
-  }
-
-  if (provider === "deepseek") {
-    const key = settings.api_key;
-    if (!key) throw new Error("DeepSeek requires api_key");
-    const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: settings.model || "deepseek-chat",
-        messages: [{ role: "system", content: system }, { role: "user", content: query }],
-        temperature: settings.temperature,
-        max_tokens: settings.max_tokens,
-        response_format: { type: "json_object" },
-      }),
-    });
-    const j = await r.json();
-    return j?.choices?.[0]?.message?.content ?? "";
-  }
-
-  // Default: Lovable AI Gateway (gemini/openai)
+async function callLovableAi(
+  model: string,
+  system: string,
+  query: string,
+  temperature: number,
+  maxTokens: number,
+) {
   const lovableKey = Deno.env.get("LOVABLE_API_KEY");
   if (!lovableKey) throw new Error("LOVABLE_API_KEY missing");
-  const model = settings.model || (provider === "openai" ? "openai/gpt-5-mini" : "google/gemini-2.5-flash");
   const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableKey}` },
     body: JSON.stringify({
       model,
-      messages: [{ role: "system", content: system }, { role: "user", content: query }],
-      temperature: settings.temperature,
-      max_tokens: settings.max_tokens,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: query },
+      ],
+      temperature,
+      max_tokens: maxTokens,
       response_format: { type: "json_object" },
     }),
   });
@@ -111,6 +90,70 @@ async function callAi(settings: Settings, query: string, needs: Need[]) {
   }
   const j = await r.json();
   return j?.choices?.[0]?.message?.content ?? "";
+}
+
+async function callAi(
+  reco: RecoSettings | null,
+  legacy: LegacySettings | null,
+  query: string,
+  needs: Need[],
+) {
+  const needList = needs
+    .map(
+      (n) =>
+        `- ${n.name} (slug=${n.slug}, categoria=${n.related_category ?? ""}, keywords=${n.keywords.join(", ")})`,
+    )
+    .join("\n");
+
+  // Prefer the new ai_reco_settings (Lovable AI Gateway by default)
+  if (reco && reco.enabled) {
+    const system = `${reco.system_prompt}\n\nDevuelve SIEMPRE JSON con esta forma: { "intent": "<slug>", "category": "<categoria>", "message": "<texto>" }.\n\nINTENCIONES Y NECESIDADES DISPONIBLES:\n${needList}`;
+    const model = reco.model || "google/gemini-2.5-flash";
+    return await callLovableAi(model, system, query, reco.temperature ?? 0.3, 600);
+  }
+
+  // Fallback to legacy search_ai_settings
+  if (!legacy || !legacy.enabled || legacy.provider === "off") return "";
+  const system = `${legacy.prompt_template}\n\nLISTA DE NECESIDADES DISPONIBLES:\n${needList}`;
+  const provider = legacy.provider;
+
+  if (provider === "claude") {
+    const key = legacy.api_key;
+    if (!key) throw new Error("Claude requires api_key");
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({
+        model: legacy.model || "claude-3-5-haiku-20241022",
+        max_tokens: legacy.max_tokens,
+        system,
+        messages: [{ role: "user", content: query }],
+      }),
+    });
+    const j = await r.json();
+    return j?.content?.[0]?.text ?? "";
+  }
+
+  if (provider === "deepseek") {
+    const key = legacy.api_key;
+    if (!key) throw new Error("DeepSeek requires api_key");
+    const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model: legacy.model || "deepseek-chat",
+        messages: [{ role: "system", content: system }, { role: "user", content: query }],
+        temperature: legacy.temperature,
+        max_tokens: legacy.max_tokens,
+        response_format: { type: "json_object" },
+      }),
+    });
+    const j = await r.json();
+    return j?.choices?.[0]?.message?.content ?? "";
+  }
+
+  const model = legacy.model || (provider === "openai" ? "openai/gpt-5-mini" : "google/gemini-2.5-flash");
+  return await callLovableAi(model, system, query, legacy.temperature ?? 0.3, legacy.max_tokens ?? 600);
 }
 
 function parseAiJson(raw: string): any | null {
@@ -124,6 +167,24 @@ function parseAiJson(raw: string): any | null {
     }
     return null;
   }
+}
+
+function buildResponsePayload(need: Need, source: "need" | "ai") {
+  return {
+    source,
+    need: need.name,
+    need_slug: need.slug,
+    category_slug: need.related_category,
+    product_ids: need.related_products ?? [],
+    message: need.message ?? `Productos recomendados para ${need.name}.`,
+    // intent enrichment (only present when matched against purchase_intents)
+    intent_slug: need.source === "intent" ? need.slug : null,
+    intent_title: need.title ?? null,
+    intent_subtitle: need.subtitle ?? null,
+    intent_banner: need.banner_image ?? null,
+    intent_cta_text: need.cta_text ?? null,
+    intent_cta_url: need.cta_url ?? null,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -142,67 +203,86 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!,
     );
 
-    const [settingsRes, needsRes] = await Promise.all([
+    const [legacyRes, recoRes, needsRes, intentsRes] = await Promise.all([
       supabase.from("search_ai_settings").select("*").eq("id", 1).maybeSingle(),
+      supabase.from("ai_reco_settings").select("*").eq("id", 1).maybeSingle(),
       supabase.from("search_needs").select("*").eq("is_active", true).order("priority"),
+      supabase.from("purchase_intents").select("*").eq("is_active", true).order("priority"),
     ]);
-    const settings = (settingsRes.data ?? {}) as Settings;
-    const needs = ((needsRes.data ?? []) as Need[]);
+    const legacy = (legacyRes.data ?? null) as LegacySettings | null;
+    const reco = (recoRes.data ?? null) as RecoSettings | null;
+    const legacyNeeds = ((needsRes.data ?? []) as any[]).map((n) => ({ ...n, source: "need" as const }));
+    const intentNeeds: Need[] = ((intentsRes.data ?? []) as any[]).map((i) => ({
+      id: i.id,
+      slug: i.slug,
+      name: i.name,
+      keywords: i.keywords ?? [],
+      intent: i.slug,
+      related_category: (i.category_slugs ?? [])[0] ?? null,
+      related_products: i.product_ids ?? [],
+      message: i.description ?? null,
+      priority: i.priority ?? 100,
+      banner_image: i.banner_image ?? null,
+      cta_text: i.cta_text ?? null,
+      cta_url: i.cta_url ?? null,
+      title: i.title ?? null,
+      subtitle: i.subtitle ?? null,
+      source: "intent",
+    }));
 
+    // Intents take priority over legacy needs
+    const needs: Need[] = [...intentNeeds, ...legacyNeeds];
     const q = norm(query);
 
-    // 1) Keyword match against needs
+    // 1) Keyword match
     let matched: Need | null = null;
     for (const n of needs) {
-      const hit = n.keywords.some((k) => {
+      const hit = (n.keywords ?? []).some((k) => {
         const kn = norm(k);
         return kn && (q === kn || q.includes(kn) || kn.includes(q));
       }) || norm(n.name) === q;
       if (hit) { matched = n; break; }
     }
     if (matched) {
-      return new Response(JSON.stringify({
-        source: "need",
-        need: matched.name,
-        need_slug: matched.slug,
-        category_slug: matched.related_category,
-        product_ids: matched.related_products,
-        message: matched.message ?? `Productos recomendados para ${matched.name}.`,
-      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify(buildResponsePayload(matched, "need")), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // 2) AI fallback
-    if (settings.enabled && settings.provider !== "off") {
-      try {
-        const raw = await callAi(settings, query, needs);
-        const parsed = parseAiJson(raw);
-        if (parsed && (parsed.need || parsed.category || parsed.intent)) {
-          // Try to map AI need to a real one
-          const mapped = needs.find(
-            (n) =>
-              norm(n.slug) === norm(parsed.intent || "") ||
-              norm(n.name) === norm(parsed.need || "") ||
-              norm(n.related_category || "") === norm(parsed.category || ""),
-          );
-          return new Response(JSON.stringify({
-            source: "ai",
-            need: mapped?.name ?? parsed.need ?? null,
-            need_slug: mapped?.slug ?? null,
-            category_slug: mapped?.related_category ?? parsed.category ?? null,
-            product_ids: mapped?.related_products ?? [],
-            ai_products: Array.isArray(parsed.products) ? parsed.products : [],
-            message: parsed.message ?? mapped?.message ?? null,
-          }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    try {
+      const raw = await callAi(reco, legacy, query, needs);
+      const parsed = parseAiJson(raw);
+      if (parsed && (parsed.need || parsed.category || parsed.intent)) {
+        const mapped = needs.find(
+          (n) =>
+            norm(n.slug) === norm(parsed.intent || "") ||
+            norm(n.name) === norm(parsed.need || "") ||
+            norm(n.related_category || "") === norm(parsed.category || ""),
+        );
+        if (mapped) {
+          return new Response(JSON.stringify(buildResponsePayload(mapped, "ai")), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
         }
-      } catch (e) {
-        console.error("AI error", e);
+        return new Response(JSON.stringify({
+          source: "ai",
+          need: parsed.need ?? null,
+          need_slug: null,
+          category_slug: parsed.category ?? null,
+          product_ids: [],
+          ai_products: Array.isArray(parsed.products) ? parsed.products : [],
+          message: parsed.message ?? null,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+    } catch (e) {
+      console.error("AI error", e);
     }
 
     // 3) Nothing -> fallback
     return new Response(JSON.stringify({
       source: "none",
-      fallback_whatsapp: settings.fallback_whatsapp_enabled ?? true,
+      fallback_whatsapp: legacy?.fallback_whatsapp_enabled ?? true,
       message: "No encontramos un producto exacto, pero podemos ayudarte a elegir uno según tu necesidad.",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
