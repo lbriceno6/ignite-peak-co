@@ -44,6 +44,7 @@ type DbProduct = {
   sale_price: number | null;
   category: string | null;
   main_image: string | null;
+  gallery_images?: any;
   badge: string | null;
 };
 
