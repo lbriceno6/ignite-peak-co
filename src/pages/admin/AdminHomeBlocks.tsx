@@ -256,6 +256,21 @@ export default function AdminHomeBlocks() {
             animations: true,
             items: DEFAULT_SHOWCASE_ITEMS,
           }
+        : type === "double_promo_banners"
+        ? {
+            containerWidth: "normal",
+            backgroundColor: "",
+            spacingTop: 40,
+            spacingBottom: 40,
+            rounded: true,
+            shadow: true,
+            hoverEffect: true,
+            aspectRatio: "16/7",
+            banners: [
+              { id: "banner_1", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 1", open_new_tab: false, is_active: true, sort_order: 1 },
+              { id: "banner_2", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 2", open_new_tab: false, is_active: true, sort_order: 2 },
+            ],
+          }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
       block_key: newKey,
