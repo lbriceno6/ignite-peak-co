@@ -73,13 +73,22 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   image_text:          { name: "Imagen + Texto",           desc: "Sección de dos columnas con imagen y texto a la izquierda o derecha.",       hasImage: true,  hasCta: true,  hasCta2: true  },
   video:               { name: "Video destacado",          desc: "Video embebido de YouTube, Vimeo o MP4.",                                    hasImage: false, hasCta: true,  hasCta2: false },
   new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
+  category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
   "promo", "promotions_carousel", "best_sellers", "products_grid", "new_products", "categories",
+  "category_showcase",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
   "custom_simple", "custom_html",
+];
+
+const DEFAULT_SHOWCASE_ITEMS = [
+  { categorySlug: "", customTitle: "Mundo Gluten Free", customImageUrl: "", backgroundColor: "#8F87F1", gradientColor: "#746AE8", useGradient: true,  textColor: "#FFFFFF", customUrl: "/categoria/gluten-free", isActive: true },
+  { categorySlug: "", customTitle: "Mundo Orgánico",    customImageUrl: "", backgroundColor: "#FF914D", gradientColor: "#F47A2E", useGradient: true,  textColor: "#FFFFFF", customUrl: "/categoria/organico",    isActive: true },
+  { categorySlug: "", customTitle: "Mundo Sin Azúcar",  customImageUrl: "", backgroundColor: "#63D9C6", gradientColor: "#3FBFAB", useGradient: true,  textColor: "#FFFFFF", customUrl: "/categoria/sin-azucar",  isActive: true },
+  { categorySlug: "", customTitle: "Mundo Vegano",      customImageUrl: "", backgroundColor: "#D9788E", gradientColor: "#C4596F", useGradient: true,  textColor: "#FFFFFF", customUrl: "/categoria/vegano",      isActive: true },
 ];
 
 // Predefined Home sections — used by "Restore defaults".
