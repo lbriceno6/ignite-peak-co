@@ -1574,3 +1574,105 @@ function CategoryShowcaseSettings({
     </div>
   );
 }
+
+function ShowcaseImageField({
+  item,
+  onChange,
+}: {
+  item: ShowcaseItem;
+  onChange: (patch: Partial<ShowcaseItem>) => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const uploaded = item.uploaded_image_url?.trim() || "";
+  const manual =
+    item.custom_image_url?.trim() ||
+    item.customImageUrl?.trim() ||
+    "";
+  const preview = uploaded || manual;
+
+  const handleFile = async (file?: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `category-showcase/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from("blog-images")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from("blog-images").getPublicUrl(path);
+      onChange({ uploaded_image_url: data.publicUrl });
+      toast.success("Imagen subida");
+    } catch (e: any) {
+      toast.error(e?.message || "Error al subir la imagen");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs">Imagen personalizada (opcional)</Label>
+      <div className="flex items-start gap-3">
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md border bg-muted/30 grid place-items-center">
+          {preview ? (
+            <img
+              src={preview}
+              alt="preview"
+              className="h-full w-full object-contain"
+              onError={(e) => ((e.currentTarget as HTMLImageElement).style.opacity = "0.2")}
+            />
+          ) : (
+            <span className="text-[10px] text-muted-foreground">Sin imagen</span>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => handleFile(e.target.files?.[0])}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? "Subiendo…" : uploaded ? "Cambiar imagen" : "Subir imagen"}
+            </Button>
+            {(uploaded || manual) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  onChange({
+                    uploaded_image_url: "",
+                    custom_image_url: "",
+                    customImageUrl: "",
+                  })
+                }
+              >
+                Eliminar imagen
+              </Button>
+            )}
+          </div>
+          <Input
+            placeholder="O pega una URL de imagen"
+            value={manual}
+            onChange={(e) =>
+              onChange({ custom_image_url: e.target.value, customImageUrl: e.target.value })
+            }
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
