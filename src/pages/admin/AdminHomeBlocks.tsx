@@ -1531,11 +1531,11 @@ function CategoryShowcaseSettings({
                   </div>
                 </div>
 
-                <div>
-                  <Label className="text-xs">Imagen personalizada (opcional)</Label>
-                  <Input placeholder="https://..."
-                    value={it.customImageUrl ?? ""} onChange={(e) => editItem(i, { customImageUrl: e.target.value })} />
-                </div>
+                <ShowcaseImageField
+                  item={it}
+                  onChange={(patch) => editItem(i, patch)}
+                />
+
 
                 <div className="grid gap-2 sm:grid-cols-4">
                   <div>
