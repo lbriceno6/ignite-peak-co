@@ -94,7 +94,8 @@ export default function AdminHomeBlocks() {
         cta2_label: b.cta2_label,
         cta2_href: b.cta2_href,
         image_url: b.image_url,
-      });
+        settings: b.settings ?? {},
+      } as any);
       if (error) throw error;
       toast.success("Sección duplicada correctamente (oculta).");
       load();
