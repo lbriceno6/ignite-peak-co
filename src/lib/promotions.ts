@@ -1,19 +1,49 @@
-// Lógica pura de promociones BOGO (Buy One Get One)
+// Lógica de promociones — soporta variantes BOGO, 2x1, %off, fijo, por cantidad y custom.
 import type { CartItem } from "@/store/cart";
 import { lineUnitPrice } from "@/store/cart";
 
 export type PromotionBenefitType = "second_discount" | "second_free";
 
+/** Variante extendida (texto en BD para no migrar el enum). */
+export type PromotionVariant =
+  | "second_discount"
+  | "second_free"
+  | "two_for_one"
+  | "percent_off"
+  | "fixed_off"
+  | "quantity_discount"
+  | "custom";
+
+export const VARIANT_LABELS: Record<PromotionVariant, string> = {
+  second_discount: "Compra 1 y lleva el 2do con descuento",
+  second_free: "Segundo producto gratis",
+  two_for_one: "2x1",
+  percent_off: "Descuento porcentual",
+  fixed_off: "Descuento fijo",
+  quantity_discount: "Descuento por cantidad",
+  custom: "Promoción personalizada",
+};
+
 export type Promotion = {
   id: string;
   name: string;
   benefit_type: PromotionBenefitType;
+  variant: PromotionVariant;
   discount_percent: number; // 0-100
+  discount_amount: number;  // monto fijo (fixed_off)
+  min_quantity: number;     // cantidad mínima para activar
+  priority: number;
+  badge_label: string | null;
+  benefit_message: string | null;
+  cart_msg_applied: string | null;
+  cart_msg_progress: string | null;
   start_date: string | null;
   end_date: string | null;
   usage_limit_per_order: number;
   show_on_home: boolean;
   show_on_product: boolean;
+  show_in_carousel: boolean;
+  sort_order_home: number;
   is_active: boolean;
   product_ids: string[];
 };
@@ -26,30 +56,100 @@ export type AppliedPromo = {
   message: string;
 };
 
-/** Etiqueta corta para badges en producto / carrito. */
-export const promoLabel = (p: Pick<Promotion, "benefit_type" | "discount_percent">): string => {
-  if (p.benefit_type === "second_free") return "2x1";
-  const pct = Math.round(p.discount_percent);
-  return `2do con ${pct}% dscto`;
+const variantOf = (p: Pick<Promotion, "variant" | "benefit_type">): PromotionVariant =>
+  (p.variant as PromotionVariant) || (p.benefit_type as PromotionVariant) || "second_discount";
+
+/** Etiqueta corta para badges. Usa badge_label custom si existe, si no autogenera. */
+export const promoLabel = (
+  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "discount_amount" | "badge_label">,
+): string => {
+  if (p.badge_label && p.badge_label.trim()) return p.badge_label.trim().toUpperCase();
+  const v = variantOf(p);
+  const pct = Math.round(p.discount_percent || 0);
+  switch (v) {
+    case "second_free":
+    case "two_for_one":
+      return "2x1";
+    case "second_discount":
+      return `2do con ${pct}%`;
+    case "percent_off":
+      return pct > 0 ? `-${pct}%` : "PROMO";
+    case "fixed_off":
+      return p.discount_amount > 0 ? `-S/ ${p.discount_amount}` : "PROMO";
+    case "quantity_discount":
+      return pct > 0 ? `${pct}% x cantidad` : "PROMO";
+    default:
+      return "PROMO";
+  }
 };
 
 /** Título dinámico para banner y ficha. */
-export const promoTitle = (p: Pick<Promotion, "benefit_type">): string =>
-  p.benefit_type === "second_free"
-    ? "Compra uno y lleva otro gratis"
-    : "Compra uno y lleva otro";
+export const promoTitle = (p: Pick<Promotion, "variant" | "benefit_type">): string => {
+  const v = variantOf(p);
+  return VARIANT_LABELS[v] ?? "Promoción";
+};
 
-/** Subtítulo dinámico. */
-export const promoSubtitle = (p: Pick<Promotion, "benefit_type">): string =>
-  p.benefit_type === "second_free"
-    ? "Agrega 2 productos participantes y paga solo el de mayor precio."
-    : "Elige 2 productos participantes y recibe descuento en el segundo.";
+/** Subtítulo / mensaje comercial. Usa benefit_message si está. */
+export const promoSubtitle = (
+  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "benefit_message" | "min_quantity" | "discount_amount">,
+): string => {
+  if (p.benefit_message && p.benefit_message.trim()) return p.benefit_message.trim();
+  const v = variantOf(p);
+  const pct = Math.round(p.discount_percent || 0);
+  switch (v) {
+    case "second_free":
+    case "two_for_one":
+      return "Agrega 2 productos participantes y paga solo el de mayor precio.";
+    case "second_discount":
+      return `Elige 2 productos participantes y recibe ${pct}% de descuento en el segundo.`;
+    case "percent_off":
+      return `${pct}% de descuento aplicado directamente al precio.`;
+    case "fixed_off":
+      return `S/ ${p.discount_amount} de descuento aplicado directamente.`;
+    case "quantity_discount":
+      return `Llévate ${p.min_quantity || 2} o más y obtén ${pct}% de descuento.`;
+    default:
+      return "Aprovecha esta promoción especial.";
+  }
+};
 
-/** Mensaje en carrito. */
-export const promoCartMessage = (p: Pick<Promotion, "benefit_type" | "discount_percent">): string =>
-  p.benefit_type === "second_free"
-    ? "Promoción aplicada: segundo producto gratis. El descuento se aplicó al producto de menor precio."
-    : `Promoción aplicada: ${Math.round(p.discount_percent)}% de descuento en el producto de menor precio.`;
+const fillProgress = (tpl: string, missing: number): string =>
+  tpl.replace(/\{n\}/gi, String(missing)).replace(/\{faltan\}/gi, String(missing));
+
+/** Mensaje en carrito cuando la promo está aplicada. */
+export const promoCartMessage = (
+  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "discount_amount" | "cart_msg_applied">,
+): string => {
+  if (p.cart_msg_applied && p.cart_msg_applied.trim()) return p.cart_msg_applied.trim();
+  const v = variantOf(p);
+  const pct = Math.round(p.discount_percent || 0);
+  switch (v) {
+    case "second_free":
+    case "two_for_one":
+      return "Promoción 2x1 aplicada. El producto de menor precio queda gratis.";
+    case "second_discount":
+      return `Promoción aplicada: ${pct}% de descuento en el segundo producto.`;
+    case "percent_off":
+      return `Promoción aplicada: ${pct}% de descuento.`;
+    case "fixed_off":
+      return `Promoción aplicada: S/ ${p.discount_amount} de descuento.`;
+    case "quantity_discount":
+      return `Promoción por cantidad aplicada: ${pct}% de descuento.`;
+    default:
+      return "Promoción aplicada.";
+  }
+};
+
+/** Mensaje en carrito cuando falta(n) unidad(es) para activar la promo. */
+export const promoCartProgress = (
+  p: Pick<Promotion, "variant" | "benefit_type" | "min_quantity" | "cart_msg_progress">,
+  missing: number,
+): string => {
+  if (p.cart_msg_progress && p.cart_msg_progress.trim()) return fillProgress(p.cart_msg_progress, missing);
+  const v = variantOf(p);
+  if (v === "custom") return `Agrega ${missing} producto${missing > 1 ? "s" : ""} más para activar la promoción.`;
+  return `Agrega ${missing} producto${missing > 1 ? "s" : ""} más para activar esta promoción.`;
+};
 
 /** ¿La promoción está vigente en este momento? */
 export const isPromoActiveNow = (p: Promotion, now: Date = new Date()): boolean => {
@@ -71,20 +171,91 @@ const expandUnits = (items: CartItem[]) => {
   return out;
 };
 
-/** Por producto: cuánto descuento total se le aplicó y a qué promo pertenece (la primera que lo cubre). */
+/** Por producto: cuánto descuento total se le aplicó y a qué promo pertenece. */
 export type PerProductPromo = {
   productId: string;
   promotionId: string;
   label: string;
   participating: boolean;
-  discountAmount: number; // descuento que recibió ESTE producto
+  discountAmount: number;
 };
 
 /**
- * Calcula los descuentos por promociones. Para cada promo activa, agrupa las
- * unidades participantes de menor a mayor precio y emparejadas; al elemento
- * de menor precio de cada par se le aplica el descuento.
+ * Ordena por prioridad (desc) y aplica una sola promoción por producto
+ * (la de mayor prioridad). Si dos tienen igual prioridad gana la más reciente
+ * (orden de entrada).
  */
+const sortByPriority = (promotions: Promotion[]) =>
+  [...promotions].sort((a, b) => (b.priority || 0) - (a.priority || 0));
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** Devuelve descuento aplicado a una serie de unidades según la variante. */
+const computeForUnits = (
+  p: Promotion,
+  units: { productId: string; price: number }[],
+): { totalDiscount: number; perUnit: number[] } => {
+  const v = variantOf(p);
+  const pct = Math.max(0, Math.min(100, p.discount_percent || 0));
+  const perUnit: number[] = new Array(units.length).fill(0);
+  if (!units.length) return { totalDiscount: 0, perUnit };
+
+  if (v === "second_free" || v === "two_for_one" || v === "second_discount") {
+    if (units.length < 2) return { totalDiscount: 0, perUnit };
+    const sorted = units
+      .map((u, i) => ({ ...u, i }))
+      .sort((a, b) => a.price - b.price);
+    const pairs = Math.floor(sorted.length / 2);
+    const maxPairs = p.usage_limit_per_order > 0 ? Math.min(pairs, p.usage_limit_per_order) : pairs;
+    const usePct = (v === "second_free" || v === "two_for_one") ? 100 : pct;
+    let total = 0;
+    for (let i = 0; i < maxPairs; i++) {
+      const u = sorted[i];
+      const d = round2((u.price * usePct) / 100);
+      perUnit[u.i] = d;
+      total += d;
+    }
+    return { totalDiscount: round2(total), perUnit };
+  }
+
+  if (v === "percent_off") {
+    let total = 0;
+    units.forEach((u, i) => {
+      const d = round2((u.price * pct) / 100);
+      perUnit[i] = d;
+      total += d;
+    });
+    return { totalDiscount: round2(total), perUnit };
+  }
+
+  if (v === "fixed_off") {
+    const amt = Math.max(0, p.discount_amount || 0);
+    let total = 0;
+    units.forEach((u, i) => {
+      const d = Math.min(amt, u.price);
+      perUnit[i] = round2(d);
+      total += d;
+    });
+    return { totalDiscount: round2(total), perUnit };
+  }
+
+  if (v === "quantity_discount") {
+    const min = Math.max(1, p.min_quantity || 2);
+    if (units.length < min) return { totalDiscount: 0, perUnit };
+    let total = 0;
+    units.forEach((u, i) => {
+      const d = round2((u.price * pct) / 100);
+      perUnit[i] = d;
+      total += d;
+    });
+    return { totalDiscount: round2(total), perUnit };
+  }
+
+  // custom: no auto-calc
+  return { totalDiscount: 0, perUnit };
+};
+
+/** Calcula los descuentos totales. Una promo gana por producto (mayor prioridad). */
 export const computePromotions = (
   items: CartItem[],
   promotions: Promotion[],
@@ -93,45 +264,42 @@ export const computePromotions = (
   const applied: AppliedPromo[] = [];
   let totalDiscount = 0;
   const units = expandUnits(items);
+  const claimed = new Set<number>(); // unit index already covered by a promo
 
-  for (const p of promotions) {
+  for (const p of sortByPriority(promotions)) {
     if (!isPromoActiveNow(p, now)) continue;
     if (!p.product_ids?.length) continue;
-    const participating = units
-      .filter((u) => p.product_ids.includes(u.productId))
-      .sort((a, b) => a.price - b.price); // menor a mayor
-    if (participating.length < 2) continue;
 
-    const pairs = Math.floor(participating.length / 2);
-    const maxPairs = p.usage_limit_per_order > 0 ? Math.min(pairs, p.usage_limit_per_order) : pairs;
-    if (maxPairs <= 0) continue;
+    const participatingIdx: number[] = [];
+    units.forEach((u, i) => {
+      if (claimed.has(i)) return;
+      if (p.product_ids.includes(u.productId)) participatingIdx.push(i);
+    });
+    if (!participatingIdx.length) continue;
+    const sub = participatingIdx.map((i) => units[i]);
 
-    const pct = p.benefit_type === "second_free" ? 100 : Math.max(0, Math.min(100, p.discount_percent));
-    let amount = 0;
-    // Tomamos los `maxPairs` precios MÁS BAJOS — son los que reciben el descuento.
-    for (let i = 0; i < maxPairs; i++) {
-      amount += (participating[i].price * pct) / 100;
-    }
-    amount = Math.round(amount * 100) / 100;
-    if (amount <= 0) continue;
+    const { totalDiscount: d, perUnit } = computeForUnits(p, sub);
+    if (d <= 0) continue;
 
-    totalDiscount += amount;
+    // claim only units that actually received discount > 0
+    perUnit.forEach((amt, k) => {
+      if (amt > 0) claimed.add(participatingIdx[k]);
+    });
+
+    totalDiscount += d;
     applied.push({
       promotionId: p.id,
       name: p.name,
       label: promoLabel(p),
-      amount,
+      amount: d,
       message: promoCartMessage(p),
     });
   }
 
-  return { totalDiscount: Math.round(totalDiscount * 100) / 100, applied };
+  return { totalDiscount: round2(totalDiscount), applied };
 };
 
-/**
- * Devuelve, por productId, si participa en alguna promo activa y cuánto
- * descuento total recibió ESE producto en el cálculo BOGO actual.
- */
+/** Detalle por producto del descuento recibido (para mostrar en línea). */
 export const perProductPromoBreakdown = (
   items: CartItem[],
   promotions: Promotion[],
@@ -139,12 +307,13 @@ export const perProductPromoBreakdown = (
 ): Record<string, PerProductPromo> => {
   const out: Record<string, PerProductPromo> = {};
   const units = expandUnits(items);
+  const claimed = new Set<number>();
 
-  for (const p of promotions) {
+  for (const p of sortByPriority(promotions)) {
     if (!isPromoActiveNow(p, now)) continue;
     if (!p.product_ids?.length) continue;
 
-    // Marca participación (aunque aún no alcance el mínimo de 2 unidades).
+    // mark participation for badges even if not yet active
     for (const pid of p.product_ids) {
       if (!items.some((i) => i.product.id === pid)) continue;
       if (!out[pid]) {
@@ -158,20 +327,20 @@ export const perProductPromoBreakdown = (
       }
     }
 
-    const participating = units
-      .map((u, idx) => ({ ...u, idx }))
-      .filter((u) => p.product_ids.includes(u.productId))
-      .sort((a, b) => a.price - b.price);
-    if (participating.length < 2) continue;
+    const participatingIdx: number[] = [];
+    units.forEach((u, i) => {
+      if (claimed.has(i)) return;
+      if (p.product_ids.includes(u.productId)) participatingIdx.push(i);
+    });
+    if (!participatingIdx.length) continue;
+    const sub = participatingIdx.map((i) => units[i]);
+    const { perUnit } = computeForUnits(p, sub);
 
-    const pairs = Math.floor(participating.length / 2);
-    const maxPairs = p.usage_limit_per_order > 0 ? Math.min(pairs, p.usage_limit_per_order) : pairs;
-    if (maxPairs <= 0) continue;
-
-    const pct = p.benefit_type === "second_free" ? 100 : Math.max(0, Math.min(100, p.discount_percent));
-    for (let i = 0; i < maxPairs; i++) {
-      const u = participating[i];
-      const disc = Math.round(((u.price * pct) / 100) * 100) / 100;
+    perUnit.forEach((amt, k) => {
+      if (amt <= 0) return;
+      const idx = participatingIdx[k];
+      const u = units[idx];
+      claimed.add(idx);
       if (!out[u.productId]) {
         out[u.productId] = {
           productId: u.productId,
@@ -181,35 +350,51 @@ export const perProductPromoBreakdown = (
           discountAmount: 0,
         };
       }
-      out[u.productId].discountAmount = Math.round((out[u.productId].discountAmount + disc) * 100) / 100;
-    }
+      out[u.productId].discountAmount = round2(out[u.productId].discountAmount + amt);
+    });
   }
   return out;
 };
 
 /** Devuelve las promociones activas aplicables a un producto. */
 export const promosForProduct = (productId: string, promotions: Promotion[], now: Date = new Date()) =>
-  promotions.filter((p) => isPromoActiveNow(p, now) && p.product_ids.includes(productId));
+  sortByPriority(
+    promotions.filter((p) => isPromoActiveNow(p, now) && p.product_ids.includes(productId)),
+  );
 
-/**
- * Devuelve promociones activas en las que el carrito tiene al menos 1 unidad
- * participante pero aún no llega al mínimo de 2 unidades para activar el beneficio.
- * Útil para sugerir al cliente que agregue otro producto participante.
- */
+/** Promos activas en las que falta al menos 1 unidad participante para activarse. */
 export const pendingPromoNudges = (
   items: CartItem[],
   promotions: Promotion[],
   now: Date = new Date(),
-): { promotion: Promotion; participatingUnits: number; label: string; title: string }[] => {
+): { promotion: Promotion; participatingUnits: number; missing: number; label: string; title: string; message: string }[] => {
   const units = expandUnits(items);
-  const out: { promotion: Promotion; participatingUnits: number; label: string; title: string }[] = [];
+  const out: { promotion: Promotion; participatingUnits: number; missing: number; label: string; title: string; message: string }[] = [];
   for (const p of promotions) {
     if (!isPromoActiveNow(p, now)) continue;
     if (!p.product_ids?.length) continue;
+    const v = variantOf(p);
     const count = units.filter((u) => p.product_ids.includes(u.productId)).length;
-    if (count >= 1 && count < 2) {
-      out.push({ promotion: p, participatingUnits: count, label: promoLabel(p), title: promoTitle(p) });
+    if (count < 1) continue;
+
+    let needed = 0;
+    if (v === "second_discount" || v === "second_free" || v === "two_for_one") {
+      needed = 2;
+    } else if (v === "quantity_discount") {
+      needed = Math.max(1, p.min_quantity || 2);
+    } else {
+      continue; // percent/fixed/custom don't need accumulation
     }
+    if (count >= needed) continue;
+    const missing = needed - count;
+    out.push({
+      promotion: p,
+      participatingUnits: count,
+      missing,
+      label: promoLabel(p),
+      title: promoTitle(p),
+      message: promoCartProgress(p, missing),
+    });
   }
   return out;
 };
