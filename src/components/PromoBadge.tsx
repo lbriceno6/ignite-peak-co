@@ -7,7 +7,7 @@ export const PromoBadge = ({
   promotion,
   className,
 }: {
-  promotion: Pick<Promotion, "benefit_type" | "discount_percent">;
+  promotion: Pick<Promotion, "benefit_type" | "discount_percent"> & Partial<Pick<Promotion, "variant" | "discount_amount" | "badge_label">>;
   className?: string;
 }) => (
   <Badge
