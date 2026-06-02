@@ -273,13 +273,30 @@ export default function AdminHomeBlocks() {
               { id: "banner_2", uploaded_image_url: "", custom_image_url: "", link_url: "", alt_text: "Promoción especial 2", open_new_tab: false, is_active: true, sort_order: 2 },
             ],
           }
+        : type === "instagram_testimonials"
+        ? {
+            eyebrow: "Comunidad",
+            subtitle: "Historias reales de quienes confían en nuestros productos.",
+            desktopColumns: 4,
+            mobileLayout: "carousel",
+            showButton: false,
+            buttonText: "Ver Instagram",
+            buttonUrl: "https://instagram.com/",
+            backgroundColor: "",
+            spacingTop: 64,
+            spacingBottom: 64,
+            limit: 8,
+          }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
       block_key: newKey,
       block_type: type,
       sort_order: maxOrder + 10,
       is_active: false,
-      title: type === "category_showcase" ? "NUESTRAS CATEGORÍAS" : meta.name,
+      title:
+        type === "category_showcase" ? "NUESTRAS CATEGORÍAS"
+        : type === "instagram_testimonials" ? "SÍGUENOS EN INSTAGRAM"
+        : meta.name,
       settings: defaultSettings,
     } as any);
     if (error) { toast.error(error.message); return; }
