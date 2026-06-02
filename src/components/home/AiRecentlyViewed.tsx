@@ -7,6 +7,7 @@ import {
   getRecentlyViewedSlugs,
   type BrowseSignal,
 } from "@/lib/userPersonalization";
+import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
 
 type AnyProduct = Product & { id: string; slug: string };
 
@@ -37,6 +38,7 @@ export function AiRecentlyViewed({
   autoplay = false,
   hideIfEmpty = true,
 }: Props) {
+  const enabled = useAiBlockEnabled("home_recently_viewed");
   const [signals, setSignals] = useState<BrowseSignal[] | null>(null);
 
   useEffect(() => {
@@ -55,6 +57,7 @@ export function AiRecentlyViewed({
     return slugs.map((s) => bySlug.get(s)).filter(Boolean) as AnyProduct[];
   }, [signals, products, totalProducts]);
 
+  if (!enabled) return null;
   if (items === null) return null;
   if (!items.length && hideIfEmpty) return null;
   if (!items.length) return null;

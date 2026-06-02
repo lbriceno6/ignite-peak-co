@@ -10,6 +10,7 @@ import {
   type BrowseSignal,
   type Intent,
 } from "@/lib/userPersonalization";
+import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
 
 type AnyProduct = Product & { id: string; slug: string; category?: string | null };
 
@@ -44,8 +45,10 @@ export function AiRecommendedForYou({
   autoplay = true,
   hideIfNoSignal = false,
 }: Props) {
+  const enabled = useAiBlockEnabled("home_recommended");
   const [signals, setSignals] = useState<BrowseSignal[] | null>(null);
   const [intents, setIntents] = useState<Intent[]>([]);
+
 
   useEffect(() => {
     let active = true;
@@ -70,6 +73,7 @@ export function AiRecommendedForYou({
     return ranked.slice(0, Math.max(1, totalProducts));
   }, [products, signals, intents, totalProducts]);
 
+  if (!enabled) return null;
   if (items === null) return null;
   if (!items.length) return null;
   if (hideIfNoSignal && !hasSignal) return null;

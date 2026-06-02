@@ -8,6 +8,7 @@ import {
   resolveCurrentIntent,
   type Intent,
 } from "@/lib/userPersonalization";
+import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
 
 type Props = {
   blockId: string;
@@ -40,8 +41,10 @@ export function AiDynamicBanner({
   rounded = true,
   hideIfNoSignal = false,
 }: Props) {
+  const enabled = useAiBlockEnabled("home_dynamic_banner");
   const [intent, setIntent] = useState<Intent | null>(null);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     let active = true;
@@ -61,6 +64,7 @@ export function AiDynamicBanner({
     return () => { active = false; };
   }, [fallbackIntentSlug]);
 
+  if (!enabled) return null;
   if (loading) return null;
   if (!intent && hideIfNoSignal && !fallbackTitle) return null;
 
