@@ -66,6 +66,33 @@ export default function AdminHomeBlocks() {
     load();
   };
 
+  const duplicate = async (b: Block) => {
+    try {
+      const suffix = Math.random().toString(36).slice(2, 7);
+      const newKey = `${b.block_key}-copy-${suffix}`.slice(0, 80);
+      const maxOrder = blocks.reduce((m, x) => Math.max(m, x.sort_order), 0);
+      const { error } = await supabase.from("home_blocks").insert({
+        block_key: newKey,
+        block_type: b.block_type,
+        sort_order: maxOrder + 1,
+        is_active: false,
+        eyebrow: b.eyebrow,
+        title: b.title ? `Copia de ${b.title}` : `Copia de ${b.block_key}`,
+        subtitle: b.subtitle,
+        cta_label: b.cta_label,
+        cta_href: b.cta_href,
+        cta2_label: b.cta2_label,
+        cta2_href: b.cta2_href,
+        image_url: b.image_url,
+      });
+      if (error) throw error;
+      toast.success("Sección duplicada correctamente (oculta).");
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div>
