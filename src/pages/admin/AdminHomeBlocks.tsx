@@ -163,7 +163,8 @@ function BlockEditor({
         cta_label: f.cta_label, cta_href: f.cta_href,
         cta2_label: f.cta2_label, cta2_href: f.cta2_href,
         image_url: f.image_url,
-      }).eq("id", block.id);
+        settings: f.settings ?? {},
+      } as any).eq("id", block.id);
       if (error) throw error;
       toast.success("Section saved");
       onChanged();
