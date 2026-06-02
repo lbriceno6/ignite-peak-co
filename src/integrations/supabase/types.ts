@@ -68,6 +68,48 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_reco_settings: {
+        Row: {
+          api_key_secret_name: string | null
+          base_url: string | null
+          confidence_threshold: number
+          created_at: string
+          enabled: boolean
+          id: number
+          model: string
+          provider: string
+          system_prompt: string
+          temperature: number
+          updated_at: string
+        }
+        Insert: {
+          api_key_secret_name?: string | null
+          base_url?: string | null
+          confidence_threshold?: number
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          model?: string
+          provider?: string
+          system_prompt?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Update: {
+          api_key_secret_name?: string | null
+          base_url?: string | null
+          confidence_threshold?: number
+          created_at?: string
+          enabled?: boolean
+          id?: number
+          model?: string
+          provider?: string
+          system_prompt?: string
+          temperature?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       analytics_settings: {
         Row: {
           ads_enabled: boolean
@@ -2423,6 +2465,66 @@ export type Database = {
           updated_at?: string
           usage_limit_per_order?: number
           variant?: string | null
+        }
+        Relationships: []
+      }
+      purchase_intents: {
+        Row: {
+          banner_image: string | null
+          category_slugs: string[]
+          created_at: string
+          cta_text: string | null
+          cta_url: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          keywords: string[]
+          name: string
+          pack_ids: string[]
+          priority: number
+          product_ids: string[]
+          slug: string
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          banner_image?: string | null
+          category_slugs?: string[]
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          name: string
+          pack_ids?: string[]
+          priority?: number
+          product_ids?: string[]
+          slug: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          banner_image?: string | null
+          category_slugs?: string[]
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          keywords?: string[]
+          name?: string
+          pack_ids?: string[]
+          priority?: number
+          product_ids?: string[]
+          slug?: string
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
