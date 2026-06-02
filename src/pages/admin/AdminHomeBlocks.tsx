@@ -402,41 +402,158 @@ function PromotionsCarouselSettings({
       </div>
 
       {mode === "manual" && (
-        <div>
-          <Label className="text-xs">Promociones a incluir</Label>
-          {loading ? (
-            <p className="mt-2 text-xs text-muted-foreground">Cargando promociones…</p>
-          ) : promos.length === 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              Aún no hay promociones. Créalas desde la sección Promociones.
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Orden del carrusel (arrastra para reordenar)</Label>
+            {loading ? (
+              <p className="mt-2 text-xs text-muted-foreground">Cargando promociones…</p>
+            ) : selected.length === 0 ? (
+              <p className="mt-2 rounded-md border border-dashed bg-background p-3 text-xs text-muted-foreground">
+                No has seleccionado promociones todavía. Agrégalas desde la lista de abajo.
+              </p>
+            ) : (
+              <SortablePromotionList
+                ids={selected}
+                promos={promos}
+                onReorder={(next) => onChange({ promotion_ids: next })}
+                onRemove={(id) => onChange({ promotion_ids: selected.filter((x) => x !== id) })}
+              />
+            )}
+          </div>
+
+          <div>
+            <Label className="text-xs">Agregar promociones</Label>
+            {loading ? null : (
+              <div className="mt-2 max-h-56 space-y-1 overflow-auto rounded-md border bg-background p-2">
+                {promos.filter((p) => !selected.includes(p.id)).length === 0 ? (
+                  <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                    Todas las promociones disponibles ya están en el carrusel.
+                  </p>
+                ) : (
+                  promos
+                    .filter((p) => !selected.includes(p.id))
+                    .map((p) => (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => onChange({ promotion_ids: [...selected, p.id] })}
+                        className="flex w-full items-center justify-between gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
+                      >
+                        <span>{p.name}</span>
+                        <span className="flex items-center gap-2">
+                          {!p.is_active && (
+                            <span className="text-[10px] uppercase tracking-wide text-muted-foreground">inactiva</span>
+                          )}
+                          <span className="text-xs text-accent">+ Agregar</span>
+                        </span>
+                      </button>
+                    ))
+                )}
+              </div>
+            )}
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Solo se mostrarán promociones activas y dentro de su rango de fechas. Recuerda guardar la sección.
             </p>
-          ) : (
-            <div className="mt-2 max-h-64 space-y-1 overflow-auto rounded-md border bg-background p-2">
-              {promos.map((p) => (
-                <label
-                  key={p.id}
-                  className="flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
-                >
-                  <span className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(p.id)}
-                      onChange={() => togglePromo(p.id)}
-                    />
-                    <span>{p.name}</span>
-                  </span>
-                  {!p.is_active && (
-                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">inactiva</span>
-                  )}
-                </label>
-              ))}
-            </div>
-          )}
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Solo se mostrarán promociones activas y dentro de su rango de fechas.
-          </p>
+          </div>
         </div>
       )}
     </div>
+  );
+}
+
+function SortablePromotionList({
+  ids,
+  promos,
+  onReorder,
+  onRemove,
+}: {
+  ids: string[];
+  promos: PromotionRow[];
+  onReorder: (next: string[]) => void;
+  onRemove: (id: string) => void;
+}) {
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+  const byId = new Map(promos.map((p) => [p.id, p]));
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={(e) => {
+        const { active, over } = e;
+        if (!over || active.id === over.id) return;
+        const oldIndex = ids.indexOf(String(active.id));
+        const newIndex = ids.indexOf(String(over.id));
+        if (oldIndex < 0 || newIndex < 0) return;
+        onReorder(arrayMove(ids, oldIndex, newIndex));
+      }}
+    >
+      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+        <ul className="mt-2 max-h-72 space-y-1 overflow-auto rounded-md border bg-background p-2">
+          {ids.map((id, i) => {
+            const p = byId.get(id);
+            return (
+              <SortablePromoRow
+                key={id}
+                id={id}
+                index={i}
+                name={p?.name ?? "Promoción eliminada"}
+                inactive={p ? !p.is_active : true}
+                missing={!p}
+                onRemove={() => onRemove(id)}
+              />
+            );
+          })}
+        </ul>
+      </SortableContext>
+    </DndContext>
+  );
+}
+
+function SortablePromoRow({
+  id, index, name, inactive, missing, onRemove,
+}: {
+  id: string; index: number; name: string; inactive: boolean; missing: boolean; onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.6 : 1,
+  };
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between gap-2 rounded border bg-background px-2 py-1.5 text-sm"
+    >
+      <span className="flex items-center gap-2 min-w-0">
+        <button
+          type="button"
+          className="cursor-grab touch-none rounded p-1 text-muted-foreground hover:bg-muted active:cursor-grabbing"
+          aria-label="Arrastrar para reordenar"
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical size={14} />
+        </button>
+        <span className="rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-semibold tabular-nums">
+          {index + 1}
+        </span>
+        <span className="truncate">{name}</span>
+        {inactive && !missing && (
+          <span className="text-[10px] uppercase tracking-wide text-muted-foreground">inactiva</span>
+        )}
+        {missing && (
+          <span className="text-[10px] uppercase tracking-wide text-destructive">no existe</span>
+        )}
+      </span>
+      <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
+        Quitar
+      </Button>
+    </li>
   );
 }
