@@ -556,7 +556,17 @@ const ProductDetail = () => {
       </div>
 
       <ProductReviews productId={dbp.id} />
-      {related.length > 0 && (
+
+      <AiProductRelated
+        productSlug={dbp.slug}
+        productName={dbp.name}
+        productCategory={dbp.category}
+        productShortDescription={dbp.short_description}
+        max={4}
+        onPicksReady={(n) => setAiRelatedCount(n)}
+      />
+
+      {aiRelatedCount === 0 && related.length > 0 && (
         <section className="container-x pb-20">
           <h2 className="font-display text-2xl uppercase sm:text-3xl">También te puede gustar</h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
