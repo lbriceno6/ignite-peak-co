@@ -92,6 +92,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_prompt_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          function_name: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          system_prompt: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          function_name: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          system_prompt: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          function_name?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          system_prompt?: string
+        }
+        Relationships: []
+      }
       ai_reco_settings: {
         Row: {
           api_key_secret_name: string | null
@@ -4020,6 +4050,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      get_active_ai_prompt: {
+        Args: { _function_name: string }
+        Returns: string
       }
       has_role: {
         Args: {
