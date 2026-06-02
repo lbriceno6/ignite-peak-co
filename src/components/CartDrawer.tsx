@@ -8,6 +8,7 @@ import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
 import { shippingSettings } from "@/store/cart";
 
 export const CartDrawer = () => {
