@@ -179,7 +179,7 @@ export function PromotionsCarousel({ block, products }: Props) {
               ))}
             </CarouselContent>
 
-            {items.length > 4 && (
+            {items.length > perViewDesktop && (
               <>
                 <button
                   type="button"
