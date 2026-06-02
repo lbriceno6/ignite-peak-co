@@ -649,6 +649,41 @@ const Home = () => {
             </div>
           </section>
         );
+
+      case "custom_simple": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const align: "left" | "center" | "right" = ["left", "center", "right"].includes(s.alignment) ? s.alignment : "left";
+        const bg = typeof s.bg_color === "string" && s.bg_color.trim() ? s.bg_color : undefined;
+        const alignClass = align === "center" ? "text-center items-center" : align === "right" ? "text-right items-end" : "text-left items-start";
+        return (
+          <section key={b.id} className="py-12" style={bg ? { backgroundColor: bg } : undefined}>
+            <div className={`container-x flex flex-col gap-4 ${alignClass}`}>
+              {b.image_url && (
+                <img src={b.image_url} alt={b.title || ""} className="max-h-80 w-auto rounded-lg object-cover" loading="lazy" />
+              )}
+              {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+              {b.title && <h2 className="font-display text-3xl sm:text-4xl">{b.title}</h2>}
+              {b.subtitle && <p className="max-w-2xl text-muted-foreground">{b.subtitle}</p>}
+              {b.cta_label && b.cta_href && (
+                <Button asChild variant="dark" className="mt-2 w-fit"><Link to={b.cta_href}>{b.cta_label} <ArrowRight size={16} /></Link></Button>
+              )}
+            </div>
+          </section>
+        );
+      }
+
+      case "custom_html": {
+        const html = String((b.settings as any)?.html ?? "");
+        if (!html.trim()) return null;
+        const safe = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+        return (
+          <section key={b.id} className="container-x py-8">
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: safe }} />
+          </section>
+        );
+      }
+
+      default:
         return null;
     }
   };
