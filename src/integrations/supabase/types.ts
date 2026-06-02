@@ -2344,46 +2344,76 @@ export type Database = {
       }
       promotions: {
         Row: {
+          badge_label: string | null
+          benefit_message: string | null
           benefit_type: Database["public"]["Enums"]["promotion_benefit_type"]
+          cart_msg_applied: string | null
+          cart_msg_progress: string | null
           created_at: string
+          discount_amount: number
           discount_percent: number
           end_date: string | null
           id: string
           is_active: boolean
+          min_quantity: number
           name: string
+          priority: number
+          show_in_carousel: boolean
           show_on_home: boolean
           show_on_product: boolean
+          sort_order_home: number
           start_date: string | null
           updated_at: string
           usage_limit_per_order: number
+          variant: string | null
         }
         Insert: {
+          badge_label?: string | null
+          benefit_message?: string | null
           benefit_type?: Database["public"]["Enums"]["promotion_benefit_type"]
+          cart_msg_applied?: string | null
+          cart_msg_progress?: string | null
           created_at?: string
+          discount_amount?: number
           discount_percent?: number
           end_date?: string | null
           id?: string
           is_active?: boolean
+          min_quantity?: number
           name: string
+          priority?: number
+          show_in_carousel?: boolean
           show_on_home?: boolean
           show_on_product?: boolean
+          sort_order_home?: number
           start_date?: string | null
           updated_at?: string
           usage_limit_per_order?: number
+          variant?: string | null
         }
         Update: {
+          badge_label?: string | null
+          benefit_message?: string | null
           benefit_type?: Database["public"]["Enums"]["promotion_benefit_type"]
+          cart_msg_applied?: string | null
+          cart_msg_progress?: string | null
           created_at?: string
+          discount_amount?: number
           discount_percent?: number
           end_date?: string | null
           id?: string
           is_active?: boolean
+          min_quantity?: number
           name?: string
+          priority?: number
+          show_in_carousel?: boolean
           show_on_home?: boolean
           show_on_product?: boolean
+          sort_order_home?: number
           start_date?: string | null
           updated_at?: string
           usage_limit_per_order?: number
+          variant?: string | null
         }
         Relationships: []
       }
