@@ -388,6 +388,24 @@ const Home = () => {
         );
       }
 
+      case "promotions_carousel":
+        return (
+          <PromotionsCarousel
+            key={b.id}
+            block={{
+              id: b.id,
+              eyebrow: b.eyebrow,
+              title: b.title,
+              subtitle: b.subtitle,
+              cta_label: b.cta_label,
+              cta_href: b.cta_href,
+            }}
+            products={products}
+          />
+        );
+
+
+
       case "goals": {
         const displayGoals = goalCards.length
           ? goalCards.map((g) => ({
