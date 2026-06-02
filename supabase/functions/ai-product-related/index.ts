@@ -119,7 +119,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
+    const defaultSystem = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
 Tarea: dado un producto actual que un cliente está viendo, su intención de compra y su historial reciente,
 elegir hasta ${max} productos RELACIONADOS o complementarios del catálogo.
 Reglas estrictas:
@@ -129,6 +129,7 @@ Reglas estrictas:
 - Si hay intención clara (intent_name), refuerza esa intención.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu pre-entreno", "Para tu objetivo: energía", "Lo más comprado junto".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
+    const system = await getActivePrompt("ai-product-related", defaultSystem);
 
     const user = JSON.stringify({
       product: body.product,
