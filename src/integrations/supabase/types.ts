@@ -1382,10 +1382,12 @@ export type Database = {
           cta_label: string | null
           cta2_href: string | null
           cta2_label: string | null
+          deleted_at: string | null
           eyebrow: string | null
           id: string
           image_url: string | null
           is_active: boolean
+          is_deleted: boolean
           settings: Json
           sort_order: number
           subtitle: string | null
@@ -1400,10 +1402,12 @@ export type Database = {
           cta_label?: string | null
           cta2_href?: string | null
           cta2_label?: string | null
+          deleted_at?: string | null
           eyebrow?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_deleted?: boolean
           settings?: Json
           sort_order?: number
           subtitle?: string | null
@@ -1418,10 +1422,12 @@ export type Database = {
           cta_label?: string | null
           cta2_href?: string | null
           cta2_label?: string | null
+          deleted_at?: string | null
           eyebrow?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          is_deleted?: boolean
           settings?: Json
           sort_order?: number
           subtitle?: string | null
