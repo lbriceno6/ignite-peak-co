@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import {
   Sparkles, ShoppingCart, CreditCard, Search, Home, Eye, PackageCheck,
-  Activity, ExternalLink, FlaskConical, TrendingUp,
+  Activity, ExternalLink, FlaskConical, TrendingUp, Target,
 } from "lucide-react";
 import {
   useAllAiBlockToggles,
@@ -28,6 +28,7 @@ import {
 } from "@/hooks/useAiBlockToggles";
 import { AiPromptLab } from "@/components/admin/AiPromptLab";
 import { AiConversionMetrics } from "@/components/admin/AiConversionMetrics";
+import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
 
 type Metrics = {
   productViews: number;
