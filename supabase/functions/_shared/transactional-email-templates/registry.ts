@@ -11,8 +11,10 @@ export interface TemplateEntry {
 
 import { template as supplierStatusUpdate } from './supplier-status-update.tsx'
 import { template as adminSupplierEvent } from './admin-supplier-event.tsx'
+import { template as orderConfirmationAi } from './order-confirmation-ai.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'supplier-status-update': supplierStatusUpdate,
   'admin-supplier-event': adminSupplierEvent,
+  'order-confirmation-ai': orderConfirmationAi,
 }
