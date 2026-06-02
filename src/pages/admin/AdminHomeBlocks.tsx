@@ -236,13 +236,32 @@ export default function AdminHomeBlocks() {
     const suffix = Math.random().toString(36).slice(2, 7);
     const newKey = `${type}-${suffix}`;
     const maxOrder = blocks.reduce((m, x) => Math.max(m, x.sort_order), 0);
+    const defaultSettings: Record<string, any> =
+      type === "category_showcase"
+        ? {
+            layout: "grid",
+            desktopColumns: 4,
+            tabletColumns: 2,
+            mobileLayout: "carousel",
+            showButton: false,
+            buttonText: "Ver todas las categorías",
+            buttonUrl: "/categorias",
+            backgroundColor: "",
+            spacingTop: 60,
+            spacingBottom: 60,
+            selectionMode: "manual",
+            autoLimit: 4,
+            animations: true,
+            items: DEFAULT_SHOWCASE_ITEMS,
+          }
+        : {};
     const { error } = await supabase.from("home_blocks").insert({
       block_key: newKey,
       block_type: type,
       sort_order: maxOrder + 10,
       is_active: false,
-      title: meta.name,
-      settings: {},
+      title: type === "category_showcase" ? "NUESTRAS CATEGORÍAS" : meta.name,
+      settings: defaultSettings,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success(`Sección "${meta.name}" añadida (oculta). Edítala y actívala cuando esté lista.`);
