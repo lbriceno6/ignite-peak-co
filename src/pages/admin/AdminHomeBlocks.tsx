@@ -1311,3 +1311,264 @@ function NewProductsSettings({
     </div>
   );
 }
+
+// ============== Category Showcase (Nuestras Categorías) ==============
+
+type CategoryLite = { id: string; name: string; slug: string; image_url: string | null };
+type ShowcaseItem = {
+  id?: string;
+  categorySlug?: string;
+  customTitle?: string;
+  customImageUrl?: string;
+  backgroundColor?: string;
+  gradientColor?: string;
+  useGradient?: boolean;
+  textColor?: string;
+  customUrl?: string;
+  isActive?: boolean;
+};
+
+function CategoryShowcaseSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const [cats, setCats] = useState<CategoryLite[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("id,name,slug,image_url")
+        .eq("type", "product")
+        .eq("is_active", true)
+        .order("sort_order").order("name");
+      setCats((data as CategoryLite[]) ?? []);
+    })();
+  }, []);
+
+  const items: ShowcaseItem[] = Array.isArray(settings.items) ? settings.items : [];
+  const selectionMode: "manual" | "auto" =
+    settings.selectionMode === "auto" ? "auto" : "manual";
+  const desktopColumns = Math.min(6, Math.max(3, Number(settings.desktopColumns ?? 4) || 4));
+  const mobileLayout: "grid" | "carousel" =
+    settings.mobileLayout === "grid" ? "grid" : "carousel";
+  const showButton = !!settings.showButton;
+  const autoLimit = Math.min(12, Math.max(2, Number(settings.autoLimit ?? 4) || 4));
+  const bg = typeof settings.backgroundColor === "string" ? settings.backgroundColor : "";
+
+  const updateItems = (next: ShowcaseItem[]) => onChange({ items: next });
+  const addItem = () =>
+    updateItems([
+      ...items,
+      { customTitle: "Nueva categoría", backgroundColor: "#8F87F1", gradientColor: "#746AE8", useGradient: true, textColor: "#FFFFFF", isActive: true },
+    ]);
+  const removeItem = (i: number) => updateItems(items.filter((_, idx) => idx !== i));
+  const duplicateItem = (i: number) =>
+    updateItems([...items.slice(0, i + 1), { ...items[i] }, ...items.slice(i + 1)]);
+  const editItem = (i: number, patch: Partial<ShowcaseItem>) =>
+    updateItems(items.map((it, idx) => (idx === i ? { ...it, ...patch } : it)));
+  const moveItem = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    updateItems(arr);
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Diseño Nuestras Categorías
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Columnas en escritorio</Label>
+          <div className="mt-1 flex gap-1.5">
+            {[3, 4, 5, 6].map((n) => (
+              <button key={n} type="button" onClick={() => onChange({ desktopColumns: n })}
+                className={`h-9 flex-1 rounded-md border text-sm transition ${desktopColumns === n ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Móvil</Label>
+          <div className="mt-1 flex gap-1.5">
+            {(["carousel", "grid"] as const).map((m) => (
+              <button key={m} type="button" onClick={() => onChange({ mobileLayout: m })}
+                className={`h-9 flex-1 rounded-md border text-sm transition ${mobileLayout === m ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>
+                {m === "carousel" ? "Carrusel" : "Grilla"}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <Label className="text-xs">Espacio superior (px)</Label>
+          <Input type="number" min={0} max={200} value={Number(settings.spacingTop ?? 60)}
+            onChange={(e) => onChange({ spacingTop: Math.max(0, Math.min(200, Number(e.target.value) || 0)) })} />
+        </div>
+        <div>
+          <Label className="text-xs">Espacio inferior (px)</Label>
+          <Input type="number" min={0} max={200} value={Number(settings.spacingBottom ?? 60)}
+            onChange={(e) => onChange({ spacingBottom: Math.max(0, Math.min(200, Number(e.target.value) || 0)) })} />
+        </div>
+        <div>
+          <Label className="text-xs">Color de fondo de la sección</Label>
+          <div className="mt-1 flex gap-2">
+            <Input type="color" value={bg || "#ffffff"} onChange={(e) => onChange({ backgroundColor: e.target.value })} className="h-9 w-16 p-1" />
+            <Input value={bg} onChange={(e) => onChange({ backgroundColor: e.target.value })} placeholder="vacío" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-4 rounded-md border bg-background p-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={!!settings.animations} onCheckedChange={(v) => onChange({ animations: v })} />
+          <span>Animaciones hover</span>
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Switch checked={showButton} onCheckedChange={(v) => onChange({ showButton: v })} />
+          <span>Mostrar botón "Ver todas las categorías"</span>
+        </label>
+        {showButton && (
+          <>
+            <Input className="max-w-[220px]" placeholder="Texto del botón"
+              value={String(settings.buttonText ?? "")}
+              onChange={(e) => onChange({ buttonText: e.target.value })} />
+            <Input className="max-w-[260px]" placeholder="URL del botón"
+              value={String(settings.buttonUrl ?? "")}
+              onChange={(e) => onChange({ buttonUrl: e.target.value })} />
+          </>
+        )}
+      </div>
+
+      <div className="rounded-md border bg-background p-3 space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Label className="text-xs font-semibold uppercase tracking-wide">Modo de selección</Label>
+          <div className="flex gap-1.5">
+            {(["manual", "auto"] as const).map((m) => (
+              <button key={m} type="button" onClick={() => onChange({ selectionMode: m })}
+                className={`h-8 rounded-md border px-3 text-sm transition ${selectionMode === m ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>
+                {m === "manual" ? "Manual" : "Automático"}
+              </button>
+            ))}
+          </div>
+          {selectionMode === "auto" && (
+            <div className="flex items-center gap-2">
+              <Label className="text-xs">Cantidad</Label>
+              <Input type="number" min={2} max={12} className="w-20" value={autoLimit}
+                onChange={(e) => onChange({ autoLimit: Math.max(2, Math.min(12, Number(e.target.value) || 4)) })} />
+            </div>
+          )}
+        </div>
+        {selectionMode === "auto" && (
+          <p className="text-xs text-muted-foreground">
+            Se mostrarán las primeras {autoLimit} categorías activas (por orden). Las tarjetas usarán los colores predeterminados.
+          </p>
+        )}
+      </div>
+
+      {selectionMode === "manual" && (
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Tarjetas ({items.length})
+            </p>
+            <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addItem}>
+              <Plus size={14} /> Agregar tarjeta
+            </Button>
+          </div>
+
+          {items.length === 0 && (
+            <p className="text-xs text-muted-foreground">Aún no hay tarjetas. Agrega la primera.</p>
+          )}
+
+          {items.map((it, i) => {
+            const bgColor = it.backgroundColor || "#8F87F1";
+            const grad = it.useGradient ? (it.gradientColor || bgColor) : bgColor;
+            return (
+              <div key={i} className="rounded-md border bg-background p-3 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">#{i + 1}</span>
+                  <div className="h-8 w-12 rounded border" style={{ background: `linear-gradient(135deg, ${bgColor}, ${grad})` }} />
+                  <Input className="flex-1" placeholder="Nombre visible (ej. Mundo Gluten Free)"
+                    value={it.customTitle ?? ""} onChange={(e) => editItem(i, { customTitle: e.target.value })} />
+                  <label className="flex items-center gap-1.5 text-xs">
+                    <Switch checked={it.isActive !== false} onCheckedChange={(v) => editItem(i, { isActive: v })} />
+                    <span>Activa</span>
+                  </label>
+                  <div className="flex gap-1">
+                    <Button type="button" variant="ghost" size="icon" onClick={() => moveItem(i, -1)} aria-label="Subir"><ArrowUp size={14} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => moveItem(i, 1)} aria-label="Bajar"><ArrowDown size={14} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => duplicateItem(i)} aria-label="Duplicar"><Copy size={14} /></Button>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removeItem(i)} aria-label="Quitar"><Trash2 size={14} /></Button>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-xs">Categoría asociada</Label>
+                    <select
+                      value={it.categorySlug ?? ""}
+                      onChange={(e) => editItem(i, { categorySlug: e.target.value })}
+                      className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      <option value="">— Sin categoría —</option>
+                      {cats.map((c) => (
+                        <option key={c.id} value={c.slug}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="text-xs">URL personalizada (opcional)</Label>
+                    <Input placeholder="/categoria/gluten-free"
+                      value={it.customUrl ?? ""} onChange={(e) => editItem(i, { customUrl: e.target.value })} />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs">Imagen personalizada (opcional)</Label>
+                  <Input placeholder="https://..."
+                    value={it.customImageUrl ?? ""} onChange={(e) => editItem(i, { customImageUrl: e.target.value })} />
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-4">
+                  <div>
+                    <Label className="text-xs">Color fondo</Label>
+                    <div className="mt-1 flex gap-1">
+                      <Input type="color" value={it.backgroundColor || "#8F87F1"} onChange={(e) => editItem(i, { backgroundColor: e.target.value })} className="h-9 w-12 p-1" />
+                      <Input value={it.backgroundColor ?? ""} onChange={(e) => editItem(i, { backgroundColor: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Color degradado</Label>
+                    <div className="mt-1 flex gap-1">
+                      <Input type="color" value={it.gradientColor || "#746AE8"} onChange={(e) => editItem(i, { gradientColor: e.target.value })} className="h-9 w-12 p-1" />
+                      <Input value={it.gradientColor ?? ""} onChange={(e) => editItem(i, { gradientColor: e.target.value })} />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">Color texto</Label>
+                    <div className="mt-1 flex gap-1">
+                      <Input type="color" value={it.textColor || "#FFFFFF"} onChange={(e) => editItem(i, { textColor: e.target.value })} className="h-9 w-12 p-1" />
+                      <Input value={it.textColor ?? ""} onChange={(e) => editItem(i, { textColor: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="flex items-end">
+                    <label className="flex items-center gap-2 text-sm">
+                      <Switch checked={!!it.useGradient} onCheckedChange={(v) => editItem(i, { useGradient: v })} />
+                      <span>Degradado</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
