@@ -76,6 +76,9 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
   double_promo_banners:{ name: "Banners dobles promocionales", desc: "Dos banners promocionales lado a lado con imágenes editables y enlaces.", hasImage: false, hasCta: false, hasCta2: false },
   instagram_testimonials: { name: "Testimonios Instagram",  desc: "Tarjetas tipo reel/story con imagen o video, nombre y valoración.",         hasImage: false, hasCta: false, hasCta2: false },
+  ai_dynamic_banner:   { name: "Banner dinámico · IA",     desc: "Banner que cambia según la intención de compra detectada del visitante.",   hasImage: true,  hasCta: true,  hasCta2: false },
+  ai_recommended_for_you: { name: "Recomendados para ti · IA", desc: "Carrusel personalizado según historial e intención. Si no hay historial, muestra populares.", hasImage: false, hasCta: true, hasCta2: false },
+  ai_recently_viewed:  { name: "Según lo que viste · IA",  desc: "Carrusel con productos vistos recientemente por el visitante.",              hasImage: false, hasCta: false, hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
