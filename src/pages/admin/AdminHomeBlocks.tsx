@@ -1985,3 +1985,142 @@ function DoubleBannerImageField({
     </div>
   );
 }
+
+function InstagramTestimonialsSettings({
+  settings,
+  onChange,
+}: {
+  settings: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const bg = typeof settings.backgroundColor === "string" ? settings.backgroundColor : "";
+  const desktopColumns = Number(settings.desktopColumns ?? 4);
+  const mobileLayout = settings.mobileLayout === "grid" ? "grid" : "carousel";
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Configuración Testimonios Instagram
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Eyebrow (etiqueta)</Label>
+          <Input
+            value={settings.eyebrow ?? ""}
+            onChange={(e) => onChange({ eyebrow: e.target.value })}
+            placeholder="Comunidad"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Subtítulo</Label>
+          <Input
+            value={settings.subtitle ?? ""}
+            onChange={(e) => onChange({ subtitle: e.target.value })}
+            placeholder="Historias reales…"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Columnas en escritorio</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={String(desktopColumns)}
+            onChange={(e) => onChange({ desktopColumns: Number(e.target.value) })}
+          >
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Diseño en móvil</Label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+            value={mobileLayout}
+            onChange={(e) => onChange({ mobileLayout: e.target.value })}
+          >
+            <option value="carousel">Carrusel</option>
+            <option value="grid">Grilla</option>
+          </select>
+        </div>
+        <div>
+          <Label className="text-xs">Máximo de testimonios (0 = todos)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.limit ?? 0}
+            onChange={(e) => onChange({ limit: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Color de fondo (opcional)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input type="color" value={bg || "#ffffff"} onChange={(e) => onChange({ backgroundColor: e.target.value })} className="h-9 w-16 p-1" />
+            <Input value={bg} onChange={(e) => onChange({ backgroundColor: e.target.value })} placeholder="#ffffff o vacío" />
+            {bg && <Button variant="ghost" size="sm" onClick={() => onChange({ backgroundColor: "" })}>Quitar</Button>}
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado superior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingTop ?? 64}
+            onChange={(e) => onChange({ spacingTop: Number(e.target.value) || 0 })}
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Espaciado inferior (px)</Label>
+          <Input
+            type="number"
+            min={0}
+            value={settings.spacingBottom ?? 64}
+            onChange={(e) => onChange({ spacingBottom: Number(e.target.value) || 0 })}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-md border bg-background p-3">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch
+            checked={!!settings.showButton}
+            onCheckedChange={(v) => onChange({ showButton: v })}
+          />
+          Mostrar botón de Instagram
+        </label>
+        {settings.showButton && (
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label className="text-xs">Texto del botón</Label>
+              <Input
+                value={settings.buttonText ?? ""}
+                onChange={(e) => onChange({ buttonText: e.target.value })}
+                placeholder="Ver Instagram"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">URL del botón</Label>
+              <Input
+                value={settings.buttonUrl ?? ""}
+                onChange={(e) => onChange({ buttonUrl: e.target.value })}
+                placeholder="https://instagram.com/usuario"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-md border bg-background p-3 text-sm">
+        <p className="font-semibold">Testimonios (imagen / video)</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Cada testimonio (subir imagen o video, nombre, valoración, orden, activo/inactivo) se administra desde la sección{" "}
+          <a href="/admin/testimonials" className="font-semibold text-accent underline">
+            Testimonios Instagram
+          </a>
+          . Aquí controlas el diseño, los textos y la visibilidad de la sección en el Home.
+        </p>
+      </div>
+    </div>
+  );
+}
