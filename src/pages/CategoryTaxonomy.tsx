@@ -12,6 +12,10 @@ import {
   slugifyCategory,
 } from "@/lib/productCategories";
 import type { Product } from "@/data/catalog";
+import { CatalogFiltersPanel, applyCatalogFilters } from "@/components/catalog/CatalogFiltersPanel";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
+import type { SelectedFilters } from "@/lib/catalogFilterEngine";
+import { DynamicPricingBanner } from "@/components/pricing/DynamicPricingBanner";
 
 const rowToProduct = (r: any): Product => {
   const priceN = Number(r.price ?? 0) || 0;
