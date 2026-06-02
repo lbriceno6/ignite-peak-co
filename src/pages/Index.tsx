@@ -73,6 +73,7 @@ type HomeBlock = {
   cta2_label: string | null;
   cta2_href: string | null;
   image_url: string | null;
+  settings: Record<string, any> | null;
 };
 
 type GoalCard = {
@@ -399,6 +400,7 @@ const Home = () => {
               subtitle: b.subtitle,
               cta_label: b.cta_label,
               cta_href: b.cta_href,
+              settings: b.settings ?? {},
             }}
             products={products}
           />

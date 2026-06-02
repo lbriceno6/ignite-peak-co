@@ -12,6 +12,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type CarouselSettings = {
+  carousel_mode?: "auto" | "manual";
+  promotion_ids?: string[];
+  max_products?: number;
+};
+
 type Block = {
   id: string;
   block_key: string;
@@ -26,7 +32,10 @@ type Block = {
   cta2_label: string | null;
   cta2_href: string | null;
   image_url: string | null;
+  settings: Record<string, any> | null;
 };
+
+type PromotionRow = { id: string; name: string; is_active: boolean };
 
 const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolean; hasCta: boolean; hasCta2: boolean }> = {
   hero:          { name: "Hero carousel",       desc: "Slides edited from the “Hero carousel” page.", hasImage: false, hasCta: false, hasCta2: false },
@@ -85,7 +94,8 @@ export default function AdminHomeBlocks() {
         cta2_label: b.cta2_label,
         cta2_href: b.cta2_href,
         image_url: b.image_url,
-      });
+        settings: b.settings ?? {},
+      } as any);
       if (error) throw error;
       toast.success("Sección duplicada correctamente (oculta).");
       load();
@@ -153,7 +163,8 @@ function BlockEditor({
         cta_label: f.cta_label, cta_href: f.cta_href,
         cta2_label: f.cta2_label, cta2_href: f.cta2_href,
         image_url: f.image_url,
-      }).eq("id", block.id);
+        settings: f.settings ?? {},
+      } as any).eq("id", block.id);
       if (error) throw error;
       toast.success("Section saved");
       onChanged();
@@ -290,6 +301,14 @@ function BlockEditor({
             </div>
           )}
 
+          {block.block_type === "promotions_carousel" && (
+            <PromotionsCarouselSettings
+              settings={(f.settings ?? {}) as CarouselSettings}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
@@ -298,6 +317,126 @@ function BlockEditor({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PromotionsCarouselSettings({
+  settings,
+  onChange,
+}: {
+  settings: CarouselSettings;
+  onChange: (next: CarouselSettings) => void;
+}) {
+  const [promos, setPromos] = useState<PromotionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const mode: "auto" | "manual" = settings.carousel_mode === "manual" ? "manual" : "auto";
+  const selected: string[] = Array.isArray(settings.promotion_ids) ? settings.promotion_ids : [];
+  const maxProducts: number = Number(settings.max_products ?? 0);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("promotions")
+        .select("id,name,is_active")
+        .order("priority", { ascending: false })
+        .order("created_at", { ascending: false });
+      setPromos((data as PromotionRow[]) ?? []);
+      setLoading(false);
+    })();
+  }, []);
+
+  const togglePromo = (id: string) => {
+    const next = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+    onChange({ promotion_ids: next });
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Configuración del carrusel de promociones
+      </p>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => onChange({ carousel_mode: "auto" })}
+          className={`rounded-md border p-3 text-left text-sm transition ${
+            mode === "auto" ? "border-accent bg-background ring-1 ring-accent" : "bg-background hover:border-foreground/40"
+          }`}
+        >
+          <p className="font-semibold">Automático</p>
+          <p className="text-xs text-muted-foreground">
+            Muestra todas las promociones activas marcadas como “visibles en carrusel”.
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange({ carousel_mode: "manual" })}
+          className={`rounded-md border p-3 text-left text-sm transition ${
+            mode === "manual" ? "border-accent bg-background ring-1 ring-accent" : "bg-background hover:border-foreground/40"
+          }`}
+        >
+          <p className="font-semibold">Manual</p>
+          <p className="text-xs text-muted-foreground">
+            Muestra solo las promociones que selecciones a continuación.
+          </p>
+        </button>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-[1fr,auto] sm:items-end">
+        <div>
+          <Label className="text-xs">Límite de productos a mostrar</Label>
+          <Input
+            type="number"
+            min={0}
+            max={50}
+            value={maxProducts}
+            onChange={(e) => onChange({ max_products: Math.max(0, Number(e.target.value || 0)) })}
+            placeholder="0 = sin límite"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            0 = sin límite. Recomendado: 8–12 productos.
+          </p>
+        </div>
+      </div>
+
+      {mode === "manual" && (
+        <div>
+          <Label className="text-xs">Promociones a incluir</Label>
+          {loading ? (
+            <p className="mt-2 text-xs text-muted-foreground">Cargando promociones…</p>
+          ) : promos.length === 0 ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Aún no hay promociones. Créalas desde la sección Promociones.
+            </p>
+          ) : (
+            <div className="mt-2 max-h-64 space-y-1 overflow-auto rounded-md border bg-background p-2">
+              {promos.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                >
+                  <span className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(p.id)}
+                      onChange={() => togglePromo(p.id)}
+                    />
+                    <span>{p.name}</span>
+                  </span>
+                  {!p.is_active && (
+                    <span className="text-[10px] uppercase tracking-wide text-muted-foreground">inactiva</span>
+                  )}
+                </label>
+              ))}
+            </div>
+          )}
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Solo se mostrarán promociones activas y dentro de su rango de fechas.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
