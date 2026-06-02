@@ -160,10 +160,11 @@ export function PromotionsCarousel({ block, products }: Props) {
 
         <div
           className="relative mt-6 sm:mt-8"
-          style={{ ["--cv-m" as any]: "1", ["--cv-t" as any]: "2", ["--cv-d" as any]: "4" }}
+          style={{ ["--cv-m" as any]: "1", ["--cv-t" as any]: String(perViewTablet), ["--cv-d" as any]: String(perViewDesktop) }}
         >
           <Carousel
-            opts={{ align: "start", loop: items.length > 4, dragFree: false }}
+            opts={{ align: "start", loop: items.length > perViewDesktop, dragFree: false }}
+
             setApi={setApi}
             className="w-full"
           >
