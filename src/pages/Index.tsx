@@ -12,8 +12,8 @@ import { Stars } from "@/components/Stars";
 import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
-import { useProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
+import type { ProductsCarouselConfig, CarouselSource } from "@/hooks/useProductsCarouselConfig";
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 
@@ -48,6 +48,9 @@ type DbProduct = {
   main_image: string | null;
   gallery_images?: any;
   badge: string | null;
+  brand_id?: string | null;
+  rating?: number | null;
+  created_at?: string;
 };
 
 type DbCategory = { name: string; slug: string; icon: string | null; sort_order: number };
@@ -170,11 +173,11 @@ const Home = () => {
     "home.guides.cta_label": "Todos los artículos",
     "home.guides.cta_href": "/blog",
   });
-  const { config: carouselConfig } = useProductsCarouselConfig();
+  // Carousel configuration is now read per-block from home_blocks.settings.
 
   const loadAll = async () => {
     const [p, c, featured, recent, hero, blk, gc] = await Promise.all([
-      supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,gallery_images,badge").eq("is_active", true).order("created_at", { ascending: false }),
+      supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,gallery_images,badge,brand_id,rating,created_at").eq("is_active", true).order("created_at", { ascending: false }),
       supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
@@ -227,16 +230,41 @@ const Home = () => {
   const bestSellersDisplay = (bestSellers.length ? bestSellers : products.slice(0, 4)).map(toCardProduct);
   const moreProducts = products.slice(0, 8).map(toCardProduct);
 
-  const carouselProducts = (() => {
-    if (!carouselConfig) return [] as Product[];
-    const total = carouselConfig.total_items || 8;
-    let pool = products;
-    switch (carouselConfig.source) {
+  const buildCarouselFromBlock = (b: HomeBlock): { config: ProductsCarouselConfig; products: Product[] } | null => {
+    const s = (b.settings ?? {}) as Record<string, any>;
+    const source: CarouselSource = (s.productSource ?? s.source ?? "recent") as CarouselSource;
+    const total = Number(s.totalProducts ?? s.total_items ?? 8) || 8;
+    const manualSlugs: string[] = Array.isArray(s.manualProductSlugs)
+      ? s.manualProductSlugs
+      : Array.isArray(s.manual_slugs) ? s.manual_slugs : [];
+    const categorySlug = String(s.categorySlug ?? "").trim();
+    const brandId = String(s.brandId ?? "").trim();
+    const tag = String(s.tag ?? "").trim().toLowerCase();
+
+    let pool: DbProduct[] = products;
+    let items: Product[] = [];
+
+    switch (source) {
       case "manual": {
-        const order = carouselConfig.manual_slugs;
         const bySlug = new Map(products.map((p) => [p.slug, p]));
-        return order.map((s) => bySlug.get(s)).filter(Boolean).map((p) => toCardProduct(p as DbProduct));
+        items = manualSlugs.map((sl) => bySlug.get(sl)).filter(Boolean).map((p) => toCardProduct(p as DbProduct));
+        break;
       }
+      case "category":
+        pool = categorySlug ? products.filter((p) => (p.category ?? "") === categorySlug) : products;
+        break;
+      case "brand":
+        pool = brandId ? products.filter((p) => (p.brand_id ?? "") === brandId) : products;
+        break;
+      case "tag":
+        pool = tag ? products.filter((p) => (p.badge ?? "").toLowerCase() === tag) : products;
+        break;
+      case "featured":
+        pool = [
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() === "best seller"),
+          ...products.filter((p) => (p.badge ?? "").toLowerCase() !== "best seller"),
+        ];
+        break;
       case "best_sellers":
         pool = [
           ...products.filter((p) => (p.badge ?? "").toLowerCase() === "best seller"),
@@ -250,14 +278,40 @@ const Home = () => {
         pool = products.filter((p) => p.sale_price != null && Number(p.sale_price) > 0);
         break;
       case "top_rated":
-        pool = [...products]; // ordering by rating happens server-side; fallback: keep as-is
+        pool = [...products].sort((a, b) => Number(b.rating ?? 0) - Number(a.rating ?? 0));
         break;
       case "recent":
       default:
-        pool = products; // already ordered by created_at desc from query
+        pool = products;
     }
-    return pool.slice(0, total).map(toCardProduct);
-  })();
+    if (source !== "manual") {
+      const limited = total > 0 ? pool.slice(0, total) : pool;
+      items = limited.map(toCardProduct);
+    }
+    if (!items.length) return null;
+
+    const config: ProductsCarouselConfig = {
+      id: b.id,
+      is_active: true,
+      title: b.title || "",
+      subtitle: b.subtitle ?? "",
+      source: source as any,
+      total_items: total,
+      visible_desktop: Number(s.desktopPerView ?? s.visible_desktop ?? 4) || 4,
+      visible_tablet: Number(s.tabletPerView ?? s.visible_tablet ?? 2) || 2,
+      visible_mobile: Number(s.mobilePerView ?? s.visible_mobile ?? 1.2) || 1.2,
+      autoplay: s.autoplay !== false,
+      autoplay_speed: Number(s.autoplaySpeed ?? s.autoplay_speed ?? 5) || 5,
+      show_arrows: s.showArrows !== false,
+      show_dots: s.showDots === true,
+      show_view_all: s.showViewAllButton !== false,
+      view_all_label: String(s.viewAllLabel ?? b.cta_label ?? "Ver todos los productos"),
+      view_all_href: String(s.viewAllHref ?? b.cta_href ?? "/productos"),
+      manual_slugs: manualSlugs,
+    };
+    return { config, products: items };
+  };
+
 
   const renderBlock = (b: HomeBlock) => {
     switch (b.block_type) {
@@ -378,15 +432,15 @@ const Home = () => {
           </section>
         );
 
-      case "best_sellers": {
-        if (!carouselConfig || !carouselConfig.is_active) return null;
-        const items = carouselProducts.length ? carouselProducts : bestSellersDisplay;
-        if (!items.length) return null;
+      case "best_sellers":
+      case "product_carousel": {
+        const built = buildCarouselFromBlock(b);
+        if (!built) return null;
         return (
           <HomeProductsCarousel
             key={b.id}
-            config={carouselConfig}
-            products={items}
+            config={built.config}
+            products={built.products}
             eyebrow={b.eyebrow}
           />
         );

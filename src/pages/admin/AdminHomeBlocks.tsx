@@ -57,7 +57,7 @@ type PromotionRow = { id: string; name: string; is_active: boolean };
 const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolean; hasCta: boolean; hasCta2: boolean }> = {
   hero:                { name: "Hero carousel",            desc: "Slides edited from the “Hero carousel” page.",                              hasImage: false, hasCta: false, hasCta2: false },
   categories:          { name: "Categories grid",          desc: "Auto-populated from your categories.",                                       hasImage: false, hasCta: false, hasCta2: false },
-  best_sellers:        { name: "Best sellers",             desc: "Products tagged as “best seller”.",                                          hasImage: false, hasCta: true,  hasCta2: false },
+  best_sellers:        { name: "Carrusel de productos",    desc: "Configura qué productos se muestran y cómo se comporta el carrusel en desktop, tablet y mobile.", hasImage: false, hasCta: false, hasCta2: false },
   goals:               { name: "Shop by goal",             desc: "Goal cards.",                                                                hasImage: false, hasCta: false, hasCta2: false },
   promo:               { name: "Promo banner",             desc: "Big promo banner with image and CTA.",                                        hasImage: true,  hasCta: true,  hasCta2: false },
   products_grid:       { name: "More products grid",       desc: "Grid of latest products.",                                                    hasImage: false, hasCta: false, hasCta2: false },
@@ -99,7 +99,7 @@ const DEFAULT_SHOWCASE_ITEMS = [
 const DEFAULT_BLOCKS: Array<Pick<Block, "block_key" | "block_type" | "sort_order" | "title" | "is_active"> & Partial<Block>> = [
   { block_key: "hero",                 block_type: "hero",                 sort_order: 10, is_active: true,  title: "Hero" },
   { block_key: "goals",                block_type: "goals",                sort_order: 20, is_active: true,  title: "Comprar por objetivo" },
-  { block_key: "best_sellers",         block_type: "best_sellers",         sort_order: 40, is_active: true,  title: "Best sellers" },
+  { block_key: "best_sellers",         block_type: "best_sellers",         sort_order: 40, is_active: true,  title: "Carrusel de productos" },
   { block_key: "promo",                block_type: "promo",                sort_order: 60, is_active: true,  title: "Promo banner" },
   { block_key: "promotions_carousel",  block_type: "promotions_carousel",  sort_order: 90, is_active: true,  title: "Promociones para usted" },
   { block_key: "blog",                 block_type: "blog",                 sort_order: 93, is_active: true,  title: "Guías y consejos" },
@@ -287,6 +287,27 @@ export default function AdminHomeBlocks() {
             spacingTop: 64,
             spacingBottom: 64,
             limit: 8,
+          }
+        : type === "best_sellers"
+        ? {
+            productSource: "best_sellers",
+            categorySlug: "",
+            brandId: "",
+            tag: "",
+            manualProductSlugs: [],
+            totalProducts: 8,
+            desktopPerView: 4,
+            tabletPerView: 2,
+            mobilePerView: 1.2,
+            autoplay: true,
+            autoplaySpeed: 5,
+            showArrows: true,
+            showDots: false,
+            loop: true,
+            pauseOnHover: true,
+            showViewAllButton: true,
+            viewAllLabel: "Ver todos los productos",
+            viewAllHref: "/productos",
           }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
@@ -796,6 +817,13 @@ function BlockEditor({
 
           {block.block_type === "instagram_testimonials" && (
             <InstagramTestimonialsSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "best_sellers" && (
+            <ProductCarouselSettings
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
             />
@@ -2125,3 +2153,253 @@ function InstagramTestimonialsSettings({
     </div>
   );
 }
+
+// ============== Product Carousel (best_sellers) ==============
+
+type ProductLite = { id: string; slug: string; name: string; main_image: string | null; category: string | null };
+type BrandLite = { id: string; name: string };
+type CatLite = { slug: string; name: string };
+
+const SOURCE_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: "recent",       label: "Productos recientes" },
+  { value: "featured",     label: "Productos destacados" },
+  { value: "best_sellers", label: "Más vendidos" },
+  { value: "popular",      label: "Más populares" },
+  { value: "sale",         label: "En oferta" },
+  { value: "top_rated",    label: "Mejor valorados" },
+  { value: "category",     label: "Por categoría" },
+  { value: "brand",        label: "Por marca" },
+  { value: "manual",       label: "Selección manual" },
+  { value: "tag",          label: "Por etiqueta" },
+];
+
+const TAG_OPTIONS = ["best seller", "new", "offer"];
+
+function ProductCarouselSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const source = String(settings.productSource ?? "recent");
+  const total = Number(settings.totalProducts ?? 8);
+  const desktop = Number(settings.desktopPerView ?? 4);
+  const tablet = Number(settings.tabletPerView ?? 2);
+  const mobile = Number(settings.mobilePerView ?? 1.2);
+  const autoplay = settings.autoplay !== false;
+  const autoplaySpeed = Number(settings.autoplaySpeed ?? 5);
+  const showArrows = settings.showArrows !== false;
+  const showDots = settings.showDots === true;
+  const loop = settings.loop !== false;
+  const pauseOnHover = settings.pauseOnHover !== false;
+  const showViewAllButton = settings.showViewAllButton !== false;
+  const viewAllLabel = String(settings.viewAllLabel ?? "Ver todos los productos");
+  const viewAllHref = String(settings.viewAllHref ?? "/productos");
+  const categorySlug = String(settings.categorySlug ?? "");
+  const brandId = String(settings.brandId ?? "");
+  const tag = String(settings.tag ?? "");
+  const manualSlugs: string[] = Array.isArray(settings.manualProductSlugs) ? settings.manualProductSlugs : [];
+
+  const [products, setProducts] = useState<ProductLite[]>([]);
+  const [brands, setBrands] = useState<BrandLite[]>([]);
+  const [cats, setCats] = useState<CatLite[]>([]);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      const [p, b, c] = await Promise.all([
+        supabase.from("products").select("id,slug,name,main_image,category").eq("is_active", true).order("name"),
+        supabase.from("brands").select("id,name").order("name"),
+        supabase.from("categories").select("slug,name").eq("type", "product").order("sort_order").order("name"),
+      ]);
+      setProducts((p.data as ProductLite[]) ?? []);
+      setBrands((b.data as BrandLite[]) ?? []);
+      setCats((c.data as CatLite[]) ?? []);
+    })();
+  }, []);
+
+  const productBySlug = (slug: string) => products.find((p) => p.slug === slug);
+  const moveSlug = (slug: string, dir: -1 | 1) => {
+    const arr = [...manualSlugs];
+    const i = arr.indexOf(slug);
+    const j = i + dir;
+    if (i < 0 || j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    onChange({ manualProductSlugs: arr });
+  };
+  const filtered = products.filter(
+    (p) => !manualSlugs.includes(p.slug) &&
+      (search.trim() === "" || p.name.toLowerCase().includes(search.toLowerCase())),
+  );
+
+  const ChipRow = ({ values, current, onPick }: { values: Array<number | string>; current: number | string; onPick: (v: any) => void }) => (
+    <div className="mt-1 flex flex-wrap gap-1.5">
+      {values.map((n) => (
+        <button key={String(n)} type="button" onClick={() => onPick(n)}
+          className={`h-9 min-w-[3rem] rounded-md border px-3 text-sm transition ${current === n ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>{n}</button>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="space-y-4 rounded-md border bg-muted/30 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Carrusel de productos</p>
+
+      {/* Source */}
+      <div>
+        <Label className="text-xs">Tipo de productos a mostrar</Label>
+        <div className="mt-1 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+          {SOURCE_OPTIONS.map((opt) => (
+            <button key={opt.value} type="button" onClick={() => onChange({ productSource: opt.value })}
+              className={`h-9 rounded-md border px-2 text-xs transition ${source === opt.value ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>{opt.label}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Source-specific */}
+      {source === "category" && (
+        <div>
+          <Label className="text-xs">Categoría</Label>
+          <select className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm"
+            value={categorySlug} onChange={(e) => onChange({ categorySlug: e.target.value })}>
+            <option value="">— Seleccionar —</option>
+            {cats.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {source === "brand" && (
+        <div>
+          <Label className="text-xs">Marca</Label>
+          <select className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm"
+            value={brandId} onChange={(e) => onChange({ brandId: e.target.value })}>
+            <option value="">— Seleccionar —</option>
+            {brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+        </div>
+      )}
+
+      {source === "tag" && (
+        <div>
+          <Label className="text-xs">Etiqueta (badge del producto)</Label>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {TAG_OPTIONS.map((t) => (
+              <button key={t} type="button" onClick={() => onChange({ tag: t })}
+                className={`h-9 rounded-md border px-3 text-xs transition ${tag === t ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>{t}</button>
+            ))}
+          </div>
+          <Input className="mt-2" placeholder="…o escribe una etiqueta personalizada"
+            value={tag} onChange={(e) => onChange({ tag: e.target.value })} />
+        </div>
+      )}
+
+      {source === "manual" && (
+        <div className="space-y-2 rounded-md border bg-background p-3">
+          <p className="text-sm font-semibold">Productos seleccionados ({manualSlugs.length})</p>
+          {manualSlugs.length === 0 ? (
+            <p className="text-xs text-muted-foreground">Aún no seleccionaste productos.</p>
+          ) : (
+            <ul className="space-y-2">
+              {manualSlugs.map((slug, i) => {
+                const p = productBySlug(slug);
+                return (
+                  <li key={slug} className="flex items-center gap-2 rounded border bg-background p-2">
+                    <span className="w-6 text-xs tabular-nums text-muted-foreground">#{i + 1}</span>
+                    {p?.main_image && <img src={p.main_image} alt="" className="h-10 w-10 rounded object-cover" />}
+                    <div className="flex-1 min-w-0">
+                      <p className="truncate text-sm font-medium">{p?.name ?? slug}</p>
+                      <p className="truncate text-xs text-muted-foreground">{p?.category}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" onClick={() => moveSlug(slug, -1)} disabled={i === 0}><ArrowUp size={14} /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => moveSlug(slug, 1)} disabled={i === manualSlugs.length - 1}><ArrowDown size={14} /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => onChange({ manualProductSlugs: manualSlugs.filter((s) => s !== slug) })}><Trash2 size={14} /></Button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <Input placeholder="Buscar producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <div className="max-h-56 space-y-1 overflow-auto rounded border bg-background p-2">
+            {filtered.slice(0, 30).map((p) => (
+              <button key={p.id} type="button"
+                onClick={() => onChange({ manualProductSlugs: [...manualSlugs, p.slug] })}
+                className="flex w-full items-center gap-2 rounded p-1.5 text-left hover:bg-muted">
+                {p.main_image && <img src={p.main_image} alt="" className="h-8 w-8 rounded object-cover" />}
+                <div className="flex-1 min-w-0">
+                  <p className="truncate text-sm">{p.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{p.category}</p>
+                </div>
+                <span className="text-xs text-accent">+ Agregar</span>
+              </button>
+            ))}
+            {filtered.length === 0 && <p className="p-2 text-xs text-muted-foreground">Sin resultados.</p>}
+          </div>
+        </div>
+      )}
+
+      {/* Total */}
+      <div>
+        <Label className="text-xs">Cantidad total de productos</Label>
+        <ChipRow values={[4, 8, 12, 16, 20, 0]} current={total} onPick={(v) => onChange({ totalProducts: v })} />
+        <p className="mt-1 text-[11px] text-muted-foreground">0 = sin límite.</p>
+      </div>
+
+      {/* Per view */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div>
+          <Label className="text-xs">Desktop</Label>
+          <ChipRow values={[2, 3, 4, 5, 6]} current={desktop} onPick={(v) => onChange({ desktopPerView: v })} />
+        </div>
+        <div>
+          <Label className="text-xs">Tablet</Label>
+          <ChipRow values={[1, 2, 3]} current={tablet} onPick={(v) => onChange({ tabletPerView: v })} />
+        </div>
+        <div>
+          <Label className="text-xs">Mobile</Label>
+          <ChipRow values={[1, 1.2, 1.5, 2]} current={mobile} onPick={(v) => onChange({ mobilePerView: v })} />
+          <p className="mt-1 text-[11px] text-muted-foreground">1.2 deja ver parte del siguiente producto.</p>
+        </div>
+      </div>
+
+      {/* Behavior */}
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="flex items-center justify-between rounded border bg-background p-3 text-sm">
+          <span>Autoplay</span>
+          <Switch checked={autoplay} onCheckedChange={(v) => onChange({ autoplay: v })} />
+        </label>
+        <div>
+          <Label className="text-xs">Velocidad de autoplay (segundos)</Label>
+          <ChipRow values={[3, 4, 5, 6, 8]} current={autoplaySpeed} onPick={(v) => onChange({ autoplaySpeed: v })} />
+        </div>
+        <label className="flex items-center justify-between rounded border bg-background p-3 text-sm">
+          <span>Mostrar flechas</span>
+          <Switch checked={showArrows} onCheckedChange={(v) => onChange({ showArrows: v })} />
+        </label>
+        <label className="flex items-center justify-between rounded border bg-background p-3 text-sm">
+          <span>Mostrar puntos</span>
+          <Switch checked={showDots} onCheckedChange={(v) => onChange({ showDots: v })} />
+        </label>
+        <label className="flex items-center justify-between rounded border bg-background p-3 text-sm">
+          <span>Loop infinito</span>
+          <Switch checked={loop} onCheckedChange={(v) => onChange({ loop: v })} />
+        </label>
+        <label className="flex items-center justify-between rounded border bg-background p-3 text-sm">
+          <span>Pausar al pasar mouse</span>
+          <Switch checked={pauseOnHover} onCheckedChange={(v) => onChange({ pauseOnHover: v })} />
+        </label>
+      </div>
+
+      {/* View all */}
+      <div className="rounded-md border bg-background p-3 space-y-2">
+        <label className="flex items-center justify-between text-sm">
+          <span className="font-semibold">Botón “Ver todo”</span>
+          <Switch checked={showViewAllButton} onCheckedChange={(v) => onChange({ showViewAllButton: v })} />
+        </label>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Input placeholder="Texto del botón" value={viewAllLabel}
+            onChange={(e) => onChange({ viewAllLabel: e.target.value })} disabled={!showViewAllButton} />
+          <Input placeholder="Enlace (/productos)" value={viewAllHref}
+            onChange={(e) => onChange({ viewAllHref: e.target.value })} disabled={!showViewAllButton} />
+        </div>
+      </div>
+    </div>
+  );
+}
+

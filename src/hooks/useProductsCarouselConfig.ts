@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type CarouselSource = "recent" | "best_sellers" | "popular" | "sale" | "top_rated" | "manual";
+export type CarouselSource = "recent" | "best_sellers" | "popular" | "sale" | "top_rated" | "manual" | "category" | "brand" | "tag" | "featured";
 
 export type ProductsCarouselConfig = {
   id: string;

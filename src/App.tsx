@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,7 +57,7 @@ import AdminCatalogFilterForm from "./pages/admin/AdminCatalogFilterForm.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
-import AdminProductsCarousel from "./pages/admin/AdminProductsCarousel.tsx";
+
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
 import AdminFooter from "./pages/admin/AdminFooter.tsx";
@@ -235,7 +235,7 @@ const App = () => (
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="home-blocks" element={<AdminHomeBlocks />} />
-              <Route path="products-carousel" element={<AdminProductsCarousel />} />
+              <Route path="products-carousel" element={<Navigate to="/admin/home-blocks" replace />} />
               <Route path="goal-cards" element={<AdminGoalCards />} />
               <Route path="navigation" element={<AdminNavigation />} />
               <Route path="footer" element={<AdminFooter />} />
