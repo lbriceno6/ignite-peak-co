@@ -22,6 +22,7 @@ import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
 import DOMPurify from "dompurify";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 
 type HeroSlide = {
