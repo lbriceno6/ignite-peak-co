@@ -1,0 +1,1 @@
+ALTER TABLE public.home_blocks ADD COLUMN IF NOT EXISTS settings jsonb NOT NULL DEFAULT '{}'::jsonb;
