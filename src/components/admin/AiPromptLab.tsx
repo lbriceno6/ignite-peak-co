@@ -261,6 +261,29 @@ export function AiPromptLab() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Notas (opcional) — qué cambiaste y por qué"
           />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Etiqueta de variante (opcional)</p>
+              <Input
+                value={variantLabel}
+                onChange={(e) => setVariantLabel(e.target.value)}
+                placeholder="ej. A, B, control, agresivo"
+              />
+            </div>
+            <div>
+              <p className="mb-1 text-xs uppercase tracking-wide text-muted-foreground">Peso de tráfico (%)</p>
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={trafficWeight}
+                onChange={(e) => setTrafficWeight(Number(e.target.value))}
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                100% reemplaza la versión actual. Menos de 100% crea una variante A/B junto a las activas.
+              </p>
+            </div>
+          </div>
           <div className="flex flex-wrap gap-2">
             <Button onClick={saveAsActive} disabled={loading}>
               <Save size={14} className="mr-1" /> Guardar como nueva versión activa
@@ -298,17 +321,41 @@ export function AiPromptLab() {
                 <li key={v.id} className="rounded-md border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs text-muted-foreground">{new Date(v.created_at).toLocaleString()}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs text-muted-foreground">{new Date(v.created_at).toLocaleString()}</p>
+                        {v.variant_label && <Badge variant="outline">{v.variant_label}</Badge>}
+                        {v.is_active && (
+                          <Badge variant={v.traffic_weight === 100 ? "default" : "secondary"}>
+                            {v.traffic_weight}% tráfico
+                          </Badge>
+                        )}
+                      </div>
                       {v.notes && <p className="text-sm">{v.notes}</p>}
                       <p className="mt-1 line-clamp-2 text-xs font-mono text-muted-foreground">{v.system_prompt}</p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
                       {v.is_active ? (
-                        <Badge>Activa</Badge>
+                        <>
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              min={0}
+                              max={100}
+                              defaultValue={v.traffic_weight}
+                              onBlur={(e) => {
+                                const n = Number(e.target.value);
+                                if (!Number.isNaN(n) && n !== v.traffic_weight) updateWeight(v.id, n);
+                              }}
+                              className="h-7 w-16 text-xs"
+                            />
+                            <span className="text-xs text-muted-foreground">%</span>
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => deactivate(v.id)}>Desactivar</Button>
+                        </>
                       ) : (
                         <Button variant="outline" size="sm" onClick={() => activate(v.id)}>Activar</Button>
                       )}
-                      <Button variant="ghost" size="sm" onClick={() => { setPrompt(v.system_prompt); setNotes(`Basado en versión ${new Date(v.created_at).toLocaleString()}`); }}>
+                      <Button variant="ghost" size="sm" onClick={() => { setPrompt(v.system_prompt); setNotes(`Basado en versión ${new Date(v.created_at).toLocaleString()}`); setVariantLabel(v.variant_label ?? ""); }}>
                         Cargar
                       </Button>
                     </div>
