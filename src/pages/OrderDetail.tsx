@@ -11,9 +11,10 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/context/CurrencyContext";
 import { XCircle, Loader2 } from "lucide-react";
+import { AiPostPurchaseInsights } from "@/components/order/AiPostPurchaseInsights";
 
 type Order = any;
-type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
+type Item = { id: string; product_slug: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
 
 const statusLabel: Record<string, string> = {
   pending: "Pendiente", confirmed: "Confirmado", preparing: "En preparación",
@@ -69,6 +70,18 @@ const OrderDetail = () => {
           <Badge variant={order.status === "cancelled" ? "destructive" : "secondary"}>{statusLabel[order.status] ?? order.status}</Badge>
         </div>
         <p className="text-sm text-muted-foreground mt-1">Realizado el {new Date(order.created_at).toLocaleString()}</p>
+
+        <div className="mt-6">
+          <AiPostPurchaseInsights
+            orderCode={order.order_code}
+            items={items.map((it) => ({
+              product_slug: (it as any).product_slug ?? "",
+              product_name: it.product_name,
+              product_image: it.product_image,
+              quantity: it.quantity,
+            }))}
+          />
+        </div>
 
         <div className="grid gap-6 mt-8 lg:grid-cols-[1fr_320px]">
           <div className="rounded-lg border border-border">

@@ -9,7 +9,8 @@ export type AiBlockKey =
   | "checkout_recommendations"
   | "intelligent_search"
   | "product_why_for_you"
-  | "product_ai_related";
+  | "product_ai_related"
+  | "post_purchase_insights";
 
 export type AiBlockToggle = {
   block_key: AiBlockKey;

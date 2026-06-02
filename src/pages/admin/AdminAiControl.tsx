@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/table";
 import { toast } from "sonner";
 import {
-  Sparkles, ShoppingCart, CreditCard, Search, Home, Eye,
+  Sparkles, ShoppingCart, CreditCard, Search, Home, Eye, PackageCheck,
   Activity, ExternalLink,
 } from "lucide-react";
 import {
@@ -45,6 +45,7 @@ const BLOCK_META: Record<AiBlockKey, { icon: any; configHref?: string; configLab
   intelligent_search: { icon: Search, configHref: "/admin/buscador-ia", configLabel: "Configurar buscador" },
   product_why_for_you: { icon: Sparkles, configHref: "/admin/ia-intenciones", configLabel: "Editar intenciones" },
   product_ai_related: { icon: Sparkles, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
+  post_purchase_insights: { icon: PackageCheck },
 };
 
 export default function AdminAiControl() {
