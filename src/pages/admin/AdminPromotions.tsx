@@ -188,9 +188,34 @@ const AdminPromotions = () => {
     is_active: e.is_active,
   });
 
+  // Mapa productId -> { promoId, promoName } para promociones DISTINTAS a la que se está editando.
+  // Un producto solo puede pertenecer a una promoción a la vez para evitar conflictos.
+  const takenByOther = useMemo(() => {
+    const m = new Map<string, { id: string; name: string }>();
+    rows.forEach((r) => {
+      if (r.id === editing.id) return;
+      r.product_ids.forEach((pid) => {
+        if (!m.has(pid)) m.set(pid, { id: r.id, name: r.name });
+      });
+    });
+    return m;
+  }, [rows, editing.id]);
+
   const save = async () => {
     if (!editing.name.trim()) return toast.error("Falta el nombre de la promoción");
     if (editing.product_ids.length === 0) return toast.error("Selecciona al menos un producto participante");
+    // Validar conflictos con otras promociones
+    const conflicts = editing.product_ids
+      .map((pid) => ({ pid, other: takenByOther.get(pid) }))
+      .filter((c) => c.other);
+    if (conflicts.length) {
+      const names = conflicts
+        .slice(0, 3)
+        .map((c) => `"${productById.get(c.pid)?.name ?? "producto"}" (en: ${c.other!.name})`)
+        .join(", ");
+      const extra = conflicts.length > 3 ? ` y ${conflicts.length - 3} más` : "";
+      return toast.error(`Estos productos ya están en otra promoción: ${names}${extra}. Quítalos de la otra promoción primero.`);
+    }
     setSaving(true);
     try {
       const payload = buildPayload(editing);
@@ -230,11 +255,8 @@ const AdminPromotions = () => {
       const { data, error } = await (supabase as any)
         .from("promotions").insert(payload).select("id").single();
       if (error) throw error;
-      if (row.product_ids.length) {
-        const links = row.product_ids.map((pid) => ({ promotion_id: data.id, product_id: pid }));
-        await (supabase as any).from("promotion_products").insert(links);
-      }
-      toast.success("Promoción duplicada (creada como inactiva).");
+      // No copiamos productos: un producto solo puede pertenecer a una promoción.
+      toast.success("Promoción duplicada como inactiva. Asigna productos antes de activarla (un producto solo puede estar en una promoción).");
       await invalidatePromotionsCache();
       await loadAll();
     } catch (e: any) {
@@ -266,9 +288,15 @@ const AdminPromotions = () => {
   const productById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products]);
 
   const toggleProduct = (id: string) => {
+    const conflict = takenByOther.get(id);
+    const already = editing.product_ids.includes(id);
+    if (!already && conflict) {
+      toast.error(`Este producto ya está en la promoción "${conflict.name}". Quítalo de allí primero.`);
+      return;
+    }
     setEditing((e) => ({
       ...e,
-      product_ids: e.product_ids.includes(id)
+      product_ids: already
         ? e.product_ids.filter((x) => x !== id)
         : [...e.product_ids, id],
     }));
