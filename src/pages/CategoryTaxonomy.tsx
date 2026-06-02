@@ -52,6 +52,8 @@ export default function CategoryTaxonomy() {
 
   const [items, setItems] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState<SelectedFilters>({});
+  const { filters: catalogFilters } = useCatalogFilters("category");
 
   const subcategories = useMemo(
     () => (mainName ? categoryData[mainName] : []),
