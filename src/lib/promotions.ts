@@ -56,9 +56,6 @@ export type AppliedPromo = {
   message: string;
 };
 
-const variantOf = (p: PromoLike): PromotionVariant =>
-  (p.variant as PromotionVariant) || (p.benefit_type as PromotionVariant) || "second_discount";
-
 type PromoLike = {
   variant?: PromotionVariant | null;
   benefit_type?: PromotionBenefitType | string;
