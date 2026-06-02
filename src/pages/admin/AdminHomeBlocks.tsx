@@ -301,6 +301,14 @@ function BlockEditor({
             </div>
           )}
 
+          {block.block_type === "promotions_carousel" && (
+            <PromotionsCarouselSettings
+              settings={(f.settings ?? {}) as CarouselSettings}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
