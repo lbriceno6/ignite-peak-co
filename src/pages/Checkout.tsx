@@ -680,6 +680,17 @@ const Checkout = () => {
               ))}
               {items.length === 0 && <p className="text-sm text-muted-foreground">Tu carrito está vacío. <Link to="/" className="underline">Comprar ahora</Link></p>}
             </div>
+            {items.length > 0 && (
+              <div className="mt-4 space-y-3">
+                <FreeShippingBar subtotal={Math.max(0, subtotal)} variant="compact" surface="cart" />
+                <AiCartRecommendations
+                  cartSubtotal={Math.max(0, subtotal)}
+                  max={2}
+                  variant="compact"
+                  title="Súmalo antes de pagar"
+                />
+              </div>
+            )}
             <div className="mt-5 space-y-2 border-t pt-4 text-sm">
               <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{format(rawSubtotal)}</span></div>
               {referral && discount > 0 && (
