@@ -104,6 +104,7 @@ const ProductDetail = () => {
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [interval, setIntervalDays] = useState<number>(30);
   const [selectedVariant, setSelectedVariant] = useState<number>(0);
+  const [aiRelatedCount, setAiRelatedCount] = useState(0);
   const imageAlts = useSeoImageAlts("product", dbp?.id ?? null);
 
   useEffect(() => {
