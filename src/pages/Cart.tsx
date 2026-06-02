@@ -166,6 +166,10 @@ const Cart = () => {
             </div>
           </aside>
         </div>
+
+        <div className="mt-10">
+          <AiCartRecommendations cartSubtotal={Math.max(0, subtotal)} max={4} variant="full" />
+        </div>
       </div>
     </Layout>
   );
