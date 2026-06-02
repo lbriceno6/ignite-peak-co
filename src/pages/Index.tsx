@@ -177,7 +177,7 @@ const Home = () => {
 
   const loadAll = async () => {
     const [p, c, featured, recent, hero, blk, gc] = await Promise.all([
-      supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,gallery_images,badge").eq("is_active", true).order("created_at", { ascending: false }),
+      supabase.from("products").select("id,slug,name,short_description,price,sale_price,category,main_image,gallery_images,badge,brand_id,rating,created_at").eq("is_active", true).order("created_at", { ascending: false }),
       supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
