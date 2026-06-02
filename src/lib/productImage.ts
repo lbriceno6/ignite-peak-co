@@ -9,15 +9,33 @@ const bundled: Record<string, string> = {
 };
 
 export const resolveProductImage = (src?: string | null, fallback?: string): string => {
-  if (!src) return fallback || productProtein;
-  // Map legacy /src/assets/foo.jpg paths to bundled URLs (Vite-hashed)
-  const match = src.match(/([^/\\]+\.(jpg|jpeg|png|webp|gif|svg))$/i);
-  if (match && bundled[match[1]]) return bundled[match[1]];
-  // Already an absolute URL or public path
-  if (/^(https?:)?\/\//.test(src) || src.startsWith("/")) {
-    // Block broken /src/... paths that won't resolve in production
-    if (src.startsWith("/src/")) return fallback || productProtein;
-    return src;
+  const fb = fallback || productProtein;
+  if (!src || typeof src !== "string" || !src.trim()) {
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn("[resolveProductImage] missing image src, using fallback", { src });
+    }
+    return fb;
   }
-  return src;
+  const clean = src.trim();
+  // Map legacy /src/assets/foo.jpg paths to bundled URLs (Vite-hashed)
+  const match = clean.match(/([^/\\]+\.(jpg|jpeg|png|webp|gif|svg))$/i);
+  if (match && bundled[match[1]]) return bundled[match[1]];
+  // Absolute URL, public path, data: or blob:
+  if (
+    /^(https?:)?\/\//.test(clean) ||
+    clean.startsWith("/") ||
+    clean.startsWith("data:") ||
+    clean.startsWith("blob:")
+  ) {
+    if (clean.startsWith("/src/")) {
+      if (typeof window !== "undefined") {
+        // eslint-disable-next-line no-console
+        console.warn("[resolveProductImage] broken /src/ path, using fallback", { src: clean });
+      }
+      return fb;
+    }
+    return clean;
+  }
+  return clean;
 };

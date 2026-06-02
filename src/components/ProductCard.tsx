@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { usePromotions } from "@/hooks/usePromotions";
 import { promosForProduct } from "@/lib/promotions";
 import { PromoBadge } from "./PromoBadge";
+import { resolveProductImage } from "@/lib/productImage";
+import productPlaceholder from "@/assets/product-placeholder.jpg";
 
 const WHATSAPP_BASE =
   "https://wa.me/51999999999?text=";
@@ -93,10 +95,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <div className="relative aspect-square overflow-hidden bg-secondary">
         <Link to={`/producto/${product.slug}`}>
           <img
-            src={product.image}
+            src={resolveProductImage(product.image, productPlaceholder)}
             alt={product.name}
             loading="lazy"
             className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+            onError={(e) => {
+              // eslint-disable-next-line no-console
+              console.warn("[ProductCard] image failed to load", { id: product.id, slug: product.slug, src: product.image });
+              (e.currentTarget as HTMLImageElement).src = productPlaceholder;
+            }}
           />
         </Link>
         <div className="absolute left-3 top-3 flex flex-col gap-1.5">
