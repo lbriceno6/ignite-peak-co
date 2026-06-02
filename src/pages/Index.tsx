@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { useProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
+import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 
 import heroImage from "@/assets/hero.jpg";
