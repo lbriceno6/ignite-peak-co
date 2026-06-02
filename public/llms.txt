@@ -54,6 +54,7 @@
 
 ## Productos
 
+- [Proteína Fem-Fit con Colágeno](https://ignite-peak-co.lovable.app/producto/proteina-fem-fit-colageno-vainilla-30-sachets)
 - [Pro Shaker 700ml](https://ignite-peak-co.lovable.app/producto/pro-shaker-700)
 - [Protein Bar Crunch](https://ignite-peak-co.lovable.app/producto/protein-bar-crunch)
 - [Ignite Pre-Workout](https://ignite-peak-co.lovable.app/producto/ignite-pre-workout)
@@ -68,7 +69,6 @@
 - [Mass Gainer Extreme](https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme)
 - [Vegan Protein Blend](https://ignite-peak-co.lovable.app/producto/vegan-protein)
 - [BCAA Recovery 2:1:1](https://ignite-peak-co.lovable.app/producto/bcaa-recovery)
-- [Proteína Fem-Fit con Colágeno - 30 Sachets](https://ignite-peak-co.lovable.app/producto/proteina-fem-fit-colageno-vainilla-30-sachets)
 - [Bioprost+](https://ignite-peak-co.lovable.app/producto/bioprost)
 - [Aceite de Oliva Extra Virgen](https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen)
 - [Flora Fit - Equilibrio Digestivo](https://ignite-peak-co.lovable.app/producto/flora-fit-equilibrio-digestivo)
