@@ -236,7 +236,7 @@ export default function AdminAiControl() {
             <MetricCard
               label="Intent hit-rate"
               value={`${intentHitRate}%`}
-              hint={`${metrics?.intents ?? 0} intenciones detectadas`}
+              hint={`${metrics?.signaledVisitors ?? 0} visitantes con señal`}
             />
           </div>
 
@@ -262,8 +262,8 @@ export default function AdminAiControl() {
                   </TableHeader>
                   <TableBody>
                     {topIntents.map((t) => (
-                      <TableRow key={t.intent_slug}>
-                        <TableCell className="font-medium">{t.intent_slug}</TableCell>
+                      <TableRow key={t.name}>
+                        <TableCell className="font-medium">{t.name}</TableCell>
                         <TableCell className="text-right">{t.n}</TableCell>
                       </TableRow>
                     ))}
