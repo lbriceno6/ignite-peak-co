@@ -175,7 +175,6 @@ export function AiCartRecommendations({
       if (!active) return;
       const cartSlugSet = new Set(cartSlugs);
       const candidates = allProducts.filter((p) => !cartSlugSet.has(p.slug));
-      const intent = resolveCurrentIntent(intents, signals);
       const ranked = rankProductsForVisitor(candidates, signals, intent);
       const cartCatSet = new Set(cartCats.map((c) => c.toLowerCase()));
       const scored = ranked
