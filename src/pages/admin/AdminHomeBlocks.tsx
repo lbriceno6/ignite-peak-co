@@ -6,7 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Upload, Loader2, ArrowUp, ArrowDown, Image as ImageIcon, Eye, EyeOff } from "lucide-react";
+import { Upload, Loader2, ArrowUp, ArrowDown, Image as ImageIcon, Eye, EyeOff, Copy } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 type Block = {
   id: string;
