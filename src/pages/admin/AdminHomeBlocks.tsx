@@ -767,6 +767,13 @@ function BlockEditor({
             />
           )}
 
+          {block.block_type === "double_promo_banners" && (
+            <DoublePromoBannersSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
