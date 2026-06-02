@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FlaskConical, Trophy } from "lucide-react";
+import { FlaskConical, Trophy, Sparkles, PlayCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ATTRIBUTION_WINDOW_DAYS = 7;
 
