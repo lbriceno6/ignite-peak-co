@@ -354,6 +354,14 @@ const Category = () => {
   const [children, setChildren] = useState<CategoryNode[]>([]);
 
   useEffect(() => {
+    if (!slug) return;
+    void logBrowseEvent("browse_category_view", {
+      category_slug: slug,
+      metadata: { sub: subSlugParam || null },
+    });
+  }, [slug, subSlugParam]);
+
+  useEffect(() => {
     let alive = true;
     getCategoryAncestors(slug).then(async (chain) => {
       if (!alive) return;
