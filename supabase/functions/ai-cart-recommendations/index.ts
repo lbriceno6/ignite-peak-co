@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const system = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
+    const defaultSystem = `Eres un asistente de e-commerce de Nutribatidos (suplementos y nutrición).
 Tu tarea: dado un carrito y un catálogo, elegir hasta ${max} productos COMPLEMENTARIOS que tengan sentido sumar.
 Reglas estrictas:
 - Solo puedes devolver "slug" que aparezcan en el catálogo provisto.
@@ -145,6 +145,7 @@ Reglas estrictas:
 - Si hay "free_shipping_gap" > 0, prioriza productos cuyo precio acerque al envío gratis sin pasarse demasiado.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu proteína", "Te acerca al envío gratis", "Para tu objetivo: energía".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
+    const system = await getActivePrompt("ai-cart-recommendations", defaultSystem);
 
     const user = JSON.stringify({
       cart: body.cart,
