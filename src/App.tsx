@@ -235,7 +235,7 @@ const App = () => (
               <Route path="home" element={<AdminHome />} />
               <Route path="hero-slides" element={<AdminHeroSlides />} />
               <Route path="home-blocks" element={<AdminHomeBlocks />} />
-              <Route path="products-carousel" element={<AdminProductsCarousel />} />
+              <Route path="products-carousel" element={<Navigate to="/admin/home-blocks" replace />} />
               <Route path="goal-cards" element={<AdminGoalCards />} />
               <Route path="navigation" element={<AdminNavigation />} />
               <Route path="footer" element={<AdminFooter />} />
