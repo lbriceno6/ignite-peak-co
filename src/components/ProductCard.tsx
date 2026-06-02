@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { usePromotions } from "@/hooks/usePromotions";
 import { promosForProduct } from "@/lib/promotions";
 import { PromoBadge } from "./PromoBadge";
+import { resolveProductImage } from "@/lib/productImage";
+import productPlaceholder from "@/assets/product-placeholder.jpg";
 
 const WHATSAPP_BASE =
   "https://wa.me/51999999999?text=";
