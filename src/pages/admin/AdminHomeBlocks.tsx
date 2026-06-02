@@ -104,6 +104,7 @@ const DEFAULT_BLOCKS: Array<Pick<Block, "block_key" | "block_type" | "sort_order
   { block_key: "promotions_carousel",  block_type: "promotions_carousel",  sort_order: 90, is_active: true,  title: "Promociones para usted" },
   { block_key: "blog",                 block_type: "blog",                 sort_order: 93, is_active: true,  title: "Guías y consejos" },
   { block_key: "trust",                block_type: "trust",                sort_order: 94, is_active: true,  title: "Garantías" },
+  { block_key: "instagram_testimonials", block_type: "instagram_testimonials", sort_order: 96, is_active: true, title: "SÍGUENOS EN INSTAGRAM" },
 ];
 
 export default function AdminHomeBlocks() {
