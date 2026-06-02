@@ -97,6 +97,8 @@ export const LuciaChat = () => {
       const first = getFirstTouch();
       const dev = getDeviceInfo();
       const consent = getConsent();
+      const { data: authData } = await supabase.auth.getUser();
+      const userId = authData?.user?.id ?? null;
       const { data, error } = await supabase.functions.invoke("ai-chat", {
         body: {
           session_id: sessionId,
@@ -107,6 +109,7 @@ export const LuciaChat = () => {
             productId: ctx.productId,
             category: ctx.category,
             landing: ctx.landing,
+            user_id: userId,
           },
           tracking: {
             visitor_id: getVisitorId(),
