@@ -77,7 +77,7 @@ const variantOfLoose = (p: PromoLike): PromotionVariant =>
 /** Etiqueta corta para badges. Usa badge_label custom si existe, si no autogenera. */
 export const promoLabel = (p: PromoLike): string => {
   if (p.badge_label && p.badge_label.trim()) return p.badge_label.trim().toUpperCase();
-  const v = variantOf(p);
+  const v = variantOfLoose(p);
   const pct = Math.round(p.discount_percent || 0);
   switch (v) {
     case "second_free":
