@@ -31,6 +31,7 @@ type Props = {
     subtitle: string | null;
     cta_label: string | null;
     cta_href: string | null;
+    settings?: Record<string, any> | null;
   };
   products: DbProduct[];
 };
@@ -53,12 +54,28 @@ export function PromotionsCarousel({ block, products }: Props) {
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
 
+  const settings = block.settings ?? {};
+  const mode: "auto" | "manual" = settings.carousel_mode === "manual" ? "manual" : "auto";
+  const manualIds: string[] = Array.isArray(settings.promotion_ids) ? settings.promotion_ids : [];
+  const maxProducts: number = Number(settings.max_products ?? 0); // 0 = sin límite
+
   // Build the ordered list of products that have an active, visible-in-carousel promo.
   const items = useMemo(() => {
     const now = new Date();
     const eligible = promotions
-      .filter((p) => isPromoActiveNow(p, now) && p.show_in_carousel && p.product_ids.length)
+      .filter((p) => {
+        if (!isPromoActiveNow(p, now)) return false;
+        if (!p.product_ids.length) return false;
+        if (mode === "manual") return manualIds.includes(p.id);
+        return p.show_in_carousel;
+      })
       .sort((a, b) => {
+        if (mode === "manual") {
+          // respeta el orden en que el admin las seleccionó
+          const ia = manualIds.indexOf(a.id);
+          const ib = manualIds.indexOf(b.id);
+          if (ia !== ib) return ia - ib;
+        }
         if (a.sort_order_home !== b.sort_order_home) return a.sort_order_home - b.sort_order_home;
         return (b.priority || 0) - (a.priority || 0);
       });
@@ -73,10 +90,12 @@ export function PromotionsCarousel({ block, products }: Props) {
         if (!prod) continue;
         seen.add(pid);
         out.push(toCardProduct(prod, promoLabel(promo)));
+        if (maxProducts > 0 && out.length >= maxProducts) break;
       }
+      if (maxProducts > 0 && out.length >= maxProducts) break;
     }
     return out;
-  }, [promotions, products]);
+  }, [promotions, products, mode, manualIds, maxProducts]);
 
   useEffect(() => {
     if (!api) return;
