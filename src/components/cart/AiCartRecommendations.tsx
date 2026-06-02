@@ -25,6 +25,7 @@ import {
   type Intent,
 } from "@/lib/userPersonalization";
 import { useAiBlockEnabled, type AiBlockKey } from "@/hooks/useAiBlockToggles";
+import { logAiRecoClick, type AiRecoSource } from "@/lib/recoEvents";
 
 type Pick = { slug: string; reason: string };
 
