@@ -947,10 +947,20 @@ const Home = () => {
               if (!title) return null;
               const palette = defaultPalette[idx % defaultPalette.length];
               const href = it.customUrl || (cat ? `/categoria/${cat.slug}` : "#");
-              const image =
-                (it.customImageUrl && String(it.customImageUrl).trim()) ||
-                (cat?.image_url as string | null | undefined) ||
-                null;
+              const pick = (...vals: any[]) => {
+                for (const v of vals) {
+                  if (typeof v === "string" && v.trim()) return v.trim();
+                }
+                return null;
+              };
+              const image = pick(
+                it.uploaded_image_url,
+                it.custom_image_url,
+                it.customImageUrl,
+                it.image_url,
+                cat?.image_url,
+                (cat as any)?.image,
+              );
               return {
                 title,
                 image,
@@ -1006,12 +1016,11 @@ const Home = () => {
                     alt={t.title}
                     loading="lazy"
                     className={`max-h-full w-full object-contain drop-shadow-xl ${animations ? "transition-transform duration-500 ease-out group-hover:scale-105" : ""}`}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
                   />
-                ) : (
-                  <div className="grid h-full w-full place-items-center rounded-2xl border border-white/20 text-sm text-white/70">
-                    Imagen no disponible
-                  </div>
-                )}
+                ) : null}
               </div>
               <div className="px-6 pb-8 pt-2 text-center">
                 <h3
