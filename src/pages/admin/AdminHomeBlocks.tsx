@@ -117,6 +117,7 @@ export default function AdminHomeBlocks() {
               onChanged={load}
               onMoveUp={() => move(b.id, -1)}
               onMoveDown={() => move(b.id, 1)}
+              onDuplicate={() => duplicate(b)}
             />
           ))}
         </div>
