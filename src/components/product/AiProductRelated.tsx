@@ -171,8 +171,12 @@ export function AiProductRelated({
         </div>
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {rendered.map(({ pk, product }) => (
-          <div key={product.id} className="flex flex-col gap-2">
+        {rendered.map(({ pk, product }, idx) => (
+          <div
+            key={product.id}
+            className="flex flex-col gap-2"
+            onClick={() => logAiRecoClick("ai_product_related", { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx })}
+          >
             <ProductCard product={product} />
             <p className="px-1 text-xs text-muted-foreground">
               <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
