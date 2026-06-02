@@ -32,8 +32,8 @@ type Metrics = {
   categoryViews: number;
   searches: number;
   addToCart: number;
-  intents: number;
   uniqueVisitors: number;
+  signaledVisitors: number;
 };
 
 const BLOCK_META: Record<AiBlockKey, { icon: any; configHref?: string; configLabel?: string }> = {
@@ -48,17 +48,17 @@ const BLOCK_META: Record<AiBlockKey, { icon: any; configHref?: string; configLab
 export default function AdminAiControl() {
   const { rows, loading, reload } = useAllAiBlockToggles();
   const [metrics, setMetrics] = useState<Metrics | null>(null);
-  const [topIntents, setTopIntents] = useState<{ intent_slug: string; n: number }[]>([]);
+  const [topIntents, setTopIntents] = useState<{ name: string; n: number }[]>([]);
   const [windowDays, setWindowDays] = useState<7 | 30 | 90>(30);
 
   useEffect(() => {
     (async () => {
       const since = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
 
-      const [evRes, intentsRes] = await Promise.all([
+      const [evRes, catRes, intentsRes] = await Promise.all([
         (supabase as any)
           .from("lucia_events")
-          .select("event_type, visitor_id")
+          .select("event_type, visitor_id, metadata")
           .gte("created_at", since)
           .in("event_type", [
             "browse_product_view",
@@ -68,31 +68,49 @@ export default function AdminAiControl() {
           ])
           .limit(5000),
         (supabase as any)
-          .from("purchase_intents")
-          .select("intent_slug")
+          .from("lucia_events")
+          .select("visitor_id")
           .gte("created_at", since)
-          .limit(2000),
+          .limit(5000),
+        (supabase as any)
+          .from("purchase_intents")
+          .select("name, slug, keywords, category_slugs")
+          .eq("is_active", true),
       ]);
 
-      const evs = (evRes?.data ?? []) as { event_type: string; visitor_id: string | null }[];
-      const visitorSet = new Set<string>();
+      const evs = (evRes?.data ?? []) as {
+        event_type: string; visitor_id: string | null; metadata: any;
+      }[];
+      const allEvs = (catRes?.data ?? []) as { visitor_id: string | null }[];
+      const allVisitors = new Set<string>();
+      for (const v of allEvs) if (v.visitor_id) allVisitors.add(v.visitor_id);
+
+      const signaledVisitors = new Set<string>();
       let pv = 0, cv = 0, sr = 0, atc = 0;
+      const intentHits = new Map<string, number>();
+      const intents = (intentsRes?.data ?? []) as {
+        name: string; slug: string; keywords: string[]; category_slugs: string[];
+      }[];
+
       for (const e of evs) {
-        if (e.visitor_id) visitorSet.add(e.visitor_id);
+        if (e.visitor_id) signaledVisitors.add(e.visitor_id);
         if (e.event_type === "browse_product_view") pv++;
         else if (e.event_type === "browse_category_view") cv++;
         else if (e.event_type === "browse_search") sr++;
         else if (e.event_type === "browse_add_to_cart") atc++;
-      }
 
-      const intents = (intentsRes?.data ?? []) as { intent_slug: string | null }[];
-      const intentCounts = new Map<string, number>();
-      for (const i of intents) {
-        if (!i.intent_slug) continue;
-        intentCounts.set(i.intent_slug, (intentCounts.get(i.intent_slug) ?? 0) + 1);
+        const cat = e.metadata?.category_slug;
+        const q = (e.metadata?.search_query ?? "").toString().toLowerCase();
+        for (const i of intents) {
+          const catMatch = cat && i.category_slugs?.includes(cat);
+          const kwMatch = q && i.keywords?.some((k) => q.includes(k.toLowerCase()));
+          if (catMatch || kwMatch) {
+            intentHits.set(i.name, (intentHits.get(i.name) ?? 0) + 1);
+          }
+        }
       }
-      const top = [...intentCounts.entries()]
-        .map(([intent_slug, n]) => ({ intent_slug, n }))
+      const top = [...intentHits.entries()]
+        .map(([name, n]) => ({ name, n }))
         .sort((a, b) => b.n - a.n)
         .slice(0, 8);
 
@@ -101,8 +119,8 @@ export default function AdminAiControl() {
         categoryViews: cv,
         searches: sr,
         addToCart: atc,
-        intents: intents.length,
-        uniqueVisitors: visitorSet.size,
+        uniqueVisitors: allVisitors.size,
+        signaledVisitors: signaledVisitors.size,
       });
       setTopIntents(top);
     })();
@@ -111,8 +129,9 @@ export default function AdminAiControl() {
   const intentHitRate = useMemo(() => {
     if (!metrics) return 0;
     const denom = metrics.uniqueVisitors || 1;
-    return Math.min(100, Math.round((metrics.intents / denom) * 100));
+    return Math.min(100, Math.round((metrics.signaledVisitors / denom) * 100));
   }, [metrics]);
+
 
   const toggleBlock = async (key: AiBlockKey, value: boolean) => {
     const { error } = await (supabase as any)
