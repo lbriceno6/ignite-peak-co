@@ -171,7 +171,7 @@ export function AiPostPurchaseInsights({ orderCode, items }: Props) {
               Recomendado para ti
             </p>
             <ul className="grid gap-3 sm:grid-cols-2">
-              {picks.map((p) => {
+              {picks.map((p, idx) => {
                 const prod = catalog[p.slug];
                 if (!prod) return null;
                 const img = resolveProductImage({
@@ -184,6 +184,7 @@ export function AiPostPurchaseInsights({ orderCode, items }: Props) {
                   <li key={p.slug}>
                     <Link
                       to={`/product/${prod.slug}`}
+                      onClick={() => logAiRecoClick("ai_post_purchase", { product_slug: prod.slug, product_id: prod.id, reason: p.reason, position: idx })}
                       className="flex items-center gap-3 rounded-md border border-border p-3 hover:border-accent transition-colors bg-background"
                     >
                       {img && (
