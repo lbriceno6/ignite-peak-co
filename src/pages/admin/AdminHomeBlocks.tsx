@@ -203,6 +203,25 @@ function BlockEditor({
           <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast} aria-label="Move down">
             <ArrowDown size={16} />
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" aria-label="Duplicar sección" title="Duplicar sección">
+                <Copy size={16} />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Deseas duplicar esta sección?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Se creará una copia exacta de "{f.title || meta.name}" como <strong>oculta</strong>, al final del listado. Podrás editarla sin afectar la original.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={onDuplicate}>Duplicar</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
 
