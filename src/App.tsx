@@ -99,6 +99,7 @@ import SeoLanding from "./pages/SeoLanding.tsx";
 import Goal from "./pages/Goal.tsx";
 import Goals from "./pages/Goals.tsx";
 import PromotionParticipants from "./pages/PromotionParticipants.tsx";
+import Promotions from "./pages/Promotions.tsx";
 import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import AdminBrands from "./pages/admin/AdminBrands.tsx";
 import AdminBrandForm from "./pages/admin/AdminBrandForm.tsx";
