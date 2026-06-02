@@ -26,6 +26,8 @@ import { logBrowseEvent } from "@/lib/recoEvents";
 import { useProductBenefits } from "@/hooks/useProductBenefits";
 import { renderBenefitIcon } from "@/components/BenefitIcon";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import { AiWhyForYou } from "@/components/product/AiWhyForYou";
+import { AiProductRelated } from "@/components/product/AiProductRelated";
 
 type DbProduct = {
   id: string;
@@ -291,6 +293,7 @@ const ProductDetail = () => {
             </div>
           )}
           {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
+          <AiWhyForYou productCategory={dbp.category} />
 
           <div className="mt-6 flex flex-col gap-1">
             {purchaseMode === "one_time" && product.oldPrice && (
