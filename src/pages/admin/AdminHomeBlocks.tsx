@@ -99,7 +99,7 @@ const DEFAULT_SHOWCASE_ITEMS = [
 const DEFAULT_BLOCKS: Array<Pick<Block, "block_key" | "block_type" | "sort_order" | "title" | "is_active"> & Partial<Block>> = [
   { block_key: "hero",                 block_type: "hero",                 sort_order: 10, is_active: true,  title: "Hero" },
   { block_key: "goals",                block_type: "goals",                sort_order: 20, is_active: true,  title: "Comprar por objetivo" },
-  { block_key: "best_sellers",         block_type: "best_sellers",         sort_order: 40, is_active: true,  title: "Best sellers" },
+  { block_key: "best_sellers",         block_type: "best_sellers",         sort_order: 40, is_active: true,  title: "Carrusel de productos" },
   { block_key: "promo",                block_type: "promo",                sort_order: 60, is_active: true,  title: "Promo banner" },
   { block_key: "promotions_carousel",  block_type: "promotions_carousel",  sort_order: 90, is_active: true,  title: "Promociones para usted" },
   { block_key: "blog",                 block_type: "blog",                 sort_order: 93, is_active: true,  title: "Guías y consejos" },
