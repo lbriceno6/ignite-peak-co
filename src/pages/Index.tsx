@@ -22,6 +22,7 @@ import promoImage from "@/assets/promo-banner.jpg";
 import productPlaceholder from "@/assets/product-protein.jpg";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
 import DOMPurify from "dompurify";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 
 type HeroSlide = {
@@ -679,6 +680,227 @@ const Home = () => {
         return (
           <section key={b.id} className="container-x py-8">
             <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: safe }} />
+          </section>
+        );
+      }
+
+      case "brands": {
+        const logos: Array<{ url: string; alt?: string; href?: string }> = Array.isArray((b.settings as any)?.logos) ? (b.settings as any).logos : [];
+        const valid = logos.filter((l) => l && typeof l.url === "string" && l.url.trim());
+        if (!valid.length) return null;
+        const colsRaw = Number((b.settings as any)?.columns ?? 5);
+        const cols = Math.min(8, Math.max(2, Number.isFinite(colsRaw) ? colsRaw : 5));
+        const grayscale = (b.settings as any)?.grayscale !== false;
+        const colsClass: Record<number, string> = {
+          2: "grid-cols-2 md:grid-cols-2",
+          3: "grid-cols-2 md:grid-cols-3",
+          4: "grid-cols-2 md:grid-cols-4",
+          5: "grid-cols-2 sm:grid-cols-3 md:grid-cols-5",
+          6: "grid-cols-2 sm:grid-cols-3 md:grid-cols-6",
+          7: "grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7",
+          8: "grid-cols-2 sm:grid-cols-4 md:grid-cols-8",
+        };
+        return (
+          <section key={b.id} className="container-x py-12">
+            {(b.eyebrow || b.title || b.subtitle) && (
+              <div className="mb-8 text-center">
+                {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+                {b.title && <h2 className="mt-2 font-display text-2xl sm:text-3xl">{b.title}</h2>}
+                {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
+              </div>
+            )}
+            <div className={`grid items-center gap-6 ${colsClass[cols]}`}>
+              {valid.map((l, i) => {
+                const img = (
+                  <img
+                    src={l.url}
+                    alt={l.alt || ""}
+                    loading="lazy"
+                    className={`max-h-14 w-auto object-contain transition ${grayscale ? "grayscale opacity-70 hover:grayscale-0 hover:opacity-100" : ""}`}
+                  />
+                );
+                return (
+                  <div key={i} className="flex items-center justify-center">
+                    {l.href ? (
+                      <a href={l.href} target="_blank" rel="noopener noreferrer" aria-label={l.alt || `brand-${i}`}>{img}</a>
+                    ) : img}
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      }
+
+      case "faq": {
+        const items: Array<{ q: string; a: string }> = Array.isArray((b.settings as any)?.items) ? (b.settings as any).items : [];
+        const valid = items.filter((it) => it && (it.q?.trim() || it.a?.trim()));
+        if (!valid.length) return null;
+        return (
+          <section key={b.id} className="container-x py-16">
+            <div className="mx-auto max-w-3xl">
+              <div className="text-center">
+                {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+                <h2 className="mt-2 font-display text-3xl sm:text-4xl">{b.title || "Preguntas frecuentes"}</h2>
+                {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
+              </div>
+              <Accordion type="single" collapsible className="mt-8">
+                {valid.map((it, i) => (
+                  <AccordionItem key={i} value={`item-${i}`}>
+                    <AccordionTrigger className="text-left">{it.q || `Pregunta ${i + 1}`}</AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground whitespace-pre-line">{it.a}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </section>
+        );
+      }
+
+      case "image_text": {
+        const side: "left" | "right" = (b.settings as any)?.image_side === "right" ? "right" : "left";
+        const bg = typeof (b.settings as any)?.bg_color === "string" && (b.settings as any).bg_color.trim() ? (b.settings as any).bg_color : undefined;
+        const imageBlock = (
+          <div className="relative min-h-[280px] overflow-hidden rounded-2xl bg-muted md:min-h-[420px]">
+            {b.image_url ? (
+              <img src={b.image_url} alt={b.title || ""} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full place-items-center text-6xl opacity-30">🖼️</div>
+            )}
+          </div>
+        );
+        const textBlock = (
+          <div className="flex flex-col justify-center gap-4">
+            {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+            {b.title && <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl leading-tight">{b.title}</h2>}
+            {b.subtitle && <p className="text-muted-foreground sm:text-lg whitespace-pre-line">{b.subtitle}</p>}
+            <div className="mt-2 flex flex-wrap gap-3">
+              {b.cta_label && b.cta_href && (
+                <Button asChild variant="dark"><Link to={b.cta_href}>{b.cta_label} <ArrowRight size={16} /></Link></Button>
+              )}
+              {b.cta2_label && b.cta2_href && (
+                <Button asChild variant="outline"><Link to={b.cta2_href}>{b.cta2_label}</Link></Button>
+              )}
+            </div>
+          </div>
+        );
+        return (
+          <section key={b.id} className="py-16" style={bg ? { backgroundColor: bg } : undefined}>
+            <div className="container-x grid items-center gap-8 md:grid-cols-2">
+              {side === "left" ? <>{imageBlock}{textBlock}</> : <>{textBlock}{imageBlock}</>}
+            </div>
+          </section>
+        );
+      }
+
+      case "video": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const url: string = typeof s.video_url === "string" ? s.video_url.trim() : "";
+        if (!url) return null;
+        const autoplay = !!s.autoplay;
+        const muted = s.muted !== false;
+        const loop = !!s.loop;
+        const cover = typeof s.cover_image === "string" ? s.cover_image : "";
+
+        // Detect provider
+        let embedUrl = "";
+        let isFile = false;
+        const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/i);
+        const vimeo = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+        if (yt) {
+          const p = new URLSearchParams();
+          if (autoplay) p.set("autoplay", "1");
+          if (muted || autoplay) p.set("mute", "1");
+          if (loop) { p.set("loop", "1"); p.set("playlist", yt[1]); }
+          embedUrl = `https://www.youtube.com/embed/${yt[1]}?${p.toString()}`;
+        } else if (vimeo) {
+          const p = new URLSearchParams();
+          if (autoplay) p.set("autoplay", "1");
+          if (muted || autoplay) p.set("muted", "1");
+          if (loop) p.set("loop", "1");
+          embedUrl = `https://player.vimeo.com/video/${vimeo[1]}?${p.toString()}`;
+        } else {
+          isFile = true;
+        }
+
+        return (
+          <section key={b.id} className="container-x py-16">
+            {(b.eyebrow || b.title || b.subtitle) && (
+              <div className="mb-8 text-center">
+                {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+                {b.title && <h2 className="mt-2 font-display text-3xl sm:text-4xl">{b.title}</h2>}
+                {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
+              </div>
+            )}
+            <div className="relative mx-auto aspect-video w-full max-w-5xl overflow-hidden rounded-2xl bg-black shadow-product">
+              {isFile ? (
+                <video
+                  src={url}
+                  poster={cover || undefined}
+                  controls
+                  autoPlay={autoplay}
+                  muted={muted || autoplay}
+                  loop={loop}
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <iframe
+                  src={embedUrl}
+                  title={b.title || "Video"}
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="h-full w-full"
+                />
+              )}
+            </div>
+            {b.cta_label && b.cta_href && (
+              <div className="mt-6 flex justify-center">
+                <Button asChild variant="dark"><Link to={b.cta_href}>{b.cta_label} <ArrowRight size={16} /></Link></Button>
+              </div>
+            )}
+          </section>
+        );
+      }
+
+      case "new_products": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const limit = Math.min(24, Math.max(2, Number(s.limit ?? 8) || 8));
+        const cols = Math.min(6, Math.max(2, Number(s.columns ?? 4) || 4));
+        const useBadge = s.use_badge !== false;
+        let pool = products;
+        if (useBadge) {
+          const news = products.filter((p) => (p.badge ?? "").toLowerCase() === "new");
+          const rest = products.filter((p) => (p.badge ?? "").toLowerCase() !== "new");
+          pool = [...news, ...rest];
+        }
+        const items = pool.slice(0, limit).map(toCardProduct);
+        if (!items.length) return null;
+        const colsClass: Record<number, string> = {
+          2: "grid-cols-2",
+          3: "grid-cols-2 md:grid-cols-3",
+          4: "grid-cols-2 md:grid-cols-4",
+          5: "grid-cols-2 md:grid-cols-3 lg:grid-cols-5",
+          6: "grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
+        };
+        return (
+          <section key={b.id} className="container-x py-16">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                {b.eyebrow && <span className="text-xs font-bold tracking-wide text-accent">{b.eyebrow}</span>}
+                <h2 className="mt-1 font-display text-3xl sm:text-4xl">{b.title || "Productos nuevos"}</h2>
+                {b.subtitle && <p className="mt-2 text-muted-foreground">{b.subtitle}</p>}
+              </div>
+              {b.cta_label && b.cta_href && (
+                <Link to={b.cta_href} className="hidden text-sm font-semibold tracking-wide hover:text-accent sm:inline-flex sm:items-center sm:gap-1">
+                  {b.cta_label} <ArrowRight size={14} />
+                </Link>
+              )}
+            </div>
+            <div className={`mt-8 grid gap-4 ${colsClass[cols]}`}>
+              {items.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
           </section>
         );
       }

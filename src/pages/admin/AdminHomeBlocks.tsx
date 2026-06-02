@@ -68,11 +68,17 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   promotions_carousel: { name: "Promociones para usted",   desc: "Carrusel de productos con promociones activas.",                              hasImage: false, hasCta: true,  hasCta2: false },
   custom_simple:       { name: "Sección personalizada",    desc: "Bloque libre con título, subtítulo, imagen, botón y alineación.",            hasImage: true,  hasCta: true,  hasCta2: false },
   custom_html:         { name: "HTML personalizado",       desc: "Bloque HTML libre (sanitizado por seguridad).",                              hasImage: false, hasCta: false, hasCta2: false },
+  brands:              { name: "Marcas / Logos",           desc: "Grid de logotipos de marcas o partners con enlaces opcionales.",             hasImage: false, hasCta: false, hasCta2: false },
+  faq:                 { name: "Preguntas frecuentes",     desc: "Acordeón con preguntas y respuestas.",                                       hasImage: false, hasCta: false, hasCta2: false },
+  image_text:          { name: "Imagen + Texto",           desc: "Sección de dos columnas con imagen y texto a la izquierda o derecha.",       hasImage: true,  hasCta: true,  hasCta2: true  },
+  video:               { name: "Video destacado",          desc: "Video embebido de YouTube, Vimeo o MP4.",                                    hasImage: false, hasCta: true,  hasCta2: false },
+  new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
-  "promo", "promotions_carousel", "best_sellers", "products_grid", "categories",
+  "promo", "promotions_carousel", "best_sellers", "products_grid", "new_products", "categories",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
+  "brands", "faq", "image_text", "video",
   "custom_simple", "custom_html",
 ];
 
@@ -674,6 +680,41 @@ function BlockEditor({
             />
           )}
 
+          {block.block_type === "brands" && (
+            <BrandsSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "faq" && (
+            <FaqSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "image_text" && (
+            <ImageTextSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "video" && (
+            <VideoSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "new_products" && (
+            <NewProductsSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
@@ -1003,5 +1044,235 @@ function SortablePromoRow({
         Quitar
       </Button>
     </li>
+  );
+}
+
+// ============== Phase 2 settings editors ==============
+
+type BrandLogo = { url: string; alt?: string; href?: string };
+
+function BrandsSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const logos: BrandLogo[] = Array.isArray(settings.logos) ? settings.logos : [];
+  const columnsRaw = Number(settings.columns ?? 5);
+  const columns = Math.min(8, Math.max(2, Number.isFinite(columnsRaw) ? columnsRaw : 5));
+  const grayscale = settings.grayscale !== false;
+
+  const update = (next: BrandLogo[]) => onChange({ logos: next });
+  const addRow = () => update([...logos, { url: "", alt: "", href: "" }]);
+  const removeRow = (i: number) => update(logos.filter((_, idx) => idx !== i));
+  const editRow = (i: number, patch: Partial<BrandLogo>) =>
+    update(logos.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+  const moveRow = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= logos.length) return;
+    const arr = [...logos];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    update(arr);
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Logos de marcas
+      </p>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Columnas (en escritorio)</Label>
+          <div className="mt-1 flex gap-1.5">
+            {[2,3,4,5,6,7,8].map((n) => (
+              <button key={n} type="button"
+                onClick={() => onChange({ columns: n })}
+                className={`h-9 flex-1 rounded-md border text-sm transition ${columns === n ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>{n}</button>
+            ))}
+          </div>
+        </div>
+        <div className="flex items-end gap-2">
+          <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm">
+            <Switch checked={grayscale} onCheckedChange={(v) => onChange({ grayscale: v })} />
+            <span>Logos en escala de grises (color al pasar el mouse)</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        {logos.length === 0 && (
+          <p className="text-xs text-muted-foreground">Aún no hay logos. Agrega el primero.</p>
+        )}
+        {logos.map((l, i) => (
+          <div key={i} className="grid gap-2 rounded-md border bg-background p-2 sm:grid-cols-[64px,1fr,1fr,1fr,auto] sm:items-center">
+            <div className="grid h-16 w-16 place-items-center overflow-hidden rounded border bg-muted">
+              {l.url ? <img src={l.url} alt={l.alt || ""} className="max-h-full max-w-full object-contain" /> : <ImageIcon size={20} className="text-muted-foreground" />}
+            </div>
+            <Input placeholder="URL del logo" value={l.url} onChange={(e) => editRow(i, { url: e.target.value })} />
+            <Input placeholder="Alt / nombre marca" value={l.alt || ""} onChange={(e) => editRow(i, { alt: e.target.value })} />
+            <Input placeholder="Enlace (opcional)" value={l.href || ""} onChange={(e) => editRow(i, { href: e.target.value })} />
+            <div className="flex gap-1">
+              <Button type="button" variant="ghost" size="icon" onClick={() => moveRow(i, -1)} aria-label="Subir"><ArrowUp size={14} /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => moveRow(i, 1)} aria-label="Bajar"><ArrowDown size={14} /></Button>
+              <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} aria-label="Quitar"><Trash2 size={14} /></Button>
+            </div>
+          </div>
+        ))}
+        <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addRow}>
+          <Plus size={14} /> Agregar logo
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type FaqItem = { q: string; a: string };
+
+function FaqSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const items: FaqItem[] = Array.isArray(settings.items) ? settings.items : [];
+  const update = (next: FaqItem[]) => onChange({ items: next });
+  const addRow = () => update([...items, { q: "", a: "" }]);
+  const removeRow = (i: number) => update(items.filter((_, idx) => idx !== i));
+  const editRow = (i: number, patch: Partial<FaqItem>) =>
+    update(items.map((l, idx) => (idx === i ? { ...l, ...patch } : l)));
+  const moveRow = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const arr = [...items];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    update(arr);
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Preguntas y respuestas
+      </p>
+      <div className="space-y-2">
+        {items.length === 0 && (
+          <p className="text-xs text-muted-foreground">Aún no hay preguntas. Agrega la primera.</p>
+        )}
+        {items.map((it, i) => (
+          <div key={i} className="space-y-2 rounded-md border bg-background p-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">#{i + 1}</span>
+              <Input placeholder="Pregunta" value={it.q} onChange={(e) => editRow(i, { q: e.target.value })} />
+              <div className="flex gap-1">
+                <Button type="button" variant="ghost" size="icon" onClick={() => moveRow(i, -1)} aria-label="Subir"><ArrowUp size={14} /></Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => moveRow(i, 1)} aria-label="Bajar"><ArrowDown size={14} /></Button>
+                <Button type="button" variant="ghost" size="icon" onClick={() => removeRow(i)} aria-label="Quitar"><Trash2 size={14} /></Button>
+              </div>
+            </div>
+            <Textarea rows={3} placeholder="Respuesta" value={it.a} onChange={(e) => editRow(i, { a: e.target.value })} />
+          </div>
+        ))}
+        <Button type="button" variant="outline" size="sm" className="gap-1" onClick={addRow}>
+          <Plus size={14} /> Agregar pregunta
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function ImageTextSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const side: "left" | "right" = settings.image_side === "right" ? "right" : "left";
+  const bg = typeof settings.bg_color === "string" ? settings.bg_color : "";
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Diseño Imagen + Texto
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Posición de la imagen</Label>
+          <div className="mt-1 flex gap-1.5">
+            {(["left","right"] as const).map((s) => (
+              <button key={s} type="button" onClick={() => onChange({ image_side: s })}
+                className={`h-9 flex-1 rounded-md border text-sm transition ${side === s ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>
+                {s === "left" ? "Izquierda" : "Derecha"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label className="text-xs">Color de fondo (opcional)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input type="color" value={bg || "#ffffff"} onChange={(e) => onChange({ bg_color: e.target.value })} className="h-9 w-16 p-1" />
+            <Input value={bg} onChange={(e) => onChange({ bg_color: e.target.value })} placeholder="#ffffff o vacío" />
+            {bg && <Button variant="ghost" size="sm" onClick={() => onChange({ bg_color: "" })}>Quitar</Button>}
+          </div>
+        </div>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Usa los campos generales (Eyebrow, Título, Subtítulo, Imagen y Botones) de arriba para el contenido.
+      </p>
+    </div>
+  );
+}
+
+function VideoSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const url = typeof settings.video_url === "string" ? settings.video_url : "";
+  const autoplay = !!settings.autoplay;
+  const muted = settings.muted !== false;
+  const loop = !!settings.loop;
+  const cover = typeof settings.cover_image === "string" ? settings.cover_image : "";
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Video</p>
+      <div>
+        <Label className="text-xs">URL del video (YouTube, Vimeo o MP4)</Label>
+        <Input value={url} onChange={(e) => onChange({ video_url: e.target.value })}
+          placeholder="https://www.youtube.com/watch?v=... o https://.../video.mp4" />
+      </div>
+      <div>
+        <Label className="text-xs">Imagen de portada (opcional, para MP4)</Label>
+        <Input value={cover} onChange={(e) => onChange({ cover_image: e.target.value })} placeholder="https://..." />
+      </div>
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2 text-sm"><Switch checked={autoplay} onCheckedChange={(v) => onChange({ autoplay: v })} /> Autoplay</label>
+        <label className="flex items-center gap-2 text-sm"><Switch checked={muted} onCheckedChange={(v) => onChange({ muted: v })} /> Silenciado</label>
+        <label className="flex items-center gap-2 text-sm"><Switch checked={loop} onCheckedChange={(v) => onChange({ loop: v })} /> Repetir en bucle</label>
+      </div>
+    </div>
+  );
+}
+
+function NewProductsSettings({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const limitRaw = Number(settings.limit ?? 8);
+  const limit = Math.min(24, Math.max(2, Number.isFinite(limitRaw) ? limitRaw : 8));
+  const colsRaw = Number(settings.columns ?? 4);
+  const columns = Math.min(6, Math.max(2, Number.isFinite(colsRaw) ? colsRaw : 4));
+  const useBadge = settings.use_badge !== false;
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Productos nuevos</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label className="text-xs">Cantidad a mostrar</Label>
+          <Input type="number" min={2} max={24} value={limit}
+            onChange={(e) => onChange({ limit: Math.max(2, Math.min(24, Number(e.target.value) || 8)) })} />
+        </div>
+        <div>
+          <Label className="text-xs">Columnas (escritorio)</Label>
+          <div className="mt-1 flex gap-1.5">
+            {[2,3,4,5,6].map((n) => (
+              <button key={n} type="button"
+                onClick={() => onChange({ columns: n })}
+                className={`h-9 flex-1 rounded-md border text-sm transition ${columns === n ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"}`}>{n}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <Switch checked={useBadge} onCheckedChange={(v) => onChange({ use_badge: v })} />
+        <span>Priorizar productos con badge "New"; si no hay suficientes, completar con los más recientes.</span>
+      </label>
+    </div>
   );
 }
