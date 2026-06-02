@@ -14,11 +14,11 @@
 
 ## Categorías
 
+- [Suplementos](https://ignite-peak-co.lovable.app/categoria/suplementos)
 - [Creatina](https://ignite-peak-co.lovable.app/categoria/creatine)
 - [colagenos](https://ignite-peak-co.lovable.app/categoria/colagenos)
 - [Colágenos Funcionales](https://ignite-peak-co.lovable.app/categoria/colagenos-funcionales)
 - [Proteinas](https://ignite-peak-co.lovable.app/categoria/Proteinas)
-- [Nutribatidos](https://ignite-peak-co.lovable.app/categoria/nutribatidos)
 - [Superfoods Andinos](https://ignite-peak-co.lovable.app/categoria/superfoods-andinos)
 - [Proteínas y Colágeno](https://ignite-peak-co.lovable.app/categoria/proteinas-y-colageno)
 - [Energía y Vitalidad](https://ignite-peak-co.lovable.app/categoria/energia-y-vitalidad)
@@ -28,6 +28,7 @@
 - [Ofertas](https://ignite-peak-co.lovable.app/categoria/ofertas)
 - [Más vendidos](https://ignite-peak-co.lovable.app/categoria/mas-vendidos)
 - [Nuevos productos](https://ignite-peak-co.lovable.app/categoria/nuevos-productos)
+- [Nutribatidos](https://ignite-peak-co.lovable.app/categoria/nutribatidos)
 - [Aceites Naturales](https://ignite-peak-co.lovable.app/categoria/aceites-naturales)
 - [Plantas Naturales](https://ignite-peak-co.lovable.app/categoria/plantas-naturales)
 - [Semillas y Cereales](https://ignite-peak-co.lovable.app/categoria/semillas-y-cereales)
@@ -35,7 +36,6 @@
 - [Pre-Workout](https://ignite-peak-co.lovable.app/categoria/pre-workout)
 - [Promociones](https://ignite-peak-co.lovable.app/categoria/promociones)
 - [Para tu salud](https://ignite-peak-co.lovable.app/categoria/para-tu-salud)
-- [Suplementos](https://ignite-peak-co.lovable.app/categoria/suplementos)
 - [Vitaminas](https://ignite-peak-co.lovable.app/categoria/vitamins)
 - [Digestión y Colon](https://ignite-peak-co.lovable.app/categoria/digestion-y-colon)
 - [Articulaciones y Huesos](https://ignite-peak-co.lovable.app/categoria/articulaciones-y-huesos)
