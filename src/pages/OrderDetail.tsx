@@ -71,6 +71,18 @@ const OrderDetail = () => {
         </div>
         <p className="text-sm text-muted-foreground mt-1">Realizado el {new Date(order.created_at).toLocaleString()}</p>
 
+        <div className="mt-6">
+          <AiPostPurchaseInsights
+            orderCode={order.order_code}
+            items={items.map((it) => ({
+              product_slug: (it as any).product_slug ?? "",
+              product_name: it.product_name,
+              product_image: it.product_image,
+              quantity: it.quantity,
+            }))}
+          />
+        </div>
+
         <div className="grid gap-6 mt-8 lg:grid-cols-[1fr_320px]">
           <div className="rounded-lg border border-border">
             <div className="border-b border-border px-5 py-3 font-display uppercase">Productos</div>
