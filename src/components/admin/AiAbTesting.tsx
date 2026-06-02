@@ -211,17 +211,45 @@ export function AiAbTesting() {
         return (
           <Card key={fn}>
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                {FN_LABELS[fn]}
-                {winner && rows.length > 1 && (
-                  <Badge variant="default" className="ml-2">
-                    <Trophy size={12} className="mr-1" /> Líder por RPC
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                {rows.length} variante{rows.length !== 1 ? "s" : ""} con datos en los últimos {windowDays} días.
-              </CardDescription>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {FN_LABELS[fn]}
+                    {winner && rows.length > 1 && (
+                      <Badge variant="default" className="ml-2">
+                        <Trophy size={12} className="mr-1" /> Líder por RPC
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    {rows.length} variante{rows.length !== 1 ? "s" : ""} con datos en los últimos {windowDays} días.
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy?.startsWith(fn) || rows.length < 2}
+                    onClick={() => runAutoPromote(fn, false)}
+                  >
+                    {busy === `${fn}:dry` ? <Loader2 size={14} className="mr-1 animate-spin" /> : <PlayCircle size={14} className="mr-1" />}
+                    Simular
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={busy?.startsWith(fn) || rows.length < 2}
+                    onClick={() => runAutoPromote(fn, true)}
+                  >
+                    {busy === `${fn}:apply` ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Sparkles size={14} className="mr-1" />}
+                    Auto-promover ganador
+                  </Button>
+                </div>
+              </div>
+              {lastResult[fn]?.reason && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Última decisión: {lastResult[fn].reason}
+                </p>
+              )}
             </CardHeader>
             <CardContent>
               <Table>
