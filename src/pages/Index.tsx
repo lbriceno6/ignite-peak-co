@@ -170,7 +170,7 @@ const Home = () => {
     "home.guides.cta_label": "Todos los artículos",
     "home.guides.cta_href": "/blog",
   });
-  const { config: carouselConfig } = useProductsCarouselConfig();
+  // Carousel configuration is now read per-block from home_blocks.settings.
 
   const loadAll = async () => {
     const [p, c, featured, recent, hero, blk, gc] = await Promise.all([
