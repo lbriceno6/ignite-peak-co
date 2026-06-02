@@ -905,6 +905,175 @@ const Home = () => {
         );
       }
 
+      case "category_showcase": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const desktopColumns = Math.min(6, Math.max(3, Number(s.desktopColumns ?? 4) || 4));
+        const mobileLayout: "grid" | "carousel" = s.mobileLayout === "grid" ? "grid" : "carousel";
+        const showButton = !!s.showButton;
+        const animations = s.animations !== false;
+        const bg = typeof s.backgroundColor === "string" && s.backgroundColor ? s.backgroundColor : undefined;
+        const spacingTop = Number.isFinite(Number(s.spacingTop)) ? Number(s.spacingTop) : 60;
+        const spacingBottom = Number.isFinite(Number(s.spacingBottom)) ? Number(s.spacingBottom) : 60;
+        const selectionMode: "manual" | "auto" = s.selectionMode === "auto" ? "auto" : "manual";
+
+        const defaultPalette = [
+          { bg: "#8F87F1", grad: "#746AE8" },
+          { bg: "#FF914D", grad: "#F47A2E" },
+          { bg: "#63D9C6", grad: "#3FBFAB" },
+          { bg: "#D9788E", grad: "#C4596F" },
+          { bg: "#FFC65C", grad: "#F0AC2E" },
+          { bg: "#6CB1F2", grad: "#4A93D9" },
+        ];
+
+        type Tile = {
+          title: string;
+          image: string | null;
+          href: string;
+          bg: string;
+          grad: string;
+          useGradient: boolean;
+          textColor: string;
+        };
+
+        const catBySlug = new Map((categories as any[]).map((c) => [c.slug, c]));
+        let tiles: Tile[] = [];
+        if (selectionMode === "manual") {
+          const rawItems: any[] = Array.isArray(s.items) ? s.items : [];
+          tiles = rawItems
+            .filter((it) => it && it.isActive !== false)
+            .map((it, idx) => {
+              const cat = it.categorySlug ? catBySlug.get(it.categorySlug) : null;
+              const title = String(it.customTitle || cat?.name || "").trim();
+              if (!title) return null;
+              const palette = defaultPalette[idx % defaultPalette.length];
+              const href = it.customUrl || (cat ? `/categoria/${cat.slug}` : "#");
+              const image =
+                (it.customImageUrl && String(it.customImageUrl).trim()) ||
+                (cat?.image_url as string | null | undefined) ||
+                null;
+              return {
+                title,
+                image,
+                href,
+                bg: it.backgroundColor || palette.bg,
+                grad: it.gradientColor || it.backgroundColor || palette.grad,
+                useGradient: !!it.useGradient,
+                textColor: it.textColor || "#FFFFFF",
+              } as Tile;
+            })
+            .filter((t): t is Tile => !!t);
+        } else {
+          const limit = Math.min(12, Math.max(2, Number(s.autoLimit ?? 4) || 4));
+          tiles = (categories as any[]).slice(0, limit).map((c: any, idx: number) => {
+            const palette = defaultPalette[idx % defaultPalette.length];
+            return {
+              title: c.name,
+              image: c.image_url ?? null,
+              href: `/categoria/${c.slug}`,
+              bg: palette.bg,
+              grad: palette.grad,
+              useGradient: true,
+              textColor: "#FFFFFF",
+            };
+          });
+        }
+
+        if (tiles.length === 0) return null;
+
+        const desktopColsClass: Record<number, string> = {
+          3: "lg:grid-cols-3",
+          4: "lg:grid-cols-4",
+          5: "lg:grid-cols-5",
+          6: "lg:grid-cols-6",
+        };
+        const gridClass = `grid grid-cols-1 sm:grid-cols-2 ${desktopColsClass[desktopColumns]} gap-5`;
+
+        const Tile = (t: Tile) => {
+          const background = t.useGradient
+            ? `linear-gradient(160deg, ${t.bg}, ${t.grad})`
+            : t.bg;
+          return (
+            <Link
+              to={t.href}
+              className={`group relative flex aspect-[4/6] flex-col overflow-hidden rounded-3xl shadow-product ${animations ? "transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl" : ""}`}
+              style={{ background }}
+              aria-label={t.title}
+            >
+              <div className="relative flex flex-1 items-center justify-center p-6">
+                {t.image ? (
+                  <img
+                    src={t.image}
+                    alt={t.title}
+                    loading="lazy"
+                    className={`max-h-full w-full object-contain drop-shadow-xl ${animations ? "transition-transform duration-500 ease-out group-hover:scale-105" : ""}`}
+                  />
+                ) : (
+                  <div className="grid h-full w-full place-items-center rounded-2xl border border-white/20 text-sm text-white/70">
+                    Imagen no disponible
+                  </div>
+                )}
+              </div>
+              <div className="px-6 pb-8 pt-2 text-center">
+                <h3
+                  className="font-display text-2xl font-bold uppercase leading-tight tracking-wide sm:text-3xl"
+                  style={{ color: t.textColor }}
+                >
+                  {t.title}
+                </h3>
+              </div>
+            </Link>
+          );
+        };
+
+        return (
+          <section
+            key={b.id}
+            style={{
+              backgroundColor: bg,
+              paddingTop: `${spacingTop}px`,
+              paddingBottom: `${spacingBottom}px`,
+            }}
+          >
+            <div className="container-x">
+              {(b.title || b.subtitle) && (
+                <div className="mb-10 text-center">
+                  {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
+                  {b.title && (
+                    <h2 className="mt-2 font-display text-3xl font-bold uppercase tracking-[0.15em] sm:text-4xl lg:text-5xl">
+                      {b.title}
+                    </h2>
+                  )}
+                  {b.subtitle && <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">{b.subtitle}</p>}
+                </div>
+              )}
+
+              {mobileLayout === "carousel" ? (
+                <>
+                  <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory sm:hidden">
+                    {tiles.map((t, i) => (
+                      <div key={i} className="w-[78%] flex-shrink-0 snap-start">{Tile(t)}</div>
+                    ))}
+                  </div>
+                  <div className={`hidden sm:${gridClass}`}>
+                    {tiles.map((t, i) => <div key={i}>{Tile(t)}</div>)}
+                  </div>
+                </>
+              ) : (
+                <div className={gridClass}>
+                  {tiles.map((t, i) => <div key={i}>{Tile(t)}</div>)}
+                </div>
+              )}
+
+              {showButton && s.buttonText && s.buttonUrl && (
+                <div className="mt-10 flex justify-center">
+                  <Button asChild variant="dark"><Link to={s.buttonUrl}>{s.buttonText} <ArrowRight size={16} /></Link></Button>
+                </div>
+              )}
+            </div>
+          </section>
+        );
+      }
+
       default:
         return null;
     }
