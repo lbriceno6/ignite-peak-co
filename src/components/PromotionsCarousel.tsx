@@ -9,7 +9,7 @@ import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
 import { usePromotions } from "@/hooks/usePromotions";
 import { isPromoActiveNow, promoLabel } from "@/lib/promotions";
-import { resolveProductImage } from "@/lib/productImage";
+import { getPromotionImage } from "@/lib/productImage";
 import productPlaceholder from "@/assets/product-placeholder.jpg";
 import type { Product } from "@/data/catalog";
 
@@ -22,6 +22,7 @@ type DbProduct = {
   sale_price: number | null;
   category: string | null;
   main_image: string | null;
+  gallery_images?: any;
   badge: string | null;
 };
 
@@ -38,21 +39,31 @@ type Props = {
   products: DbProduct[];
 };
 
-const toCardProduct = (p: DbProduct, promoBadge?: string | null): Product => ({
-  id: p.id,
-  slug: p.slug,
-  name: p.name,
-  shortBenefit: p.short_description ?? "",
-  price: Number(p.sale_price ?? p.price ?? 0),
-  oldPrice: p.sale_price ? Number(p.price) : undefined,
-  rating: 4.8,
-  reviews: 0,
-  label: promoBadge ?? p.badge ?? null,
-  image: resolveProductImage(p.main_image, productPlaceholder),
-  category: p.category ?? "",
-  goal: [],
-  brand: "",
-} as unknown as Product);
+const toCardProduct = (p: DbProduct, promoBadge?: string | null): Product => {
+  const image = getPromotionImage(
+    {
+      main_image: p.main_image,
+      gallery_images: Array.isArray(p.gallery_images) ? p.gallery_images : null,
+    },
+    null,
+    productPlaceholder,
+  );
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    shortBenefit: p.short_description ?? "",
+    price: Number(p.sale_price ?? p.price ?? 0),
+    oldPrice: p.sale_price ? Number(p.price) : undefined,
+    rating: 4.8,
+    reviews: 0,
+    label: promoBadge ?? p.badge ?? null,
+    image,
+    category: p.category ?? "",
+    goal: [],
+    brand: "",
+  } as unknown as Product;
+};
 
 export function PromotionsCarousel({ block, products }: Props) {
   const { promotions } = usePromotions();
