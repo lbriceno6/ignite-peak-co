@@ -11,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/context/CurrencyContext";
 import { XCircle, Loader2 } from "lucide-react";
+import { AiPostPurchaseInsights } from "@/components/order/AiPostPurchaseInsights";
 
 type Order = any;
 type Item = { id: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
