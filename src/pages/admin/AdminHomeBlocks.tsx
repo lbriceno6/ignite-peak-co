@@ -68,11 +68,17 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   promotions_carousel: { name: "Promociones para usted",   desc: "Carrusel de productos con promociones activas.",                              hasImage: false, hasCta: true,  hasCta2: false },
   custom_simple:       { name: "Sección personalizada",    desc: "Bloque libre con título, subtítulo, imagen, botón y alineación.",            hasImage: true,  hasCta: true,  hasCta2: false },
   custom_html:         { name: "HTML personalizado",       desc: "Bloque HTML libre (sanitizado por seguridad).",                              hasImage: false, hasCta: false, hasCta2: false },
+  brands:              { name: "Marcas / Logos",           desc: "Grid de logotipos de marcas o partners con enlaces opcionales.",             hasImage: false, hasCta: false, hasCta2: false },
+  faq:                 { name: "Preguntas frecuentes",     desc: "Acordeón con preguntas y respuestas.",                                       hasImage: false, hasCta: false, hasCta2: false },
+  image_text:          { name: "Imagen + Texto",           desc: "Sección de dos columnas con imagen y texto a la izquierda o derecha.",       hasImage: true,  hasCta: true,  hasCta2: true  },
+  video:               { name: "Video destacado",          desc: "Video embebido de YouTube, Vimeo o MP4.",                                    hasImage: false, hasCta: true,  hasCta2: false },
+  new_products:        { name: "Productos nuevos",         desc: "Grid de los productos más recientes del catálogo.",                          hasImage: false, hasCta: true,  hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
-  "promo", "promotions_carousel", "best_sellers", "products_grid", "categories",
+  "promo", "promotions_carousel", "best_sellers", "products_grid", "new_products", "categories",
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
+  "brands", "faq", "image_text", "video",
   "custom_simple", "custom_html",
 ];
 
