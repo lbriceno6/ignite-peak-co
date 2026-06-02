@@ -59,6 +59,8 @@ export async function logAiRecoClick(
     product_id?: string | null;
     reason?: string | null;
     position?: number | null;
+    ai_prompt_id?: string | null;
+    ai_variant?: string | null;
   },
 ) {
   try {
@@ -73,6 +75,8 @@ export async function logAiRecoClick(
         source,
         reason: data.reason ?? null,
         position: data.position ?? null,
+        ai_prompt_id: data.ai_prompt_id ?? null,
+        ai_variant: data.ai_variant ?? null,
       },
     });
   } catch (e) {
