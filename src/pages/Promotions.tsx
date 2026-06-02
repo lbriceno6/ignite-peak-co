@@ -30,14 +30,17 @@ const toCard = (p: DbProduct, badge?: string | null): Product => ({
 const Promotions = () => {
   const { promotions } = usePromotions();
   const [products, setProducts] = useState<DbProduct[]>([]);
+  const [selected, setSelected] = useState<SelectedFilters>({});
+  const { filters: catalogFilters } = useCatalogFilters("promotions");
 
   useEffect(() => {
     supabase
       .from("products")
-      .select("id,slug,name,short_description,price,sale_price,category,main_image,badge")
+      .select("id,slug,name,short_description,price,sale_price,category,main_image,badge,brand,stock,rating")
       .eq("is_active", true)
       .then(({ data }) => setProducts((data as DbProduct[]) ?? []));
   }, []);
+
 
   const grouped = useMemo(() => {
     const now = new Date();
