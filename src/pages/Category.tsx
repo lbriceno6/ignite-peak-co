@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { categories, goals, type Product } from "@/data/catalog";
 import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
+import { logBrowseEvent } from "@/lib/recoEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
 import { mainCategories, getSubcategories, mainBySlug, subBySlug } from "@/lib/productCategories";
