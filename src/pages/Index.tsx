@@ -511,6 +511,80 @@ const Home = () => {
           </section>
         );
 
+      case "double_promo_banners": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const banners: Array<any> = Array.isArray(s.banners) ? s.banners : [];
+        const activeBanners = banners
+          .filter((bn) => bn && bn.is_active !== false)
+          .sort((a, c) => (a.sort_order ?? 0) - (c.sort_order ?? 0));
+        if (!activeBanners.length) return null;
+        const aspect = s.aspectRatio === "21/9" ? "aspect-[21/9]"
+          : s.aspectRatio === "16/9" ? "aspect-[16/9]"
+          : s.aspectRatio === "4/3" ? "aspect-[4/3]"
+          : "aspect-[16/7]";
+        const rounded = s.rounded !== false ? "rounded-2xl" : "";
+        const shadow = s.shadow !== false ? "shadow-md hover:shadow-xl" : "";
+        const hover = s.hoverEffect !== false;
+        const wrapperClass = s.containerWidth === "full" ? "" : "container-x";
+        const sectionStyle: React.CSSProperties = {
+          paddingTop: typeof s.spacingTop === "number" ? s.spacingTop : 40,
+          paddingBottom: typeof s.spacingBottom === "number" ? s.spacingBottom : 40,
+          backgroundColor: typeof s.backgroundColor === "string" && s.backgroundColor ? s.backgroundColor : undefined,
+        };
+        return (
+          <section key={b.id} style={sectionStyle}>
+            <div className={wrapperClass}>
+              <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2">
+                {activeBanners.map((bn, i) => {
+                  const imageUrl = bn.uploaded_image_url || bn.custom_image_url || "/placeholder.svg";
+                  const alt = bn.alt_text || `Promoción ${i + 1}`;
+                  const cardClass = `group relative block overflow-hidden ${rounded} ${shadow} ${hover ? "transition-all duration-300" : ""}`.trim();
+                  const img = (
+                    <div className={`${aspect} w-full overflow-hidden`}>
+                      <img
+                        src={imageUrl}
+                        alt={alt}
+                        loading="lazy"
+                        className={`h-full w-full object-cover ${hover ? "transition-transform duration-500 group-hover:scale-[1.03]" : ""}`}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
+                      />
+                    </div>
+                  );
+                  if (bn.link_url) {
+                    const isExternal = /^https?:\/\//i.test(bn.link_url);
+                    if (isExternal || bn.open_new_tab) {
+                      return (
+                        <a
+                          key={bn.id || i}
+                          href={bn.link_url}
+                          target={bn.open_new_tab ? "_blank" : undefined}
+                          rel={bn.open_new_tab ? "noopener noreferrer" : undefined}
+                          className={cardClass}
+                          aria-label={alt}
+                        >
+                          {img}
+                        </a>
+                      );
+                    }
+                    return (
+                      <Link key={bn.id || i} to={bn.link_url} className={cardClass} aria-label={alt}>
+                        {img}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <div key={bn.id || i} className={cardClass}>
+                      {img}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        );
+      }
+
+
       case "products_grid":
         if (!moreProducts.length) return null;
         return (
