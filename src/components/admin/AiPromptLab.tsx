@@ -88,6 +88,8 @@ export function AiPromptLab() {
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
   const [output, setOutput] = useState<string>("");
+  const [optimizing, setOptimizing] = useState(false);
+  const [suggestion, setSuggestion] = useState<{ prompt: string; rationale: string; metrics: any } | null>(null);
 
   const def = useMemo(() => FUNCTIONS.find((f) => f.name === fnName)!, [fnName]);
   const activeVersion = useMemo(() => versions.find((v) => v.is_active) ?? null, [versions]);
@@ -152,6 +154,35 @@ export function AiPromptLab() {
     } finally {
       setRunning(false);
     }
+  };
+
+  const optimizeWithAi = async () => {
+    setOptimizing(true);
+    setSuggestion(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-prompt-optimizer", {
+        body: { function_name: fnName },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      setSuggestion({
+        prompt: (data as any).suggested_prompt ?? "",
+        rationale: (data as any).rationale ?? "",
+        metrics: (data as any).metrics_used ?? {},
+      });
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo generar sugerencia");
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
+  const applySuggestion = () => {
+    if (!suggestion) return;
+    setPrompt(suggestion.prompt);
+    setNotes(`Sugerido por IA — CVR base ${suggestion.metrics?.cvr_pct ?? 0}%`);
+    setSuggestion(null);
+    toast.success("Pegado en el editor — revisa y guarda para activar");
   };
 
   return (
