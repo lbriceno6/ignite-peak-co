@@ -47,6 +47,22 @@ function parseJsonLoose(s: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
+async function getActivePrompt(name: string, fallback: string): Promise<string> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return fallback;
+  try {
+    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ _function_name: name }),
+    });
+    if (!r.ok) return fallback;
+    const out = await r.json();
+    return typeof out === "string" && out.trim() ? out : fallback;
+  } catch { return fallback; }
+}
+
 function heuristic(body: Body): Pick[] {
   const currentCat = (body.product.category ?? "").toLowerCase();
   const seenCats = new Set(
