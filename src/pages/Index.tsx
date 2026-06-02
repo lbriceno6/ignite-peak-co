@@ -23,6 +23,9 @@ import productPlaceholder from "@/assets/product-protein.jpg";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
 import DOMPurify from "dompurify";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AiDynamicBanner } from "@/components/home/AiDynamicBanner";
+import { AiRecommendedForYou } from "@/components/home/AiRecommendedForYou";
+import { AiRecentlyViewed } from "@/components/home/AiRecentlyViewed";
 
 
 type HeroSlide = {
