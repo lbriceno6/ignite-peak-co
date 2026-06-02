@@ -142,9 +142,7 @@ export const CartDrawer = () => {
               {promoNudges.map((n) => (
                 <div key={n.promotion.id} className="rounded-md border border-accent/40 bg-accent/5 p-2 text-xs">
                   <p className="font-medium text-foreground">{n.title}</p>
-                  <p className="mt-0.5 text-muted-foreground">
-                    Agrega otro producto participante para activar el beneficio.
-                  </p>
+                  <p className="mt-0.5 text-muted-foreground">{n.message}</p>
                   <Link
                     to="/promociones/compra-uno-lleva-otro"
                     onClick={() => setOpen(false)}
