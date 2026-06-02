@@ -39,3 +39,43 @@ export async function logBrowseEvent(
     console.debug("logBrowseEvent failed", e);
   }
 }
+
+export type AiRecoSource =
+  | "ai_cart"
+  | "ai_checkout"
+  | "ai_product_related"
+  | "ai_post_purchase"
+  | "ai_home_recommended"
+  | "ai_home_dynamic_banner";
+
+/**
+ * Tracks clicks on AI-generated recommendations so we can measure conversion
+ * in the admin "Conversión IA" tab.
+ */
+export async function logAiRecoClick(
+  source: AiRecoSource,
+  data: {
+    product_slug: string;
+    product_id?: string | null;
+    reason?: string | null;
+    position?: number | null;
+  },
+) {
+  try {
+    await (supabase as any).from("lucia_events").insert({
+      visitor_id: getVisitorId(),
+      session_id: getSessionId(),
+      event_type: "ai_reco_click",
+      product_id: data.product_id ?? null,
+      product_slug: data.product_slug,
+      page: typeof window !== "undefined" ? window.location.pathname : null,
+      metadata: {
+        source,
+        reason: data.reason ?? null,
+        position: data.position ?? null,
+      },
+    });
+  } catch (e) {
+    console.debug("logAiRecoClick failed", e);
+  }
+}
