@@ -278,6 +278,44 @@ Deno.serve(async (req) => {
         goal: p.goal,
       }));
 
+    // Fase 15 — Personal context for authenticated users:
+    // recent orders, subscriptions, and goal so Lucía can recommend reorder/upsell.
+    let userCtx: any = null;
+    const userId = context?.user_id ?? null;
+    if (userId) {
+      const [{ data: profile }, { data: recentOrders }, { data: subs }] = await Promise.all([
+        admin.from("profiles").select("full_name, goal").eq("id", userId).maybeSingle(),
+        admin.from("orders")
+          .select("id, order_code, status, total, created_at, order_items(product_name, product_slug, quantity)")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(3),
+        admin.from("subscriptions")
+          .select("product_name, product_slug, interval_days, next_delivery_at, status")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .limit(5),
+      ]);
+      const purchased: Record<string, number> = {};
+      for (const o of (recentOrders ?? [])) {
+        for (const it of (o as any).order_items ?? []) {
+          purchased[it.product_slug] = (purchased[it.product_slug] ?? 0) + it.quantity;
+        }
+      }
+      userCtx = {
+        name: (profile as any)?.full_name ?? null,
+        goal: (profile as any)?.goal ?? null,
+        recent_orders: (recentOrders ?? []).map((o: any) => ({
+          code: o.order_code, status: o.status, total: o.total,
+          items: (o.order_items ?? []).map((i: any) => `${i.quantity}× ${i.product_name}`),
+        })),
+        active_subscriptions: (subs ?? []).map((s: any) => ({
+          name: s.product_name, every_days: s.interval_days, next: s.next_delivery_at,
+        })),
+        purchased_slugs: Object.keys(purchased),
+      };
+    }
+
     const systemParts = [
       promptSource?.system_prompt || "Eres Lucía, asesora de Nutribatidos.",
       promptSource?.business_rules ? `REGLAS DE NEGOCIO:\n${promptSource.business_rules}` : "",
@@ -285,6 +323,9 @@ Deno.serve(async (req) => {
       promptSource?.sales_rules ? `FLUJO DE VENTA:\n${promptSource.sales_rules}` : "",
       promptSource?.fallback_rules ? `FALLBACK:\n${promptSource.fallback_rules}` : "",
       `CONTEXTO ACTUAL:\n- Página: ${context.page ?? "/"}\n- Producto actual: ${context.productSlug ?? "ninguno"}\n- Categoría: ${context.category ?? "ninguna"}`,
+      userCtx
+        ? `PERFIL DEL USUARIO (úsalo para personalizar, saluda por nombre si existe, sugiere reorder si pasó suficiente tiempo, no inventes datos):\n${JSON.stringify(userCtx, null, 2)}`
+        : `USUARIO ANÓNIMO (no asumas historial de compras).`,
       `PRODUCTOS DISPONIBLES (usa solo estos, no inventes):\n${JSON.stringify(productCtx, null, 2)}`,
       `Cuando recomiendes un producto, menciona su nombre exacto tal como aparece arriba para que se muestre la tarjeta.`,
     ].filter(Boolean);
