@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_block_toggles: {
+        Row: {
+          block_key: string
+          description: string | null
+          enabled: boolean
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          block_key: string
+          description?: string | null
+          enabled?: boolean
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          block_key?: string
+          description?: string | null
+          enabled?: boolean
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_product_settings: {
         Row: {
           claude_api_key: string | null
