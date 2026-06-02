@@ -154,6 +154,8 @@ const defaultSections = [
       { key: "chat-ia", to: "/admin/chat-ia", label: "Chat IA · Lucía", icon: Sparkles },
       { key: "ai-config", to: "/admin/ai-config", label: "Configuración de IA", icon: Sparkles },
       { key: "search-ai", to: "/admin/buscador-ia", label: "Configuración del Buscador IA", icon: Search },
+      { key: "ia-recomendaciones", to: "/admin/ia-recomendaciones", label: "Home Inteligente · IA", icon: Sparkles },
+      { key: "ia-intenciones", to: "/admin/ia-intenciones", label: "Intenciones de compra", icon: Sparkles },
     ],
   },
 ];
