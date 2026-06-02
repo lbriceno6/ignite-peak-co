@@ -153,6 +153,7 @@ export default function CategoryTaxonomy() {
       )}
 
       <div className="container-x py-10">
+        <DynamicPricingBanner scope="category" targetValue={mainName} className="mb-6" />
         {loading ? (
           <p className="text-muted-foreground">Cargando productos…</p>
         ) : items.length === 0 ? (
@@ -162,10 +163,25 @@ export default function CategoryTaxonomy() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {items.map((p) => (
-              <ProductCard key={p.id} product={p} />
-            ))}
+          <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+            <CatalogFiltersPanel
+              page="category"
+              products={items as any[]}
+              selected={selected}
+              onChange={setSelected}
+              className="lg:sticky lg:top-24 lg:self-start"
+            />
+            <div>
+              {(() => {
+                const filtered = applyCatalogFilters(items as any[], selected, catalogFilters);
+                if (!filtered.length) return <p className="text-muted-foreground">No hay productos que coincidan con los filtros.</p>;
+                return (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4">
+                    {filtered.map((p: any) => <ProductCard key={p.id} product={p} />)}
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         )}
       </div>
