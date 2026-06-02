@@ -17,6 +17,7 @@ import {
   resolveCurrentIntent,
 } from "@/lib/userPersonalization";
 import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
+import { logAiRecoClick } from "@/lib/recoEvents";
 import { useCurrency } from "@/context/CurrencyContext";
 
 type Item = {
