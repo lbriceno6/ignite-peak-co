@@ -78,6 +78,8 @@ type Version = {
   notes: string | null;
   is_active: boolean;
   created_at: string;
+  traffic_weight: number;
+  variant_label: string | null;
 };
 
 export function AiPromptLab() {
@@ -85,6 +87,8 @@ export function AiPromptLab() {
   const [versions, setVersions] = useState<Version[]>([]);
   const [prompt, setPrompt] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
+  const [variantLabel, setVariantLabel] = useState<string>("");
+  const [trafficWeight, setTrafficWeight] = useState<number>(100);
   const [loading, setLoading] = useState(false);
   const [running, setRunning] = useState(false);
   const [output, setOutput] = useState<string>("");
@@ -113,16 +117,40 @@ export function AiPromptLab() {
 
   const saveAsActive = async () => {
     if (!prompt.trim()) { toast.error("El prompt no puede estar vacío"); return; }
+    const weight = Math.max(0, Math.min(100, Math.round(trafficWeight)));
     const { data: u } = await supabase.auth.getUser();
     const { error } = await (supabase as any).from("ai_prompt_versions").insert({
       function_name: fnName,
       system_prompt: prompt,
       notes: notes || null,
       is_active: true,
+      traffic_weight: weight,
+      variant_label: variantLabel.trim() || null,
       created_by: u?.user?.id ?? null,
     });
     if (error) { toast.error(error.message); return; }
-    toast.success("Nueva versión activada");
+    toast.success(weight === 100 ? "Versión promovida al 100%" : `Variante activa al ${weight}%`);
+    setVariantLabel("");
+    setTrafficWeight(100);
+    reload();
+  };
+
+  const updateWeight = async (id: string, weight: number) => {
+    const w = Math.max(0, Math.min(100, Math.round(weight)));
+    const { error } = await (supabase as any)
+      .from("ai_prompt_versions")
+      .update({ traffic_weight: w })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    reload();
+  };
+
+  const deactivate = async (id: string) => {
+    const { error } = await (supabase as any)
+      .from("ai_prompt_versions")
+      .update({ is_active: false })
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
     reload();
   };
 
