@@ -157,6 +157,7 @@ const defaultSections = [
       { key: "search-ai", to: "/admin/buscador-ia", label: "Configuración del Buscador IA", icon: Search },
       { key: "ia-recomendaciones", to: "/admin/ia-recomendaciones", label: "Home Inteligente · IA", icon: Sparkles },
       { key: "ia-intenciones", to: "/admin/ia-intenciones", label: "Intenciones de compra", icon: Sparkles },
+      { key: "ia-inventario", to: "/admin/ia-inventario", label: "Predicción de inventario · IA", icon: Sparkles },
     ],
   },
 ];
