@@ -157,7 +157,7 @@ Reglas estrictas:
 - Si hay "free_shipping_gap" > 0, prioriza productos cuyo precio acerque al envío gratis sin pasarse demasiado.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu proteína", "Te acerca al envío gratis", "Para tu objetivo: energía".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
-    const system = await getActivePrompt("ai-cart-recommendations", defaultSystem);
+    const { prompt: system, prompt_id: aiPromptId, variant_label: aiVariant } = await getActivePrompt("ai-cart-recommendations", defaultSystem);
 
     const user = JSON.stringify({
       cart: body.cart,
@@ -214,7 +214,7 @@ Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`
       );
     }
 
-    return new Response(JSON.stringify({ picks, source: "ai" }), {
+    return new Response(JSON.stringify({ picks, source: "ai", ai_prompt_id: aiPromptId, ai_variant: aiVariant }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

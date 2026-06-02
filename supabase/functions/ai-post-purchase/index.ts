@@ -140,7 +140,7 @@ Acaban de hacer un pedido. Devuelve un JSON con tres campos:
    - "reason" en español, máx 6 palabras (p.ej. "Refuerza tu rutina", "Va con tu objetivo").
 3) "reorder_days": número entero estimado de días hasta que se acaben los consumibles comprados (típicamente 25-45 según cantidad). Si no aplica, usa null.
 Devuelve SOLO JSON: {"thank_you":"...","picks":[{"slug":"...","reason":"..."}],"reorder_days": 30}`;
-    const system = await getActivePrompt("ai-post-purchase", defaultSystem);
+    const { prompt: system, prompt_id: aiPromptId, variant_label: aiVariant } = await getActivePrompt("ai-post-purchase", defaultSystem);
 
     const user = JSON.stringify({
       order_code: body.order_code ?? null,
@@ -199,7 +199,7 @@ Devuelve SOLO JSON: {"thank_you":"...","picks":[{"slug":"...","reason":"..."}],"
       : null;
 
     return new Response(
-      JSON.stringify({ thank_you, picks, reorder_days, source: picks.length ? "ai" : "heuristic" }),
+      JSON.stringify({ thank_you, picks, reorder_days, source: picks.length ? "ai" : "heuristic", ai_prompt_id: aiPromptId, ai_variant: aiVariant }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {
