@@ -43,6 +43,8 @@ const BLOCK_META: Record<AiBlockKey, { icon: any; configHref?: string; configLab
   cart_recommendations: { icon: ShoppingCart, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
   checkout_recommendations: { icon: CreditCard, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
   intelligent_search: { icon: Search, configHref: "/admin/buscador-ia", configLabel: "Configurar buscador" },
+  product_why_for_you: { icon: Sparkles, configHref: "/admin/ia-intenciones", configLabel: "Editar intenciones" },
+  product_ai_related: { icon: Sparkles, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
 };
 
 export default function AdminAiControl() {

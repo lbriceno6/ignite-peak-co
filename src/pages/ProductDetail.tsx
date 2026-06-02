@@ -26,6 +26,8 @@ import { logBrowseEvent } from "@/lib/recoEvents";
 import { useProductBenefits } from "@/hooks/useProductBenefits";
 import { renderBenefitIcon } from "@/components/BenefitIcon";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import { AiWhyForYou } from "@/components/product/AiWhyForYou";
+import { AiProductRelated } from "@/components/product/AiProductRelated";
 
 type DbProduct = {
   id: string;
@@ -102,6 +104,7 @@ const ProductDetail = () => {
   const [purchaseMode, setPurchaseMode] = useState<"one_time" | "subscription">("one_time");
   const [interval, setIntervalDays] = useState<number>(30);
   const [selectedVariant, setSelectedVariant] = useState<number>(0);
+  const [aiRelatedCount, setAiRelatedCount] = useState(0);
   const imageAlts = useSeoImageAlts("product", dbp?.id ?? null);
 
   useEffect(() => {
@@ -291,6 +294,7 @@ const ProductDetail = () => {
             </div>
           )}
           {dbp.short_description && <p className="mt-4 text-muted-foreground">{dbp.short_description}</p>}
+          <AiWhyForYou productCategory={dbp.category} />
 
           <div className="mt-6 flex flex-col gap-1">
             {purchaseMode === "one_time" && product.oldPrice && (
@@ -552,7 +556,17 @@ const ProductDetail = () => {
       </div>
 
       <ProductReviews productId={dbp.id} />
-      {related.length > 0 && (
+
+      <AiProductRelated
+        productSlug={dbp.slug}
+        productName={dbp.name}
+        productCategory={dbp.category}
+        productShortDescription={dbp.short_description}
+        max={4}
+        onPicksReady={(n) => setAiRelatedCount(n)}
+      />
+
+      {aiRelatedCount === 0 && related.length > 0 && (
         <section className="container-x pb-20">
           <h2 className="font-display text-2xl uppercase sm:text-3xl">También te puede gustar</h2>
           <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
