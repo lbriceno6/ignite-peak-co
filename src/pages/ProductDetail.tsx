@@ -141,6 +141,12 @@ const ProductDetail = () => {
       value: Number(dbp.sale_price ?? dbp.price ?? 0),
       currency: "PEN",
     });
+    void logBrowseEvent("browse_product_view", {
+      product_id: dbp.id,
+      product_slug: dbp.slug,
+      category_slug: dbp.category ?? null,
+      metadata: { name: dbp.name },
+    });
   }, [dbp?.id]);
 
   if (loading) {
