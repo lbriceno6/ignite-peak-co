@@ -288,6 +288,27 @@ export default function AdminHomeBlocks() {
             spacingBottom: 64,
             limit: 8,
           }
+        : type === "best_sellers"
+        ? {
+            productSource: "best_sellers",
+            categorySlug: "",
+            brandId: "",
+            tag: "",
+            manualProductSlugs: [],
+            totalProducts: 8,
+            desktopPerView: 4,
+            tabletPerView: 2,
+            mobilePerView: 1.2,
+            autoplay: true,
+            autoplaySpeed: 5,
+            showArrows: true,
+            showDots: false,
+            loop: true,
+            pauseOnHover: true,
+            showViewAllButton: true,
+            viewAllLabel: "Ver todos los productos",
+            viewAllHref: "/productos",
+          }
         : {};
     const { error } = await supabase.from("home_blocks").insert({
       block_key: newKey,
