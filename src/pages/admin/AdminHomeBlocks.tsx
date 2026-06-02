@@ -127,10 +127,10 @@ export default function AdminHomeBlocks() {
 }
 
 function BlockEditor({
-  block, isFirst, isLast, position, onChanged, onMoveUp, onMoveDown,
+  block, isFirst, isLast, position, onChanged, onMoveUp, onMoveDown, onDuplicate,
 }: {
   block: Block; isFirst: boolean; isLast: boolean; position: number;
-  onChanged: () => void; onMoveUp: () => void; onMoveDown: () => void;
+  onChanged: () => void; onMoveUp: () => void; onMoveDown: () => void; onDuplicate: () => void;
 }) {
   const [f, setF] = useState<Block>(block);
   const [saving, setSaving] = useState(false);
