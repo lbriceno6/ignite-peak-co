@@ -243,6 +243,9 @@ export function AiPromptLab() {
             <Button variant="secondary" onClick={runTest} disabled={running}>
               <Play size={14} className="mr-1" /> {running ? "Ejecutando…" : "Probar con payload de muestra"}
             </Button>
+            <Button variant="outline" onClick={optimizeWithAi} disabled={optimizing}>
+              <Wand2 size={14} className="mr-1" /> {optimizing ? "Analizando métricas…" : "Sugerir mejora con IA"}
+            </Button>
           </div>
           {output && (
             <pre className="mt-2 max-h-96 overflow-auto rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap">
@@ -288,6 +291,34 @@ export function AiPromptLab() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!suggestion} onOpenChange={(o) => !o && setSuggestion(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Wand2 size={16} /> Sugerencia de prompt</DialogTitle>
+            <DialogDescription>
+              Generada a partir de los últimos 30 días: {suggestion?.metrics?.total_clicks ?? 0} clicks,{" "}
+              {suggestion?.metrics?.attributed_orders ?? 0} pedidos atribuidos, CVR {suggestion?.metrics?.cvr_pct ?? 0}%.
+            </DialogDescription>
+          </DialogHeader>
+          {suggestion && (
+            <div className="space-y-3">
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Razonamiento</p>
+                <pre className="max-h-40 overflow-auto rounded-md border bg-muted p-3 text-xs whitespace-pre-wrap">{suggestion.rationale}</pre>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Nuevo system prompt</p>
+                <Textarea value={suggestion.prompt} onChange={(e) => setSuggestion({ ...suggestion, prompt: e.target.value })} rows={14} className="font-mono text-xs" />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSuggestion(null)}>Descartar</Button>
+            <Button onClick={applySuggestion}>Pegar en el editor</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
