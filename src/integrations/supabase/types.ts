@@ -1270,6 +1270,131 @@ export type Database = {
           },
         ]
       }
+      customer_segments: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          priority: number
+          rules: Json
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: number
+          rules?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dynamic_pricing_logs: {
+        Row: {
+          context: Json | null
+          created_at: string
+          discount_percent: number | null
+          id: string
+          rule_id: string | null
+          segment_code: string | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: Json | null
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          rule_id?: string | null
+          segment_code?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: Json | null
+          created_at?: string
+          discount_percent?: number | null
+          id?: string
+          rule_id?: string | null
+          segment_code?: string | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      dynamic_pricing_rules: {
+        Row: {
+          ai_generated: boolean
+          created_at: string
+          discount_percent: number
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          message: string | null
+          priority: number
+          scope: string
+          segment_id: string | null
+          starts_at: string | null
+          target_value: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_generated?: boolean
+          created_at?: string
+          discount_percent?: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          priority?: number
+          scope?: string
+          segment_id?: string | null
+          starts_at?: string | null
+          target_value?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_generated?: boolean
+          created_at?: string
+          discount_percent?: number
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          message?: string | null
+          priority?: number
+          scope?: string
+          segment_id?: string | null
+          starts_at?: string | null
+          target_value?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dynamic_pricing_rules_segment_id_fkey"
+            columns: ["segment_id"]
+            isOneToOne: false
+            referencedRelation: "customer_segments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string

@@ -6,6 +6,10 @@ import { SEO } from "@/components/SEO";
 import { ProductCard } from "@/components/ProductCard";
 import { usePromotions } from "@/hooks/usePromotions";
 import { isPromoActiveNow, promoLabel, promoTitle, promoSubtitle } from "@/lib/promotions";
+import { CatalogFiltersPanel, applyCatalogFilters } from "@/components/catalog/CatalogFiltersPanel";
+import { useCatalogFilters } from "@/hooks/useCatalogFilters";
+import type { SelectedFilters } from "@/lib/catalogFilterEngine";
+import { DynamicPricingBanner } from "@/components/pricing/DynamicPricingBanner";
 import type { Product } from "@/data/catalog";
 
 type DbProduct = {
@@ -26,14 +30,17 @@ const toCard = (p: DbProduct, badge?: string | null): Product => ({
 const Promotions = () => {
   const { promotions } = usePromotions();
   const [products, setProducts] = useState<DbProduct[]>([]);
+  const [selected, setSelected] = useState<SelectedFilters>({});
+  const { filters: catalogFilters } = useCatalogFilters("promotions");
 
   useEffect(() => {
     supabase
       .from("products")
-      .select("id,slug,name,short_description,price,sale_price,category,main_image,badge")
+      .select("id,slug,name,short_description,price,sale_price,category,main_image,badge,brand,stock,rating")
       .eq("is_active", true)
       .then(({ data }) => setProducts((data as DbProduct[]) ?? []));
   }, []);
+
 
   const grouped = useMemo(() => {
     const now = new Date();
@@ -66,6 +73,8 @@ const Promotions = () => {
           </p>
         </div>
 
+        <DynamicPricingBanner scope="global" className="mb-6" />
+
         {grouped.length === 0 ? (
           <div className="rounded-lg border bg-muted/30 p-10 text-center">
             <p className="text-lg font-semibold">No hay promociones activas en este momento.</p>
@@ -75,27 +84,40 @@ const Promotions = () => {
             </Link>
           </div>
         ) : (
-          <div className="space-y-12">
-            {grouped.map(({ promo, items }) => (
-              <div key={promo.id}>
-                <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b pb-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="inline-block rounded bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
-                        {promoLabel(promo)}
-                      </span>
-                      <h2 className="font-display text-xl sm:text-2xl">{promo.name}</h2>
+          <div className="grid gap-6 lg:grid-cols-[260px_1fr]">
+            <CatalogFiltersPanel
+              page="promotions"
+              products={products}
+              selected={selected}
+              onChange={setSelected}
+              className="lg:sticky lg:top-24 lg:self-start"
+            />
+            <div className="space-y-12">
+              {grouped.map(({ promo, items }) => {
+                const filtered = applyCatalogFilters(items as any[], selected, catalogFilters);
+                if (!filtered.length) return null;
+                return (
+                  <div key={promo.id}>
+                    <div className="mb-4 flex flex-wrap items-end justify-between gap-3 border-b pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-block rounded bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground">
+                            {promoLabel(promo)}
+                          </span>
+                          <h2 className="font-display text-xl sm:text-2xl">{promo.name}</h2>
+                        </div>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {promoTitle(promo)} · {promoSubtitle(promo)}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {promoTitle(promo)} · {promoSubtitle(promo)}
-                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {filtered.map((p: any) => <ProductCard key={p.id} product={p} />)}
+                    </div>
                   </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {items.map((p) => <ProductCard key={p.id} product={p} />)}
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         )}
       </section>

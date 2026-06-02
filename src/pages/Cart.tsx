@@ -13,6 +13,7 @@ import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
+import { DynamicPricingBanner } from "@/components/pricing/DynamicPricingBanner";
 
 const Cart = () => {
   const { items, combos, remove, setQty, removeCombo } = useCart();
@@ -57,6 +58,9 @@ const Cart = () => {
     <Layout>
       <div className="container-x py-10">
         <h1 className="font-display text-4xl uppercase sm:text-5xl">Tu carrito</h1>
+
+        <DynamicPricingBanner scope="global" className="mt-6" />
+
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="rounded-lg border">
