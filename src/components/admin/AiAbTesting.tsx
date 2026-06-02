@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FlaskConical, Trophy } from "lucide-react";
+import { FlaskConical, Trophy, Sparkles, PlayCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ATTRIBUTION_WINDOW_DAYS = 7;
 
@@ -37,6 +38,34 @@ export function AiAbTesting() {
   const [clicks, setClicks] = useState<Click[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<Record<string, any>>({});
+
+  const runAutoPromote = async (fnName: string, apply: boolean) => {
+    setBusy(`${fnName}:${apply ? "apply" : "dry"}`);
+    try {
+      const { data, error } = await (supabase as any).functions.invoke("ai-auto-promote", {
+        body: { function_name: fnName, window_days: windowDays, apply },
+      });
+      if (error) throw error;
+      setLastResult((p) => ({ ...p, [fnName]: data }));
+      if (data?.applied) {
+        toast.success(`Variante promovida: ${data.winner?.label ?? data.winner?.prompt_id?.slice(0, 6)}`);
+        // reload versions
+        const { data: vers } = await (supabase as any)
+          .from("ai_prompt_versions")
+          .select("id, function_name, variant_label, traffic_weight, is_active, notes, created_at")
+          .order("created_at", { ascending: false });
+        setVersions((vers ?? []) as Version[]);
+      } else {
+        toast.message(data?.reason ?? "Sin cambios");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Error");
+    } finally {
+      setBusy(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -182,17 +211,45 @@ export function AiAbTesting() {
         return (
           <Card key={fn}>
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                {FN_LABELS[fn]}
-                {winner && rows.length > 1 && (
-                  <Badge variant="default" className="ml-2">
-                    <Trophy size={12} className="mr-1" /> Líder por RPC
-                  </Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                {rows.length} variante{rows.length !== 1 ? "s" : ""} con datos en los últimos {windowDays} días.
-              </CardDescription>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {FN_LABELS[fn]}
+                    {winner && rows.length > 1 && (
+                      <Badge variant="default" className="ml-2">
+                        <Trophy size={12} className="mr-1" /> Líder por RPC
+                      </Badge>
+                    )}
+                  </CardTitle>
+                  <CardDescription>
+                    {rows.length} variante{rows.length !== 1 ? "s" : ""} con datos en los últimos {windowDays} días.
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy?.startsWith(fn) || rows.length < 2}
+                    onClick={() => runAutoPromote(fn, false)}
+                  >
+                    {busy === `${fn}:dry` ? <Loader2 size={14} className="mr-1 animate-spin" /> : <PlayCircle size={14} className="mr-1" />}
+                    Simular
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={busy?.startsWith(fn) || rows.length < 2}
+                    onClick={() => runAutoPromote(fn, true)}
+                  >
+                    {busy === `${fn}:apply` ? <Loader2 size={14} className="mr-1 animate-spin" /> : <Sparkles size={14} className="mr-1" />}
+                    Auto-promover ganador
+                  </Button>
+                </div>
+              </div>
+              {lastResult[fn]?.reason && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Última decisión: {lastResult[fn].reason}
+                </p>
+              )}
             </CardHeader>
             <CardContent>
               <Table>
