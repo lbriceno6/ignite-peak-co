@@ -59,10 +59,23 @@ export type AppliedPromo = {
 const variantOf = (p: Pick<Promotion, "variant" | "benefit_type">): PromotionVariant =>
   (p.variant as PromotionVariant) || (p.benefit_type as PromotionVariant) || "second_discount";
 
+type PromoLike = {
+  variant?: PromotionVariant | null;
+  benefit_type?: PromotionBenefitType | string;
+  discount_percent?: number;
+  discount_amount?: number;
+  badge_label?: string | null;
+  benefit_message?: string | null;
+  cart_msg_applied?: string | null;
+  cart_msg_progress?: string | null;
+  min_quantity?: number;
+};
+
+const variantOfLoose = (p: PromoLike): PromotionVariant =>
+  (p.variant as PromotionVariant) || (p.benefit_type as PromotionVariant) || "second_discount";
+
 /** Etiqueta corta para badges. Usa badge_label custom si existe, si no autogenera. */
-export const promoLabel = (
-  p: Pick<Promotion, "variant" | "benefit_type" | "discount_percent" | "discount_amount" | "badge_label">,
-): string => {
+export const promoLabel = (p: PromoLike): string => {
   if (p.badge_label && p.badge_label.trim()) return p.badge_label.trim().toUpperCase();
   const v = variantOf(p);
   const pct = Math.round(p.discount_percent || 0);
