@@ -12,6 +12,7 @@ import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } f
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
 
 const Cart = () => {
   const { items, combos, remove, setQty, removeCombo } = useCart();
@@ -164,6 +165,10 @@ const Cart = () => {
               )}
             </div>
           </aside>
+        </div>
+
+        <div className="mt-10">
+          <AiCartRecommendations cartSubtotal={Math.max(0, subtotal)} max={4} variant="full" />
         </div>
       </div>
     </Layout>

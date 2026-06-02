@@ -8,6 +8,7 @@ import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
+import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
 import { shippingSettings } from "@/store/cart";
 
 export const CartDrawer = () => {
@@ -113,6 +114,12 @@ export const CartDrawer = () => {
                 title="Te puede interesar"
                 subtitle="Combos relacionados con tu carrito."
                 className="space-y-2"
+              />
+              <AiCartRecommendations
+                cartSubtotal={Math.max(0, subtotal - promoDiscount)}
+                max={3}
+                variant="compact"
+                title="Sugerencias para ti"
               />
             </div>
 
