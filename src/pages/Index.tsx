@@ -432,15 +432,15 @@ const Home = () => {
           </section>
         );
 
-      case "best_sellers": {
-        if (!carouselConfig || !carouselConfig.is_active) return null;
-        const items = carouselProducts.length ? carouselProducts : bestSellersDisplay;
-        if (!items.length) return null;
+      case "best_sellers":
+      case "product_carousel": {
+        const built = buildCarouselFromBlock(b);
+        if (!built) return null;
         return (
           <HomeProductsCarousel
             key={b.id}
-            config={carouselConfig}
-            products={items}
+            config={built.config}
+            products={built.products}
             eyebrow={b.eyebrow}
           />
         );
