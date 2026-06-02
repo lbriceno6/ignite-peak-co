@@ -12,6 +12,7 @@ import { applyReferralCode, clearReferral, getStoredReferral, StoredReferral } f
 import { usePromotions } from "@/hooks/usePromotions";
 import { computePromotions, pendingPromoNudges, perProductPromoBreakdown } from "@/lib/promotions";
 import { FreeShippingBar } from "@/components/FreeShippingBar";
+import { AiCartRecommendations } from "@/components/cart/AiCartRecommendations";
 
 const Cart = () => {
   const { items, combos, remove, setQty, removeCombo } = useCart();
