@@ -311,7 +311,8 @@ const Checkout = () => {
           referral_source: referral?.source ?? null,
           reseller_discount_applied: discount,
           store_credit_used: creditApplied,
-        })
+          visitor_id: getVisitorId(),
+        } as any)
         .select("id, order_code")
         .single();
       if (oErr || !order) throw oErr ?? new Error("No se pudo crear el pedido");
