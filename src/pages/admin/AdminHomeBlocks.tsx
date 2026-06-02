@@ -23,7 +23,9 @@ type CarouselSettings = {
   carousel_mode?: "auto" | "manual";
   promotion_ids?: string[];
   max_products?: number;
+  products_per_view_desktop?: number;
 };
+
 
 type Block = {
   id: string;
