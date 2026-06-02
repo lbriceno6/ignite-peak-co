@@ -90,6 +90,7 @@ export function AiCartRecommendations({
   const shipping = useFreeShippingBar();
   const [allProducts, setAllProducts] = useState<Array<Product & { id: string }> | null>(null);
   const [picks, setPicks] = useState<Pick[] | null>(null);
+  const [promptMeta, setPromptMeta] = useState<{ id: string | null; variant: string | null }>({ id: null, variant: null });
   const [signals, setSignals] = useState<BrowseSignal[]>([]);
   const [intents, setIntents] = useState<Intent[]>([]);
 
@@ -171,6 +172,7 @@ export function AiCartRecommendations({
         if (!active) return;
         if (!error && Array.isArray((data as any)?.picks) && (data as any).picks.length) {
           setPicks((data as any).picks as Pick[]);
+          setPromptMeta({ id: (data as any).ai_prompt_id ?? null, variant: (data as any).ai_variant ?? null });
           return;
         }
       } catch {
@@ -261,7 +263,7 @@ export function AiCartRecommendations({
               <div
                 key={product.id}
                 className="flex items-center gap-3 rounded-md border bg-background p-2"
-                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx })}
+                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx, ai_prompt_id: promptMeta.id, ai_variant: promptMeta.variant })}
               >
                 <img
                   src={product.image}
@@ -273,7 +275,7 @@ export function AiCartRecommendations({
                   <p className="truncate text-[11px] text-accent">{pk.reason}</p>
                 </div>
                 <button
-                  onClick={(e) => { e.stopPropagation(); add(product); logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx }); }}
+                  onClick={(e) => { e.stopPropagation(); add(product); logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx, ai_prompt_id: promptMeta.id, ai_variant: promptMeta.variant }); }}
                   className="rounded-md bg-accent px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-accent-foreground hover:opacity-90"
                 >
                   Añadir
@@ -290,7 +292,7 @@ export function AiCartRecommendations({
               <div
                 key={product.id}
                 className="relative"
-                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx })}
+                onClick={() => logAiRecoClick(source, { product_slug: product.slug, product_id: product.id, reason: pk.reason, position: idx, ai_prompt_id: promptMeta.id, ai_variant: promptMeta.variant })}
               >
                 <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent-foreground shadow">
                   <Sparkles size={10} /> {pk.reason}

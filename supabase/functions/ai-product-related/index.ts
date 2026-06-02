@@ -47,20 +47,28 @@ function parseJsonLoose(s: string): any | null {
   try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-async function getActivePrompt(name: string, fallback: string): Promise<string> {
+async function getActivePrompt(
+  name: string,
+  fallback: string,
+): Promise<{ prompt: string; prompt_id: string | null; variant_label: string | null }> {
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key) return fallback;
+  const fb = { prompt: fallback, prompt_id: null, variant_label: null };
+  if (!url || !key) return fb;
   try {
-    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt`, {
+    const r = await fetch(`${url}/rest/v1/rpc/get_active_ai_prompt_weighted`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ _function_name: name }),
     });
-    if (!r.ok) return fallback;
+    if (!r.ok) return fb;
     const out = await r.json();
-    return typeof out === "string" && out.trim() ? out : fallback;
-  } catch { return fallback; }
+    const row = Array.isArray(out) ? out[0] : out;
+    if (row && typeof row.system_prompt === "string" && row.system_prompt.trim()) {
+      return { prompt: row.system_prompt, prompt_id: row.prompt_id ?? null, variant_label: row.variant_label ?? null };
+    }
+    return fb;
+  } catch { return fb; }
 }
 
 function heuristic(body: Body): Pick[] {
@@ -129,7 +137,7 @@ Reglas estrictas:
 - Si hay intención clara (intent_name), refuerza esa intención.
 - "reason" debe ser una frase corta en español (máx 6 palabras), p.ej. "Combina con tu pre-entreno", "Para tu objetivo: energía", "Lo más comprado junto".
 Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`;
-    const system = await getActivePrompt("ai-product-related", defaultSystem);
+    const { prompt: system, prompt_id: aiPromptId, variant_label: aiVariant } = await getActivePrompt("ai-product-related", defaultSystem);
 
     const user = JSON.stringify({
       product: body.product,
@@ -186,7 +194,7 @@ Devuelve SOLO JSON válido con forma: {"picks":[{"slug":"...","reason":"..."}]}`
       );
     }
 
-    return new Response(JSON.stringify({ picks, source: "ai" }), {
+    return new Response(JSON.stringify({ picks, source: "ai", ai_prompt_id: aiPromptId, ai_variant: aiVariant }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {

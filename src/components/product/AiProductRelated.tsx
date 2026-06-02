@@ -80,6 +80,7 @@ export function AiProductRelated({
   const enabled = useAiBlockEnabled("product_ai_related");
   const [catalog, setCatalog] = useState<Array<Product & { id: string }> | null>(null);
   const [picks, setPicks] = useState<Pick[] | null>(null);
+  const [promptMeta, setPromptMeta] = useState<{ id: string | null; variant: string | null }>({ id: null, variant: null });
   const [intent, setIntent] = useState<Intent | null>(null);
 
   // Load catalog + signals
@@ -136,6 +137,7 @@ export function AiProductRelated({
         if (!alive) return;
         const list: Pick[] = Array.isArray(data?.picks) ? data.picks : [];
         setPicks(list);
+        setPromptMeta({ id: data?.ai_prompt_id ?? null, variant: data?.ai_variant ?? null });
         if (list.length > 0) onPicksReady?.(list.length);
       } catch {
         if (alive) setPicks([]);

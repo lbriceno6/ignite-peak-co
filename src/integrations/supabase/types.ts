@@ -101,6 +101,8 @@ export type Database = {
           is_active: boolean
           notes: string | null
           system_prompt: string
+          traffic_weight: number
+          variant_label: string | null
         }
         Insert: {
           created_at?: string
@@ -110,6 +112,8 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           system_prompt: string
+          traffic_weight?: number
+          variant_label?: string | null
         }
         Update: {
           created_at?: string
@@ -119,6 +123,8 @@ export type Database = {
           is_active?: boolean
           notes?: string | null
           system_prompt?: string
+          traffic_weight?: number
+          variant_label?: string | null
         }
         Relationships: []
       }
@@ -4057,6 +4063,14 @@ export type Database = {
       get_active_ai_prompt: {
         Args: { _function_name: string }
         Returns: string
+      }
+      get_active_ai_prompt_weighted: {
+        Args: { _function_name: string }
+        Returns: {
+          prompt_id: string
+          system_prompt: string
+          variant_label: string
+        }[]
       }
       has_role: {
         Args: {
