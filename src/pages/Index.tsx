@@ -1195,7 +1195,7 @@ const Home = () => {
           subtitle="Ahorra comprando productos que combinan bien."
         />
       </div>
-      <InstagramTestimonials />
+      
     </Layout>
   );
 };
