@@ -680,6 +680,41 @@ function BlockEditor({
             />
           )}
 
+          {block.block_type === "brands" && (
+            <BrandsSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "faq" && (
+            <FaqSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "image_text" && (
+            <ImageTextSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "video" && (
+            <VideoSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {block.block_type === "new_products" && (
+            <NewProductsSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
