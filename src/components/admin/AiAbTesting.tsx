@@ -38,6 +38,34 @@ export function AiAbTesting() {
   const [clicks, setClicks] = useState<Click[]>([]);
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [versions, setVersions] = useState<Version[]>([]);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<Record<string, any>>({});
+
+  const runAutoPromote = async (fnName: string, apply: boolean) => {
+    setBusy(`${fnName}:${apply ? "apply" : "dry"}`);
+    try {
+      const { data, error } = await (supabase as any).functions.invoke("ai-auto-promote", {
+        body: { function_name: fnName, window_days: windowDays, apply },
+      });
+      if (error) throw error;
+      setLastResult((p) => ({ ...p, [fnName]: data }));
+      if (data?.applied) {
+        toast.success(`Variante promovida: ${data.winner?.label ?? data.winner?.prompt_id?.slice(0, 6)}`);
+        // reload versions
+        const { data: vers } = await (supabase as any)
+          .from("ai_prompt_versions")
+          .select("id, function_name, variant_label, traffic_weight, is_active, notes, created_at")
+          .order("created_at", { ascending: false });
+        setVersions((vers ?? []) as Version[]);
+      } else {
+        toast.message(data?.reason ?? "Sin cambios");
+      }
+    } catch (e: any) {
+      toast.error(e?.message ?? "Error");
+    } finally {
+      setBusy(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
