@@ -24,6 +24,7 @@ import {
   type BrowseSignal,
   type Intent,
 } from "@/lib/userPersonalization";
+import { useAiBlockEnabled, type AiBlockKey } from "@/hooks/useAiBlockToggles";
 
 type Pick = { slug: string; reason: string };
 
@@ -33,6 +34,8 @@ type Props = {
   variant?: "full" | "compact";
   title?: string;
   subtitle?: string;
+  /** Which toggle in ai_block_toggles controls visibility. */
+  toggleKey?: AiBlockKey;
 };
 
 type DbProduct = {
@@ -79,7 +82,9 @@ export function AiCartRecommendations({
   variant = "full",
   title = "Completa tu compra con IA",
   subtitle = "Sugerencias inteligentes según tu carrito.",
+  toggleKey = "cart_recommendations",
 }: Props) {
+  const enabled = useAiBlockEnabled(toggleKey);
   const { items: cartItems, add } = useCart();
   const shipping = useFreeShippingBar();
   const [allProducts, setAllProducts] = useState<Array<Product & { id: string }> | null>(null);
@@ -220,6 +225,7 @@ export function AiCartRecommendations({
     return m;
   }, [allProducts]);
 
+  if (!enabled) return null;
   if (!picks || !picks.length) return null;
   const rendered = picks
     .map((pk) => ({ pk, product: productsBySlug.get(pk.slug) }))

@@ -688,6 +688,7 @@ const Checkout = () => {
                   max={2}
                   variant="compact"
                   title="Súmalo antes de pagar"
+                  toggleKey="checkout_recommendations"
                 />
               </div>
             )}
