@@ -12,6 +12,12 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+type CarouselSettings = {
+  carousel_mode?: "auto" | "manual";
+  promotion_ids?: string[];
+  max_products?: number;
+};
+
 type Block = {
   id: string;
   block_key: string;
@@ -26,7 +32,10 @@ type Block = {
   cta2_label: string | null;
   cta2_href: string | null;
   image_url: string | null;
+  settings: Record<string, any> | null;
 };
+
+type PromotionRow = { id: string; name: string; is_active: boolean };
 
 const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolean; hasCta: boolean; hasCta2: boolean }> = {
   hero:          { name: "Hero carousel",       desc: "Slides edited from the “Hero carousel” page.", hasImage: false, hasCta: false, hasCta2: false },
