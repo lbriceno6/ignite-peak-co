@@ -92,6 +92,54 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_promotion_log: {
+        Row: {
+          applied: boolean
+          considered: Json | null
+          created_at: string
+          function_name: string
+          id: string
+          mode: string
+          reason: string | null
+          window_days: number
+          winner_clicks: number | null
+          winner_label: string | null
+          winner_orders: number | null
+          winner_prompt_id: string | null
+          winner_rpc: number | null
+        }
+        Insert: {
+          applied?: boolean
+          considered?: Json | null
+          created_at?: string
+          function_name: string
+          id?: string
+          mode?: string
+          reason?: string | null
+          window_days: number
+          winner_clicks?: number | null
+          winner_label?: string | null
+          winner_orders?: number | null
+          winner_prompt_id?: string | null
+          winner_rpc?: number | null
+        }
+        Update: {
+          applied?: boolean
+          considered?: Json | null
+          created_at?: string
+          function_name?: string
+          id?: string
+          mode?: string
+          reason?: string | null
+          window_days?: number
+          winner_clicks?: number | null
+          winner_label?: string | null
+          winner_orders?: number | null
+          winner_prompt_id?: string | null
+          winner_rpc?: number | null
+        }
+        Relationships: []
+      }
       ai_prompt_versions: {
         Row: {
           created_at: string
