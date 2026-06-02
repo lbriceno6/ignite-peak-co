@@ -1319,7 +1319,9 @@ type ShowcaseItem = {
   id?: string;
   categorySlug?: string;
   customTitle?: string;
-  customImageUrl?: string;
+  customImageUrl?: string; // legacy
+  custom_image_url?: string;
+  uploaded_image_url?: string;
   backgroundColor?: string;
   gradientColor?: string;
   useGradient?: boolean;
