@@ -1016,12 +1016,11 @@ const Home = () => {
                     alt={t.title}
                     loading="lazy"
                     className={`max-h-full w-full object-contain drop-shadow-xl ${animations ? "transition-transform duration-500 ease-out group-hover:scale-105" : ""}`}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
                   />
-                ) : (
-                  <div className="grid h-full w-full place-items-center rounded-2xl border border-white/20 text-sm text-white/70">
-                    Imagen no disponible
-                  </div>
-                )}
+                ) : null}
               </div>
               <div className="px-6 pb-8 pt-2 text-center">
                 <h3
