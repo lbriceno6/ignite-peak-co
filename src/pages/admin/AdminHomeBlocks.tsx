@@ -88,6 +88,7 @@ const SELECTABLE_TYPES = [
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
   "instagram_testimonials",
+  "ai_dynamic_banner", "ai_recommended_for_you", "ai_recently_viewed",
   "custom_simple", "custom_html",
 ];
 
