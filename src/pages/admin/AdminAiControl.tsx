@@ -29,6 +29,7 @@ import {
 import { AiPromptLab } from "@/components/admin/AiPromptLab";
 import { AiConversionMetrics } from "@/components/admin/AiConversionMetrics";
 import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
+import { AiAbTesting } from "@/components/admin/AiAbTesting";
 
 type Metrics = {
   productViews: number;
@@ -174,6 +175,7 @@ export default function AdminAiControl() {
           <TabsTrigger value="metrics">Métricas</TabsTrigger>
           <TabsTrigger value="conversion"><TrendingUp size={14} className="mr-1" /> Conversión IA</TabsTrigger>
           <TabsTrigger value="attribution"><Target size={14} className="mr-1" /> Atribución</TabsTrigger>
+          <TabsTrigger value="ab"><FlaskConical size={14} className="mr-1" /> A/B</TabsTrigger>
           <TabsTrigger value="prompts"><FlaskConical size={14} className="mr-1" /> Prompt Lab</TabsTrigger>
         </TabsList>
 
@@ -183,6 +185,10 @@ export default function AdminAiControl() {
 
         <TabsContent value="attribution" className="pt-4">
           <AiAttributionFunnel />
+        </TabsContent>
+
+        <TabsContent value="ab" className="pt-4">
+          <AiAbTesting />
         </TabsContent>
 
         <TabsContent value="prompts" className="pt-4">
