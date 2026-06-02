@@ -23,6 +23,9 @@ import productPlaceholder from "@/assets/product-protein.jpg";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
 import DOMPurify from "dompurify";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { AiDynamicBanner } from "@/components/home/AiDynamicBanner";
+import { AiRecommendedForYou } from "@/components/home/AiRecommendedForYou";
+import { AiRecentlyViewed } from "@/components/home/AiRecentlyViewed";
 
 
 type HeroSlide = {
@@ -660,6 +663,75 @@ const Home = () => {
       }
 
 
+
+      case "ai_dynamic_banner": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        return (
+          <AiDynamicBanner
+            key={b.id}
+            blockId={b.id}
+            eyebrow={b.eyebrow}
+            fallbackTitle={b.title}
+            fallbackSubtitle={b.subtitle}
+            fallbackImage={b.image_url}
+            fallbackCtaLabel={b.cta_label}
+            fallbackCtaHref={b.cta_href}
+            fallbackIntentSlug={typeof s.fallback_intent_slug === "string" ? s.fallback_intent_slug : undefined}
+            containerWidth={s.containerWidth === "full" ? "full" : "container"}
+            spacingTop={typeof s.spacingTop === "number" ? s.spacingTop : 32}
+            spacingBottom={typeof s.spacingBottom === "number" ? s.spacingBottom : 32}
+            rounded={s.rounded !== false}
+            hideIfNoSignal={s.hideIfNoSignal === true}
+          />
+        );
+      }
+
+      case "ai_recommended_for_you": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const pool = products.map(toCardProduct).map((cp, i) => ({
+          ...cp,
+          category: products[i].category ?? null,
+        }));
+        return (
+          <AiRecommendedForYou
+            key={b.id}
+            blockId={b.id}
+            eyebrow={b.eyebrow}
+            title={b.title}
+            subtitle={b.subtitle}
+            ctaLabel={b.cta_label}
+            ctaHref={b.cta_href}
+            products={pool}
+            totalProducts={Number(s.totalProducts ?? 8) || 8}
+            visibleDesktop={Number(s.visibleDesktop ?? 4) || 4}
+            visibleTablet={Number(s.visibleTablet ?? 2) || 2}
+            visibleMobile={Number(s.visibleMobile ?? 1.2) || 1.2}
+            autoplay={s.autoplay !== false}
+            hideIfNoSignal={s.hideIfNoSignal === true}
+          />
+        );
+      }
+
+      case "ai_recently_viewed": {
+        const s = (b.settings ?? {}) as Record<string, any>;
+        const pool = products.map(toCardProduct);
+        return (
+          <AiRecentlyViewed
+            key={b.id}
+            blockId={b.id}
+            eyebrow={b.eyebrow}
+            title={b.title}
+            subtitle={b.subtitle}
+            products={pool}
+            totalProducts={Number(s.totalProducts ?? 8) || 8}
+            visibleDesktop={Number(s.visibleDesktop ?? 4) || 4}
+            visibleTablet={Number(s.visibleTablet ?? 2) || 2}
+            visibleMobile={Number(s.visibleMobile ?? 1.2) || 1.2}
+            autoplay={s.autoplay === true}
+            hideIfEmpty={s.hideIfEmpty !== false}
+          />
+        );
+      }
 
       case "products_grid":
         if (!moreProducts.length) return null;

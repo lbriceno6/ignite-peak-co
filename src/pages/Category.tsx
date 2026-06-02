@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { categories, goals, type Product } from "@/data/catalog";
 import { useCurrency } from "@/context/CurrencyContext";
 import { PaginationBar } from "@/components/PaginationBar";
+import { logBrowseEvent } from "@/lib/recoEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { resolveProductImage } from "@/lib/productImage";
 import { mainCategories, getSubcategories, mainBySlug, subBySlug } from "@/lib/productCategories";
@@ -351,6 +352,14 @@ const Category = () => {
   const [suppliersList, setSuppliersList] = useState<{ id: string; name: string }[]>([]);
   const [ancestors, setAncestors] = useState<CategoryNode[]>([]);
   const [children, setChildren] = useState<CategoryNode[]>([]);
+
+  useEffect(() => {
+    if (!slug) return;
+    void logBrowseEvent("browse_category_view", {
+      category_slug: slug,
+      metadata: { sub: subSlugParam || null },
+    });
+  }, [slug, subSlugParam]);
 
   useEffect(() => {
     let alive = true;

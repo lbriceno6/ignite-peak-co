@@ -22,6 +22,7 @@ import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 import { Helmet } from "react-helmet-async";
 import { track } from "@/lib/analytics";
+import { logBrowseEvent } from "@/lib/recoEvents";
 import { useProductBenefits } from "@/hooks/useProductBenefits";
 import { renderBenefitIcon } from "@/components/BenefitIcon";
 import { ComboRecommendations } from "@/components/combos/ComboRecommendations";
@@ -139,6 +140,12 @@ const ProductDetail = () => {
       item_name: dbp.name,
       value: Number(dbp.sale_price ?? dbp.price ?? 0),
       currency: "PEN",
+    });
+    void logBrowseEvent("browse_product_view", {
+      product_id: dbp.id,
+      product_slug: dbp.slug,
+      category_slug: dbp.category ?? null,
+      metadata: { name: dbp.name },
     });
   }, [dbp?.id]);
 

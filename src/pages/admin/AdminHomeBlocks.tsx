@@ -76,6 +76,9 @@ const TYPE_LABELS: Record<string, { name: string; desc: string; hasImage: boolea
   category_showcase:   { name: "Nuestras Categorías",      desc: "Tarjetas grandes y visuales de categorías destacadas con imagen y color.",  hasImage: false, hasCta: true,  hasCta2: false },
   double_promo_banners:{ name: "Banners dobles promocionales", desc: "Dos banners promocionales lado a lado con imágenes editables y enlaces.", hasImage: false, hasCta: false, hasCta2: false },
   instagram_testimonials: { name: "Testimonios Instagram",  desc: "Tarjetas tipo reel/story con imagen o video, nombre y valoración.",         hasImage: false, hasCta: false, hasCta2: false },
+  ai_dynamic_banner:   { name: "Banner dinámico · IA",     desc: "Banner que cambia según la intención de compra detectada del visitante.",   hasImage: true,  hasCta: true,  hasCta2: false },
+  ai_recommended_for_you: { name: "Recomendados para ti · IA", desc: "Carrusel personalizado según historial e intención. Si no hay historial, muestra populares.", hasImage: false, hasCta: true, hasCta2: false },
+  ai_recently_viewed:  { name: "Según lo que viste · IA",  desc: "Carrusel con productos vistos recientemente por el visitante.",              hasImage: false, hasCta: false, hasCta2: false },
 };
 
 const SELECTABLE_TYPES = [
@@ -85,6 +88,7 @@ const SELECTABLE_TYPES = [
   "goals", "trust", "blog", "reviews", "nutrition_advisory",
   "brands", "faq", "image_text", "video",
   "instagram_testimonials",
+  "ai_dynamic_banner", "ai_recommended_for_you", "ai_recently_viewed",
   "custom_simple", "custom_html",
 ];
 
@@ -824,6 +828,16 @@ function BlockEditor({
 
           {block.block_type === "best_sellers" && (
             <ProductCarouselSettings
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
+          {(block.block_type === "ai_dynamic_banner"
+            || block.block_type === "ai_recommended_for_you"
+            || block.block_type === "ai_recently_viewed") && (
+            <AiBlockSettings
+              type={block.block_type}
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
             />
@@ -2402,4 +2416,138 @@ function ProductCarouselSettings({
     </div>
   );
 }
+
+function AiBlockSettings({
+  type, settings, onChange,
+}: {
+  type: "ai_dynamic_banner" | "ai_recommended_for_you" | "ai_recently_viewed";
+  settings: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+}) {
+  const [intents, setIntents] = useState<Array<{ slug: string; name: string }>>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("purchase_intents")
+        .select("slug,name")
+        .eq("is_active", true)
+        .order("priority");
+      setIntents((data ?? []) as Array<{ slug: string; name: string }>);
+    })();
+  }, []);
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3 space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Configuración IA
+      </p>
+
+      {type === "ai_dynamic_banner" && (
+        <>
+          <div>
+            <Label className="text-xs">Intención de respaldo (cuando el visitante no tiene historial)</Label>
+            <select
+              className="mt-1 h-9 w-full rounded-md border bg-background px-2 text-sm"
+              value={String(settings.fallback_intent_slug ?? "")}
+              onChange={(e) => onChange({ fallback_intent_slug: e.target.value })}
+            >
+              <option value="">— Usar título/imagen del bloque —</option>
+              {intents.map((i) => (
+                <option key={i.slug} value={i.slug}>{i.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <label className="text-xs flex flex-col gap-1">
+              Padding superior
+              <Input type="number" value={Number(settings.spacingTop ?? 32)}
+                onChange={(e) => onChange({ spacingTop: Number(e.target.value) || 0 })} />
+            </label>
+            <label className="text-xs flex flex-col gap-1">
+              Padding inferior
+              <Input type="number" value={Number(settings.spacingBottom ?? 32)}
+                onChange={(e) => onChange({ spacingBottom: Number(e.target.value) || 0 })} />
+            </label>
+            <label className="text-xs flex flex-col gap-1">
+              Ancho
+              <select className="h-9 rounded-md border bg-background px-2 text-sm"
+                value={settings.containerWidth === "full" ? "full" : "container"}
+                onChange={(e) => onChange({ containerWidth: e.target.value })}>
+                <option value="container">Contenedor</option>
+                <option value="full">Full width</option>
+              </select>
+            </label>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+              <span>Esquinas redondeadas</span>
+              <Switch checked={settings.rounded !== false}
+                onCheckedChange={(v) => onChange({ rounded: v })} />
+            </label>
+            <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+              <span>Ocultar si no hay historial ni respaldo</span>
+              <Switch checked={settings.hideIfNoSignal === true}
+                onCheckedChange={(v) => onChange({ hideIfNoSignal: v })} />
+            </label>
+          </div>
+        </>
+      )}
+
+      {(type === "ai_recommended_for_you" || type === "ai_recently_viewed") && (
+        <>
+          <div className="grid gap-3 sm:grid-cols-4">
+            <label className="text-xs flex flex-col gap-1">
+              Total productos
+              <Input type="number" min={1} max={24} value={Number(settings.totalProducts ?? 8)}
+                onChange={(e) => onChange({ totalProducts: Number(e.target.value) || 8 })} />
+            </label>
+            <label className="text-xs flex flex-col gap-1">
+              Visibles desktop
+              <Input type="number" min={1} max={6} value={Number(settings.visibleDesktop ?? 4)}
+                onChange={(e) => onChange({ visibleDesktop: Number(e.target.value) || 4 })} />
+            </label>
+            <label className="text-xs flex flex-col gap-1">
+              Visibles tablet
+              <Input type="number" min={1} max={4} value={Number(settings.visibleTablet ?? 2)}
+                onChange={(e) => onChange({ visibleTablet: Number(e.target.value) || 2 })} />
+            </label>
+            <label className="text-xs flex flex-col gap-1">
+              Visibles mobile
+              <Input type="number" step={0.1} min={1} max={3} value={Number(settings.visibleMobile ?? 1.2)}
+                onChange={(e) => onChange({ visibleMobile: Number(e.target.value) || 1.2 })} />
+            </label>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+              <span>Autoplay</span>
+              <Switch
+                checked={type === "ai_recently_viewed" ? settings.autoplay === true : settings.autoplay !== false}
+                onCheckedChange={(v) => onChange({ autoplay: v })}
+              />
+            </label>
+            {type === "ai_recommended_for_you" && (
+              <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                <span>Ocultar si no hay historial</span>
+                <Switch checked={settings.hideIfNoSignal === true}
+                  onCheckedChange={(v) => onChange({ hideIfNoSignal: v })} />
+              </label>
+            )}
+            {type === "ai_recently_viewed" && (
+              <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                <span>Ocultar si no hay productos vistos</span>
+                <Switch checked={settings.hideIfEmpty !== false}
+                  onCheckedChange={(v) => onChange({ hideIfEmpty: v })} />
+              </label>
+            )}
+          </div>
+        </>
+      )}
+
+      <p className="text-[11px] text-muted-foreground">
+        El historial se construye automáticamente con los eventos browse_* que ya registra el sitio. Las intenciones se administran en “Intenciones de compra”.
+      </p>
+    </div>
+  );
+}
+
 
