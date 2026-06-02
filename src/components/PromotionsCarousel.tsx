@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import {
@@ -9,6 +9,8 @@ import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
 import { usePromotions } from "@/hooks/usePromotions";
 import { isPromoActiveNow, promoLabel } from "@/lib/promotions";
+import { resolveProductImage } from "@/lib/productImage";
+import productPlaceholder from "@/assets/product-placeholder.jpg";
 import type { Product } from "@/data/catalog";
 
 type DbProduct = {
@@ -40,12 +42,16 @@ const toCardProduct = (p: DbProduct, promoBadge?: string | null): Product => ({
   id: p.id,
   slug: p.slug,
   name: p.name,
-  shortDescription: p.short_description ?? "",
-  price: Number(p.price ?? 0),
-  salePrice: p.sale_price != null ? Number(p.sale_price) : null,
+  shortBenefit: p.short_description ?? "",
+  price: Number(p.sale_price ?? p.price ?? 0),
+  oldPrice: p.sale_price ? Number(p.price) : undefined,
+  rating: 4.8,
+  reviews: 0,
+  label: promoBadge ?? p.badge ?? null,
+  image: resolveProductImage(p.main_image, productPlaceholder),
   category: p.category ?? "",
-  mainImage: p.main_image ?? null,
-  badge: promoBadge ?? p.badge ?? null,
+  goal: [],
+  brand: "",
 } as unknown as Product);
 
 export function PromotionsCarousel({ block, products }: Props) {
