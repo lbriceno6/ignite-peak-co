@@ -10,23 +10,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Sparkles, Plus, Trash2, Pencil, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Plus, Trash2, Pencil, Zap } from "lucide-react";
 
 type Settings = {
   enabled: boolean;
   provider: string;
   model: string;
-  api_key: string;
-  prompt_template: string;
   result_mode: string;
-  min_confidence: number;
+  confidence_threshold: number;
   temperature: number;
   max_tokens: number;
-  fallback_whatsapp_enabled: boolean;
+  search_prompt: string;
   helper_text: string;
+  show_whatsapp_fallback: boolean;
   live_suggestions_enabled: boolean;
-  max_products: number;
-  manual_suggestions: string[];
+  visible_products_limit: number;
+  manual_suggestions: string;
 };
 
 type Need = {
@@ -87,20 +86,19 @@ const RESULT_MODES = [
 ];
 
 const DEFAULTS: Settings = {
-  enabled: true,
-  provider: "gemini",
-  model: "google/gemini-2.5-flash",
-  api_key: "",
-  prompt_template: "",
-  result_mode: "todos",
-  min_confidence: 0.4,
+  enabled: false,
+  provider: "deepseek",
+  model: "deepseek-chat",
+  result_mode: "all",
+  confidence_threshold: 0.4,
   temperature: 0.4,
   max_tokens: 600,
-  fallback_whatsapp_enabled: true,
-  helper_text: "Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.",
+  search_prompt: "Eres un asistente de búsqueda para el ecommerce Nutribatidos. Entiende la necesidad del cliente y recomienda productos existentes del catálogo. No inventes productos. No prometas curaciones. Devuelve siempre JSON con intent, need_category, products y message.",
+  helper_text: "Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía",
+  show_whatsapp_fallback: true,
   live_suggestions_enabled: true,
-  max_products: 4,
-  manual_suggestions: ["omega 3", "vitaminas", "bienestar", "omegas", "colágeno", "energía", "digestión"],
+  visible_products_limit: 4,
+  manual_suggestions: "omega 3, vitaminas, bienestar, colágeno, energía",
 };
 
 const EMPTY_NEED: Need = {
