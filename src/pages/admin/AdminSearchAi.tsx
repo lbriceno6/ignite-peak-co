@@ -117,7 +117,7 @@ export default function AdminSearchAi() {
   const [form, setForm] = useState<Settings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showKey, setShowKey] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   const [needs, setNeeds] = useState<Need[]>([]);
   const [categories, setCategories] = useState<{ slug: string; name: string }[]>([]);
@@ -127,13 +127,14 @@ export default function AdminSearchAi() {
 
   useEffect(() => {
     (async () => {
-      const [sRes, nRes, cRes, pRes] = await Promise.all([
-        supabase.from("search_ai_settings" as any).select("*").eq("id", 1).maybeSingle(),
+      const [settingsRes, nRes, cRes, pRes] = await Promise.all([
+        supabase.functions.invoke("search-ai-settings", { method: "GET" }),
         supabase.from("search_needs" as any).select("*").order("priority"),
         supabase.from("categories").select("slug,name").eq("type", "product").eq("is_active", true).order("name"),
         supabase.from("products").select("id,name").eq("is_active", true).limit(500).order("name"),
       ]);
-      if (sRes.data) setForm({ ...DEFAULTS, ...(sRes.data as any) });
+      if (settingsRes.error) toast.error("No se pudo cargar la configuración del Buscador IA");
+      if ((settingsRes.data as any)?.settings) setForm({ ...DEFAULTS, ...(settingsRes.data as any).settings });
       if (nRes.data) setNeeds(nRes.data as any);
       if (cRes.data) setCategories(cRes.data as any);
       if (pRes.data) setProducts(pRes.data as any);
@@ -143,10 +144,28 @@ export default function AdminSearchAi() {
 
   const save = async () => {
     setSaving(true);
-    const { error } = await supabase.from("search_ai_settings" as any).upsert({ id: 1, ...form });
+    const { data, error } = await supabase.functions.invoke("search-ai-settings", {
+      method: "PUT",
+      body: { settings: form },
+    });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error || !(data as any)?.success) {
+      return toast.error((data as any)?.error || error?.message || "No se pudo guardar la configuración");
+    }
+    if ((data as any)?.settings) setForm({ ...DEFAULTS, ...(data as any).settings });
     toast.success("Configuración guardada");
+  };
+
+  const testConnection = async () => {
+    setTesting(true);
+    const { data, error } = await supabase.functions.invoke("ai-reco-test", {
+      body: { provider: form.provider, model: form.model },
+    });
+    setTesting(false);
+    if (error || !(data as any)?.success) {
+      return toast.error((data as any)?.error || error?.message || "No se pudo probar la conexión");
+    }
+    toast.success("Conexión exitosa con el proveedor de IA");
   };
 
   const openNew = () => {
