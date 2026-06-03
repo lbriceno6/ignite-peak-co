@@ -158,6 +158,8 @@ const defaultSections = [
       { key: "ia-recomendaciones", to: "/admin/ia-recomendaciones", label: "Home Inteligente · IA", icon: Sparkles },
       { key: "ia-intenciones", to: "/admin/ia-intenciones", label: "Intenciones de compra", icon: Sparkles },
       { key: "ia-inventario", to: "/admin/ia-inventario", label: "Predicción de inventario · IA", icon: Sparkles },
+      { key: "ia-landings", to: "/admin/ia-landings", label: "Landings SEO · IA", icon: Sparkles },
+      { key: "ia-fichas", to: "/admin/ia-fichas", label: "Optimización fichas · IA", icon: Sparkles },
     ],
   },
 ];
