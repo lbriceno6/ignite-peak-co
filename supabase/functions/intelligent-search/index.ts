@@ -43,12 +43,11 @@ type LegacySettings = {
   enabled: boolean;
   provider: string;
   model: string;
-  api_key: string | null;
-  prompt_template: string;
+  search_prompt: string;
   result_mode: string;
   temperature: number;
   max_tokens: number;
-  fallback_whatsapp_enabled: boolean;
+  show_whatsapp_fallback: boolean;
 };
 
 type RecoSettings = {
@@ -114,12 +113,12 @@ async function callAi(
 
   // Fallback to legacy search_ai_settings
   if (!legacy || !legacy.enabled || legacy.provider === "off") return "";
-  const system = `${legacy.prompt_template}\n\nLISTA DE NECESIDADES DISPONIBLES:\n${needList}`;
+  const system = `${legacy.search_prompt}\n\nLISTA DE NECESIDADES DISPONIBLES:\n${needList}`;
   const provider = legacy.provider;
 
   if (provider === "claude") {
-    const key = legacy.api_key;
-    if (!key) throw new Error("Claude requires api_key");
+    const key = Deno.env.get("CLAUDE_API_KEY");
+    if (!key) throw new Error("CLAUDE_API_KEY missing");
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
@@ -135,8 +134,8 @@ async function callAi(
   }
 
   if (provider === "deepseek") {
-    const key = legacy.api_key;
-    if (!key) throw new Error("DeepSeek requires api_key");
+    const key = Deno.env.get("DEEPSEEK_API_KEY");
+    if (!key) throw new Error("DEEPSEEK_API_KEY missing");
     const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
@@ -282,7 +281,7 @@ Deno.serve(async (req) => {
     // 3) Nothing -> fallback
     return new Response(JSON.stringify({
       source: "none",
-      fallback_whatsapp: legacy?.fallback_whatsapp_enabled ?? true,
+      fallback_whatsapp: legacy?.show_whatsapp_fallback ?? true,
       message: "No encontramos un producto exacto, pero podemos ayudarte a elegir uno según tu necesidad.",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (err) {
