@@ -1,0 +1,1 @@
+GRANT INSERT, UPDATE, DELETE ON public.search_ai_settings TO authenticated;
