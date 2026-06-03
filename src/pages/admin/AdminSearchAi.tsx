@@ -79,7 +79,7 @@ const MODELS: Record<string, { value: string; label: string }[]> = {
 };
 
 const RESULT_MODES = [
-  { value: "todos", label: "Todos" },
+  { value: "all", label: "Todos" },
   { value: "productos", label: "Solo productos" },
   { value: "categorias", label: "Solo categorías" },
   { value: "combos", label: "Solo combos" },
@@ -272,22 +272,6 @@ export default function AdminSearchAi() {
                 />
               )}
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>API Key (opcional para Gemini/OpenAI; requerida para DeepSeek/Claude)</Label>
-              <div className="relative">
-                <Input
-                  type={showKey ? "text" : "password"}
-                  value={form.api_key || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, api_key: e.target.value }))}
-                  placeholder="—"
-                  className="pr-10 font-mono text-xs"
-                />
-                <button type="button" onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                  {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
             <div className="space-y-1.5">
               <Label>Modo de resultado</Label>
               <Select value={form.result_mode} onValueChange={(v) => setForm((p) => ({ ...p, result_mode: v }))}>
@@ -298,9 +282,9 @@ export default function AdminSearchAi() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Confianza mínima ({form.min_confidence})</Label>
-              <Input type="number" step="0.05" min={0} max={1} value={form.min_confidence}
-                onChange={(e) => setForm((p) => ({ ...p, min_confidence: Number(e.target.value) || 0 }))} />
+              <Label>Confianza mínima ({form.confidence_threshold})</Label>
+              <Input type="number" step="0.05" min={0} max={1} value={form.confidence_threshold}
+                onChange={(e) => setForm((p) => ({ ...p, confidence_threshold: Number(e.target.value) || 0 }))} />
             </div>
             <div className="space-y-1.5">
               <Label>Temperatura ({form.temperature})</Label>
@@ -316,8 +300,8 @@ export default function AdminSearchAi() {
 
           <div className="space-y-1.5">
             <Label>Prompt del buscador IA</Label>
-            <Textarea rows={10} value={form.prompt_template}
-              onChange={(e) => setForm((p) => ({ ...p, prompt_template: e.target.value }))} />
+            <Textarea rows={10} value={form.search_prompt}
+              onChange={(e) => setForm((p) => ({ ...p, search_prompt: e.target.value }))} />
             <p className="text-xs text-muted-foreground">
               No prometas curación. Devuelve siempre JSON con: intent, need, category, products, message.
             </p>
@@ -334,8 +318,8 @@ export default function AdminSearchAi() {
                 <Label>Mostrar WhatsApp si no hay resultados</Label>
                 <p className="text-xs text-muted-foreground">Sugiere hablar con Lucía cuando no haya match.</p>
               </div>
-              <Switch checked={form.fallback_whatsapp_enabled}
-                onCheckedChange={(v) => setForm((p) => ({ ...p, fallback_whatsapp_enabled: v }))} />
+              <Switch checked={form.show_whatsapp_fallback}
+                onCheckedChange={(v) => setForm((p) => ({ ...p, show_whatsapp_fallback: v }))} />
             </div>
           </div>
 
@@ -359,25 +343,17 @@ export default function AdminSearchAi() {
                   type="number"
                   min={2}
                   max={12}
-                  value={form.max_products}
+                  value={form.visible_products_limit}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, max_products: Math.max(2, Math.min(12, Number(e.target.value) || 4)) }))
+                    setForm((p) => ({ ...p, visible_products_limit: Math.max(2, Math.min(12, Number(e.target.value) || 4)) }))
                   }
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Sugerencias manuales (separadas por coma)</Label>
                 <Input
-                  value={(form.manual_suggestions ?? []).join(", ")}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      manual_suggestions: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    }))
-                  }
+                  value={form.manual_suggestions}
+                  onChange={(e) => setForm((p) => ({ ...p, manual_suggestions: e.target.value }))}
                   placeholder="omega 3, vitaminas, colágeno…"
                 />
               </div>
