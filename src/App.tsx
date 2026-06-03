@@ -260,6 +260,8 @@ const App = () => (
               <Route path="seo" element={<AdminSeo />} />
               <Route path="ia-control" element={<AdminAiControl />} />
               <Route path="ia-inventario" element={<AdminInventoryAi />} />
+              <Route path="ia-landings" element={<AdminSeoLandingsAi />} />
+              <Route path="ia-fichas" element={<AdminProductSeoAi />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="buscador-ia" element={<AdminSearchAi />} />
