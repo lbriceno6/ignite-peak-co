@@ -217,7 +217,16 @@ export default function AdminSearchAi() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Proveedor IA</Label>
-              <Select value={form.provider} onValueChange={(v) => setForm((p) => ({ ...p, provider: v }))}>
+              <Select
+                value={form.provider}
+                onValueChange={(v) =>
+                  setForm((p) => ({
+                    ...p,
+                    provider: v,
+                    model: MODELS[v]?.[0]?.value ?? p.model,
+                  }))
+                }
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PROVIDERS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
@@ -226,7 +235,25 @@ export default function AdminSearchAi() {
             </div>
             <div className="space-y-1.5">
               <Label>Modelo</Label>
-              <Input value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="google/gemini-2.5-flash" />
+              {(MODELS[form.provider]?.length ?? 0) > 0 ? (
+                <Select value={form.model} onValueChange={(v) => setForm((p) => ({ ...p, model: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecciona un modelo" /></SelectTrigger>
+                  <SelectContent>
+                    {MODELS[form.provider].map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                    {!MODELS[form.provider].some((m) => m.value === form.model) && form.model && (
+                      <SelectItem value={form.model}>{form.model} (personalizado)</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={form.model}
+                  onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))}
+                  placeholder="nombre-del-modelo"
+                />
+              )}
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>API Key (opcional para Gemini/OpenAI; requerida para DeepSeek/Claude)</Label>
