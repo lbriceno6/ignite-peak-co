@@ -167,7 +167,6 @@ export const Header = () => {
   const [customFields, setCustomFields] = useState<MenuCustomField[]>([]);
   const [megaMenu, setMegaMenu] = useState<MegaMenuData | null>(null);
   const [searchNeeds, setSearchNeeds] = useState<{ slug: string; name: string; keywords: string[]; related_category: string | null; priority: number }[]>([]);
-  const [searchHelper, setSearchHelper] = useState<string>("Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.");
   const [showSugg, setShowSugg] = useState(false);
   const [searching, setSearching] = useState(false);
   const navigate = useNavigate();
@@ -298,12 +297,11 @@ export const Header = () => {
     // Load everything in parallel INCLUDING the mega menu, so we can apply all
     // state in a single render pass. Otherwise legacy categories/goals render
     // first and "flash" before the mega menu replaces them.
-    const [navRes, catRes, fRes, sRes, settRes, goalsRes, megaRes] = await Promise.all([
+    const [navRes, catRes, fRes, sRes, goalsRes, megaRes] = await Promise.all([
       supabase.from("nav_links").select("id,label,href,open_in_new_tab,is_active,sort_order").eq("is_active", true).order("sort_order"),
       supabase.from("categories").select("*").eq("type", "product").eq("is_active", true).order("sort_order").order("name"),
       (supabase.from as any)("menu_custom_fields").select("*").eq("is_active", true).order("sort_order"),
       (supabase.from as any)("search_needs").select("slug,name,keywords,related_category,priority").eq("is_active", true).order("priority"),
-      (supabase.from as any)("search_ai_settings").select("helper_text").eq("id", 1).maybeSingle(),
       (supabase.from as any)("goals").select("id,name,slug,image_url,short_description").eq("is_active", true).eq("show_in_mega_menu", true).order("sort_order"),
       loadMegaMenu().catch(() => null),
     ]);
@@ -314,7 +312,6 @@ export const Header = () => {
     if (catRes.data) setCategories(catRes.data as CategoryItem[]);
     if (fRes?.data) setCustomFields(fRes.data as MenuCustomField[]);
     if (sRes?.data) setSearchNeeds(sRes.data as any);
-    if (settRes?.data?.helper_text) setSearchHelper(settRes.data.helper_text);
     if (goalsRes?.data) setGoals(goalsRes.data as any);
   };
 
