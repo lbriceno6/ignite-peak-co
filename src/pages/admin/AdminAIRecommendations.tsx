@@ -47,7 +47,6 @@ export default function AdminAIRecommendations() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [customKey, setCustomKey] = useState("");
   const [form, setForm] = useState({
     enabled: true,
     provider: "gemini",
@@ -96,7 +95,6 @@ export default function AdminAIRecommendations() {
           provider: form.provider,
           model: form.model,
           base_url: form.base_url || undefined,
-          api_key: customKey || undefined,
         },
       });
       if (error) throw error;
@@ -114,7 +112,7 @@ export default function AdminAIRecommendations() {
 
   if (loading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
 
-  const needsKey = form.provider === "claude" || form.provider === "deepseek" || form.provider === "custom";
+  const needsServerSecret = form.provider === "claude" || form.provider === "deepseek" || form.provider === "custom";
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -188,19 +186,10 @@ export default function AdminAIRecommendations() {
           </div>
         )}
 
-        {needsKey && (
-          <div className="space-y-1.5">
-            <Label>API Key (solo para probar conexión)</Label>
-            <Input
-              type="password"
-              value={customKey}
-              onChange={(e) => setCustomKey(e.target.value)}
-              placeholder="sk-..."
-              className="font-mono text-xs"
-            />
+        {needsServerSecret && (
+          <div className="rounded-md border bg-secondary/40 p-3">
             <p className="text-xs text-muted-foreground">
-              Por seguridad la API Key no se guarda en la base de datos. Solicítanos
-              guardarla como secreto del servidor antes de activar este proveedor en producción.
+              La prueba usa solo Secrets del servidor. No pegues API Keys reales en el panel.
             </p>
           </div>
         )}
