@@ -97,6 +97,65 @@ export type Database = {
           },
         ]
       }
+      ai_product_seo_log: {
+        Row: {
+          after_value: string | null
+          ai_reason: string | null
+          ai_score: number | null
+          applied: boolean
+          applied_at: string | null
+          before_value: string | null
+          conv_before: number | null
+          created_at: string
+          ctr_before: number | null
+          field: string
+          id: string
+          model: string | null
+          product_id: string
+          views_window: number | null
+        }
+        Insert: {
+          after_value?: string | null
+          ai_reason?: string | null
+          ai_score?: number | null
+          applied?: boolean
+          applied_at?: string | null
+          before_value?: string | null
+          conv_before?: number | null
+          created_at?: string
+          ctr_before?: number | null
+          field: string
+          id?: string
+          model?: string | null
+          product_id: string
+          views_window?: number | null
+        }
+        Update: {
+          after_value?: string | null
+          ai_reason?: string | null
+          ai_score?: number | null
+          applied?: boolean
+          applied_at?: string | null
+          before_value?: string | null
+          conv_before?: number | null
+          created_at?: string
+          ctr_before?: number | null
+          field?: string
+          id?: string
+          model?: string | null
+          product_id?: string
+          views_window?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_product_seo_log_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_product_settings: {
         Row: {
           claude_api_key: string | null
@@ -276,6 +335,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      ai_seo_landing_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          keyword: string
+          kind: string
+          landing_id: string | null
+          model: string | null
+          payload: Json | null
+          slug: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          keyword: string
+          kind: string
+          landing_id?: string | null
+          model?: string | null
+          payload?: Json | null
+          slug?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          keyword?: string
+          kind?: string
+          landing_id?: string | null
+          model?: string | null
+          payload?: Json | null
+          slug?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_seo_landing_jobs_landing_id_fkey"
+            columns: ["landing_id"]
+            isOneToOne: false
+            referencedRelation: "seo_landing_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       analytics_settings: {
         Row: {
@@ -2424,6 +2536,50 @@ export type Database = {
           },
         ]
       }
+      product_seo_metrics: {
+        Row: {
+          add_to_cart: number
+          computed_at: string
+          conversion_rate: number
+          ctr: number
+          impressions: number
+          product_id: string
+          purchases: number
+          views: number
+          window_days: number
+        }
+        Insert: {
+          add_to_cart?: number
+          computed_at?: string
+          conversion_rate?: number
+          ctr?: number
+          impressions?: number
+          product_id: string
+          purchases?: number
+          views?: number
+          window_days?: number
+        }
+        Update: {
+          add_to_cart?: number
+          computed_at?: string
+          conversion_rate?: number
+          ctr?: number
+          impressions?: number
+          product_id?: string
+          purchases?: number
+          views?: number
+          window_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_seo_metrics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           approval_status: string
@@ -3442,41 +3598,74 @@ export type Database = {
       }
       seo_landing_pages: {
         Row: {
+          ai_generated_at: string | null
+          ai_model: string | null
+          body_html: string | null
           created_at: string
+          faqs: Json
           filter_field: string | null
           filter_value: string | null
+          hero_image: string | null
           id: string
           intro: string | null
           is_published: boolean
+          keyword: string | null
           kind: string
           long_description: string | null
+          meta_description: string | null
+          meta_title: string | null
+          schema_jsonld: Json | null
+          search_volume: number | null
           slug: string
+          source: string
           title: string
           updated_at: string
         }
         Insert: {
+          ai_generated_at?: string | null
+          ai_model?: string | null
+          body_html?: string | null
           created_at?: string
+          faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
+          hero_image?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
+          keyword?: string | null
           kind: string
           long_description?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          schema_jsonld?: Json | null
+          search_volume?: number | null
           slug: string
+          source?: string
           title: string
           updated_at?: string
         }
         Update: {
+          ai_generated_at?: string | null
+          ai_model?: string | null
+          body_html?: string | null
           created_at?: string
+          faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
+          hero_image?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
+          keyword?: string | null
           kind?: string
           long_description?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          schema_jsonld?: Json | null
+          search_volume?: number | null
           slug?: string
+          source?: string
           title?: string
           updated_at?: string
         }
