@@ -10,23 +10,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Sparkles, Plus, Trash2, Pencil, Eye, EyeOff } from "lucide-react";
+import { Sparkles, Plus, Trash2, Pencil, Zap } from "lucide-react";
 
 type Settings = {
   enabled: boolean;
   provider: string;
   model: string;
-  api_key: string;
-  prompt_template: string;
   result_mode: string;
-  min_confidence: number;
+  confidence_threshold: number;
   temperature: number;
   max_tokens: number;
-  fallback_whatsapp_enabled: boolean;
+  search_prompt: string;
   helper_text: string;
+  show_whatsapp_fallback: boolean;
   live_suggestions_enabled: boolean;
-  max_products: number;
-  manual_suggestions: string[];
+  visible_products_limit: number;
+  manual_suggestions: string;
 };
 
 type Need = {
@@ -80,27 +79,26 @@ const MODELS: Record<string, { value: string; label: string }[]> = {
 };
 
 const RESULT_MODES = [
-  { value: "todos", label: "Todos" },
+  { value: "all", label: "Todos" },
   { value: "productos", label: "Solo productos" },
   { value: "categorias", label: "Solo categorías" },
   { value: "combos", label: "Solo combos" },
 ];
 
 const DEFAULTS: Settings = {
-  enabled: true,
-  provider: "gemini",
-  model: "google/gemini-2.5-flash",
-  api_key: "",
-  prompt_template: "",
-  result_mode: "todos",
-  min_confidence: 0.4,
+  enabled: false,
+  provider: "deepseek",
+  model: "deepseek-chat",
+  result_mode: "all",
+  confidence_threshold: 0.4,
   temperature: 0.4,
   max_tokens: 600,
-  fallback_whatsapp_enabled: true,
-  helper_text: "Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía.",
+  search_prompt: "Eres un asistente de búsqueda para el ecommerce Nutribatidos. Entiende la necesidad del cliente y recomienda productos existentes del catálogo. No inventes productos. No prometas curaciones. Devuelve siempre JSON con intent, need_category, products y message.",
+  helper_text: "Busca por necesidad, ejemplo: cansancio, digestión, colágeno o energía",
+  show_whatsapp_fallback: true,
   live_suggestions_enabled: true,
-  max_products: 4,
-  manual_suggestions: ["omega 3", "vitaminas", "bienestar", "omegas", "colágeno", "energía", "digestión"],
+  visible_products_limit: 4,
+  manual_suggestions: "omega 3, vitaminas, bienestar, colágeno, energía",
 };
 
 const EMPTY_NEED: Need = {
@@ -119,7 +117,7 @@ export default function AdminSearchAi() {
   const [form, setForm] = useState<Settings>(DEFAULTS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showKey, setShowKey] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   const [needs, setNeeds] = useState<Need[]>([]);
   const [categories, setCategories] = useState<{ slug: string; name: string }[]>([]);
@@ -129,13 +127,16 @@ export default function AdminSearchAi() {
 
   useEffect(() => {
     (async () => {
-      const [sRes, nRes, cRes, pRes] = await Promise.all([
-        supabase.from("search_ai_settings" as any).select("*").eq("id", 1).maybeSingle(),
+      const [settingsRes, nRes, cRes, pRes] = await Promise.all([
+        supabase.functions.invoke("search-ai-settings", { method: "GET" }),
         supabase.from("search_needs" as any).select("*").order("priority"),
         supabase.from("categories").select("slug,name").eq("type", "product").eq("is_active", true).order("name"),
         supabase.from("products").select("id,name").eq("is_active", true).limit(500).order("name"),
       ]);
-      if (sRes.data) setForm({ ...DEFAULTS, ...(sRes.data as any) });
+      if (settingsRes.error || (settingsRes.data as any)?.success === false) {
+        toast.error((settingsRes.data as any)?.error || settingsRes.error?.message || "No se pudo cargar la configuración del Buscador IA");
+      }
+      if ((settingsRes.data as any)?.settings) setForm({ ...DEFAULTS, ...(settingsRes.data as any).settings });
       if (nRes.data) setNeeds(nRes.data as any);
       if (cRes.data) setCategories(cRes.data as any);
       if (pRes.data) setProducts(pRes.data as any);
@@ -145,10 +146,28 @@ export default function AdminSearchAi() {
 
   const save = async () => {
     setSaving(true);
-    const { error } = await supabase.from("search_ai_settings" as any).upsert({ id: 1, ...form });
+    const { data, error } = await supabase.functions.invoke("search-ai-settings", {
+      method: "PUT",
+      body: { settings: form },
+    });
     setSaving(false);
-    if (error) return toast.error(error.message);
+    if (error || !(data as any)?.success) {
+      return toast.error((data as any)?.error || error?.message || "No se pudo guardar la configuración");
+    }
+    if ((data as any)?.settings) setForm({ ...DEFAULTS, ...(data as any).settings });
     toast.success("Configuración guardada");
+  };
+
+  const testConnection = async () => {
+    setTesting(true);
+    const { data, error } = await supabase.functions.invoke("ai-reco-test", {
+      body: { provider: form.provider, model: form.model },
+    });
+    setTesting(false);
+    if (error || !(data as any)?.success) {
+      return toast.error((data as any)?.error || error?.message || "No se pudo probar la conexión");
+    }
+    toast.success("Conexión exitosa con el proveedor de IA");
   };
 
   const openNew = () => {
@@ -255,22 +274,6 @@ export default function AdminSearchAi() {
                 />
               )}
             </div>
-            <div className="space-y-1.5 sm:col-span-2">
-              <Label>API Key (opcional para Gemini/OpenAI; requerida para DeepSeek/Claude)</Label>
-              <div className="relative">
-                <Input
-                  type={showKey ? "text" : "password"}
-                  value={form.api_key || ""}
-                  onChange={(e) => setForm((p) => ({ ...p, api_key: e.target.value }))}
-                  placeholder="—"
-                  className="pr-10 font-mono text-xs"
-                />
-                <button type="button" onClick={() => setShowKey((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                  {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
             <div className="space-y-1.5">
               <Label>Modo de resultado</Label>
               <Select value={form.result_mode} onValueChange={(v) => setForm((p) => ({ ...p, result_mode: v }))}>
@@ -281,9 +284,9 @@ export default function AdminSearchAi() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Confianza mínima ({form.min_confidence})</Label>
-              <Input type="number" step="0.05" min={0} max={1} value={form.min_confidence}
-                onChange={(e) => setForm((p) => ({ ...p, min_confidence: Number(e.target.value) || 0 }))} />
+              <Label>Confianza mínima ({form.confidence_threshold})</Label>
+              <Input type="number" step="0.05" min={0} max={1} value={form.confidence_threshold}
+                onChange={(e) => setForm((p) => ({ ...p, confidence_threshold: Number(e.target.value) || 0 }))} />
             </div>
             <div className="space-y-1.5">
               <Label>Temperatura ({form.temperature})</Label>
@@ -299,8 +302,8 @@ export default function AdminSearchAi() {
 
           <div className="space-y-1.5">
             <Label>Prompt del buscador IA</Label>
-            <Textarea rows={10} value={form.prompt_template}
-              onChange={(e) => setForm((p) => ({ ...p, prompt_template: e.target.value }))} />
+            <Textarea rows={10} value={form.search_prompt}
+              onChange={(e) => setForm((p) => ({ ...p, search_prompt: e.target.value }))} />
             <p className="text-xs text-muted-foreground">
               No prometas curación. Devuelve siempre JSON con: intent, need, category, products, message.
             </p>
@@ -317,8 +320,8 @@ export default function AdminSearchAi() {
                 <Label>Mostrar WhatsApp si no hay resultados</Label>
                 <p className="text-xs text-muted-foreground">Sugiere hablar con Lucía cuando no haya match.</p>
               </div>
-              <Switch checked={form.fallback_whatsapp_enabled}
-                onCheckedChange={(v) => setForm((p) => ({ ...p, fallback_whatsapp_enabled: v }))} />
+              <Switch checked={form.show_whatsapp_fallback}
+                onCheckedChange={(v) => setForm((p) => ({ ...p, show_whatsapp_fallback: v }))} />
             </div>
           </div>
 
@@ -342,25 +345,17 @@ export default function AdminSearchAi() {
                   type="number"
                   min={2}
                   max={12}
-                  value={form.max_products}
+                  value={form.visible_products_limit}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, max_products: Math.max(2, Math.min(12, Number(e.target.value) || 4)) }))
+                    setForm((p) => ({ ...p, visible_products_limit: Math.max(2, Math.min(12, Number(e.target.value) || 4)) }))
                   }
                 />
               </div>
               <div className="space-y-1.5">
                 <Label>Sugerencias manuales (separadas por coma)</Label>
                 <Input
-                  value={(form.manual_suggestions ?? []).join(", ")}
-                  onChange={(e) =>
-                    setForm((p) => ({
-                      ...p,
-                      manual_suggestions: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    }))
-                  }
+                  value={form.manual_suggestions}
+                  onChange={(e) => setForm((p) => ({ ...p, manual_suggestions: e.target.value }))}
                   placeholder="omega 3, vitaminas, colágeno…"
                 />
               </div>
@@ -368,7 +363,11 @@ export default function AdminSearchAi() {
           </div>
 
 
-          <div className="flex justify-end pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <Button variant="outline" onClick={testConnection} disabled={testing || form.provider === "off"}>
+              <Zap className="mr-2 h-4 w-4" />
+              {testing ? "Probando…" : "Probar conexión con IA"}
+            </Button>
             <Button variant="dark" onClick={save} disabled={saving}>
               {saving ? "Guardando…" : "Guardar configuración"}
             </Button>

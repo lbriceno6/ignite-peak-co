@@ -12,16 +12,16 @@ import { toast } from "sonner";
 
 type Settings = {
   live_suggestions_enabled: boolean;
-  max_products: number;
+  visible_products_limit: number;
   manual_suggestions: string[];
-  fallback_whatsapp_enabled: boolean;
+  show_whatsapp_fallback: boolean;
 };
 
 const DEFAULT_SETTINGS: Settings = {
   live_suggestions_enabled: true,
-  max_products: 4,
+  visible_products_limit: 4,
   manual_suggestions: ["omega 3", "vitaminas", "bienestar", "omegas", "colágeno", "energía", "digestión"],
-  fallback_whatsapp_enabled: true,
+  show_whatsapp_fallback: true,
 };
 
 const PLACEHOLDER = "Buscar por necesidad: cansancio, digestión, colágeno...";
@@ -49,22 +49,9 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
   // Load settings once
   useEffect(() => {
     (async () => {
-      const [sRes, chatRes] = await Promise.all([
-        (supabase.from as any)("search_ai_settings")
-          .select("live_suggestions_enabled,max_products,manual_suggestions,fallback_whatsapp_enabled")
-          .eq("id", 1)
-          .maybeSingle(),
+      const [chatRes] = await Promise.all([
         (supabase.from as any)("chat_ai_settings").select("whatsapp_number").eq("id", 1).maybeSingle(),
       ]);
-      if (sRes?.data) {
-        setSettings((p) => ({
-          ...p,
-          live_suggestions_enabled: sRes.data.live_suggestions_enabled ?? true,
-          max_products: sRes.data.max_products ?? 4,
-          manual_suggestions: sRes.data.manual_suggestions ?? p.manual_suggestions,
-          fallback_whatsapp_enabled: sRes.data.fallback_whatsapp_enabled ?? true,
-        }));
-      }
       if (chatRes?.data?.whatsapp_number) setWaNumber(chatRes.data.whatsapp_number);
     })();
   }, []);
@@ -82,7 +69,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
     setLoading(true);
     debounceRef.current = window.setTimeout(async () => {
       try {
-        const r = await runLiveSearch(q, settings.max_products);
+        const r = await runLiveSearch(q, settings.visible_products_limit);
         setResult(r);
       } finally {
         setLoading(false);
@@ -91,7 +78,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
     return () => {
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [query, settings.live_suggestions_enabled, settings.max_products]);
+  }, [query, settings.live_suggestions_enabled, settings.visible_products_limit]);
 
   // Close on outside click
   useEffect(() => {
@@ -235,7 +222,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                 <p className="text-sm font-medium">
                   No encontramos productos exactos, pero podemos ayudarte por necesidad.
                 </p>
-                {settings.fallback_whatsapp_enabled && (
+                {settings.show_whatsapp_fallback && (
                   <Button asChild className="mt-4" variant="dark">
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle size={16} className="mr-1.5" /> Hablar con asesor por WhatsApp
@@ -302,7 +289,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                     </div>
                   ) : hasProducts ? (
                     <ul className="flex flex-col divide-y divide-border">
-                      {(result?.products ?? []).slice(0, settings.max_products).map((p) => {
+                      {(result?.products ?? []).slice(0, settings.visible_products_limit).map((p) => {
                         const inStock = p.stock > 0;
                         const isWished = wishlist.includes(p.id);
                         return (

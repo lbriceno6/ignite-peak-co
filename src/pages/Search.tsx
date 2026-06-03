@@ -56,16 +56,14 @@ const Search = () => {
 
   useEffect(() => {
     (async () => {
-      const [needRes, chatRes, settingsRes] = await Promise.all([
+      const [needRes, chatRes] = await Promise.all([
         needSlug
           ? (supabase.from as any)("search_needs").select("*").eq("slug", needSlug).maybeSingle()
           : Promise.resolve({ data: null }),
         (supabase.from as any)("chat_ai_settings").select("whatsapp_number").eq("id", 1).maybeSingle(),
-        (supabase.from as any)("search_ai_settings").select("fallback_whatsapp_enabled").eq("id", 1).maybeSingle(),
       ]);
       if (needRes?.data) setNeed(needRes.data);
       if (chatRes?.data?.whatsapp_number) setWaNumber(chatRes.data.whatsapp_number);
-      if (typeof settingsRes?.data?.fallback_whatsapp_enabled === "boolean") setHelperWa(settingsRes.data.fallback_whatsapp_enabled);
     })();
   }, [needSlug]);
 

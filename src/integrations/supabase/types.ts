@@ -3232,61 +3232,58 @@ export type Database = {
       }
       search_ai_settings: {
         Row: {
-          api_key: string | null
+          confidence_threshold: number
           created_at: string
           enabled: boolean
-          fallback_whatsapp_enabled: boolean
           helper_text: string
           id: number
           live_suggestions_enabled: boolean
-          manual_suggestions: string[]
-          max_products: number
+          manual_suggestions: string
           max_tokens: number
-          min_confidence: number
           model: string
-          prompt_template: string
           provider: string
           result_mode: string
+          search_prompt: string
+          show_whatsapp_fallback: boolean
           temperature: number
           updated_at: string
+          visible_products_limit: number
         }
         Insert: {
-          api_key?: string | null
+          confidence_threshold?: number
           created_at?: string
           enabled?: boolean
-          fallback_whatsapp_enabled?: boolean
           helper_text?: string
           id?: number
           live_suggestions_enabled?: boolean
-          manual_suggestions?: string[]
-          max_products?: number
+          manual_suggestions?: string
           max_tokens?: number
-          min_confidence?: number
           model?: string
-          prompt_template?: string
           provider?: string
           result_mode?: string
+          search_prompt?: string
+          show_whatsapp_fallback?: boolean
           temperature?: number
           updated_at?: string
+          visible_products_limit?: number
         }
         Update: {
-          api_key?: string | null
+          confidence_threshold?: number
           created_at?: string
           enabled?: boolean
-          fallback_whatsapp_enabled?: boolean
           helper_text?: string
           id?: number
           live_suggestions_enabled?: boolean
-          manual_suggestions?: string[]
-          max_products?: number
+          manual_suggestions?: string
           max_tokens?: number
-          min_confidence?: number
           model?: string
-          prompt_template?: string
           provider?: string
           result_mode?: string
+          search_prompt?: string
+          show_whatsapp_fallback?: boolean
           temperature?: number
           updated_at?: string
+          visible_products_limit?: number
         }
         Relationships: []
       }
