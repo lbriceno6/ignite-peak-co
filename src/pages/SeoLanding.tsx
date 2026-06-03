@@ -72,10 +72,10 @@ export default function SeoLanding({ kind }: { kind: Kind }) {
   return (
     <Layout>
       <SEO
-        title={title}
-        description={description}
+        title={landing?.meta_title || title}
+        description={landing?.meta_description || description}
         path={`/${kind}/${slug}`}
-        jsonLd={{
+        jsonLd={landing?.schema_jsonld || {
           "@context": "https://schema.org",
           "@type": "CollectionPage",
           name: title,
@@ -105,6 +105,27 @@ export default function SeoLanding({ kind }: { kind: Kind }) {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
             {products.map((p) => <ProductCard key={p.id} product={p as any} />)}
           </div>
+        )}
+
+        {landing?.body_html && (
+          <article
+            className="prose prose-neutral dark:prose-invert mt-12 max-w-3xl"
+            dangerouslySetInnerHTML={{ __html: landing.body_html }}
+          />
+        )}
+
+        {Array.isArray(landing?.faqs) && landing.faqs.length > 0 && (
+          <section className="mt-12 max-w-3xl">
+            <h2 className="font-display text-2xl uppercase">Preguntas frecuentes</h2>
+            <div className="mt-4 space-y-4">
+              {landing.faqs.map((f: any, i: number) => (
+                <details key={i} className="rounded-lg border border-border p-4">
+                  <summary className="cursor-pointer font-medium">{f.q}</summary>
+                  <p className="mt-2 text-muted-foreground">{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </section>
         )}
 
         {landing?.long_description && (
