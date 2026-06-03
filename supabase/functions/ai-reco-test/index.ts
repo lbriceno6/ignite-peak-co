@@ -1,3 +1,5 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -22,6 +24,32 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const authHeader = req.headers.get("Authorization") ?? "";
+
+    if (!supabaseUrl || !anonKey || !authHeader.startsWith("Bearer ")) {
+      return json({ success: false, error: "No tienes permisos de administrador para modificar esta configuración." }, 401);
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userError } = await userClient.auth.getUser();
+    const user = userData?.user;
+    if (userError || !user) {
+      return json({ success: false, error: "No tienes permisos de administrador para modificar esta configuración." }, 401);
+    }
+
+    const { data: roleRow, error: roleError } = await userClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (roleError || !roleRow) {
+      return json({ success: false, error: "No tienes permisos de administrador para modificar esta configuración." }, 403);
+    }
+
     const body = await req.json().catch(() => ({} as Record<string, unknown>));
     const provider = String(body?.provider ?? "gemini");
     const model = String(body?.model ?? "google/gemini-2.5-flash");
