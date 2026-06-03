@@ -222,7 +222,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                 <p className="text-sm font-medium">
                   No encontramos productos exactos, pero podemos ayudarte por necesidad.
                 </p>
-                {settings.fallback_whatsapp_enabled && (
+                {settings.show_whatsapp_fallback && (
                   <Button asChild className="mt-4" variant="dark">
                     <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle size={16} className="mr-1.5" /> Hablar con asesor por WhatsApp
@@ -289,7 +289,7 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                     </div>
                   ) : hasProducts ? (
                     <ul className="flex flex-col divide-y divide-border">
-                      {(result?.products ?? []).slice(0, settings.max_products).map((p) => {
+                      {(result?.products ?? []).slice(0, settings.visible_products_limit).map((p) => {
                         const inStock = p.stock > 0;
                         const isWished = wishlist.includes(p.id);
                         return (
