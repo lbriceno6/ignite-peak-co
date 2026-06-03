@@ -35,3 +35,9 @@ verify_jwt = true
 
 [functions.ai-dynamic-pricing]
 verify_jwt = false
+
+[functions.ai-seo-landing-generate]
+verify_jwt = true
+
+[functions.ai-product-seo-optimize]
+verify_jwt = true

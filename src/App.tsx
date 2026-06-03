@@ -78,6 +78,8 @@ import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminAIRecommendations from "./pages/admin/AdminAIRecommendations.tsx";
 import AdminAiControl from "./pages/admin/AdminAiControl.tsx";
 import AdminInventoryAi from "./pages/admin/AdminInventoryAi.tsx";
+import AdminSeoLandingsAi from "./pages/admin/AdminSeoLandingsAi.tsx";
+import AdminProductSeoAi from "./pages/admin/AdminProductSeoAi.tsx";
 import AdminPurchaseIntents from "./pages/admin/AdminPurchaseIntents.tsx";
 import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
 import AdminProductCardTypography from "./pages/admin/AdminProductCardTypography.tsx";
@@ -258,6 +260,8 @@ const App = () => (
               <Route path="seo" element={<AdminSeo />} />
               <Route path="ia-control" element={<AdminAiControl />} />
               <Route path="ia-inventario" element={<AdminInventoryAi />} />
+              <Route path="ia-landings" element={<AdminSeoLandingsAi />} />
+              <Route path="ia-fichas" element={<AdminProductSeoAi />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="buscador-ia" element={<AdminSearchAi />} />
