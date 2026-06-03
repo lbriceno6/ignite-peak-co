@@ -50,6 +50,35 @@ const PROVIDERS = [
   { value: "off", label: "IA desactivada" },
 ];
 
+const MODELS: Record<string, { value: string; label: string }[]> = {
+  gemini: [
+    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (rápido)" },
+    { value: "google/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (barato)" },
+    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (calidad)" },
+    { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview)" },
+    { value: "google/gemini-3.5-flash", label: "Gemini 3.5 Flash" },
+    { value: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (preview)" },
+  ],
+  openai: [
+    { value: "openai/gpt-5-mini", label: "GPT-5 Mini" },
+    { value: "openai/gpt-5", label: "GPT-5" },
+    { value: "openai/gpt-5-nano", label: "GPT-5 Nano" },
+    { value: "openai/gpt-5.2", label: "GPT-5.2" },
+    { value: "openai/gpt-5.4", label: "GPT-5.4" },
+    { value: "openai/gpt-5.4-mini", label: "GPT-5.4 Mini" },
+    { value: "openai/gpt-5.5", label: "GPT-5.5" },
+  ],
+  deepseek: [
+    { value: "deepseek-chat", label: "DeepSeek Chat" },
+    { value: "deepseek-reasoner", label: "DeepSeek Reasoner" },
+  ],
+  claude: [
+    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku" },
+  ],
+  off: [],
+};
+
 const RESULT_MODES = [
   { value: "todos", label: "Todos" },
   { value: "productos", label: "Solo productos" },
@@ -188,7 +217,16 @@ export default function AdminSearchAi() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Proveedor IA</Label>
-              <Select value={form.provider} onValueChange={(v) => setForm((p) => ({ ...p, provider: v }))}>
+              <Select
+                value={form.provider}
+                onValueChange={(v) =>
+                  setForm((p) => ({
+                    ...p,
+                    provider: v,
+                    model: MODELS[v]?.[0]?.value ?? p.model,
+                  }))
+                }
+              >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PROVIDERS.map((p) => <SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>)}
@@ -197,7 +235,25 @@ export default function AdminSearchAi() {
             </div>
             <div className="space-y-1.5">
               <Label>Modelo</Label>
-              <Input value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="google/gemini-2.5-flash" />
+              {(MODELS[form.provider]?.length ?? 0) > 0 ? (
+                <Select value={form.model} onValueChange={(v) => setForm((p) => ({ ...p, model: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecciona un modelo" /></SelectTrigger>
+                  <SelectContent>
+                    {MODELS[form.provider].map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                    {!MODELS[form.provider].some((m) => m.value === form.model) && form.model && (
+                      <SelectItem value={form.model}>{form.model} (personalizado)</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={form.model}
+                  onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))}
+                  placeholder="nombre-del-modelo"
+                />
+              )}
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label>API Key (opcional para Gemini/OpenAI; requerida para DeepSeek/Claude)</Label>
