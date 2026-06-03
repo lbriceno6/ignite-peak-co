@@ -133,7 +133,9 @@ export default function AdminSearchAi() {
         supabase.from("categories").select("slug,name").eq("type", "product").eq("is_active", true).order("name"),
         supabase.from("products").select("id,name").eq("is_active", true).limit(500).order("name"),
       ]);
-      if (settingsRes.error) toast.error("No se pudo cargar la configuración del Buscador IA");
+      if (settingsRes.error || (settingsRes.data as any)?.success === false) {
+        toast.error((settingsRes.data as any)?.error || settingsRes.error?.message || "No se pudo cargar la configuración del Buscador IA");
+      }
       if ((settingsRes.data as any)?.settings) setForm({ ...DEFAULTS, ...(settingsRes.data as any).settings });
       if (nRes.data) setNeeds(nRes.data as any);
       if (cRes.data) setCategories(cRes.data as any);
@@ -361,7 +363,11 @@ export default function AdminSearchAi() {
           </div>
 
 
-          <div className="flex justify-end pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+            <Button variant="outline" onClick={testConnection} disabled={testing || form.provider === "off"}>
+              <Zap className="mr-2 h-4 w-4" />
+              {testing ? "Probando…" : "Probar conexión con IA"}
+            </Button>
             <Button variant="dark" onClick={save} disabled={saving}>
               {saving ? "Guardando…" : "Guardar configuración"}
             </Button>
