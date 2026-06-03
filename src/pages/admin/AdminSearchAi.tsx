@@ -50,6 +50,35 @@ const PROVIDERS = [
   { value: "off", label: "IA desactivada" },
 ];
 
+const MODELS: Record<string, { value: string; label: string }[]> = {
+  gemini: [
+    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (rápido)" },
+    { value: "google/gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (barato)" },
+    { value: "google/gemini-2.5-pro", label: "Gemini 2.5 Pro (calidad)" },
+    { value: "google/gemini-3-flash-preview", label: "Gemini 3 Flash (preview)" },
+    { value: "google/gemini-3.5-flash", label: "Gemini 3.5 Flash" },
+    { value: "google/gemini-3.1-pro-preview", label: "Gemini 3.1 Pro (preview)" },
+  ],
+  openai: [
+    { value: "openai/gpt-5-mini", label: "GPT-5 Mini" },
+    { value: "openai/gpt-5", label: "GPT-5" },
+    { value: "openai/gpt-5-nano", label: "GPT-5 Nano" },
+    { value: "openai/gpt-5.2", label: "GPT-5.2" },
+    { value: "openai/gpt-5.4", label: "GPT-5.4" },
+    { value: "openai/gpt-5.4-mini", label: "GPT-5.4 Mini" },
+    { value: "openai/gpt-5.5", label: "GPT-5.5" },
+  ],
+  deepseek: [
+    { value: "deepseek-chat", label: "DeepSeek Chat" },
+    { value: "deepseek-reasoner", label: "DeepSeek Reasoner" },
+  ],
+  claude: [
+    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku" },
+  ],
+  off: [],
+};
+
 const RESULT_MODES = [
   { value: "todos", label: "Todos" },
   { value: "productos", label: "Solo productos" },
