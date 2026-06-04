@@ -25,7 +25,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { IntentBannersManager, IntentPreviewTester } from "@/components/admin/IntentBannersManager";
+import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/components/admin/IntentBannersManager";
 
 type CarouselSettings = {
   carousel_mode?: "auto" | "manual";
