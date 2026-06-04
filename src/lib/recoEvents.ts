@@ -21,6 +21,17 @@ export async function logBrowseEvent(
     metadata?: Record<string, any>;
   } = {},
 ) {
+  // Persist product views locally so the "Recently viewed" Home block
+  // works without needing read access to lucia_events.
+  if (event_type === "browse_product_view" && data.product_slug && typeof window !== "undefined") {
+    try {
+      const KEY = "recently_viewed_products";
+      const raw = window.localStorage.getItem(KEY);
+      const arr: string[] = raw ? JSON.parse(raw) : [];
+      const next = [data.product_slug, ...arr.filter((s) => s !== data.product_slug)].slice(0, 20);
+      window.localStorage.setItem(KEY, JSON.stringify(next));
+    } catch {}
+  }
   try {
     await (supabase as any).from("lucia_events").insert({
       visitor_id: getVisitorId(),
@@ -39,6 +50,18 @@ export async function logBrowseEvent(
     console.debug("logBrowseEvent failed", e);
   }
 }
+
+export function getRecentlyViewedSlugsLocal(limit = 20): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem("recently_viewed_products");
+    const arr: string[] = raw ? JSON.parse(raw) : [];
+    return Array.from(new Set(arr)).slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
 
 export type AiRecoSource =
   | "ai_cart"
