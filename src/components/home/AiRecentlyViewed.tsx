@@ -54,12 +54,15 @@ export function AiRecentlyViewed({
     if (signals === null) return null;
     const slugs = getRecentlyViewedSlugs(signals, totalProducts);
     const bySlug = new Map(products.map((p) => [p.slug, p]));
-    return slugs.map((s) => bySlug.get(s)).filter(Boolean) as AnyProduct[];
-  }, [signals, products, totalProducts]);
+    const viewed = slugs.map((s) => bySlug.get(s)).filter(Boolean) as AnyProduct[];
+    if (viewed.length > 0) return viewed;
+    if (hideIfEmpty) return [];
+    // Fallback: show first N products from the catalog so the block is never empty
+    return products.slice(0, totalProducts);
+  }, [signals, products, totalProducts, hideIfEmpty]);
 
   if (!enabled) return null;
   if (items === null) return null;
-  if (!items.length && hideIfEmpty) return null;
   if (!items.length) return null;
 
   const config: ProductsCarouselConfig = {

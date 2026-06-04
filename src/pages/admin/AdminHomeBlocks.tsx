@@ -2513,8 +2513,8 @@ function AiBlockSettings({
             </label>
             <label className="text-xs flex flex-col gap-1">
               Visibles mobile
-              <Input type="number" step={0.1} min={1} max={3} value={Number(settings.visibleMobile ?? 1.2)}
-                onChange={(e) => onChange({ visibleMobile: Number(e.target.value) || 1.2 })} />
+              <Input type="number" step={1} min={1} max={3} value={Number(settings.visibleMobile ?? 1)}
+                onChange={(e) => onChange({ visibleMobile: Math.max(1, Math.min(3, Math.round(Number(e.target.value) || 1))) })} />
             </label>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
