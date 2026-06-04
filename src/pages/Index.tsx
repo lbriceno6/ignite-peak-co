@@ -682,6 +682,7 @@ const Home = () => {
             spacingBottom={typeof s.spacingBottom === "number" ? s.spacingBottom : 32}
             rounded={s.rounded !== false}
             hideIfNoSignal={s.hideIfNoSignal === true}
+            confidenceThreshold={typeof s.confidenceThreshold === "number" ? s.confidenceThreshold : 0.2}
           />
         );
       }
