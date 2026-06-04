@@ -42,6 +42,17 @@ export type BrowseSignal = {
 };
 
 export async function fetchRecentBrowseSignals(limit = 30): Promise<BrowseSignal[]> {
+  // Prefer locally persisted signals (works for anonymous visitors without RLS).
+  const local = getLocalBrowseSignals(limit);
+  if (local.length > 0) {
+    return local.map((s) => ({
+      event_type: s.event_type,
+      product_id: s.product_id,
+      product_slug: s.product_slug,
+      metadata: { category_slug: s.category_slug, search_query: s.search_query },
+      created_at: s.created_at,
+    }));
+  }
   try {
     const { data } = await (supabase as any)
       .from("lucia_events")
