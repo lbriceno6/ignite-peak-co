@@ -2503,6 +2503,14 @@ function AiBlockSettings({
               Si la confianza detectada es menor, se usa la intención de respaldo o el contenido manual.
             </p>
           </div>
+
+          <IntentBannersManager />
+          <IntentPreviewTester
+            fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
+            fallbackBlockTitle={typeof settings.__blockTitle === "string" ? settings.__blockTitle : null}
+            fallbackBlockImage={typeof settings.__blockImage === "string" ? settings.__blockImage : null}
+            fallbackBlockSubtitle={typeof settings.__blockSubtitle === "string" ? settings.__blockSubtitle : null}
+          />
         </>
       )}
 
