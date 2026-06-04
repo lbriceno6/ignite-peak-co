@@ -2490,6 +2490,19 @@ function AiBlockSettings({
                 onCheckedChange={(v) => onChange({ hideIfNoSignal: v })} />
             </label>
           </div>
+          <div>
+            <Label className="text-xs">
+              Umbral de confianza IA ({Number(settings.confidenceThreshold ?? 0.2).toFixed(2)})
+            </Label>
+            <Input
+              type="range" min={0} max={1} step={0.05}
+              value={Number(settings.confidenceThreshold ?? 0.2)}
+              onChange={(e) => onChange({ confidenceThreshold: Number(e.target.value) })}
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Si la confianza detectada es menor, se usa la intención de respaldo o el contenido manual.
+            </p>
+          </div>
         </>
       )}
 
