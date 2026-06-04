@@ -7,6 +7,7 @@
 // Maps those signals to the closest row in public.purchase_intents.
 import { supabase } from "@/integrations/supabase/client";
 import { getVisitorId } from "@/lib/visitor";
+import { getLocalBrowseSignals } from "@/lib/recoEvents";
 
 const norm = (s: string) =>
   (s || "")
