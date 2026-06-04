@@ -2927,6 +2927,7 @@ export type Database = {
           cta_text: string | null
           cta_url: string | null
           description: string | null
+          eyebrow: string | null
           id: string
           is_active: boolean
           keywords: string[]
@@ -2946,6 +2947,7 @@ export type Database = {
           cta_text?: string | null
           cta_url?: string | null
           description?: string | null
+          eyebrow?: string | null
           id?: string
           is_active?: boolean
           keywords?: string[]
@@ -2965,6 +2967,7 @@ export type Database = {
           cta_text?: string | null
           cta_url?: string | null
           description?: string | null
+          eyebrow?: string | null
           id?: string
           is_active?: boolean
           keywords?: string[]
