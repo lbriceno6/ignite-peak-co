@@ -2422,11 +2422,14 @@ function ProductCarouselSettings({
 }
 
 function AiBlockSettings({
-  type, settings, onChange,
+  type, settings, onChange, blockTitle, blockSubtitle, blockImage,
 }: {
   type: "ai_dynamic_banner" | "ai_recommended_for_you" | "ai_recently_viewed";
   settings: Record<string, any>;
   onChange: (next: Record<string, any>) => void;
+  blockTitle?: string | null;
+  blockSubtitle?: string | null;
+  blockImage?: string | null;
 }) {
   const [intents, setIntents] = useState<Array<{ slug: string; name: string }>>([]);
   useEffect(() => {
