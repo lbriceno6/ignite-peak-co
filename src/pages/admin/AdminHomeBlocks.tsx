@@ -25,7 +25,7 @@ import {
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
-import { IntentBannersManager, IntentPreviewTester } from "@/components/admin/IntentBannersManager";
+import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/components/admin/IntentBannersManager";
 
 type CarouselSettings = {
   carousel_mode?: "auto" | "manual";
@@ -841,6 +841,9 @@ function BlockEditor({
               type={block.block_type}
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+              blockTitle={f.title ?? null}
+              blockSubtitle={f.subtitle ?? null}
+              blockImage={f.image_url ?? null}
             />
           )}
 
@@ -2419,11 +2422,14 @@ function ProductCarouselSettings({
 }
 
 function AiBlockSettings({
-  type, settings, onChange,
+  type, settings, onChange, blockTitle, blockSubtitle, blockImage,
 }: {
   type: "ai_dynamic_banner" | "ai_recommended_for_you" | "ai_recently_viewed";
   settings: Record<string, any>;
   onChange: (next: Record<string, any>) => void;
+  blockTitle?: string | null;
+  blockSubtitle?: string | null;
+  blockImage?: string | null;
 }) {
   const [intents, setIntents] = useState<Array<{ slug: string; name: string }>>([]);
   useEffect(() => {
@@ -2505,12 +2511,19 @@ function AiBlockSettings({
             </p>
           </div>
 
+          <IntentDiagnostics
+            fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
+            fallbackBlockTitle={blockTitle ?? null}
+            fallbackBlockImage={blockImage ?? null}
+            fallbackBlockSubtitle={blockSubtitle ?? null}
+            confidenceThreshold={Number(settings.confidenceThreshold ?? 0.2)}
+          />
           <IntentBannersManager />
           <IntentPreviewTester
             fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
-            fallbackBlockTitle={typeof settings.__blockTitle === "string" ? settings.__blockTitle : null}
-            fallbackBlockImage={typeof settings.__blockImage === "string" ? settings.__blockImage : null}
-            fallbackBlockSubtitle={typeof settings.__blockSubtitle === "string" ? settings.__blockSubtitle : null}
+            fallbackBlockTitle={blockTitle ?? null}
+            fallbackBlockImage={blockImage ?? null}
+            fallbackBlockSubtitle={blockSubtitle ?? null}
           />
         </>
       )}

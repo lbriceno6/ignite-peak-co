@@ -45,15 +45,22 @@ function detectVisitorIntent(
   const norm = (s: string) => (s || "").toLowerCase().trim();
   const intentCats = new Set((matched.category_slugs ?? []).map(norm));
   const intentKw = (matched.keywords ?? []).map(norm).filter(Boolean);
+  const itSlug = norm(matched.slug);
+  const itSlugAlt = itSlug.replace(/[_-]/g, "");
   let hits = 0;
   signals.slice(0, 15).forEach((sig) => {
     const cat = norm(sig.metadata?.category_slug ?? "");
     const q = norm(sig.metadata?.search_query ?? "");
+    const pslug = norm(sig.product_slug ?? "");
     if (cat && intentCats.has(cat)) hits += 1;
+    if (cat && itSlug && (cat.includes(itSlug) || cat.replace(/[_-]/g, "").includes(itSlugAlt))) hits += 1;
+    if (cat && intentKw.some((k) => k.length > 3 && cat.includes(k))) hits += 1;
     if (q && intentKw.some((k) => q.includes(k) || k.includes(q))) hits += 1;
+    if (pslug && itSlug && (pslug.includes(itSlug) || pslug.includes(itSlugAlt))) hits += 1;
+    if (pslug && intentKw.some((k) => k.length > 3 && pslug.includes(k))) hits += 1;
     if (sig.product_id && (matched.product_ids ?? []).includes(sig.product_id)) hits += 1;
   });
-  const confidence = Math.min(1, hits / 5);
+  const confidence = Math.min(1, hits / 4);
   return { intent: matched, confidence, source: "browse_history" };
 }
 

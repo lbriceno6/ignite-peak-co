@@ -108,23 +108,44 @@ export function resolveCurrentIntent(
     const intentSlug = norm(sig.metadata?.intent_slug ?? "");
 
     for (const it of intents) {
+      const itSlug = norm(it.slug);
+      const itSlugAlt = itSlug.replace(/[_-]/g, "");
+      const kwList = (it.keywords ?? []).map(norm).filter(Boolean);
+
       // Direct intent_slug match (e.g. from intelligent-search response)
-      if (intentSlug && norm(it.slug) === intentSlug) {
+      if (intentSlug && itSlug === intentSlug) {
         bump(it.id, weight * 3);
       }
       // Keyword match against search query
       if (query) {
-        for (const k of it.keywords ?? []) {
-          const kn = norm(k);
+        for (const kn of kwList) {
           if (kn && (query === kn || query.includes(kn) || kn.includes(query))) {
             bump(it.id, weight * 2);
             break;
           }
         }
       }
-      // Category match
+      // Category match — exact list match
       if (categorySlug && (it.category_slugs ?? []).some((c) => norm(c) === categorySlug)) {
         bump(it.id, weight * 1.5);
+      }
+      // Category fuzzy match — covers cases where intents have empty category_slugs.
+      if (categorySlug) {
+        const catAlt = categorySlug.replace(/[_-]/g, "");
+        if (itSlug && (categorySlug.includes(itSlug) || itSlug.includes(categorySlug) || catAlt.includes(itSlugAlt) || itSlugAlt.includes(catAlt))) {
+          bump(it.id, weight * 1.5);
+        } else if (kwList.some((k) => categorySlug.includes(k) || k.includes(categorySlug))) {
+          bump(it.id, weight * 1.2);
+        }
+      }
+      // Product slug fuzzy match against intent slug/keywords (helps when product
+      // category is missing but slug references the goal, e.g. "colageno-marino").
+      if (productSlug) {
+        if (itSlug && (productSlug.includes(itSlug) || productSlug.includes(itSlugAlt))) {
+          bump(it.id, weight * 0.8);
+        } else if (kwList.some((k) => k.length > 3 && productSlug.includes(k))) {
+          bump(it.id, weight * 0.6);
+        }
       }
       // Product match (intent has explicit product list)
       if (productSlug && sig.product_id && (it.product_ids ?? []).includes(sig.product_id)) {
