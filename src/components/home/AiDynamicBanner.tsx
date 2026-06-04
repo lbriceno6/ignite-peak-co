@@ -100,15 +100,21 @@ export function AiDynamicBanner({
 
   const resolved = useMemo(() => {
     if (loading) return null;
+    const hasBannerContent = (i: Intent | null | undefined) =>
+      !!(i && (i.title || i.banner_image));
     const detected = detectVisitorIntent(intents, signals);
-    // Use detected intent only if confidence passes threshold.
-    if (detected.intent && detected.confidence >= confidenceThreshold) {
+    // Use detected intent only if confidence passes threshold AND it has banner content.
+    if (
+      detected.intent &&
+      detected.confidence >= confidenceThreshold &&
+      hasBannerContent(detected.intent)
+    ) {
       return detected.intent;
     }
-    // Fallback to admin-selected intent slug.
+    // Safe-mode fallback: detected intent had no banner → use admin-selected fallback.
     if (fallbackIntentSlug) {
       const f = intents.find((i) => i.slug === fallbackIntentSlug);
-      if (f) return f;
+      if (hasBannerContent(f)) return f!;
     }
     return null;
   }, [loading, intents, signals, fallbackIntentSlug, confidenceThreshold]);
