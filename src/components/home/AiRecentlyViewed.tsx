@@ -5,8 +5,8 @@ import type { Product } from "@/data/catalog";
 import {
   fetchRecentBrowseSignals,
   getRecentlyViewedSlugs,
-  type BrowseSignal,
 } from "@/lib/userPersonalization";
+import { getRecentlyViewedSlugsLocal } from "@/lib/recoEvents";
 import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
 
 type AnyProduct = Product & { id: string; slug: string };
@@ -34,35 +34,46 @@ export function AiRecentlyViewed({
   totalProducts = 8,
   visibleDesktop = 4,
   visibleTablet = 2,
-  visibleMobile = 1.2,
+  visibleMobile = 1,
   autoplay = false,
   hideIfEmpty = true,
 }: Props) {
   const enabled = useAiBlockEnabled("home_recently_viewed");
-  const [signals, setSignals] = useState<BrowseSignal[] | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [slugs, setSlugs] = useState<string[]>([]);
 
   useEffect(() => {
     let active = true;
     (async () => {
-      const sigs = await fetchRecentBrowseSignals(40);
-      if (active) setSignals(sigs);
+      // Primary source: localStorage (works for every visitor, no RLS)
+      const local = getRecentlyViewedSlugsLocal(totalProducts);
+      if (local.length) {
+        if (active) { setSlugs(local); setLoaded(true); }
+        return;
+      }
+      // Fallback: lucia_events (only readable by admin, harmless to try)
+      try {
+        const sigs = await fetchRecentBrowseSignals(40);
+        const remote = getRecentlyViewedSlugs(sigs, totalProducts);
+        if (active) { setSlugs(remote); setLoaded(true); }
+      } catch {
+        if (active) { setSlugs([]); setLoaded(true); }
+      }
     })();
     return () => { active = false; };
-  }, []);
+  }, [totalProducts]);
 
-  const items = useMemo(() => {
-    if (signals === null) return null;
-    const slugs = getRecentlyViewedSlugs(signals, totalProducts);
+  const items = useMemo<AnyProduct[]>(() => {
+    if (!loaded) return [];
     const bySlug = new Map(products.map((p) => [p.slug, p]));
     const viewed = slugs.map((s) => bySlug.get(s)).filter(Boolean) as AnyProduct[];
     if (viewed.length > 0) return viewed;
     if (hideIfEmpty) return [];
-    // Fallback: show first N products from the catalog so the block is never empty
     return products.slice(0, totalProducts);
-  }, [signals, products, totalProducts, hideIfEmpty]);
+  }, [loaded, slugs, products, totalProducts, hideIfEmpty]);
 
   if (!enabled) return null;
-  if (items === null) return null;
+  if (!loaded) return null;
   if (!items.length) return null;
 
   const config: ProductsCarouselConfig = {
