@@ -2511,12 +2511,19 @@ function AiBlockSettings({
             </p>
           </div>
 
+          <IntentDiagnostics
+            fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
+            fallbackBlockTitle={blockTitle ?? null}
+            fallbackBlockImage={blockImage ?? null}
+            fallbackBlockSubtitle={blockSubtitle ?? null}
+            confidenceThreshold={Number(settings.confidenceThreshold ?? 0.2)}
+          />
           <IntentBannersManager />
           <IntentPreviewTester
             fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
-            fallbackBlockTitle={typeof settings.__blockTitle === "string" ? settings.__blockTitle : null}
-            fallbackBlockImage={typeof settings.__blockImage === "string" ? settings.__blockImage : null}
-            fallbackBlockSubtitle={typeof settings.__blockSubtitle === "string" ? settings.__blockSubtitle : null}
+            fallbackBlockTitle={blockTitle ?? null}
+            fallbackBlockImage={blockImage ?? null}
+            fallbackBlockSubtitle={blockSubtitle ?? null}
           />
         </>
       )}
