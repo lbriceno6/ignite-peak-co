@@ -24,6 +24,7 @@ export type Intent = {
   title: string | null;
   subtitle: string | null;
   description: string | null;
+  eyebrow: string | null;
   banner_image: string | null;
   cta_text: string | null;
   cta_url: string | null;
