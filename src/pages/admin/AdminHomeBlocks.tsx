@@ -841,6 +841,9 @@ function BlockEditor({
               type={block.block_type}
               settings={(f.settings ?? {}) as Record<string, any>}
               onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+              blockTitle={f.title ?? null}
+              blockSubtitle={f.subtitle ?? null}
+              blockImage={f.image_url ?? null}
             />
           )}
 
