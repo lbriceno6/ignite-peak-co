@@ -43,9 +43,9 @@ type Metrics = {
 };
 
 const BLOCK_META: Record<AiBlockKey, { icon: any; configHref?: string; configLabel?: string }> = {
-  home_dynamic_banner: { icon: Home, configHref: "/admin/home/bloques", configLabel: "Editar bloque" },
-  home_recommended: { icon: Sparkles, configHref: "/admin/home/bloques", configLabel: "Editar bloque" },
-  home_recently_viewed: { icon: Eye, configHref: "/admin/home/bloques", configLabel: "Editar bloque" },
+  home_dynamic_banner: { icon: Home, configHref: "/admin/home-blocks", configLabel: "Editar bloque" },
+  home_recommended: { icon: Sparkles, configHref: "/admin/home-blocks", configLabel: "Editar bloque" },
+  home_recently_viewed: { icon: Eye, configHref: "/admin/home-blocks", configLabel: "Editar bloque" },
   cart_recommendations: { icon: ShoppingCart, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
   checkout_recommendations: { icon: CreditCard, configHref: "/admin/ia-recomendaciones", configLabel: "Configurar IA" },
   intelligent_search: { icon: Search, configHref: "/admin/buscador-ia", configLabel: "Configurar buscador" },
