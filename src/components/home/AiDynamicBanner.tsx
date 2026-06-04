@@ -140,7 +140,9 @@ export function AiDynamicBanner({
   const wrapperClass = containerWidth === "full" ? "" : "container-x";
   const inner = `relative overflow-hidden ${rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`;
   const eyebrowText =
-    eyebrow || (resolved ? `Para ti · ${resolved.name}` : "Recomendado para ti");
+    (resolved as any)?.eyebrow ||
+    eyebrow ||
+    (resolved ? `Para ti · ${resolved.name}` : "Recomendado para ti");
 
   return (
     <section
