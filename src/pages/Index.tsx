@@ -726,7 +726,7 @@ const Home = () => {
             totalProducts={Number(s.totalProducts ?? 8) || 8}
             visibleDesktop={Number(s.visibleDesktop ?? 4) || 4}
             visibleTablet={Number(s.visibleTablet ?? 2) || 2}
-            visibleMobile={Number(s.visibleMobile ?? 1.2) || 1.2}
+            visibleMobile={Number(s.visibleMobile ?? 1) || 1}
             autoplay={s.autoplay === true}
             hideIfEmpty={s.hideIfEmpty !== false}
           />
