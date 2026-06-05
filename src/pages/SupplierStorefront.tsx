@@ -39,9 +39,9 @@ export default function SupplierStorefront() {
     if (!slug) return;
     (async () => {
       setLoading(true);
-      const { data: sup } = await supabase.from("suppliers")
+      const { data: sup } = await (supabase.from("suppliers_public" as any)
         .select("id,slug,business_name,commercial_name,description,logo_url,website,city,country,status")
-        .eq("slug", slug).maybeSingle();
+        .eq("slug", slug).maybeSingle() as any);
       if (!sup || (sup as any).status !== "approved") {
         setNotFound(true); setLoading(false); return;
       }
