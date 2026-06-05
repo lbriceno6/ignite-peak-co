@@ -77,6 +77,8 @@ import AdminAiConfig from "./pages/admin/AdminAiConfig.tsx";
 import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminAIRecommendations from "./pages/admin/AdminAIRecommendations.tsx";
 import AdminAiControl from "./pages/admin/AdminAiControl.tsx";
+import AdminIaInsights from "./pages/admin/AdminIaInsights.tsx";
+
 import AdminInventoryAi from "./pages/admin/AdminInventoryAi.tsx";
 import AdminSeoLandingsAi from "./pages/admin/AdminSeoLandingsAi.tsx";
 import AdminProductSeoAi from "./pages/admin/AdminProductSeoAi.tsx";
@@ -259,6 +261,8 @@ const App = () => (
               <Route path="reseller-payouts" element={<AdminResellerPayouts />} />
               <Route path="seo" element={<AdminSeo />} />
               <Route path="ia-control" element={<AdminAiControl />} />
+              <Route path="ia-insights" element={<AdminIaInsights />} />
+
               <Route path="ia-inventario" element={<AdminInventoryAi />} />
               <Route path="ia-landings" element={<AdminSeoLandingsAi />} />
               <Route path="ia-fichas" element={<AdminProductSeoAi />} />

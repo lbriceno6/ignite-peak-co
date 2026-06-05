@@ -5,9 +5,10 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { callAI, safeJsonParse } from "../_shared/ai-provider.ts";
 
 const MODEL = "google/gemini-2.5-flash";
-const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -15,7 +16,7 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+
 
     const auth = req.headers.get("Authorization") ?? "";
     const userClient = createClient(SUPABASE_URL, ANON, { global: { headers: { Authorization: auth } } });
@@ -130,19 +131,18 @@ Devuelve JSON:
  "score": 0-100
 }`;
 
-      const aiRes = await fetch(LOVABLE_AI, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
-        body: JSON.stringify({
+      let s: any = {};
+      try {
+        const out = await callAI({
+          provider: "lovable",
           model: MODEL,
           messages: [{ role: "system", content: sys }, { role: "user", content: prompt }],
-          response_format: { type: "json_object" },
-        }),
-      });
-      if (!aiRes.ok) continue;
-      const aj = await aiRes.json();
-      let s: any = {};
-      try { s = JSON.parse(aj?.choices?.[0]?.message?.content ?? "{}"); } catch {}
+          jsonMode: true,
+          maxTokens: 800,
+        });
+        s = safeJsonParse<any>(out.content) ?? {};
+      } catch { continue; }
+
       const fields: Array<[string, string | null, string | null]> = [
         ["name", p.name, s.name ?? null],
         ["short_description", p.short_description, s.short_description ?? null],
