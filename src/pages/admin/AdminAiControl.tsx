@@ -32,6 +32,7 @@ import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
 import { AiAbTesting } from "@/components/admin/AiAbTesting";
 import { AiEmailLog } from "@/components/admin/AiEmailLog";
 import { AiDynamicPricing } from "@/components/admin/AiDynamicPricing";
+import { RecentlyViewedDiagnostic } from "@/components/admin/RecentlyViewedDiagnostic";
 
 type Metrics = {
   productViews: number;
