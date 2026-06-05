@@ -31,9 +31,9 @@ type Synonym = {
 
 type SearchEvent = {
   metadata: any;
-  category_slug: string | null;
   created_at: string;
 };
+
 
 const norm = (s: string) =>
   (s || "")
