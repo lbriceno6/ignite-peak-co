@@ -4,7 +4,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const SITE_NAME = 'Voltra Nutrition'
+const SITE_NAME = 'Nutribatidos'
 const APP_URL = 'https://ignite-peak-co.lovable.app'
 
 interface Props {
