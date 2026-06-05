@@ -2511,6 +2511,16 @@ function AiBlockSettings({
             </p>
           </div>
 
+          <BannerAppearanceSettings
+            settings={settings}
+            onChange={onChange}
+            previewTitle={blockTitle ?? ""}
+            previewSubtitle={blockSubtitle ?? ""}
+            previewImage={blockImage ?? ""}
+          />
+
+
+
           <IntentDiagnostics
             fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
             fallbackBlockTitle={blockTitle ?? null}
