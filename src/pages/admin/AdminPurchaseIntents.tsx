@@ -190,6 +190,24 @@ export default function AdminPurchaseIntents() {
         ("energía", "colágeno", "fitness"…) a productos, categorías y mensajes reales del catálogo.
       </p>
 
+      {incompletePriority.length > 0 && (
+        <Card className="p-4 border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div className="text-sm">
+              <div className="font-medium text-amber-900 dark:text-amber-200">
+                {incompletePriority.length} intención(es) principales sin productos
+              </div>
+              <div className="text-amber-800/80 dark:text-amber-200/80 mt-1">
+                Estas intenciones detectan interés, pero no devolverán productos recomendados hasta asignar productos:{" "}
+                <span className="font-mono">{incompletePriority.map((i) => i.slug).join(", ")}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+
       {loading ? (
         <div className="text-muted-foreground">Cargando…</div>
       ) : (
