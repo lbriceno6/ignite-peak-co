@@ -2707,6 +2707,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       products_carousel_config: {
@@ -4133,6 +4140,13 @@ export type Database = {
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "supplier_status_history_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       suppliers: {
@@ -4443,7 +4457,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      suppliers_public: {
+        Row: {
+          business_name: string | null
+          city: string | null
+          commercial_name: string | null
+          commission_percent: number | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          is_active: boolean | null
+          logo_url: string | null
+          publish_mode: string | null
+          slug: string | null
+          status: string | null
+          website: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          city?: string | null
+          commercial_name?: string | null
+          commission_percent?: number | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          logo_url?: string | null
+          publish_mode?: string | null
+          slug?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          city?: string | null
+          commercial_name?: string | null
+          commission_percent?: number | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          logo_url?: string | null
+          publish_mode?: string | null
+          slug?: string | null
+          status?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_reseller: {
