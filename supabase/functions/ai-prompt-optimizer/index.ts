@@ -135,36 +135,30 @@ DEVUELVE estrictamente este JSON:
       metrics: metrics_used,
     };
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: JSON.stringify({
+    let content = "{}";
+    try {
+      const out = await callAI({
+        provider: "lovable",
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: metaPrompt },
           { role: "user", content: JSON.stringify(userPayload) },
         ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiRes.ok) {
-      const txt = await aiRes.text();
-      return json({ error: `AI gateway: ${aiRes.status} ${txt}` }, 502);
+        jsonMode: true,
+        maxTokens: 1500,
+      });
+      content = out.content || "{}";
+    } catch (e: any) {
+      return json({ error: e?.message ?? String(e) }, 502);
     }
-    const aiJson = await aiRes.json();
-    const content = aiJson?.choices?.[0]?.message?.content ?? "{}";
-    let parsed: any = {};
-    try { parsed = JSON.parse(content); } catch { parsed = { suggested_prompt: content, rationale: "" }; }
+    const parsed = safeJsonParse<any>(content) ?? { suggested_prompt: content, rationale: "" };
 
     return json({
       suggested_prompt: parsed.suggested_prompt ?? "",
       rationale: parsed.rationale ?? "",
       metrics_used,
     });
+
   } catch (e: any) {
     return json({ error: e?.message ?? String(e) }, 500);
   }
