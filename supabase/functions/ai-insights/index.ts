@@ -104,19 +104,21 @@ async function runDatasets(sb: any, keys: DatasetKey[], windowDays: number) {
   if (keys.includes("top_searches")) {
     const { data } = await sb
       .from("lucia_events")
-      .select("metadata,product_slug,category_slug,created_at")
+      .select("metadata,product_slug,created_at")
       .eq("event_type", "browse_search")
       .gte("created_at", since)
       .limit(5000);
     const counts = new Map<string, { count: number; with_result: number }>();
     for (const e of (data ?? []) as any[]) {
-      const q = String(e?.metadata?.search_query ?? e?.search_query ?? "").trim().toLowerCase();
+      const meta = e?.metadata ?? {};
+      const q = String(meta?.search_query ?? "").trim().toLowerCase();
       if (!q) continue;
       const cur = counts.get(q) ?? { count: 0, with_result: 0 };
       cur.count += 1;
-      if (e.category_slug || e?.metadata?.intent_slug) cur.with_result += 1;
+      if (meta?.category_slug || meta?.intent_slug || meta?.need_slug) cur.with_result += 1;
       counts.set(q, cur);
     }
+
     out.top_searches = [...counts.entries()]
       .map(([q, v]) => ({ query: q, count: v.count, with_result: v.with_result, no_result: v.count - v.with_result }))
       .sort((a, b) => b.count - a.count)

@@ -3405,6 +3405,45 @@ export type Database = {
         }
         Relationships: []
       }
+      search_synonyms: {
+        Row: {
+          boost_product_ids: string[]
+          created_at: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          related_category_slug: string | null
+          related_intent_slug: string | null
+          synonyms: string[]
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          boost_product_ids?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          related_category_slug?: string | null
+          related_intent_slug?: string | null
+          synonyms?: string[]
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          boost_product_ids?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          related_category_slug?: string | null
+          related_intent_slug?: string | null
+          synonyms?: string[]
+          term?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sensitive_claims_rules: {
         Row: {
           created_at: string
