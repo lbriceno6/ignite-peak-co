@@ -2511,6 +2511,16 @@ function AiBlockSettings({
             </p>
           </div>
 
+          <BannerAppearanceSettings
+            settings={settings}
+            onChange={onChange}
+            previewTitle={blockTitle ?? ""}
+            previewSubtitle={blockSubtitle ?? ""}
+            previewImage={blockImage ?? ""}
+          />
+
+
+
           <IntentDiagnostics
             fallbackIntentSlug={typeof settings.fallback_intent_slug === "string" ? settings.fallback_intent_slug : undefined}
             fallbackBlockTitle={blockTitle ?? null}
@@ -2586,3 +2596,195 @@ function AiBlockSettings({
 }
 
 
+
+function BannerAppearanceSettings({
+  settings,
+  onChange,
+  previewTitle,
+  previewSubtitle,
+  previewImage,
+}: {
+  settings: Record<string, any>;
+  onChange: (next: Record<string, any>) => void;
+  previewTitle: string;
+  previewSubtitle: string;
+  previewImage: string;
+}) {
+  const overlayEnabled = settings.overlay_enabled !== false;
+  const overlayColor =
+    typeof settings.overlay_color === "string" && settings.overlay_color ? settings.overlay_color : "#000000";
+  const overlayOpacity =
+    typeof settings.overlay_opacity === "number" ? settings.overlay_opacity : 55;
+  const hDesk = typeof settings.banner_height_desktop === "number" ? settings.banner_height_desktop : 420;
+  const hTab = typeof settings.banner_height_tablet === "number" ? settings.banner_height_tablet : 340;
+  const hMob = typeof settings.banner_height_mobile === "number" ? settings.banner_height_mobile : 260;
+
+  const preset: Array<{ label: string; value: string }> = [
+    { label: "Negro", value: "#000000" },
+    { label: "Blanco", value: "#ffffff" },
+    { label: "Azul", value: "#0b3b66" },
+    { label: "Verde", value: "#0e4d2b" },
+  ];
+
+  return (
+    <div className="rounded-md border bg-background p-3 space-y-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Apariencia del banner
+      </p>
+
+      {/* Overlay */}
+      <div className="space-y-2">
+        <label className="flex items-center justify-between text-sm">
+          <span className="font-medium">Overlay (capa sobre la imagen)</span>
+          <Switch checked={overlayEnabled} onCheckedChange={(v) => onChange({ overlay_enabled: v })} />
+        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <Label className="text-xs">Color del overlay</Label>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              {preset.map((p) => (
+                <button
+                  key={p.value}
+                  type="button"
+                  onClick={() => onChange({ overlay_color: p.value })}
+                  className={`h-8 w-8 rounded-full border-2 ${overlayColor.toLowerCase() === p.value ? "border-accent" : "border-border"}`}
+                  style={{ backgroundColor: p.value }}
+                  title={p.label}
+                  disabled={!overlayEnabled}
+                />
+              ))}
+              <Input
+                type="color"
+                value={overlayColor}
+                onChange={(e) => onChange({ overlay_color: e.target.value })}
+                className="h-8 w-12 p-1"
+                disabled={!overlayEnabled}
+              />
+              <Input
+                value={overlayColor}
+                onChange={(e) => onChange({ overlay_color: e.target.value })}
+                className="h-8 w-28"
+                disabled={!overlayEnabled}
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">Opacidad ({overlayOpacity}%)</Label>
+            <div className="mt-2 flex items-center gap-2">
+              <Input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={overlayOpacity}
+                onChange={(e) => onChange({ overlay_opacity: Number(e.target.value) })}
+                disabled={!overlayEnabled}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={overlayOpacity}
+                onChange={(e) =>
+                  onChange({ overlay_opacity: Math.max(0, Math.min(100, Number(e.target.value) || 0)) })
+                }
+                disabled={!overlayEnabled}
+                className="h-8 w-20"
+              />
+            </div>
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              0 = transparente · 100 = totalmente cubierto.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Altura responsive */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Altura del banner (px)</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <label className="text-xs flex flex-col gap-1">
+            Desktop
+            <Input
+              type="number"
+              min={120}
+              max={900}
+              value={hDesk}
+              onChange={(e) => onChange({ banner_height_desktop: Number(e.target.value) || 0 })}
+            />
+          </label>
+          <label className="text-xs flex flex-col gap-1">
+            Tablet
+            <Input
+              type="number"
+              min={120}
+              max={900}
+              value={hTab}
+              onChange={(e) => onChange({ banner_height_tablet: Number(e.target.value) || 0 })}
+            />
+          </label>
+          <label className="text-xs flex flex-col gap-1">
+            Mobile
+            <Input
+              type="number"
+              min={120}
+              max={900}
+              value={hMob}
+              onChange={(e) => onChange({ banner_height_mobile: Number(e.target.value) || 0 })}
+            />
+          </label>
+        </div>
+      </div>
+
+      {/* Vista previa */}
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Vista previa
+        </p>
+        <div
+          className="relative overflow-hidden rounded-xl bg-surface-darker text-background"
+          style={{ minHeight: Math.min(hDesk, 320) }}
+        >
+          {previewImage && (
+            <img
+              src={previewImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+              onError={(e) => ((e.currentTarget as HTMLImageElement).style.display = "none")}
+            />
+          )}
+          {overlayEnabled && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundColor: overlayColor,
+                opacity: Math.max(0, Math.min(100, overlayOpacity)) / 100,
+              }}
+            />
+          )}
+          <div className="relative p-6 max-w-lg">
+            <span className="inline-block rounded-full border border-accent/40 bg-accent/15 px-3 py-1 text-[11px] font-bold text-accent">
+              Vista previa
+            </span>
+            <h4 className="mt-3 font-display text-2xl leading-tight">
+              {previewTitle || "Título del banner"}
+            </h4>
+            {previewSubtitle && (
+              <p className="mt-2 text-sm text-background/85">{previewSubtitle}</p>
+            )}
+            <button
+              type="button"
+              className="mt-4 inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-semibold text-accent-foreground"
+            >
+              Ver productos
+            </button>
+          </div>
+        </div>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          La previsualización usa altura desktop (limitada a 320px aquí). En el Home se aplica la altura completa por breakpoint.
+        </p>
+      </div>
+    </div>
+  );
+}
