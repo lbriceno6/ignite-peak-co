@@ -15,6 +15,12 @@ export type LiveSearchResult = {
   matchedNeedName?: string | null;
   matchedCategorySlug?: string | null;
   expandedTerms: string[];
+  intentSlug?: string | null;
+  intentTitle?: string | null;
+  intentCtaUrl?: string | null;
+  intentCtaText?: string | null;
+  intentHasProductIds?: boolean;
+  diagnostic?: string | null;
 };
 
 // NOTE: `tags` column does NOT exist on products. Don't add it back.
@@ -117,22 +123,40 @@ type MapRow = {
   need_slug: string | null;
 };
 
-let cache: { needs: NeedRow[]; maps: MapRow[]; ts: number } | null = null;
+type IntentRow = {
+  slug: string;
+  name: string;
+  title: string | null;
+  subtitle: string | null;
+  keywords: string[] | null;
+  category_slugs: string[] | null;
+  product_ids: string[] | null;
+  cta_url: string | null;
+  cta_text: string | null;
+  priority: number | null;
+};
+
+let cache: { needs: NeedRow[]; maps: MapRow[]; intents: IntentRow[]; ts: number } | null = null;
 const CACHE_MS = 60_000;
 
 async function loadCache() {
   if (cache && Date.now() - cache.ts < CACHE_MS) return cache;
-  const [needsRes, mapsRes] = await Promise.all([
+  const [needsRes, mapsRes, intentsRes] = await Promise.all([
     (supabase.from as any)("search_needs")
       .select("slug,name,keywords,related_category,related_products")
       .eq("is_active", true),
     (supabase.from as any)("search_keyword_map")
       .select("keyword,product_ids,category_slug,need_slug")
       .eq("is_active", true),
+    (supabase.from as any)("purchase_intents")
+      .select("slug,name,title,subtitle,keywords,category_slugs,product_ids,cta_url,cta_text,priority")
+      .eq("is_active", true)
+      .order("priority", { ascending: true }),
   ]);
   cache = {
     needs: (needsRes.data as NeedRow[]) ?? [],
     maps: (mapsRes.data as MapRow[]) ?? [],
+    intents: (intentsRes.data as IntentRow[]) ?? [],
     ts: Date.now(),
   };
   return cache;
@@ -154,8 +178,30 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     return { products: [], suggestions: [], brands: [], totalEstimated: 0, expandedTerms: [] };
   }
 
-  const { needs, maps } = await loadCache();
+  const { needs, maps, intents } = await loadCache();
   const terms = expandQuery(q);
+
+  // Detect purchase intent against full query + expanded terms
+  const candidateTerms = Array.from(new Set([q, ...terms]));
+  const matchToken = (kn: string) =>
+    !!kn && candidateTerms.some((t) => t === kn || t.includes(kn) || kn.includes(t));
+
+  let intentHit: IntentRow | null = null;
+  for (const it of intents) {
+    const slugN = norm(it.slug);
+    const nameN = norm(it.name);
+    const kws = (it.keywords ?? []).map(norm).filter(Boolean);
+    const cats = (it.category_slugs ?? []).map(norm).filter(Boolean);
+    if (
+      matchToken(slugN) ||
+      matchToken(nameN) ||
+      kws.some(matchToken) ||
+      cats.some(matchToken)
+    ) {
+      intentHit = it;
+      break;
+    }
+  }
 
   // Match keyword map (partial)
   const mapHit = maps.find((m) => {
@@ -174,11 +220,24 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
   });
 
   const matchedNeed = needHits[0] || null;
-  const matchedCategorySlug = mapHit?.category_slug || matchedNeed?.related_category || null;
-  const explicitIds = new Set<string>([
+  const intentCategory = (intentHit?.category_slugs ?? [])[0] || null;
+  const matchedCategorySlug =
+    intentCategory || mapHit?.category_slug || matchedNeed?.related_category || null;
+
+  // Priority: intent product_ids -> keyword_map -> needs.related_products
+  const intentIds = intentHit?.product_ids ?? [];
+  const explicitOrdered: string[] = [];
+  const explicitSeen = new Set<string>();
+  for (const id of [
+    ...intentIds,
     ...(mapHit?.product_ids ?? []),
     ...(matchedNeed?.related_products ?? []),
-  ]);
+  ]) {
+    if (id && !explicitSeen.has(id)) {
+      explicitSeen.add(id);
+      explicitOrdered.push(id);
+    }
+  }
 
   // Build OR across all terms × all fields
   const orClauses: string[] = [];
@@ -198,13 +257,25 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     .limit(Math.max(max * 4, 16));
 
   const explicitProductsQuery =
-    explicitIds.size > 0
+    explicitOrdered.length > 0
       ? supabase
           .from("products")
           .select(PRODUCT_COLS)
-          .in("id", Array.from(explicitIds))
+          .in("id", explicitOrdered)
           .eq("is_active", true)
           .eq("approval_status", "approved")
+      : null;
+
+  const categoryProductsQuery =
+    matchedCategorySlug
+      ? supabase
+          .from("products")
+          .select(PRODUCT_COLS)
+          .eq("category", matchedCategorySlug)
+          .eq("is_active", true)
+          .eq("approval_status", "approved")
+          .order("stock", { ascending: false })
+          .limit(max * 2)
       : null;
 
   const brandsQuery = (supabase.from as any)("brands")
@@ -213,9 +284,10 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     .or(terms.map((t) => `name.ilike.%${t}%,slug.ilike.%${t}%`).join(","))
     .limit(5);
 
-  const [searchRes, explicitRes, brandsRes] = await Promise.all([
+  const [searchRes, explicitRes, categoryRes, brandsRes] = await Promise.all([
     productsQuery,
     explicitProductsQuery ?? Promise.resolve({ data: [], count: 0 } as any),
+    categoryProductsQuery ?? Promise.resolve({ data: [] } as any),
     brandsQuery,
   ]);
 
@@ -229,7 +301,16 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
 
   const seen = new Set<string>();
   const ordered: any[] = [];
-  for (const r of (explicitRes.data ?? []) as any[]) {
+  // Preserve intent priority ordering
+  if (explicitOrdered.length > 0) {
+    const byId = new Map<string, any>();
+    for (const r of (explicitRes.data ?? []) as any[]) byId.set(r.id, r);
+    for (const id of explicitOrdered) {
+      const r = byId.get(id);
+      if (r && !seen.has(r.id)) { seen.add(r.id); ordered.push(r); }
+    }
+  }
+  for (const r of (categoryRes.data ?? []) as any[]) {
     if (!seen.has(r.id)) { seen.add(r.id); ordered.push(r); }
   }
   for (const r of (searchRes.data ?? []) as any[]) {
@@ -254,8 +335,19 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
 
   const products = ordered.map(rowToProduct);
 
+  let diagnostic: string | null = null;
+  if (intentHit && intentIds.length > 0 && (explicitRes.data ?? []).length === 0) {
+    diagnostic = `[liveSearch] intent ${intentHit.slug} tiene product_ids pero ningún producto activo/aprobado fue encontrado`;
+    console.warn(diagnostic, {
+      intent_slug: intentHit.slug,
+      product_ids: intentIds,
+      category_slug: matchedCategorySlug,
+    });
+  }
+
   const suggestions = Array.from(
     new Set([
+      ...(intentHit ? [intentHit.name] : []),
       ...needHits.map((n) => n.name),
       ...maps.filter((m) => terms.some((t) => norm(m.keyword).includes(t))).map((m) => m.keyword),
       ...terms.filter((t) => t !== q),
@@ -267,10 +359,16 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     suggestions,
     brands,
     totalEstimated: Math.max(searchRes.count ?? products.length, products.length),
-    matchedNeedSlug: matchedNeed?.slug ?? null,
-    matchedNeedName: matchedNeed?.name ?? null,
+    matchedNeedSlug: intentHit?.slug ?? matchedNeed?.slug ?? null,
+    matchedNeedName: intentHit?.name ?? matchedNeed?.name ?? null,
     matchedCategorySlug,
     expandedTerms: terms,
+    intentSlug: intentHit?.slug ?? null,
+    intentTitle: intentHit?.title ?? null,
+    intentCtaUrl: intentHit?.cta_url ?? null,
+    intentCtaText: intentHit?.cta_text ?? null,
+    intentHasProductIds: (intentIds.length ?? 0) > 0,
+    diagnostic,
   };
 }
 
