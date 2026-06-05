@@ -312,13 +312,21 @@ export default function AdminPurchaseIntents() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>URL del CTA</Label>
+              <div className="flex items-center justify-between">
+                <Label>URL del CTA</Label>
+                {editing.slug && CTA_SUGGESTIONS[editing.slug] && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={suggestCta}>
+                    <Sparkles className="mr-1 h-3 w-3" /> Sugerir
+                  </Button>
+                )}
+              </div>
               <Input
                 value={editing.cta_url ?? ""}
                 onChange={(e) => setEditing((p) => ({ ...p!, cta_url: e.target.value }))}
-                placeholder="/buscar?necesidad=energia"
+                placeholder={CTA_SUGGESTIONS[editing.slug ?? ""] || "/buscar?necesidad=energia"}
               />
             </div>
+
             <div className="space-y-1.5">
               <Label>Categorías relacionadas (slugs, coma)</Label>
               <Input
