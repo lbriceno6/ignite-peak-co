@@ -4653,14 +4653,12 @@ export type Database = {
           business_name: string | null
           city: string | null
           commercial_name: string | null
-          commission_percent: number | null
           country: string | null
           created_at: string | null
           description: string | null
           id: string | null
           is_active: boolean | null
           logo_url: string | null
-          publish_mode: string | null
           slug: string | null
           status: string | null
           website: string | null
@@ -4669,14 +4667,12 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           commercial_name?: string | null
-          commission_percent?: number | null
           country?: string | null
           created_at?: string | null
           description?: string | null
           id?: string | null
           is_active?: boolean | null
           logo_url?: string | null
-          publish_mode?: string | null
           slug?: string | null
           status?: string | null
           website?: string | null
@@ -4685,14 +4681,12 @@ export type Database = {
           business_name?: string | null
           city?: string | null
           commercial_name?: string | null
-          commission_percent?: number | null
           country?: string | null
           created_at?: string | null
           description?: string | null
           id?: string | null
           is_active?: boolean | null
           logo_url?: string | null
-          publish_mode?: string | null
           slug?: string | null
           status?: string | null
           website?: string | null

@@ -391,7 +391,7 @@ const Category = () => {
         });
     }
     if (filterConfig.supplier.enabled) {
-      supabase.from("suppliers").select("id, business_name").eq("status", "approved").then(({ data }) => {
+      (supabase.from("suppliers_public" as any).select("id, business_name") as any).then(({ data }: any) => {
         setSuppliersList(((data as any) ?? []).map((s: any) => ({ id: s.id, name: s.business_name })));
       });
     }
