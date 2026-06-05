@@ -683,6 +683,12 @@ const Home = () => {
             rounded={s.rounded !== false}
             hideIfNoSignal={s.hideIfNoSignal === true}
             confidenceThreshold={typeof s.confidenceThreshold === "number" ? s.confidenceThreshold : 0.2}
+            overlayEnabled={s.overlay_enabled !== false}
+            overlayColor={typeof s.overlay_color === "string" ? s.overlay_color : "#000000"}
+            overlayOpacity={typeof s.overlay_opacity === "number" ? s.overlay_opacity : 55}
+            heightDesktop={typeof s.banner_height_desktop === "number" ? s.banner_height_desktop : 420}
+            heightTablet={typeof s.banner_height_tablet === "number" ? s.banner_height_tablet : 340}
+            heightMobile={typeof s.banner_height_mobile === "number" ? s.banner_height_mobile : 260}
           />
         );
       }
