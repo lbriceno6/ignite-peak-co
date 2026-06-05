@@ -74,10 +74,11 @@ export default function AdminSearchOptimizer() {
       supabase.from("search_synonyms").select("*").order("term"),
       supabase
         .from("lucia_events")
-        .select("metadata,category_slug,created_at")
+        .select("metadata,created_at")
         .eq("event_type", "browse_search")
         .gte("created_at", since)
         .limit(5000),
+
       supabase.from("purchase_intents").select("slug,name").eq("is_active", true).order("priority"),
       supabase.from("categories").select("slug,name").order("name"),
       supabase
