@@ -7,10 +7,10 @@
 
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { callAI, normalizeAIError, safeJsonParse } from "../_shared/ai-provider.ts";
 
 type Body = { function_name: string };
 
-const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
 const SOURCE_BY_FN: Record<string, string> = {
   "ai-cart-recommendations": "ai_cart",
