@@ -5,9 +5,10 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { callAI, safeJsonParse } from "../_shared/ai-provider.ts";
 
 const MODEL = "google/gemini-2.5-flash";
-const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
