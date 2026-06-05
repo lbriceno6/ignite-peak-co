@@ -109,8 +109,10 @@ export default function AdminSearchOptimizer() {
       if (!q) continue;
       const cur = m.get(q) ?? { count: 0, with_result: 0 };
       cur.count += 1;
-      if (e.category_slug || e?.metadata?.intent_slug) cur.with_result += 1;
+      const meta = e?.metadata ?? {};
+      if (meta?.category_slug || meta?.intent_slug || meta?.need_slug) cur.with_result += 1;
       m.set(q, cur);
+
     }
     return [...m.entries()]
       .map(([q, v]) => ({ query: q, count: v.count, with_result: v.with_result, no_result: v.count - v.with_result }))
