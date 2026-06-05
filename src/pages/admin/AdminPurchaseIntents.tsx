@@ -221,6 +221,11 @@ export default function AdminPurchaseIntents() {
                   <span className="text-xs rounded bg-muted px-1.5 py-0.5">
                     prioridad {it.priority}
                   </span>
+                  {(it.product_ids?.length ?? 0) === 0 && (
+                    <span className="text-[10px] rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 uppercase tracking-wide">
+                      sin productos
+                    </span>
+                  )}
                 </div>
                 {it.keywords?.length > 0 && (
                   <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
