@@ -183,6 +183,48 @@ Deno.serve(async (req) => {
     const needs: Need[] = [...intentNeeds, ...legacyNeeds];
     const q = norm(query);
 
+    // 0) Synonym pre-match — admin-curated overrides
+    const synonyms = (synonymsRes.data ?? []) as any[];
+    let synonymHit: any = null;
+    for (const s of synonyms) {
+      const term = norm(s.term ?? "");
+      const variants = ((s.synonyms ?? []) as string[]).map(norm).filter(Boolean);
+      const all = [term, ...variants];
+      if (all.some((v) => v && (q === v || q.includes(v) || v.includes(q)))) {
+        synonymHit = s;
+        break;
+      }
+    }
+    if (synonymHit) {
+      const mapped = needs.find(
+        (n) =>
+          (synonymHit.related_intent_slug && norm(n.slug) === norm(synonymHit.related_intent_slug)) ||
+          (synonymHit.related_category_slug && norm(n.related_category ?? "") === norm(synonymHit.related_category_slug)),
+      );
+      if (mapped) {
+        const payload = buildResponsePayload(mapped, "need");
+        payload.product_ids = [
+          ...((synonymHit.boost_product_ids ?? []) as string[]),
+          ...(payload.product_ids ?? []),
+        ];
+        (payload as any).source = "synonym";
+        return new Response(JSON.stringify(payload), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      if (synonymHit.related_category_slug || (synonymHit.boost_product_ids ?? []).length > 0) {
+        return new Response(JSON.stringify({
+          source: "synonym",
+          need: synonymHit.term,
+          need_slug: null,
+          category_slug: synonymHit.related_category_slug ?? null,
+          intent_slug: synonymHit.related_intent_slug ?? null,
+          product_ids: synonymHit.boost_product_ids ?? [],
+          message: `Resultados curados para "${synonymHit.term}".`,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
+
     // 1) Keyword match
     let matched: Need | null = null;
     for (const n of needs) {
@@ -197,6 +239,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
 
     // 2) AI fallback
     try {
