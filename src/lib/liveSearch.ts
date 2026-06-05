@@ -123,22 +123,40 @@ type MapRow = {
   need_slug: string | null;
 };
 
-let cache: { needs: NeedRow[]; maps: MapRow[]; ts: number } | null = null;
+type IntentRow = {
+  slug: string;
+  name: string;
+  title: string | null;
+  subtitle: string | null;
+  keywords: string[] | null;
+  category_slugs: string[] | null;
+  product_ids: string[] | null;
+  cta_url: string | null;
+  cta_text: string | null;
+  priority: number | null;
+};
+
+let cache: { needs: NeedRow[]; maps: MapRow[]; intents: IntentRow[]; ts: number } | null = null;
 const CACHE_MS = 60_000;
 
 async function loadCache() {
   if (cache && Date.now() - cache.ts < CACHE_MS) return cache;
-  const [needsRes, mapsRes] = await Promise.all([
+  const [needsRes, mapsRes, intentsRes] = await Promise.all([
     (supabase.from as any)("search_needs")
       .select("slug,name,keywords,related_category,related_products")
       .eq("is_active", true),
     (supabase.from as any)("search_keyword_map")
       .select("keyword,product_ids,category_slug,need_slug")
       .eq("is_active", true),
+    (supabase.from as any)("purchase_intents")
+      .select("slug,name,title,subtitle,keywords,category_slugs,product_ids,cta_url,cta_text,priority")
+      .eq("is_active", true)
+      .order("priority", { ascending: true }),
   ]);
   cache = {
     needs: (needsRes.data as NeedRow[]) ?? [],
     maps: (mapsRes.data as MapRow[]) ?? [],
+    intents: (intentsRes.data as IntentRow[]) ?? [],
     ts: Date.now(),
   };
   return cache;
