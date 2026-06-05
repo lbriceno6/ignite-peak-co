@@ -149,8 +149,20 @@ export function AiRecommendedForYou({
     // Rank products by visitor signal + intent
     const ranked = rankProductsForVisitor(products, signals, intent);
 
-    // If intent has explicit product_ids, prefer those (already boosted in ranker), else keep ranked order
-    const interestProducts = ranked.slice(0, limit);
+    // Dedup vs "Según lo que viste": exclude recently-viewed slugs unless they are
+    // explicit intent products (those still belong here as the primary signal).
+    const intentIds = new Set(intent?.product_ids ?? []);
+    const filtered = ranked.filter((p) => intentIds.has(p.id) || !recentlyViewedSlugs.has(p.slug));
+    let interestProducts = filtered.slice(0, limit);
+    if (interestProducts.length < limit) {
+      const seen = new Set(interestProducts.map((p) => p.id));
+      for (const p of fallbackList) {
+        if (seen.has(p.id) || recentlyViewedSlugs.has(p.slug)) continue;
+        interestProducts.push(p);
+        seen.add(p.id);
+        if (interestProducts.length >= limit) break;
+      }
+    }
 
     // Decide which list to show
     const interestHasContent = interestProducts.length > 0 && (hasIntentProducts || tag !== "initial");
