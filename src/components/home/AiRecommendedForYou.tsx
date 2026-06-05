@@ -112,6 +112,10 @@ export function AiRecommendedForYou({
   }, []);
 
   const hasSignal = (signals?.length ?? 0) > 0;
+  const recentlyViewedSlugs = useMemo(
+    () => new Set((signals ?? []).filter((s) => s.event_type === "browse_product_view" && s.product_slug).map((s) => s.product_slug as string)),
+    [signals],
+  );
   const effectiveHideIfEmpty = hideIfEmpty || hideIfNoSignal;
 
   const { items, sourceTag, matchedIntent } = useMemo(() => {
@@ -145,8 +149,20 @@ export function AiRecommendedForYou({
     // Rank products by visitor signal + intent
     const ranked = rankProductsForVisitor(products, signals, intent);
 
-    // If intent has explicit product_ids, prefer those (already boosted in ranker), else keep ranked order
-    const interestProducts = ranked.slice(0, limit);
+    // Dedup vs "Según lo que viste": exclude recently-viewed slugs unless they are
+    // explicit intent products (those still belong here as the primary signal).
+    const intentIds = new Set(intent?.product_ids ?? []);
+    const filtered = ranked.filter((p) => intentIds.has(p.id) || !recentlyViewedSlugs.has(p.slug));
+    let interestProducts = filtered.slice(0, limit);
+    if (interestProducts.length < limit) {
+      const seen = new Set(interestProducts.map((p) => p.id));
+      for (const p of fallbackList) {
+        if (seen.has(p.id) || recentlyViewedSlugs.has(p.slug)) continue;
+        interestProducts.push(p);
+        seen.add(p.id);
+        if (interestProducts.length >= limit) break;
+      }
+    }
 
     // Decide which list to show
     const interestHasContent = interestProducts.length > 0 && (hasIntentProducts || tag !== "initial");
@@ -172,7 +188,7 @@ export function AiRecommendedForYou({
     }
 
     return { items: fallbackList, sourceTag: "initial" as RecommendedSourceTag, matchedIntent: intent };
-  }, [products, fallbackProducts, signals, intents, totalProducts, fallbackEnabled, blendDefaultWithInterest, replaceWhenInterestDetected, hasSignal]);
+  }, [products, fallbackProducts, signals, intents, totalProducts, fallbackEnabled, blendDefaultWithInterest, replaceWhenInterestDetected, hasSignal, recentlyViewedSlugs]);
 
   if (!enabled) return null;
   if (!items.length) {
@@ -188,8 +204,8 @@ export function AiRecommendedForYou({
 
   if (dynamicTextEnabled) {
     if (sourceTag === "initial") {
-      dynTitle = fallbackTitle || title || "Productos recomendados";
-      dynSubtitle = fallbackSubtitle || subtitle || "Una selección para empezar tu rutina";
+      dynTitle = fallbackTitle || title || "Recomendados para ti";
+      dynSubtitle = fallbackSubtitle || subtitle || "Una selección popular para empezar";
       dynEyebrow = eyebrow || "Más populares";
     } else if (matchedIntent) {
       const preset = INTENT_TITLES[matchedIntent.slug];
