@@ -32,6 +32,7 @@ import { AiAttributionFunnel } from "@/components/admin/AiAttributionFunnel";
 import { AiAbTesting } from "@/components/admin/AiAbTesting";
 import { AiEmailLog } from "@/components/admin/AiEmailLog";
 import { AiDynamicPricing } from "@/components/admin/AiDynamicPricing";
+import { RecentlyViewedDiagnostic } from "@/components/admin/RecentlyViewedDiagnostic";
 
 type Metrics = {
   productViews: number;
@@ -181,6 +182,7 @@ export default function AdminAiControl() {
           <TabsTrigger value="emails"><Mail size={14} className="mr-1" /> Emails IA</TabsTrigger>
           <TabsTrigger value="pricing"><Sparkles size={14} className="mr-1" /> Pricing IA</TabsTrigger>
           <TabsTrigger value="prompts"><FlaskConical size={14} className="mr-1" /> Prompt Lab</TabsTrigger>
+          <TabsTrigger value="diag-recent"><Eye size={14} className="mr-1" /> Diag · Vistos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="conversion" className="pt-4">
@@ -205,6 +207,10 @@ export default function AdminAiControl() {
 
         <TabsContent value="prompts" className="pt-4">
           <AiPromptLab />
+        </TabsContent>
+
+        <TabsContent value="diag-recent" className="pt-4">
+          <RecentlyViewedDiagnostic />
         </TabsContent>
 
         <TabsContent value="blocks" className="space-y-4 pt-4">
