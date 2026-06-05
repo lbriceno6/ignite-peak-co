@@ -112,6 +112,10 @@ export function AiRecommendedForYou({
   }, []);
 
   const hasSignal = (signals?.length ?? 0) > 0;
+  const recentlyViewedSlugs = useMemo(
+    () => new Set((signals ?? []).filter((s) => s.event_type === "browse_product_view" && s.product_slug).map((s) => s.product_slug as string)),
+    [signals],
+  );
   const effectiveHideIfEmpty = hideIfEmpty || hideIfNoSignal;
 
   const { items, sourceTag, matchedIntent } = useMemo(() => {
