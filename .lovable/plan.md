@@ -1,119 +1,108 @@
-# Sistema Global de Filtros del Catálogo
+# Plan de estabilización Nutribatidos
 
-Unificar todos los filtros del ecommerce bajo un único módulo admin "Filtros del Catálogo". Todas las páginas de listado de productos consumirán la misma configuración.
+El alcance es muy grande para una sola iteración. Propongo trabajarlo en **olas** priorizadas. Cada ola es una entrega revisable y desplegable por separado. Confirma o ajusta antes de empezar.
 
-## 1. Base de datos (migración)
+## Ola 1 — Branding y base (rápido, alto impacto)
+**Fase 1 del pedido.**
+- index.html: ya dice "Nutribatidos", solo falta verificar/ajustar título sugerido y description.
+- Reemplazar `Voltra Nutrition` en:
+  - `supabase/functions/_shared/transactional-email-templates/*` (3 archivos, SITE_NAME).
+  - `supabase/functions/send-order-email/index.ts` (prompt por defecto).
+  - Migración de `footer_copyright` con un UPDATE a `site_content`.
+- Las claves de localStorage `voltra.*` (cart, currency, referral, sidebarLabels) **las dejo como están** — renombrarlas borraría carritos y sesiones de usuarios actuales. Si quieres renombrarlas, lo hago con migración suave (leer vieja → escribir nueva).
+- Verificar Footer/Header/Layout/SEO defaults.
 
-**Tabla `catalog_filters`** (definición de cada filtro):
-- `id`, `name`, `slug` (único), `filter_type` (enum: category, subcategory, brand, price, ingredient, benefit, need, goal, tag, stock, promotion, flag, combo, featured, new)
-- `is_active` (bool), `display_order` (int)
-- `selection_type` (`single` | `multi`)
-- `show_desktop`, `show_mobile`, `default_open` (bool)
-- `pages_visibility` (jsonb array: `["catalog","category","subcategory","brand","search","need","promotions","combos","featured","new","related"]`)
-- `ui_widget` (`checkbox` | `range` | `chips` | `toggle`) — derivado del tipo
-- timestamps
+## Ola 2 — Bloques IA del Home, advertencias de coherencia
+**Fase 2.**
+- Auditar `home_blocks` vs `ai_block_toggles` vs render de `Index.tsx`.
+- Insertar filas faltantes para `ai_dynamic_banner`, `ai_recommended_for_you`, `ai_recently_viewed` si no existen.
+- En `/admin/home-blocks` y `/admin/ia-control` mostrar badge de inconsistencia con los dos mensajes pedidos.
 
-**Tabla `catalog_filter_options`** (opciones de cada filtro):
-- `id`, `filter_id` (FK), `name`, `slug`, `value` (text), `image_url`, `color`
-- `display_order`, `is_active`
-- timestamps
-- Unique (`filter_id`, `slug`)
+## Ola 3 — Vistos recientemente + diagnóstico
+**Fase 3.**
+- Verificar `ProductDetail` → `logBrowseEvent("browse_product_view", { product_slug, category_slug })` y escritura a `recently_viewed_products` en localStorage.
+- Asegurar lectura consistente en `AiRecentlyViewed`.
+- Panel de diagnóstico en admin con todos los campos pedidos (historial, slugs, matches, toggles, motivo) y botón **Simular producto visto**.
 
-**Tabla `product_filter_values`** (relación producto ↔ opción):
-- `id`, `product_id` (FK), `filter_id` (FK), `option_id` (FK nullable, para tipos abiertos como precio), `value` (text, opcional para valores numéricos)
-- Unique (`product_id`, `filter_id`, `option_id`)
-- Índices por `product_id` y por (`filter_id`, `option_id`)
+## Ola 4 — Banner dinámico IA + diagnóstico de intención
+**Fase 4.**
+- Revisar `detectVisitorIntent`, `resolveCurrentIntent`, threshold, fallback, hideIfNoSignal.
+- Panel de diagnóstico ampliado (señales, categorías, búsquedas, intención, confianza, banner aplicado, motivo).
+- Botón **Probar en Home** que inyecta señal temporal en localStorage y redirige.
 
-GRANTs: lectura `anon`/`authenticated` (sólo activos vía RLS), escritura admin, ALL `service_role`.
+## Ola 5 — Banners por intención (contenido base + storage)
+**Fase 5.**
+- Verificar bucket `brand-assets` existe y es público con políticas correctas.
+- Validar URL pública, preview en admin, render en Home, manejo de error de imagen.
+- Seed inicial de las 10 intenciones con los textos exactos que entregaste (energia, digestion, control_peso, articulaciones, colageno, masa_muscular, fitness, defensas, piel_cabello_unas, bienestar_general) solo si la tabla está vacía o falta el slug.
 
-Seed inicial: migrar los filtros existentes (precio, categoría, subcategoría, necesidad, presentación, sabor, marca, disponibilidad, valoración) desde la configuración actual `catalog_filter_settings` y `filter_options` a las nuevas tablas, conservando orden y estado.
+## Ola 6 — Buscador IA
+**Fase 6.**
+- Confirmar permisos de `/admin/buscador-ia` y guardado.
+- Auditar que ninguna API key viva en la base — solo en Secrets.
+- Verificar Edge `intelligent-search` cubre las 7 necesidades de ejemplo.
+- Flujo "sin resultados": sugerencias + botón WhatsApp + log `search_no_results`.
+- Eventos `browse_search`, `search_result_click`, `search_no_results`.
 
-## 2. Admin · `/admin/filters` (reemplaza/expande módulo actual)
+## Ola 7 — Lucía IA
+**Fase 7.**
+- Revisar `LuciaChat`, `ai-chat`, `LuciaProductCard`, `chat_ai_*`.
+- Panel de prueba en admin: "Probar con producto actual", "Probar con búsqueda libre", "Ver última respuesta", "Ver productos recomendados".
+- Reglas: no inventar productos, no curaciones, no diagnóstico médico (system prompt + guardrails).
 
-**Listado** (`AdminCatalogFilters.tsx` rewrite):
-- Tabla con todos los filtros: nombre, tipo, opciones (count), páginas donde aparece (chips), estado, orden, acciones.
-- Drag-handle o flechas para ordenar.
-- Botones: Nuevo filtro, Restaurar recomendados.
+## Ola 8 — Panel IA y métricas
+**Fase 8.**
+- `/admin/ia-control` con bloques, eventos (browse_product_view, browse_category_view, browse_search, add_to_cart), únicos vs con señales, intenciones top, clicks IA, conversiones IA.
+- Alertas exactamente como pedidas.
 
-**Form crear/editar** (`AdminCatalogFilterForm.tsx`):
-- Nombre, slug (auto), tipo, selección única/múltiple
-- Switches: activo, desktop, móvil, abierto por defecto
-- Multi-select de páginas (catálogo, categoría, subcategoría, marca, búsqueda, necesidad, promociones, combos, destacados, nuevos, relacionados)
-- Editor de opciones inline (nombre, slug, valor, color, imagen opcional, orden, activo) con add/remove/reorder
-- Para tipos `price`/`stock`/`featured`/`new`/`promotion` las opciones se infieren — no se editan manualmente
+## Ola 9 — Motor IA central
+**Fase 9.**
+- Crear `supabase/functions/_shared/ai-provider.ts` con `callAI`, `getProviderConfig`, `validateProviderSecret`, `normalizeAIError`, `safeJsonParse`.
+- Soportar Lovable Gateway (default), Gemini, OpenAI, DeepSeek, Claude.
+- Migrar progresivamente `ai-chat`, `intelligent-search`, `ai-product-seo-optimize`, `ai-prompt-optimizer` (una por una, con prueba después de cada migración).
+- Pantalla **Verificar Secrets IA** que solo muestra "configurado/no configurado".
 
-**Eliminar** con confirmación; borra cascada de opciones y values.
+## Ola 10 — Analítica IA conversacional (módulo nuevo)
+**Fase 10.**
+- Nueva ruta `/admin/ia-insights` con UI tipo chat.
+- Edge function que ejecuta queries pre-validadas (no SQL libre) sobre `lucia_events`, `products`, `orders`, `order_items`, `chat_ai_*`, `search_logs`, `promotions`.
+- Modelo razona sobre los datos devueltos, no genera SQL.
+- Salida: resumen, datos usados, recomendación accionable, enlaces.
+- Mensaje claro cuando faltan datos.
 
-## 3. Hook único de consumo
+## Ola 11 — Optimizador de búsqueda
+**Fase 11.**
+- Nueva ruta `/admin/search-optimizer`.
+- Tabla nueva `search_synonyms` (term, synonyms, boost_product_ids, related_intent, related_category).
+- Vistas: top búsquedas, búsquedas sin resultado, conversion por término.
+- Acción: crear sinónimo, priorizar productos, asociar intención/categoría.
 
-`useCatalogFilters(page: PageKey)`:
-- Carga filtros activos donde `pages_visibility` incluye `page`
-- Devuelve filtros ordenados con sus opciones activas
-- Cachea con react-query patrón existente
+## Ola 12 — WhatsApp tienda básica
+**Fase 12.**
+- Helpers de mensaje prellenado por producto / intención / carrito.
+- Botones "Comprar por WhatsApp", "Consultar por WhatsApp", "Enviar mi carrito".
+- Eventos `whatsapp_*_click`.
 
-`useFilteredProducts({ page, baseQuery, selected })`:
-- Recibe filtros seleccionados desde URL
-- Construye query Supabase con joins a `product_filter_values`
-- Devuelve productos + contadores por opción (facets)
+## Ola 13 — QA de los 10 casos
+**Fase 13.**
+- Ejecutar manualmente los 10 escenarios y dejar checklist en `.lovable/qa-ia.md`.
 
-## 4. Componente UI compartido
+## Detalles técnicos relevantes
 
-`<CatalogFiltersPanel page="..." />`:
-- Renderiza todos los filtros configurados según tipo
-- Sidebar desktop / Sheet móvil (un solo componente, `useIsMobile`)
-- Lee/escribe estado en URL (`?marca=...&necesidad=...&precio=30-80`)
-- Botón "Limpiar filtros", contador de productos, contador por opción
-- Empty state con "No encontramos productos" + limpiar
+- Toda mutación de Edge Function pasa por `LOVABLE_API_KEY` (ya configurado), nunca por keys directas en el frontend.
+- Tablas nuevas (search_synonyms y posiblemente intent_banners ya existe) llevan GRANT + RLS según pattern del proyecto.
+- Nada de SQL libre desde IA. La analítica IA usa queries parametrizadas server-side.
+- Diagnóstico en admin: componentes con `useEffect` que leen localStorage + Supabase y muestran en vivo, sin persistir.
 
-`<CatalogPageLayout>`: layout grid filtros izquierda + productos derecha + grid 4 col.
+## Lo que NO haré salvo que lo pidas
 
-## 5. Integración en páginas
+- Renombrar las keys `voltra.*` de localStorage (rompería sesiones activas).
+- Cambiar el dominio o slug `ignite-peak-co.lovable.app`.
+- Mover proveedores de pago, shipping o auth.
+- Borrar el contenido existente en `intent_banners` aunque haya inconsistencias — solo insertar lo faltante.
 
-Reemplazar la lógica de filtros local en:
-- `src/pages/Category.tsx` (page="category")
-- `src/pages/CategoryTaxonomy.tsx` (page="subcategory")
-- `src/pages/BrandPage.tsx` (page="brand")
-- `src/pages/Search.tsx` (page="search")
-- `src/pages/Goal.tsx` (page="need")
-- `src/pages/SeoLanding.tsx` o `/promociones` (page="promotions")
-- Página combos (page="combos")
-- Sección destacados/nuevos si tienen ruta propia
+## Lo que necesito de ti
 
-Todas las páginas: mismo `<CatalogFiltersPanel>` + mismo grid. La página sólo añade su filtro base (categoría=X, marca=Y, query=q) y delega el resto.
-
-## 6. Form de producto
-
-En `ProductForm.tsx` y `SupplierProductForm.tsx`: sección "Atributos filtrables" que muestra los filtros con tipo entity (marca, categoría, ingredientes, beneficios, necesidades, etiquetas) y permite asignar opciones al producto → escribe en `product_filter_values`. Campos directos del producto (precio, stock, is_featured, is_new) ya existen y no se duplican.
-
-## 7. Reglas
-
-- Filtros con `is_active=false` ocultos en toda la tienda; admin los ve.
-- Página que no esté en `pages_visibility` no muestra ese filtro.
-- Si un producto no tiene un valor de filtro, simplemente no aparece bajo esa opción (no se rompe).
-- URL es la fuente de verdad del estado de filtros.
-
-## Archivos a crear/editar
-
-**Nuevos:**
-- `supabase/migrations/<ts>_catalog_filters_unified.sql`
-- `src/hooks/useCatalogFilters.ts`
-- `src/hooks/useFilteredProducts.ts`
-- `src/components/catalog/CatalogFiltersPanel.tsx`
-- `src/components/catalog/CatalogPageLayout.tsx`
-- `src/pages/admin/AdminCatalogFilterForm.tsx`
-
-**Editar:**
-- `src/pages/admin/AdminCatalogFilters.tsx` (rewrite a listado CRUD)
-- `src/pages/admin/AdminFilterOptions.tsx` (deprecar/redirigir al nuevo)
-- `src/App.tsx` (rutas admin nuevas)
-- `src/components/admin/AdminLayout.tsx` (renombrar item)
-- Páginas de listado: `Category.tsx`, `CategoryTaxonomy.tsx`, `BrandPage.tsx`, `Search.tsx`, `Goal.tsx`, combos, promociones
-- `ProductForm.tsx`, `SupplierProductForm.tsx` (atributos filtrables)
-
-## Notas técnicas
-
-- Diseño actual se conserva: mismo grid 4 columnas, mismo sidebar de filtros, mismos componentes shadcn (Accordion, Checkbox, Slider, Sheet).
-- Migración no rompe datos: mantiene `products.brand`, `products.category`, etc. — sólo añade capa de mapeo.
-- Trabajo grande: ~10 archivos nuevos + ~8 ediciones. Se hará en una sola pasada tras tu aprobación.
-
-¿Apruebas que avancemos con esta implementación?
+1. **Confirma el orden de olas.** ¿Quieres exactamente este orden o reordenamos? (Ej.: muchos clientes priorizan Ola 1 + Ola 5 + Ola 6 primero porque son las que ve el visitante final.)
+2. **Olas 10 y 11 son módulos nuevos grandes.** ¿Las hago completas ahora o las dejamos para una segunda iteración una vez que 1-9 estén estables?
+3. **¿Puedo empezar a ejecutar la Ola 1 ahora mismo** mientras decides el resto? Es bajo riesgo y deja el branding correcto en producción.
