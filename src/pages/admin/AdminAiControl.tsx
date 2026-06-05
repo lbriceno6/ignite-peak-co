@@ -215,6 +215,10 @@ export default function AdminAiControl() {
           <RecentlyViewedDiagnostic />
         </TabsContent>
 
+        <TabsContent value="diag-health" className="pt-4">
+          <AiHealthDiagnostic />
+        </TabsContent>
+
         <TabsContent value="blocks" className="space-y-4 pt-4">
           {rows.map((row) => {
             const meta = BLOCK_META[row.block_key as AiBlockKey] ?? { icon: Sparkles };
