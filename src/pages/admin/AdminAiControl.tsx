@@ -33,6 +33,7 @@ import { AiAbTesting } from "@/components/admin/AiAbTesting";
 import { AiEmailLog } from "@/components/admin/AiEmailLog";
 import { AiDynamicPricing } from "@/components/admin/AiDynamicPricing";
 import { RecentlyViewedDiagnostic } from "@/components/admin/RecentlyViewedDiagnostic";
+import { AiHealthDiagnostic } from "@/components/admin/AiHealthDiagnostic";
 
 type Metrics = {
   productViews: number;
