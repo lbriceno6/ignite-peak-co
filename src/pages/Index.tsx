@@ -484,47 +484,62 @@ const Home = () => {
               href: `/category/goal-${g.slug}`,
               ctaLabel: null as string | null,
             }));
+        const normalizeName = (n: string) =>
+          n.replace(/\bMas\s+Energ/gi, "Más Energ");
         return (
-          <section key={b.id} className="container-x py-16">
-            <div className="text-center">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">
+          <section key={b.id} className="container-x py-20 sm:py-24">
+            <div className="mx-auto max-w-2xl text-center">
+              <span className="text-[11px] font-bold uppercase tracking-[0.28em] text-accent">
                 {b.eyebrow || "Encuentra tu stack"}
               </span>
-              <h2 className="mt-2 font-display text-3xl sm:text-4xl lg:text-5xl">
+              <h2 className="mt-4 font-display text-3xl leading-[1.1] sm:text-4xl lg:text-5xl">
                 {b.title || "Comprar por objetivo"}
               </h2>
-              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+              <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
                 {b.subtitle || "Explora productos según tu necesidad o estilo de vida"}
               </p>
             </div>
 
             {/* Desktop grid / Mobile horizontal snap carousel */}
-            <div className="mt-10 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 sm:gap-5 sm:overflow-visible">
+            <div className="mt-12 -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {displayGoals.map((g, i) => {
                 const style = getGoalStyle(g.name, i);
                 const Icon = style.icon;
+                const displayName = normalizeName(g.name);
                 return (
                   <Link
                     key={g.key}
                     to={g.href}
-                    className={`group relative flex min-w-[78%] snap-start flex-col justify-between overflow-hidden rounded-2xl border border-border/40 p-6 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-elevated sm:min-w-0 ${style.bg}`}
-                    style={{ minHeight: 280 }}
+                    className={`group relative flex min-w-[78%] snap-start flex-col overflow-hidden rounded-3xl border border-white/60 p-7 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] transition-all duration-500 ease-out hover:-translate-y-2 hover:border-white hover:shadow-[0_24px_48px_-20px_rgba(0,0,0,0.18)] sm:min-w-0 ${style.bg}`}
+                    style={{ minHeight: 304 }}
                   >
                     {/* Soft decorative glow */}
-                    <div className={`pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full blur-3xl opacity-50 transition-opacity duration-500 group-hover:opacity-80 ${style.glow}`} />
+                    <div className={`pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-3xl opacity-40 transition-opacity duration-500 group-hover:opacity-70 ${style.glow}`} />
 
-                    {/* Floating icon "image" */}
-                    <div className={`relative z-10 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/70 backdrop-blur-sm shadow-md transition-transform duration-300 ease-out group-hover:-translate-y-2 group-hover:scale-110 ${style.iconColor}`}>
-                      <Icon size={40} strokeWidth={1.75} />
+                    {/* Icon container */}
+                    <div className={`relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-[0_8px_20px_-8px_rgba(0,0,0,0.15)] ring-1 ring-black/[0.04] transition-transform duration-500 ease-out group-hover:-translate-y-1 group-hover:scale-105 ${style.iconColor}`}>
+                      <Icon size={32} strokeWidth={1.75} />
                     </div>
 
-                    <div className="relative z-10 mt-6">
-                      <h3 className="font-display text-2xl leading-tight text-foreground">{g.name}</h3>
+                    {/* Content */}
+                    <div className="relative z-10 mt-6 flex flex-1 flex-col">
+                      <h3 className="font-display text-xl font-semibold leading-snug text-foreground sm:text-[1.375rem]">
+                        {displayName}
+                      </h3>
                       {g.desc && (
-                        <p className="mt-2 text-sm text-foreground/70 line-clamp-2">{g.desc}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-foreground/65 line-clamp-3">
+                          {g.desc}
+                        </p>
                       )}
-                      <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground/80 transition-all duration-300 group-hover:gap-2 group-hover:text-accent">
-                        {g.ctaLabel || "Ver productos"} <ArrowRight size={14} />
+                      <span className="mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold text-foreground/85 transition-colors duration-300 group-hover:text-accent">
+                        <span className="relative">
+                          {g.ctaLabel || "Explorar objetivo"}
+                          <span className="absolute -bottom-0.5 left-0 h-px w-0 bg-accent transition-all duration-300 group-hover:w-full" />
+                        </span>
+                        <ArrowRight
+                          size={15}
+                          className="transition-transform duration-300 group-hover:translate-x-1"
+                        />
                       </span>
                     </div>
                   </Link>
