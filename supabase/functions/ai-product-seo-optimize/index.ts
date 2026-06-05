@@ -131,19 +131,18 @@ Devuelve JSON:
  "score": 0-100
 }`;
 
-      const aiRes = await fetch(LOVABLE_AI, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
-        body: JSON.stringify({
+      let s: any = {};
+      try {
+        const out = await callAI({
+          provider: "lovable",
           model: MODEL,
           messages: [{ role: "system", content: sys }, { role: "user", content: prompt }],
-          response_format: { type: "json_object" },
-        }),
-      });
-      if (!aiRes.ok) continue;
-      const aj = await aiRes.json();
-      let s: any = {};
-      try { s = JSON.parse(aj?.choices?.[0]?.message?.content ?? "{}"); } catch {}
+          jsonMode: true,
+          maxTokens: 800,
+        });
+        s = safeJsonParse<any>(out.content) ?? {};
+      } catch { continue; }
+
       const fields: Array<[string, string | null, string | null]> = [
         ["name", p.name, s.name ?? null],
         ["short_description", p.short_description, s.short_description ?? null],
