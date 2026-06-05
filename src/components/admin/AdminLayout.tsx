@@ -164,6 +164,7 @@ const defaultSections = [
       { key: "ia-inventario", to: "/admin/ia-inventario", label: "Predicción de inventario · IA", icon: Sparkles },
       { key: "ia-landings", to: "/admin/ia-landings", label: "Landings SEO · IA", icon: Sparkles },
       { key: "ia-fichas", to: "/admin/ia-fichas", label: "Optimización fichas · IA", icon: Sparkles },
+      { key: "importador-web", to: "/admin/importador-web", label: "Importador Web Inteligente", icon: Sparkles },
     ],
   },
 ];
