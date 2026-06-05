@@ -2572,9 +2572,9 @@ function AiBlockSettings({
             </label>
             {type === "ai_recommended_for_you" && (
               <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
-                <span>Ocultar si no hay historial</span>
-                <Switch checked={settings.hideIfNoSignal === true}
-                  onCheckedChange={(v) => onChange({ hideIfNoSignal: v })} />
+                <span>Ocultar si no hay productos</span>
+                <Switch checked={settings.hide_if_empty === true || settings.hideIfNoSignal === true}
+                  onCheckedChange={(v) => onChange({ hide_if_empty: v, hideIfNoSignal: v })} />
               </label>
             )}
             {type === "ai_recently_viewed" && (
@@ -2585,6 +2585,91 @@ function AiBlockSettings({
               </label>
             )}
           </div>
+
+          {type === "ai_recommended_for_you" && (
+            <div className="space-y-3 rounded border bg-muted/30 p-3">
+              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Fallback (cuando no hay historial)
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                  <span>Mostrar productos por defecto</span>
+                  <Switch checked={settings.fallback_enabled !== false}
+                    onCheckedChange={(v) => onChange({ fallback_enabled: v })} />
+                </label>
+                <label className="text-xs flex flex-col gap-1">
+                  Fuente de fallback
+                  <select
+                    className="rounded border bg-background px-2 py-1.5 text-sm"
+                    value={String(settings.fallback_source ?? "best_sellers")}
+                    onChange={(e) => onChange({ fallback_source: e.target.value })}
+                  >
+                    <option value="best_sellers">Más vendidos</option>
+                    <option value="featured">Destacados</option>
+                    <option value="recent">Recientes</option>
+                    <option value="sale">Ofertas</option>
+                    <option value="manual">Manual (slugs)</option>
+                    <option value="category">Categoría</option>
+                  </select>
+                </label>
+              </div>
+              {String(settings.fallback_source ?? "") === "category" && (
+                <label className="text-xs flex flex-col gap-1">
+                  Slug de categoría fallback
+                  <Input value={String(settings.fallback_category ?? "")}
+                    onChange={(e) => onChange({ fallback_category: e.target.value })}
+                    placeholder="ej: proteinas" />
+                </label>
+              )}
+              {String(settings.fallback_source ?? "") === "manual" && (
+                <label className="text-xs flex flex-col gap-1">
+                  Slugs (separados por coma)
+                  <Input
+                    value={Array.isArray(settings.fallback_manual_products) ? settings.fallback_manual_products.join(", ") : ""}
+                    onChange={(e) => onChange({
+                      fallback_manual_products: e.target.value.split(",").map((x) => x.trim()).filter(Boolean),
+                    })}
+                    placeholder="proteina-vegana, colageno-marino" />
+                </label>
+              )}
+              <div className="grid gap-2 sm:grid-cols-2">
+                <label className="text-xs flex flex-col gap-1">
+                  Título fallback (opcional)
+                  <Input value={String(settings.fallback_title ?? "")}
+                    onChange={(e) => onChange({ fallback_title: e.target.value })}
+                    placeholder="Productos recomendados" />
+                </label>
+                <label className="text-xs flex flex-col gap-1">
+                  Subtítulo fallback (opcional)
+                  <Input value={String(settings.fallback_subtitle ?? "")}
+                    onChange={(e) => onChange({ fallback_subtitle: e.target.value })}
+                    placeholder="Una selección para empezar tu rutina" />
+                </label>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                  <span>Reemplazar al detectar interés</span>
+                  <Switch checked={settings.replace_when_interest_detected !== false}
+                    onCheckedChange={(v) => onChange({ replace_when_interest_detected: v })} />
+                </label>
+                <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                  <span>Mezclar defecto + interés</span>
+                  <Switch checked={settings.blend_default_with_interest === true}
+                    onCheckedChange={(v) => onChange({ blend_default_with_interest: v })} />
+                </label>
+                <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
+                  <span>Título dinámico</span>
+                  <Switch checked={settings.dynamic_text_enabled !== false}
+                    onCheckedChange={(v) => onChange({ dynamic_text_enabled: v })} />
+                </label>
+                <label className="flex items-center justify-between rounded border bg-background p-2 text-sm sm:col-span-3">
+                  <span>Mostrar etiqueta de origen (“Selección inicial”, “Según tu búsqueda”…)</span>
+                  <Switch checked={settings.show_source_badge === true}
+                    onCheckedChange={(v) => onChange({ show_source_badge: v })} />
+                </label>
+              </div>
+            </div>
+          )}
         </>
       )}
 
