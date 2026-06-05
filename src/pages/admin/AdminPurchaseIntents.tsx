@@ -335,14 +335,28 @@ export default function AdminPurchaseIntents() {
                 placeholder="superalimentos, energia"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>IDs de productos asociados (coma)</Label>
+            <div className="space-y-1.5 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label>IDs de productos asociados (coma)</Label>
+                <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={autocompleteIntent}>
+                  <Wand2 className="mr-1 h-3 w-3" /> Autocompletar intención
+                </Button>
+              </div>
               <Input
                 value={(editing.product_ids ?? []).join(", ")}
                 onChange={(e) => setEditing((p) => ({ ...p!, product_ids: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }))}
                 placeholder="uuid1, uuid2"
               />
+              {(editing.product_ids ?? []).length === 0 && (
+                <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20 p-2 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                  <span className="text-amber-900 dark:text-amber-200">
+                    Esta intención detecta interés, pero no devolverá productos recomendados hasta asignar productos.
+                  </span>
+                </div>
+              )}
             </div>
+
             <div className="space-y-1.5">
               <Label>Prioridad</Label>
               <Input
