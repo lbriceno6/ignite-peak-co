@@ -119,6 +119,61 @@ export default function AdminPurchaseIntents() {
     load();
   };
 
+  const autocompleteIntent = async () => {
+    if (!editing) return;
+    const kws = (editing.keywords ?? []).map((k) => k.toLowerCase()).filter(Boolean);
+    const cats = (editing.category_slugs ?? []).map((c) => c.toLowerCase()).filter(Boolean);
+    const slug = (editing.slug ?? "").toLowerCase();
+    const terms = Array.from(new Set([...kws, slug, ...slug.split("-")].filter(Boolean)));
+    if (terms.length === 0) {
+      toast.error("Añade primero palabras clave o el slug");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,name,slug,category,goal,main_ingredient,description,short_description")
+      .eq("is_active", true)
+      .eq("approval_status", "approved")
+      .limit(500);
+    if (error) return toast.error(error.message);
+
+    const scored = (data ?? []).map((p: any) => {
+      const hay = [p.name, p.slug, p.category, p.goal, p.main_ingredient, p.short_description, p.description]
+        .filter(Boolean).join(" ").toLowerCase();
+      let score = 0;
+      for (const t of terms) {
+        if (!t) continue;
+        if (hay.includes(t)) score += 2;
+      }
+      if (cats.length && p.category && cats.includes(String(p.category).toLowerCase())) score += 5;
+      if (p.goal && terms.includes(String(p.goal).toLowerCase())) score += 4;
+      if (p.main_ingredient && terms.includes(String(p.main_ingredient).toLowerCase())) score += 3;
+      return { id: p.id, name: p.name, score };
+    }).filter((p) => p.score > 0).sort((a, b) => b.score - a.score);
+
+    const top = scored.slice(0, 6).map((p) => p.id);
+    if (top.length === 0) {
+      toast.error("No se encontraron productos activos que coincidan");
+      return;
+    }
+    const merged = Array.from(new Set([...(editing.product_ids ?? []), ...top])).slice(0, 8);
+    setEditing((p) => ({ ...p!, product_ids: merged }));
+    toast.success(`Sugeridos ${top.length} productos (revisa antes de guardar)`);
+  };
+
+  const suggestCta = () => {
+    if (!editing?.slug) return;
+    const url = CTA_SUGGESTIONS[editing.slug];
+    if (!url) return toast.error("No hay sugerencia para este slug");
+    setEditing((p) => ({ ...p!, cta_url: url }));
+    toast.success(`CTA sugerida: ${url}`);
+  };
+
+  const incompletePriority = list.filter(
+    (i) => PRIORITY_SLUGS.includes(i.slug) && (i.product_ids?.length ?? 0) === 0,
+  );
+
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
