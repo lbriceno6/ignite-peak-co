@@ -1,0 +1,2 @@
+UPDATE public.home_blocks SET is_active = false WHERE block_key IN ('ai_dynamic_banner-v06t4-copy-7ro2k','promo-copy-xyb7l');
+DELETE FROM public.home_blocks WHERE block_key = 'ai_recommended_for_you-861j0' AND is_active = false;
