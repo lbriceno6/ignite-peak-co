@@ -62,35 +62,12 @@ type RecoSettings = {
   base_url: string | null;
 };
 
-async function callLovableAi(
-  model: string,
-  system: string,
-  query: string,
-  temperature: number,
-  maxTokens: number,
-) {
-  const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-  if (!lovableKey) throw new Error("LOVABLE_API_KEY missing");
-  const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${lovableKey}` },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: query },
-      ],
-      temperature,
-      max_tokens: maxTokens,
-      response_format: { type: "json_object" },
-    }),
-  });
-  if (!r.ok) {
-    const t = await r.text();
-    throw new Error(`AI gateway ${r.status}: ${t}`);
-  }
-  const j = await r.json();
-  return j?.choices?.[0]?.message?.content ?? "";
+function mapLegacyProvider(p: string): AIProvider {
+  if (p === "claude") return "anthropic";
+  if (p === "deepseek") return "deepseek";
+  if (p === "openai") return "openai";
+  if (p === "gemini") return "gemini";
+  return "lovable";
 }
 
 async function callAi(
@@ -98,7 +75,7 @@ async function callAi(
   legacy: LegacySettings | null,
   query: string,
   needs: Need[],
-) {
+): Promise<string> {
   const needList = needs
     .map(
       (n) =>
@@ -109,66 +86,35 @@ async function callAi(
   // Prefer the new ai_reco_settings (Lovable AI Gateway by default)
   if (reco && reco.enabled) {
     const system = `${reco.system_prompt}\n\nDevuelve SIEMPRE JSON con esta forma: { "intent": "<slug>", "category": "<categoria>", "message": "<texto>" }.\n\nINTENCIONES Y NECESIDADES DISPONIBLES:\n${needList}`;
-    const model = reco.model || "google/gemini-2.5-flash";
-    return await callLovableAi(model, system, query, reco.temperature ?? 0.3, 600);
+    const out = await callAI({
+      provider: "lovable",
+      model: reco.model || "google/gemini-2.5-flash",
+      messages: [{ role: "system", content: system }, { role: "user", content: query }],
+      temperature: reco.temperature ?? 0.3,
+      maxTokens: 600,
+      jsonMode: true,
+    });
+    return out.content;
   }
 
-  // Fallback to legacy search_ai_settings
   if (!legacy || !legacy.enabled || legacy.provider === "off") return "";
   const system = `${legacy.search_prompt}\n\nLISTA DE NECESIDADES DISPONIBLES:\n${needList}`;
-  const provider = legacy.provider;
-
-  if (provider === "claude") {
-    const key = Deno.env.get("CLAUDE_API_KEY");
-    if (!key) throw new Error("CLAUDE_API_KEY missing");
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({
-        model: legacy.model || "claude-3-5-haiku-20241022",
-        max_tokens: legacy.max_tokens,
-        system,
-        messages: [{ role: "user", content: query }],
-      }),
-    });
-    const j = await r.json();
-    return j?.content?.[0]?.text ?? "";
-  }
-
-  if (provider === "deepseek") {
-    const key = Deno.env.get("DEEPSEEK_API_KEY");
-    if (!key) throw new Error("DEEPSEEK_API_KEY missing");
-    const r = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: legacy.model || "deepseek-chat",
-        messages: [{ role: "system", content: system }, { role: "user", content: query }],
-        temperature: legacy.temperature,
-        max_tokens: legacy.max_tokens,
-        response_format: { type: "json_object" },
-      }),
-    });
-    const j = await r.json();
-    return j?.choices?.[0]?.message?.content ?? "";
-  }
-
-  const model = legacy.model || (provider === "openai" ? "openai/gpt-5-mini" : "google/gemini-2.5-flash");
-  return await callLovableAi(model, system, query, legacy.temperature ?? 0.3, legacy.max_tokens ?? 600);
+  const provider = mapLegacyProvider(legacy.provider);
+  const out = await callAI({
+    provider,
+    model: legacy.model || undefined,
+    messages: [{ role: "system", content: system }, { role: "user", content: query }],
+    temperature: legacy.temperature ?? 0.3,
+    maxTokens: legacy.max_tokens ?? 600,
+    jsonMode: true,
+  });
+  return out.content;
 }
 
 function parseAiJson(raw: string): any | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    const m = raw.match(/\{[\s\S]*\}/);
-    if (m) {
-      try { return JSON.parse(m[0]); } catch { return null; }
-    }
-    return null;
-  }
+  return safeJsonParse<any>(raw);
 }
+
 
 function buildResponsePayload(need: Need, source: "need" | "ai") {
   return {
