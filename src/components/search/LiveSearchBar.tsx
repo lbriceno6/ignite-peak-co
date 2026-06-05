@@ -280,9 +280,20 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
 
                 {/* RIGHT: Products */}
                 <div className="p-4">
-                  <h4 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Productos para <span className="text-foreground">{query}</span>
-                  </h4>
+                  {(() => {
+                    const intentLabel =
+                      result?.intentTitle ||
+                      result?.matchedNeedName ||
+                      null;
+                    const headerLabel = intentLabel
+                      ? `Productos recomendados para ${intentLabel}`
+                      : `Productos para ${query}`;
+                    return (
+                      <h4 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                        <span className="text-foreground">{headerLabel}</span>
+                      </h4>
+                    );
+                  })()}
                   {loading && !result ? (
                     <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
                       <Loader2 size={16} className="animate-spin" /> Buscando…
@@ -366,6 +377,16 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                         );
                       })}
                     </ul>
+                  ) : result?.intentSlug && result?.intentHasProductIds ? (
+                    <div className="rounded-md border border-dashed border-border p-4 text-sm">
+                      <p className="text-muted-foreground">
+                        Detectamos que buscas productos para{" "}
+                        <span className="font-medium text-foreground">
+                          {result.matchedNeedName || result.intentSlug}
+                        </span>
+                        , pero aún no hay productos activos asignados a esta intención.
+                      </p>
+                    </div>
                   ) : hasCategory ? (
                     <div className="rounded-md border border-dashed border-border p-4 text-sm">
                       <p className="text-muted-foreground">
@@ -386,7 +407,16 @@ export function LiveSearchBar({ className, autoFocus, onClose }: Props) {
                   )}
 
                   {result && result.products.length > 0 && (
-                    <div className="mt-3 border-t border-border pt-3">
+                    <div className="mt-3 border-t border-border pt-3 space-y-2">
+                      {result.intentSlug && (result.intentCtaUrl || result.intentSlug) && (
+                        <Link
+                          to={result.intentCtaUrl || `/objetivo/${result.intentSlug}`}
+                          onClick={() => setOpen(false)}
+                          className="block text-center text-sm font-medium text-accent hover:underline"
+                        >
+                          {result.intentCtaText || `Ver más productos de ${result.matchedNeedName || result.intentSlug}`} →
+                        </Link>
+                      )}
                       <Link
                         to={`/buscar?q=${encodeURIComponent(query.trim())}`}
                         onClick={() => setOpen(false)}
