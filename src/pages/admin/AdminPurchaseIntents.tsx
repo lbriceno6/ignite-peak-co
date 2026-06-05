@@ -7,7 +7,22 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, Target } from "lucide-react";
+import { Plus, Trash2, Save, Target, Sparkles, Wand2, AlertTriangle } from "lucide-react";
+
+const CTA_SUGGESTIONS: Record<string, string> = {
+  energia: "/objetivo/energia",
+  colageno: "/categoria/colagenos",
+  fitness: "/objetivo/fitness",
+  digestion: "/objetivo/digestion",
+  articulaciones: "/objetivo/articulaciones",
+  bienestar: "/productos",
+  "masa-muscular": "/objetivo/masa-muscular",
+  "control-peso": "/objetivo/control-peso",
+  defensas: "/objetivo/defensas",
+  belleza: "/objetivo/belleza",
+};
+
+const PRIORITY_SLUGS = ["energia", "colageno", "fitness", "digestion", "articulaciones", "bienestar"];
 
 type Intent = {
   id: string;
@@ -104,6 +119,61 @@ export default function AdminPurchaseIntents() {
     load();
   };
 
+  const autocompleteIntent = async () => {
+    if (!editing) return;
+    const kws = (editing.keywords ?? []).map((k) => k.toLowerCase()).filter(Boolean);
+    const cats = (editing.category_slugs ?? []).map((c) => c.toLowerCase()).filter(Boolean);
+    const slug = (editing.slug ?? "").toLowerCase();
+    const terms = Array.from(new Set([...kws, slug, ...slug.split("-")].filter(Boolean)));
+    if (terms.length === 0) {
+      toast.error("Añade primero palabras clave o el slug");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("products")
+      .select("id,name,slug,category,goal,main_ingredient,description,short_description")
+      .eq("is_active", true)
+      .eq("approval_status", "approved")
+      .limit(500);
+    if (error) return toast.error(error.message);
+
+    const scored = (data ?? []).map((p: any) => {
+      const hay = [p.name, p.slug, p.category, p.goal, p.main_ingredient, p.short_description, p.description]
+        .filter(Boolean).join(" ").toLowerCase();
+      let score = 0;
+      for (const t of terms) {
+        if (!t) continue;
+        if (hay.includes(t)) score += 2;
+      }
+      if (cats.length && p.category && cats.includes(String(p.category).toLowerCase())) score += 5;
+      if (p.goal && terms.includes(String(p.goal).toLowerCase())) score += 4;
+      if (p.main_ingredient && terms.includes(String(p.main_ingredient).toLowerCase())) score += 3;
+      return { id: p.id, name: p.name, score };
+    }).filter((p) => p.score > 0).sort((a, b) => b.score - a.score);
+
+    const top = scored.slice(0, 6).map((p) => p.id);
+    if (top.length === 0) {
+      toast.error("No se encontraron productos activos que coincidan");
+      return;
+    }
+    const merged = Array.from(new Set([...(editing.product_ids ?? []), ...top])).slice(0, 8);
+    setEditing((p) => ({ ...p!, product_ids: merged }));
+    toast.success(`Sugeridos ${top.length} productos (revisa antes de guardar)`);
+  };
+
+  const suggestCta = () => {
+    if (!editing?.slug) return;
+    const url = CTA_SUGGESTIONS[editing.slug];
+    if (!url) return toast.error("No hay sugerencia para este slug");
+    setEditing((p) => ({ ...p!, cta_url: url }));
+    toast.success(`CTA sugerida: ${url}`);
+  };
+
+  const incompletePriority = list.filter(
+    (i) => PRIORITY_SLUGS.includes(i.slug) && (i.product_ids?.length ?? 0) === 0,
+  );
+
+
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <div className="flex items-center justify-between">
@@ -120,6 +190,24 @@ export default function AdminPurchaseIntents() {
         ("energía", "colágeno", "fitness"…) a productos, categorías y mensajes reales del catálogo.
       </p>
 
+      {incompletePriority.length > 0 && (
+        <Card className="p-4 border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+            <div className="text-sm">
+              <div className="font-medium text-amber-900 dark:text-amber-200">
+                {incompletePriority.length} intención(es) principales sin productos
+              </div>
+              <div className="text-amber-800/80 dark:text-amber-200/80 mt-1">
+                Estas intenciones detectan interés, pero no devolverán productos recomendados hasta asignar productos:{" "}
+                <span className="font-mono">{incompletePriority.map((i) => i.slug).join(", ")}</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+
       {loading ? (
         <div className="text-muted-foreground">Cargando…</div>
       ) : (
@@ -133,6 +221,11 @@ export default function AdminPurchaseIntents() {
                   <span className="text-xs rounded bg-muted px-1.5 py-0.5">
                     prioridad {it.priority}
                   </span>
+                  {(it.product_ids?.length ?? 0) === 0 && (
+                    <span className="text-[10px] rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1.5 py-0.5 uppercase tracking-wide">
+                      sin productos
+                    </span>
+                  )}
                 </div>
                 {it.keywords?.length > 0 && (
                   <div className="mt-1 text-xs text-muted-foreground line-clamp-2">
@@ -224,13 +317,21 @@ export default function AdminPurchaseIntents() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>URL del CTA</Label>
+              <div className="flex items-center justify-between">
+                <Label>URL del CTA</Label>
+                {editing.slug && CTA_SUGGESTIONS[editing.slug] && (
+                  <Button type="button" variant="ghost" size="sm" className="h-6 text-xs" onClick={suggestCta}>
+                    <Sparkles className="mr-1 h-3 w-3" /> Sugerir
+                  </Button>
+                )}
+              </div>
               <Input
                 value={editing.cta_url ?? ""}
                 onChange={(e) => setEditing((p) => ({ ...p!, cta_url: e.target.value }))}
-                placeholder="/buscar?necesidad=energia"
+                placeholder={CTA_SUGGESTIONS[editing.slug ?? ""] || "/buscar?necesidad=energia"}
               />
             </div>
+
             <div className="space-y-1.5">
               <Label>Categorías relacionadas (slugs, coma)</Label>
               <Input
@@ -239,14 +340,28 @@ export default function AdminPurchaseIntents() {
                 placeholder="superalimentos, energia"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>IDs de productos asociados (coma)</Label>
+            <div className="space-y-1.5 sm:col-span-2">
+              <div className="flex items-center justify-between">
+                <Label>IDs de productos asociados (coma)</Label>
+                <Button type="button" variant="outline" size="sm" className="h-7 text-xs" onClick={autocompleteIntent}>
+                  <Wand2 className="mr-1 h-3 w-3" /> Autocompletar intención
+                </Button>
+              </div>
               <Input
                 value={(editing.product_ids ?? []).join(", ")}
                 onChange={(e) => setEditing((p) => ({ ...p!, product_ids: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) }))}
                 placeholder="uuid1, uuid2"
               />
+              {(editing.product_ids ?? []).length === 0 && (
+                <div className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20 p-2 text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 mt-0.5 shrink-0" />
+                  <span className="text-amber-900 dark:text-amber-200">
+                    Esta intención detecta interés, pero no devolverá productos recomendados hasta asignar productos.
+                  </span>
+                </div>
+              )}
             </div>
+
             <div className="space-y-1.5">
               <Label>Prioridad</Label>
               <Input
