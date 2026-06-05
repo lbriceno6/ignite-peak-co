@@ -164,6 +164,7 @@ const defaultSections = [
       { key: "ia-inventario", to: "/admin/ia-inventario", label: "Predicción de inventario · IA", icon: Sparkles },
       { key: "ia-landings", to: "/admin/ia-landings", label: "Landings SEO · IA", icon: Sparkles },
       { key: "ia-fichas", to: "/admin/ia-fichas", label: "Optimización fichas · IA", icon: Sparkles },
+      { key: "importador-web", to: "/admin/importador-web", label: "Importador Web Inteligente", icon: Sparkles },
     ],
   },
 ];
@@ -209,6 +210,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/benefits")) return get("benefits", "Beneficios de compra");
   if (p.startsWith("/admin/ia-recomendaciones")) return get("ia-recomendaciones", "Home Inteligente · IA");
   if (p.startsWith("/admin/ia-intenciones")) return get("ia-intenciones", "Intenciones de compra");
+  if (p.startsWith("/admin/importador-web")) return get("importador-web", "Importador Web Inteligente");
   return "Admin";
 };
 

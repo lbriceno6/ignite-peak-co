@@ -57,6 +57,7 @@ import AdminCatalogFilterForm from "./pages/admin/AdminCatalogFilterForm.tsx";
 import AdminHome from "./pages/admin/AdminHome.tsx";
 import AdminHeroSlides from "./pages/admin/AdminHeroSlides.tsx";
 import AdminHomeBlocks from "./pages/admin/AdminHomeBlocks.tsx";
+import AdminWebImporter from "./pages/admin/AdminWebImporter.tsx";
 
 import AdminGoalCards from "./pages/admin/AdminGoalCards.tsx";
 import AdminNavigation from "./pages/admin/AdminNavigation.tsx";
@@ -275,6 +276,7 @@ const App = () => (
               <Route path="buscador-ia" element={<AdminSearchAi />} />
               <Route path="ia-recomendaciones" element={<AdminAIRecommendations />} />
               <Route path="ia-intenciones" element={<AdminPurchaseIntents />} />
+              <Route path="importador-web" element={<AdminWebImporter />} />
               <Route path="benefits" element={<AdminBenefits />} />
               <Route path="product-card-typography" element={<AdminProductCardTypography />} />
               <Route path="promotions" element={<AdminPromotions />} />

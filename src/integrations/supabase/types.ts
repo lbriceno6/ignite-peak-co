@@ -1882,6 +1882,116 @@ export type Database = {
         }
         Relationships: []
       }
+      imported_products: {
+        Row: {
+          ai_benefits: Json | null
+          ai_category_suggestion: string | null
+          ai_ingredients: Json | null
+          ai_intent_suggestion: string | null
+          ai_keywords: Json | null
+          ai_long_description: string | null
+          ai_meta_description: string | null
+          ai_meta_title: string | null
+          ai_rewritten_description: string | null
+          ai_rewritten_title: string | null
+          created_at: string
+          created_by: string | null
+          created_product_id: string | null
+          detected_brand: string | null
+          detected_category: string | null
+          detected_stock: string | null
+          id: string
+          imported_data: Json | null
+          job_id: string | null
+          original_currency: string | null
+          original_description: string | null
+          original_gallery_urls: Json | null
+          original_image_url: string | null
+          original_price: number | null
+          original_sale_price: number | null
+          original_title: string | null
+          source_domain: string | null
+          source_url: string
+          status: Database["public"]["Enums"]["imported_product_status"]
+          stored_image_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_benefits?: Json | null
+          ai_category_suggestion?: string | null
+          ai_ingredients?: Json | null
+          ai_intent_suggestion?: string | null
+          ai_keywords?: Json | null
+          ai_long_description?: string | null
+          ai_meta_description?: string | null
+          ai_meta_title?: string | null
+          ai_rewritten_description?: string | null
+          ai_rewritten_title?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_product_id?: string | null
+          detected_brand?: string | null
+          detected_category?: string | null
+          detected_stock?: string | null
+          id?: string
+          imported_data?: Json | null
+          job_id?: string | null
+          original_currency?: string | null
+          original_description?: string | null
+          original_gallery_urls?: Json | null
+          original_image_url?: string | null
+          original_price?: number | null
+          original_sale_price?: number | null
+          original_title?: string | null
+          source_domain?: string | null
+          source_url: string
+          status?: Database["public"]["Enums"]["imported_product_status"]
+          stored_image_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_benefits?: Json | null
+          ai_category_suggestion?: string | null
+          ai_ingredients?: Json | null
+          ai_intent_suggestion?: string | null
+          ai_keywords?: Json | null
+          ai_long_description?: string | null
+          ai_meta_description?: string | null
+          ai_meta_title?: string | null
+          ai_rewritten_description?: string | null
+          ai_rewritten_title?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_product_id?: string | null
+          detected_brand?: string | null
+          detected_category?: string | null
+          detected_stock?: string | null
+          id?: string
+          imported_data?: Json | null
+          job_id?: string | null
+          original_currency?: string | null
+          original_description?: string | null
+          original_gallery_urls?: Json | null
+          original_image_url?: string | null
+          original_price?: number | null
+          original_sale_price?: number | null
+          original_title?: string | null
+          source_domain?: string | null
+          source_url?: string
+          status?: Database["public"]["Enums"]["imported_product_status"]
+          stored_image_url?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imported_products_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "web_import_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lucia_events: {
         Row: {
           campaign: string | null
@@ -4473,6 +4583,48 @@ export type Database = {
         }
         Relationships: []
       }
+      web_import_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          mode: string
+          products_found: number
+          products_imported: number
+          source_domain: string | null
+          source_url: string
+          status: Database["public"]["Enums"]["web_import_job_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          mode?: string
+          products_found?: number
+          products_imported?: number
+          source_domain?: string | null
+          source_url: string
+          status?: Database["public"]["Enums"]["web_import_job_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          mode?: string
+          products_found?: number
+          products_imported?: number
+          source_domain?: string | null
+          source_url?: string
+          status?: Database["public"]["Enums"]["web_import_job_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       wishlist: {
         Row: {
           created_at: string
@@ -4684,6 +4836,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "client"
       category_type: "product" | "blog"
+      imported_product_status:
+        | "pending"
+        | "reviewed"
+        | "imported"
+        | "discarded"
+        | "error"
       order_status:
         | "pending"
         | "confirmed"
@@ -4693,6 +4851,7 @@ export type Database = {
         | "cancelled"
       promotion_benefit_type: "second_discount" | "second_free"
       subscription_status: "active" | "paused" | "cancelled"
+      web_import_job_status: "running" | "done" | "error"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4822,6 +4981,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "client"],
       category_type: ["product", "blog"],
+      imported_product_status: [
+        "pending",
+        "reviewed",
+        "imported",
+        "discarded",
+        "error",
+      ],
       order_status: [
         "pending",
         "confirmed",
@@ -4832,6 +4998,7 @@ export const Constants = {
       ],
       promotion_benefit_type: ["second_discount", "second_free"],
       subscription_status: ["active", "paused", "cancelled"],
+      web_import_job_status: ["running", "done", "error"],
     },
   },
 } as const
