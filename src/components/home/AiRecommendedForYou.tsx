@@ -188,7 +188,7 @@ export function AiRecommendedForYou({
     }
 
     return { items: fallbackList, sourceTag: "initial" as RecommendedSourceTag, matchedIntent: intent };
-  }, [products, fallbackProducts, signals, intents, totalProducts, fallbackEnabled, blendDefaultWithInterest, replaceWhenInterestDetected, hasSignal]);
+  }, [products, fallbackProducts, signals, intents, totalProducts, fallbackEnabled, blendDefaultWithInterest, replaceWhenInterestDetected, hasSignal, recentlyViewedSlugs]);
 
   if (!enabled) return null;
   if (!items.length) {
@@ -204,8 +204,8 @@ export function AiRecommendedForYou({
 
   if (dynamicTextEnabled) {
     if (sourceTag === "initial") {
-      dynTitle = fallbackTitle || title || "Productos recomendados";
-      dynSubtitle = fallbackSubtitle || subtitle || "Una selección para empezar tu rutina";
+      dynTitle = fallbackTitle || title || "Recomendados para ti";
+      dynSubtitle = fallbackSubtitle || subtitle || "Una selección popular para empezar";
       dynEyebrow = eyebrow || "Más populares";
     } else if (matchedIntent) {
       const preset = INTENT_TITLES[matchedIntent.slug];
