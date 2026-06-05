@@ -150,12 +150,14 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!,
     );
 
-    const [legacyRes, recoRes, needsRes, intentsRes] = await Promise.all([
+    const [legacyRes, recoRes, needsRes, intentsRes, synonymsRes] = await Promise.all([
       supabase.from("search_ai_settings").select("*").eq("id", 1).maybeSingle(),
       supabase.from("ai_reco_settings").select("*").eq("id", 1).maybeSingle(),
       supabase.from("search_needs").select("*").eq("is_active", true).order("priority"),
       supabase.from("purchase_intents").select("*").eq("is_active", true).order("priority"),
+      supabase.from("search_synonyms").select("*").eq("is_active", true),
     ]);
+
     const legacy = (legacyRes.data ?? null) as LegacySettings | null;
     const reco = (recoRes.data ?? null) as RecoSettings | null;
     const legacyNeeds = ((needsRes.data ?? []) as any[]).map((n) => ({ ...n, source: "need" as const }));
