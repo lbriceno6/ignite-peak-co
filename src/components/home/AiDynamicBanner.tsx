@@ -26,6 +26,12 @@ type Props = {
   rounded?: boolean;
   hideIfNoSignal?: boolean;
   confidenceThreshold?: number;
+  overlayEnabled?: boolean;
+  overlayColor?: string;
+  overlayOpacity?: number; // 0-100
+  heightDesktop?: number;
+  heightTablet?: number;
+  heightMobile?: number;
 };
 
 /**
