@@ -446,7 +446,7 @@ async function updateField(
   setDetail: (p: ImportedProduct | null) => void,
   refresh: () => Promise<void>,
 ) {
-  await supabase.from("imported_products").update({ [field]: value }).eq("id", id);
+  await supabase.from("imported_products").update({ [field]: value } as never).eq("id", id);
   const { data } = await supabase.from("imported_products").select("*").eq("id", id).single();
   if (data) setDetail(data as unknown as ImportedProduct);
   await refresh();
