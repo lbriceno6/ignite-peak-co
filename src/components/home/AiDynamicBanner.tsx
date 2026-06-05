@@ -163,11 +163,19 @@ export function AiDynamicBanner({
     eyebrow ||
     (resolved ? `Para ti · ${resolved.name}` : "Recomendado para ti");
 
+  const safeId = `aidb-${String(blockId).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const overlayAlpha = Math.max(0, Math.min(100, Number(overlayOpacity) || 0)) / 100;
+
   return (
     <section
       key={blockId}
       style={{ paddingTop: spacingTop, paddingBottom: spacingBottom }}
     >
+      <style>{`
+        #${safeId} { min-height: ${heightMobile}px; }
+        @media (min-width: 640px) { #${safeId} { min-height: ${heightTablet}px; } }
+        @media (min-width: 1024px) { #${safeId} { min-height: ${heightDesktop}px; } }
+      `}</style>
       <div className={wrapperClass}>
         <div className={inner}>
           {image && (
@@ -175,23 +183,32 @@ export function AiDynamicBanner({
               src={image}
               alt={title}
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover opacity-55"
+              className="absolute inset-0 h-full w-full object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
               }}
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/75 to-transparent" />
-          <div className="relative grid min-h-[260px] items-center p-6 sm:min-h-[280px] sm:p-12">
+          {overlayEnabled && (
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{ backgroundColor: overlayColor, opacity: overlayAlpha }}
+              aria-hidden
+            />
+          )}
+          <div
+            id={safeId}
+            className="relative grid items-center p-6 sm:p-10 lg:p-12"
+          >
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/15 px-3 py-1 text-xs font-bold tracking-wide text-accent">
                 <Sparkles size={12} /> {eyebrowText}
               </span>
-              <h3 className="mt-4 font-display text-2xl leading-tight sm:text-4xl">
+              <h3 className="mt-4 font-display text-2xl leading-tight sm:text-4xl drop-shadow-sm">
                 {title}
               </h3>
               {subtitle && (
-                <p className="mt-3 text-sm text-background/75 sm:text-base">{subtitle}</p>
+                <p className="mt-3 text-sm text-background/85 sm:text-base">{subtitle}</p>
               )}
               {ctaHref && (
                 <Button size="lg" variant="hero" className="mt-6" asChild>
