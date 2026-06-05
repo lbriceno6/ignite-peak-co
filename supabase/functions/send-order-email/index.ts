@@ -109,7 +109,7 @@ Deno.serve(async (req) => {
     let source = "heuristic";
 
     if (apiKey && slimCatalog.length) {
-      const defaultSystem = `Eres el asistente post-compra de Voltra Nutrition.
+      const defaultSystem = `Eres el asistente post-compra de Nutribatidos.
 Devuelve un JSON: {"thank_you":"...","picks":[{"slug":"...","reason":"..."}],"reorder_days": 30}
 - thank_you: español, cálido, máx 22 palabras, sin emojis.
 - picks: hasta 3 productos del catálogo que complementen lo comprado, no duplicados, slugs válidos, reason ≤ 6 palabras.
