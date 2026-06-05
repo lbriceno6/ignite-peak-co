@@ -78,6 +78,8 @@ import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminAIRecommendations from "./pages/admin/AdminAIRecommendations.tsx";
 import AdminAiControl from "./pages/admin/AdminAiControl.tsx";
 import AdminIaInsights from "./pages/admin/AdminIaInsights.tsx";
+import AdminSearchOptimizer from "./pages/admin/AdminSearchOptimizer.tsx";
+
 
 import AdminInventoryAi from "./pages/admin/AdminInventoryAi.tsx";
 import AdminSeoLandingsAi from "./pages/admin/AdminSeoLandingsAi.tsx";
