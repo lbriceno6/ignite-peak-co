@@ -33,6 +33,7 @@ import { AiAbTesting } from "@/components/admin/AiAbTesting";
 import { AiEmailLog } from "@/components/admin/AiEmailLog";
 import { AiDynamicPricing } from "@/components/admin/AiDynamicPricing";
 import { RecentlyViewedDiagnostic } from "@/components/admin/RecentlyViewedDiagnostic";
+import { AiHealthDiagnostic } from "@/components/admin/AiHealthDiagnostic";
 
 type Metrics = {
   productViews: number;
@@ -183,6 +184,7 @@ export default function AdminAiControl() {
           <TabsTrigger value="pricing"><Sparkles size={14} className="mr-1" /> Pricing IA</TabsTrigger>
           <TabsTrigger value="prompts"><FlaskConical size={14} className="mr-1" /> Prompt Lab</TabsTrigger>
           <TabsTrigger value="diag-recent"><Eye size={14} className="mr-1" /> Diag · Vistos</TabsTrigger>
+          <TabsTrigger value="diag-health"><Activity size={14} className="mr-1" /> Salud IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="conversion" className="pt-4">
@@ -211,6 +213,10 @@ export default function AdminAiControl() {
 
         <TabsContent value="diag-recent" className="pt-4">
           <RecentlyViewedDiagnostic />
+        </TabsContent>
+
+        <TabsContent value="diag-health" className="pt-4">
+          <AiHealthDiagnostic />
         </TabsContent>
 
         <TabsContent value="blocks" className="space-y-4 pt-4">
