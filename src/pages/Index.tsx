@@ -714,6 +714,47 @@ const Home = () => {
           ...cp,
           category: products[i].category ?? null,
         }));
+
+        // Build fallback pool from raw products list so we can use badge / sale_price / created_at.
+        const fallbackSource = String(s.fallback_source ?? "best_sellers");
+        const fallbackCategory = typeof s.fallback_category === "string" ? s.fallback_category : "";
+        const fallbackManualSlugs: string[] = Array.isArray(s.fallback_manual_products)
+          ? s.fallback_manual_products.filter((x: any) => typeof x === "string")
+          : [];
+
+        let fbRaw: typeof products = [];
+        switch (fallbackSource) {
+          case "best_sellers":
+          case "featured":
+            fbRaw = [
+              ...products.filter((p) => (p.badge ?? "").toLowerCase() === "best seller"),
+              ...products.filter((p) => (p.badge ?? "").toLowerCase() !== "best seller"),
+            ];
+            break;
+          case "sale":
+            fbRaw = products.filter((p) => p.sale_price != null && Number(p.sale_price) > 0);
+            break;
+          case "recent":
+            fbRaw = [...products].sort((a, b) =>
+              new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+            );
+            break;
+          case "manual":
+            fbRaw = fallbackManualSlugs
+              .map((slug) => products.find((p) => p.slug === slug))
+              .filter(Boolean) as typeof products;
+            break;
+          case "category":
+            fbRaw = fallbackCategory ? products.filter((p) => (p.category ?? "") === fallbackCategory) : products;
+            break;
+          default:
+            fbRaw = products;
+        }
+        const fallbackPool = fbRaw.map(toCardProduct).map((cp, i) => ({
+          ...cp,
+          category: fbRaw[i].category ?? null,
+        }));
+
         return (
           <AiRecommendedForYou
             key={b.id}
@@ -724,12 +765,21 @@ const Home = () => {
             ctaLabel={b.cta_label}
             ctaHref={b.cta_href}
             products={pool}
+            fallbackProducts={fallbackPool}
             totalProducts={Number(s.totalProducts ?? 8) || 8}
             visibleDesktop={Number(s.visibleDesktop ?? 4) || 4}
             visibleTablet={Number(s.visibleTablet ?? 2) || 2}
             visibleMobile={Number(s.visibleMobile ?? 1.2) || 1.2}
             autoplay={s.autoplay !== false}
             hideIfNoSignal={s.hideIfNoSignal === true}
+            fallbackEnabled={s.fallback_enabled !== false}
+            replaceWhenInterestDetected={s.replace_when_interest_detected !== false}
+            blendDefaultWithInterest={s.blend_default_with_interest === true}
+            hideIfEmpty={s.hide_if_empty === true}
+            dynamicTextEnabled={s.dynamic_text_enabled !== false}
+            showSourceBadge={s.show_source_badge === true}
+            fallbackTitle={typeof s.fallback_title === "string" ? s.fallback_title : null}
+            fallbackSubtitle={typeof s.fallback_subtitle === "string" ? s.fallback_subtitle : null}
           />
         );
       }
