@@ -210,6 +210,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/benefits")) return get("benefits", "Beneficios de compra");
   if (p.startsWith("/admin/ia-recomendaciones")) return get("ia-recomendaciones", "Home Inteligente · IA");
   if (p.startsWith("/admin/ia-intenciones")) return get("ia-intenciones", "Intenciones de compra");
+  if (p.startsWith("/admin/importador-web")) return get("importador-web", "Importador Web Inteligente");
   return "Admin";
 };
 
