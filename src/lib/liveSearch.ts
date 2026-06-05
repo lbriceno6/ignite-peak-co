@@ -15,6 +15,12 @@ export type LiveSearchResult = {
   matchedNeedName?: string | null;
   matchedCategorySlug?: string | null;
   expandedTerms: string[];
+  intentSlug?: string | null;
+  intentTitle?: string | null;
+  intentCtaUrl?: string | null;
+  intentCtaText?: string | null;
+  intentHasProductIds?: boolean;
+  diagnostic?: string | null;
 };
 
 // NOTE: `tags` column does NOT exist on products. Don't add it back.
