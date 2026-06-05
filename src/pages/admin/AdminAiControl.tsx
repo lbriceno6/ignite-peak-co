@@ -209,6 +209,10 @@ export default function AdminAiControl() {
           <AiPromptLab />
         </TabsContent>
 
+        <TabsContent value="diag-recent" className="pt-4">
+          <RecentlyViewedDiagnostic />
+        </TabsContent>
+
         <TabsContent value="blocks" className="space-y-4 pt-4">
           {rows.map((row) => {
             const meta = BLOCK_META[row.block_key as AiBlockKey] ?? { icon: Sparkles };
