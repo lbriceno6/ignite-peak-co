@@ -27,6 +27,9 @@ type Ctx = {
 };
 
 const CurrencyContext = createContext<Ctx | null>(null);
+// NOTE: localStorage keys keep the legacy "voltra.*" prefix on purpose
+// para no invalidar sesiones activas (carrito, moneda, referidos). Renombrar
+// a "nutribatidos.*" requeriría una migración con fallback de lectura.
 const STORAGE_KEY = "voltra.currency";
 const USER_CHOSE_KEY = "voltra.currency.userChose";
 
