@@ -7,7 +7,22 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Plus, Trash2, Save, Target } from "lucide-react";
+import { Plus, Trash2, Save, Target, Sparkles, Wand2, AlertTriangle } from "lucide-react";
+
+const CTA_SUGGESTIONS: Record<string, string> = {
+  energia: "/objetivo/energia",
+  colageno: "/categoria/colagenos",
+  fitness: "/objetivo/fitness",
+  digestion: "/objetivo/digestion",
+  articulaciones: "/objetivo/articulaciones",
+  bienestar: "/productos",
+  "masa-muscular": "/objetivo/masa-muscular",
+  "control-peso": "/objetivo/control-peso",
+  defensas: "/objetivo/defensas",
+  belleza: "/objetivo/belleza",
+};
+
+const PRIORITY_SLUGS = ["energia", "colageno", "fitness", "digestion", "articulaciones", "bienestar"];
 
 type Intent = {
   id: string;
