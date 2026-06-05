@@ -5,6 +5,8 @@
 //   - public.purchase_intents (Fase 1 - Home Inteligente IA)
 // Returns a structured result for the frontend to render.
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { callAI, safeJsonParse, type AIProvider } from "../_shared/ai-provider.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
