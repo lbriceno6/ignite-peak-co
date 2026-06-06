@@ -338,6 +338,34 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
           </DialogDescription>
         </DialogHeader>
 
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Modelo IA</Label>
+            <Select value={provider} onValueChange={(v) => setProvider(v as any)} disabled={running}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI (GPT-4o-mini)</SelectItem>
+                <SelectItem value="lovable">Lovable AI (Gemini)</SelectItem>
+                <SelectItem value="gemini">Gemini (key directa)</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Fallback si falla</Label>
+            <Select value={fallback} onValueChange={(v) => setFallback(v as any)} disabled={running}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin fallback</SelectItem>
+                <SelectItem value="lovable">Lovable AI</SelectItem>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="gemini">Gemini</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="grid gap-2 sm:grid-cols-2">
           {OPTIONS.map((o) => (
             <label key={o.key} className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40">
