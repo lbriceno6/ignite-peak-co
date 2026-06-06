@@ -231,11 +231,59 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
           {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Cargando…</div>}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setAiOpen(true)} disabled={!entityId}>
-              <Sparkles size={14} /> Generar SEO con IA
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setAiOpen(true)} disabled={!entityId}>
+                <Sparkles size={14} /> Generar SEO con IA
+              </Button>
+              {isProduct && (
+                <Button
+                  type="button"
+                  variant="dark"
+                  size="sm"
+                  onClick={autoFillMissing}
+                  disabled={!entityId || autoFilling || missing.length === 0}
+                >
+                  {autoFilling ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                  {missing.length === 0 ? "SEO 100/100" : `Completar faltantes para llegar a 100 (+${pointsToGo})`}
+                </Button>
+              )}
+            </div>
             {aiFaqs && <span className="text-xs text-emerald-600">{aiFaqs.length} FAQs listas para guardar</span>}
           </div>
+
+          {isProduct && (
+            <div className="rounded-md border bg-secondary/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Detalle del score
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {missing.length === 0 ? "Todo OK" : `Faltan ${pointsToGo} pts en ${missing.length} campo(s)`}
+                </div>
+              </div>
+              <ul className="grid gap-1 text-sm sm:grid-cols-2">
+                {breakdown.map((row) => (
+                  <li key={row.field} className="flex items-start gap-2">
+                    {row.ok
+                      ? <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-600" />
+                      : <AlertCircle size={14} className="mt-0.5 shrink-0 text-amber-600" />}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{row.label}</span>
+                        <span className="text-xs text-muted-foreground">{row.earned}/{row.weight}</span>
+                      </div>
+                      {!row.ok && (
+                        <div className="text-xs text-muted-foreground">
+                          {row.message} · <span className="italic">{row.fix}</span>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
 
           {/* Google snippet preview */}
           <div className="rounded-md border bg-secondary/30 p-3">
