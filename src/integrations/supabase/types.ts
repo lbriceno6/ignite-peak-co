@@ -2719,6 +2719,8 @@ export type Database = {
           size_variants: Json
           slug: string
           sort_order: number
+          source_domain: string | null
+          source_url: string | null
           stock: number
           subcategory: string | null
           subscription_discount_percent: number
@@ -2756,6 +2758,8 @@ export type Database = {
           size_variants?: Json
           slug: string
           sort_order?: number
+          source_domain?: string | null
+          source_url?: string | null
           stock?: number
           subcategory?: string | null
           subscription_discount_percent?: number
@@ -2793,6 +2797,8 @@ export type Database = {
           size_variants?: Json
           slug?: string
           sort_order?: number
+          source_domain?: string | null
+          source_url?: string | null
           stock?: number
           subcategory?: string | null
           subscription_discount_percent?: number
