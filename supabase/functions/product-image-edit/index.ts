@@ -15,11 +15,13 @@ const BACKGROUND_PROMPTS: Record<string, string> = {
 const FRAMING = `
 CATALOG FRAMING RULES (MANDATORY):
 - Output is a SQUARE 1:1 image, ecommerce catalog ready.
-- The product MUST be perfectly centered both horizontally and vertically.
+- The BACKGROUND MUST FILL THE ENTIRE CANVAS edge-to-edge. No inner frame, no border, no inset box, no second background, no rounded corners, no vignette ring. The background color/scene must reach all four edges of the image.
+- The product MUST be perfectly centered both horizontally and vertically on top of that full-bleed background.
 - The product MUST occupy approximately 70% to 80% of the canvas area.
 - Uniform safe margin around the product on all sides (do NOT crop, do NOT touch the edges).
 - Consistent scale across variants: if a different background is applied later, the product must remain the same size and position.
 - Do NOT zoom in, do NOT crop the label, do NOT cut the cap or base.
+- Do NOT render the product as a small picture sitting inside a larger box; the background IS the canvas.
 `;
 
 const PROTECTION = `
