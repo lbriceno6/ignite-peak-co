@@ -57,6 +57,7 @@ export default function ProductForm() {
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const [goalCards, setGoalCards] = useState<{ name: string; slug: string }[]>([]);
   const { mains: dynamicMains, getSubsByMainName } = useTaxonomy({ activeOnly: true });
   const mainCategories = dynamicMains.length > 0 ? dynamicMains.map((m) => m.name) : staticMains;
   const getSubcategories = (name?: string | null) => {
