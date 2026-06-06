@@ -54,7 +54,7 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
-  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden">("all");
+  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
