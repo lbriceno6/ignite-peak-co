@@ -58,6 +58,7 @@ export default function AdminProducts() {
   const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkAiOpen, setBulkAiOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
   const [stockValue, setStockValue] = useState<string>("10");
   const [searchParams] = useSearchParams();
