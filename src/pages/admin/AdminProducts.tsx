@@ -27,10 +27,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye, Sparkles } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
 import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
+import { BulkAiCompleteDialog } from "@/components/admin/BulkAiCompleteDialog";
 
 type VisibilityInfo = { visible: boolean; reasons: string[] };
 
@@ -57,6 +58,7 @@ export default function AdminProducts() {
   const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkAiOpen, setBulkAiOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
   const [stockValue, setStockValue] = useState<string>("10");
   const [searchParams] = useSearchParams();
@@ -264,9 +266,14 @@ export default function AdminProducts() {
           </SelectContent>
         </Select>
         {selected.size > 0 && (
-          <Button variant="dark" size="sm" onClick={() => setBulkOpen(true)}>
-            <CheckCircle2 size={14} className="mr-1" /> Publicar seleccionados ({selected.size})
-          </Button>
+          <>
+            <Button variant="dark" size="sm" onClick={() => setBulkOpen(true)}>
+              <CheckCircle2 size={14} className="mr-1" /> Publicar seleccionados ({selected.size})
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkAiOpen(true)}>
+              <Sparkles size={14} className="mr-1" /> Completar con IA ({selected.size})
+            </Button>
+          </>
         )}
       </div>
 
@@ -437,6 +444,13 @@ export default function AdminProducts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BulkAiCompleteDialog
+        open={bulkAiOpen}
+        onOpenChange={setBulkAiOpen}
+        products={items.filter((p) => selected.has(p.id))}
+        onDone={() => { setSelected(new Set()); load(); }}
+      />
     </div>
   );
 }
