@@ -104,35 +104,65 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const missing = productScore.missing;
   const pointsToGo = 100 - productScore.score;
 
+  const reloadSeo = async () => {
+    if (!entityId) return;
+    const [{ data: meta }, { data: altRows }] = await Promise.all([
+      supabase.from("seo_meta" as any).select("*").eq("entity_type", entityType).eq("entity_id", entityId).maybeSingle(),
+      supabase.from("seo_image_alts" as any).select("image_url, alt_text").eq("entity_type", entityType).eq("entity_id", entityId),
+    ]);
+    setF((meta as any) ?? { ...empty });
+    const m: Record<string, string> = {};
+    ((altRows as any[]) ?? []).forEach((r) => { m[r.image_url] = r.alt_text; });
+    setAlts(m);
+  };
+
   const autoFillMissing = async () => {
     if (!entityId) return;
     if (missing.length === 0) { toast.success("Ya tienes 100/100"); return; }
     setAutoFilling(true);
     try {
-      // image_alts is handled by the function as well
+      // protect_main: never modify product name, short/long description, price, stock o imagen principal
+      const safeMissing = missing.filter((m) => m !== "short_description" && m !== "long_description");
       const { data, error } = await supabase.functions.invoke("product-seo-generate", {
         body: {
           product_id: entityId,
           provider: "openai",
           level: "avanzado",
           overwrite_existing: true,
-          fields_to_generate: missing,
+          protect_main: true,
+          fields_to_generate: safeMissing.length ? safeMissing : ["seo_title", "seo_description"],
         },
       });
       if (error) throw error;
       if ((data as any)?.success === false) throw new Error((data as any).error ?? "Error IA");
       toast.success(`Completado: ${(data as any)?.score ?? "?"}/100`);
-      // reload
-      const [{ data: meta }, { data: altRows }] = await Promise.all([
-        supabase.from("seo_meta" as any).select("*").eq("entity_type", entityType).eq("entity_id", entityId).maybeSingle(),
-        supabase.from("seo_image_alts" as any).select("image_url, alt_text").eq("entity_type", entityType).eq("entity_id", entityId),
-      ]);
-      setF((meta as any) ?? { ...empty });
-      const m: Record<string, string> = {};
-      ((altRows as any[]) ?? []).forEach((r) => { m[r.image_url] = r.alt_text; });
-      setAlts(m);
+      await reloadSeo();
     } catch (e: any) {
       toast.error(e?.message ?? "No se pudo completar");
+    } finally {
+      setAutoFilling(false);
+    }
+  };
+
+  const fixTo100 = async () => {
+    if (!entityId) return;
+    setAutoFilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("product-seo-generate", {
+        body: {
+          product_id: entityId,
+          provider: "openai",
+          level: "avanzado",
+          fix_to_100: true,
+          protect_main: true,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any).error ?? "Error IA");
+      toast.success(`SEO corregido: ${(data as any)?.score ?? "?"}/100`);
+      await reloadSeo();
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo corregir");
     } finally {
       setAutoFilling(false);
     }
