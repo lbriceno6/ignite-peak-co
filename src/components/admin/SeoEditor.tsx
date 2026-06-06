@@ -7,8 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles } from "lucide-react";
-import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
+import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles, Wand2, CheckCircle2, AlertCircle } from "lucide-react";
+import { computeSeoScore, scoreBadgeClass, computeProductSeoScore, type ProductSeoField } from "@/lib/seoScore";
 import { slugify } from "@/lib/slug";
 import type { SeoEntityType, SeoMetaRow } from "@/hooks/useSeoMeta";
 import { SeoAiSuggestionDialog } from "@/components/admin/SeoAiSuggestionDialog";
@@ -20,6 +20,7 @@ type Props = {
   fallbackDescription?: string;
   fallbackSlug?: string;
   images?: string[];               // for alt editor
+  productName?: string;            // helps the product 100/100 rubric
 };
 
 const empty: Partial<SeoMetaRow> = {
