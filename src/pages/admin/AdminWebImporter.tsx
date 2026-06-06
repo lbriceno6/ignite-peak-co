@@ -180,7 +180,9 @@ export default function AdminWebImporter() {
         is_active: false,
         approval_status: "pending",
         stock: 0,
-      }).select("id").single();
+        source_url: p.source_url || null,
+        source_domain: p.source_domain || null,
+      } as never).select("id").single();
       if (error) { skipped++; continue; }
       await supabase.from("imported_products").update({ status: "imported", created_product_id: created.id }).eq("id", p.id);
       ok++;
