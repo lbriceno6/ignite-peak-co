@@ -479,7 +479,7 @@ const Home = () => {
               key: g.id,
               name: g.name,
               desc: g.description ?? "",
-              href: g.cta_href || `/category/goal-${g.slug}`,
+              href: `/category/goal-${g.slug}`,
               ctaLabel: g.cta_label,
             }))
           : fallbackGoals.map((g) => ({
