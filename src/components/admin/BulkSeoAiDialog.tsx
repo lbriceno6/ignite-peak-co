@@ -73,7 +73,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const updateRow = (id: string, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
-  const run = async () => {
+  const runWith = async (extraBody: Record<string, any>) => {
     setRunning(true);
     setDone(0);
     const selectedFields = (Object.keys(fields) as FieldKey[]).filter((k) => fields[k]);
@@ -88,6 +88,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             level,
             overwrite_existing: overwrite,
             fields_to_generate: selectedFields,
+            ...extraBody,
           },
         });
         if (error) {
@@ -120,6 +121,10 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     toast.success("SEO masivo completado");
     onDone();
   };
+
+  const run = () => runWith({});
+  const fixTo100 = () => runWith({ fix_to_100: true, protect_main: true });
+
 
   return (
     <Dialog open={open} onOpenChange={(v) => !running && onOpenChange(v)}>
