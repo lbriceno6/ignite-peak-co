@@ -72,7 +72,23 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const slug = f.slug || fallbackSlug || "";
 
   const imagesWithAlt = images.filter((u) => (alts[u] ?? "").trim().length > 0).length;
-  const { score, issues } = computeSeoScore({
+  const isProduct = entityType === "product";
+
+  const productScore = computeProductSeoScore({
+    productName: productName ?? fallbackTitle,
+    seoTitle: title, seoDescription: desc, slug,
+    canonical: f.canonical ?? "",
+    ogImage: f.og_image ?? "",
+    keywords: f.keywords ?? [],
+    tags: f.tags ?? [],
+    shoppingTitle: f.shopping_title ?? "",
+    shoppingDescription: f.shopping_description ?? "",
+    shortDescription: f.short_description ?? "",
+    longDescription: f.long_description ?? "",
+    imagesTotal: images.length, imagesWithAlt,
+  });
+
+  const legacy = computeSeoScore({
     title, description: desc, slug,
     keywords: f.keywords ?? [],
     ogImage: f.og_image ?? null,
@@ -81,6 +97,46 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
     hasShortDescription: !!(f.short_description ?? "").trim(),
     hasLongDescription: !!(f.long_description ?? "").trim(),
   });
+
+  const score = isProduct ? productScore.score : legacy.score;
+  const issues = legacy.issues;
+  const breakdown = productScore.breakdown;
+  const missing = productScore.missing;
+  const pointsToGo = 100 - productScore.score;
+
+  const autoFillMissing = async () => {
+    if (!entityId) return;
+    if (missing.length === 0) { toast.success("Ya tienes 100/100"); return; }
+    setAutoFilling(true);
+    try {
+      // image_alts is handled by the function as well
+      const { data, error } = await supabase.functions.invoke("product-seo-generate", {
+        body: {
+          product_id: entityId,
+          provider: "openai",
+          level: "avanzado",
+          overwrite_existing: true,
+          fields_to_generate: missing,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any).error ?? "Error IA");
+      toast.success(`Completado: ${(data as any)?.score ?? "?"}/100`);
+      // reload
+      const [{ data: meta }, { data: altRows }] = await Promise.all([
+        supabase.from("seo_meta" as any).select("*").eq("entity_type", entityType).eq("entity_id", entityId).maybeSingle(),
+        supabase.from("seo_image_alts" as any).select("image_url, alt_text").eq("entity_type", entityType).eq("entity_id", entityId),
+      ]);
+      setF((meta as any) ?? { ...empty });
+      const m: Record<string, string> = {};
+      ((altRows as any[]) ?? []).forEach((r) => { m[r.image_url] = r.alt_text; });
+      setAlts(m);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo completar");
+    } finally {
+      setAutoFilling(false);
+    }
+  };
 
   const save = async () => {
     if (!entityId) { toast.error("Guarda primero la entidad para poder asociar SEO"); return; }
