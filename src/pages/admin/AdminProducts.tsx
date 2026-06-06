@@ -275,6 +275,9 @@ export default function AdminProducts() {
             <Button variant="outline" size="sm" onClick={() => setBulkAiOpen(true)}>
               <Sparkles size={14} className="mr-1" /> Completar con IA ({selected.size})
             </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkSeoOpen(true)}>
+              <Search size={14} className="mr-1" /> Generar SEO con IA ({selected.size})
+            </Button>
           </>
         )}
       </div>
