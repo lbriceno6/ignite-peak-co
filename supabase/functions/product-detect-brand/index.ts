@@ -142,6 +142,8 @@ Deno.serve(async (req) => {
     }
 
     return json({
+      success: true,
+      provider: usedProvider,
       brand_name: brandName,
       confidence,
       matched_brand: matched ? { id: matched.id, name: matched.name, slug: matched.slug } : null,
