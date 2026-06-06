@@ -84,6 +84,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
   const [rows, setRows] = useState<RowState[]>([]);
   const [done, setDone] = useState(0);
   const [goalCards, setGoalCards] = useState<{ name: string; slug: string }[]>([]);
+  const [provider, setProvider] = useState<"openai" | "gemini" | "lovable" | "deepseek">("openai");
+  const [fallback, setFallback] = useState<"none" | "openai" | "gemini" | "lovable" | "deepseek">("lovable");
 
   useEffect(() => {
     if (!open) return;
