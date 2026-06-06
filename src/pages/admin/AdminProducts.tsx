@@ -155,6 +155,13 @@ export default function AdminProducts() {
   };
 
   const publishOne = async (p: any) => {
+    if (!p.price || Number(p.price) <= 0) {
+      return toast.error("Agrega un precio válido antes de publicar");
+    }
+    if (!p.category) {
+      const ok = confirm("Este producto no tiene categoría. ¿Publicar de todos modos?");
+      if (!ok) return;
+    }
     if (!Number(p.stock) || Number(p.stock) <= 0) {
       setStockValue("10");
       setStockDialog({ id: p.id, name: p.name });
@@ -163,8 +170,17 @@ export default function AdminProducts() {
     const { error } = await supabase.from("products")
       .update({ is_active: true, approval_status: "approved" }).eq("id", p.id);
     if (error) return toast.error(error.message);
-    toast.success("Producto publicado");
+    toast.success("Producto publicado. Ya es visible para los usuarios.");
     load();
+  };
+
+  const previewAsPublic = (p: any) => {
+    const vis = computeVisibility(p);
+    if (vis.visible) {
+      toast.success("Visible para admin y público.");
+    } else {
+      toast.warning(`Visible para admin, pero NO para público: ${vis.reasons.join(" · ")}`, { duration: 7000 });
+    }
   };
 
   const confirmStockAndPublish = async () => {
