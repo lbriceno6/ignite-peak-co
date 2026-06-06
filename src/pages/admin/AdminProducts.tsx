@@ -266,9 +266,14 @@ export default function AdminProducts() {
           </SelectContent>
         </Select>
         {selected.size > 0 && (
-          <Button variant="dark" size="sm" onClick={() => setBulkOpen(true)}>
-            <CheckCircle2 size={14} className="mr-1" /> Publicar seleccionados ({selected.size})
-          </Button>
+          <>
+            <Button variant="dark" size="sm" onClick={() => setBulkOpen(true)}>
+              <CheckCircle2 size={14} className="mr-1" /> Publicar seleccionados ({selected.size})
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setBulkAiOpen(true)}>
+              <Sparkles size={14} className="mr-1" /> Completar con IA ({selected.size})
+            </Button>
+          </>
         )}
       </div>
 
