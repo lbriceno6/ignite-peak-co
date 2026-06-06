@@ -86,6 +86,10 @@ export default function AdminProducts() {
       query = query.eq("is_active", true).eq("approval_status", "approved").gt("stock", 0);
     } else if (filter === "hidden") {
       query = query.or("is_active.eq.false,approval_status.neq.approved,stock.eq.0");
+    } else if (filter === "imported") {
+      query = query.not("source_url", "is", null);
+    } else if (filter === "no-stock") {
+      query = query.eq("stock", 0);
     }
     const { data, count, error } = await query;
     if (error) toast.error(error.message);
