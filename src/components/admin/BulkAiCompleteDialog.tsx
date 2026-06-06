@@ -246,7 +246,7 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
 
     // 5) Apply product update
     if (Object.keys(patch).length) {
-      const { error } = await supabase.from("products").update(patch).eq("id", p.id);
+      const { error } = await supabase.from("products").update(patch as any).eq("id", p.id);
       if (error) {
         updateRow(p.id, { status: "error", messages: [`Update: ${error.message}`], brand_suggestion: brandSuggestion });
         return;
@@ -283,7 +283,7 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
       const pubPatch: Record<string, any> = {};
       if (opts.publish_approve) pubPatch.approval_status = "approved";
       if (opts.publish_activate) pubPatch.is_active = true;
-      const { error } = await supabase.from("products").update(pubPatch).eq("id", p.id);
+      const { error } = await supabase.from("products").update(pubPatch as any).eq("id", p.id);
       if (error) {
         updateRow(p.id, { status: "error", messages: [`Publicar: ${error.message}`], brand_suggestion: brandSuggestion });
         return;
