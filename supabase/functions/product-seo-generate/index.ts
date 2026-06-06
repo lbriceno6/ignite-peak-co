@@ -47,17 +47,17 @@ function buildPrompt(product: any, level: Level, fields: FieldKey[]) {
 
 Tarea: ${tone}
 Genera SOLO los campos solicitados: ${fields.join(", ")}.
-Reglas duras:
-- seo_title: máx 60 chars, incluye nombre.
-- seo_description: 140-160 chars, comercial, sin claims médicos riesgosos.
-- slug: kebab-case, sin tildes, máx 60 chars, basado en nombre.
-- keywords: 3-8 palabras clave en español.
+Reglas duras (necesarias para llegar a SEO 100/100):
+- seo_title: 45-60 caracteres EXACTOS, debe incluir el nombre del producto.
+- seo_description: 130-160 caracteres EXACTOS, clara, comercial, natural, sin claims médicos.
+- slug: kebab-case, minúsculas, sin tildes ni caracteres especiales, máx 60 chars, basado en el nombre.
+- keywords: 5-8 palabras clave en español.
 - tags: 3-8 etiquetas (categoría, ingrediente, objetivo, beneficio).
-- shopping_title: máx 150 chars (producto + presentación + marca).
-- shopping_description: comercial, sin claims médicos.
-- short_description: máx 100 chars.
-- long_description: 2-4 párrafos, beneficios generales, uso si aplica.
-- image_alts: array por imagen {image_url, alt_text} 80-125 chars, incluye marca/presentación.
+- shopping_title: máx 150 chars, incluye producto + marca + presentación.
+- shopping_description: comercial, sin claims médicos prohibidos.
+- short_description: menos de 100 caracteres.
+- long_description: 2-4 párrafos, mínimo 120 caracteres, explica producto, beneficio general y forma de uso.
+- image_alts: array por imagen {image_url, alt_text}; cada alt 80-125 chars, debe describir producto, marca, presentación e ingrediente principal.
 No inventes datos que no existan; si falta marca/ingrediente, omite ese campo.
 Responde JSON puro.`;
 }
@@ -72,19 +72,49 @@ function trimTo(s: string | undefined, n: number) {
   return t.length <= n ? t : t.slice(0, n - 1).trim() + "…";
 }
 
-function computeScore(merged: any, imagesWithAlt: number, imagesTotal: number): number {
-  let score = 0;
-  const t = (merged.seo_title ?? "").trim();
-  if (t && t.length >= 30 && t.length <= 65) score += 25; else if (t) score += 12;
-  const d = (merged.seo_description ?? "").trim();
-  if (d && d.length >= 120 && d.length <= 170) score += 25; else if (d) score += 12;
-  if (merged.slug && /^[a-z0-9-]+$/.test(merged.slug)) score += 10;
-  if ((merged.keywords?.length ?? 0) >= 3) score += 10;
-  if (merged.og_image) score += 5;
-  if (imagesTotal > 0) score += Math.round((imagesWithAlt / imagesTotal) * 15);
-  if (merged.short_description && merged.long_description) score += 5;
-  if (merged.canonical) score += 5;
-  return Math.max(0, Math.min(100, score));
+const norm = (s: any) =>
+  String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+function computeScore(
+  merged: any, productName: string, imagesWithAlt: number, imagesTotal: number,
+): { score: number; complete: boolean } {
+  let s = 0;
+  const title = String(merged.seo_title ?? "").trim();
+  const firstName = norm(productName).split(" ")[0] ?? "";
+  if (title && title.length >= 45 && title.length <= 60 && (!firstName || norm(title).includes(firstName))) s += 12;
+
+  const desc = String(merged.seo_description ?? "").trim();
+  if (desc && desc.length >= 130 && desc.length <= 160) s += 12;
+
+  const slug = String(merged.slug ?? "").trim();
+  if (slug && /^[a-z0-9-]+$/.test(slug) && slug.length <= 75) s += 8;
+
+  const canonical = String(merged.canonical ?? "").trim();
+  if (canonical && (canonical.startsWith("/") || /^https?:\/\//.test(canonical))) s += 7;
+
+  if (merged.og_image) s += 7;
+
+  const kws = (Array.isArray(merged.keywords) ? merged.keywords : []).filter((x: any) => !!x);
+  if (kws.length >= 5 && kws.length <= 8) s += 8;
+
+  const tgs = (Array.isArray(merged.tags) ? merged.tags : []).filter((x: any) => !!x);
+  if (tgs.length >= 3) s += 8;
+
+  const sht = String(merged.shopping_title ?? "").trim();
+  if (sht && sht.length <= 150) s += 8;
+
+  if (String(merged.shopping_description ?? "").trim()) s += 8;
+
+  const sd = String(merged.short_description ?? "").trim();
+  if (sd && sd.length < 100) s += 7;
+
+  const ld = String(merged.long_description ?? "").trim();
+  if (ld && ld.length >= 120) s += 8;
+
+  if (imagesTotal === 0 || imagesWithAlt >= imagesTotal) s += 7;
+
+  const score = Math.max(0, Math.min(100, s));
+  return { score, complete: score >= 100 };
 }
 
 async function getOrigin(admin: any): Promise<string | null> {
@@ -278,12 +308,8 @@ Deno.serve(async (req) => {
     const altsByUrl = new Set(((altsRows as any[]) ?? []).filter((a) => !!a.alt_text).map((a) => a.image_url));
     const imagesWithAlt = images.filter((u) => altsByUrl.has(u)).length;
 
-    const isComplete = !!(
-      merged.seo_title && merged.seo_description && (merged.slug || product.slug) &&
-      merged.og_image && merged.short_description && merged.long_description &&
-      Array.isArray(merged.keywords) && merged.keywords.length >= 3 &&
-      (images.length === 0 || imagesWithAlt >= 1)
-    );
+    if (!merged.slug && product.slug) (merged as any).slug = product.slug;
+    const { score, complete: isComplete } = computeScore(merged, product.name ?? "", imagesWithAlt, images.length);
 
     if (requested.includes("noindex")) {
       const desired = !isComplete; // complete => false, else keep true
@@ -296,7 +322,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const score = computeScore(merged, imagesWithAlt, images.length);
     await admin.from("seo_meta").update({ score, last_analyzed_at: new Date().toISOString() } as any)
       .eq("entity_type", "product").eq("entity_id", product_id);
 

@@ -7,8 +7,8 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles } from "lucide-react";
-import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
+import { Loader2, Save, ChevronDown, ChevronUp, X, Sparkles, Wand2, CheckCircle2, AlertCircle } from "lucide-react";
+import { computeSeoScore, scoreBadgeClass, computeProductSeoScore, type ProductSeoField } from "@/lib/seoScore";
 import { slugify } from "@/lib/slug";
 import type { SeoEntityType, SeoMetaRow } from "@/hooks/useSeoMeta";
 import { SeoAiSuggestionDialog } from "@/components/admin/SeoAiSuggestionDialog";
@@ -20,6 +20,7 @@ type Props = {
   fallbackDescription?: string;
   fallbackSlug?: string;
   images?: string[];               // for alt editor
+  productName?: string;            // helps the product 100/100 rubric
 };
 
 const empty: Partial<SeoMetaRow> = {
@@ -31,7 +32,7 @@ const empty: Partial<SeoMetaRow> = {
   noindex: false,
 };
 
-export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescription, fallbackSlug, images = [] }: Props) => {
+export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescription, fallbackSlug, images = [], productName }: Props) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -41,6 +42,7 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const [tagInput, setTagInput] = useState("");
   const [aiOpen, setAiOpen] = useState(false);
   const [aiFaqs, setAiFaqs] = useState<{ question: string; answer: string }[] | null>(null);
+  const [autoFilling, setAutoFilling] = useState(false);
 
 
 
@@ -70,7 +72,23 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const slug = f.slug || fallbackSlug || "";
 
   const imagesWithAlt = images.filter((u) => (alts[u] ?? "").trim().length > 0).length;
-  const { score, issues } = computeSeoScore({
+  const isProduct = entityType === "product";
+
+  const productScore = computeProductSeoScore({
+    productName: productName ?? fallbackTitle,
+    seoTitle: title, seoDescription: desc, slug,
+    canonical: f.canonical ?? "",
+    ogImage: f.og_image ?? "",
+    keywords: f.keywords ?? [],
+    tags: f.tags ?? [],
+    shoppingTitle: f.shopping_title ?? "",
+    shoppingDescription: f.shopping_description ?? "",
+    shortDescription: f.short_description ?? "",
+    longDescription: f.long_description ?? "",
+    imagesTotal: images.length, imagesWithAlt,
+  });
+
+  const legacy = computeSeoScore({
     title, description: desc, slug,
     keywords: f.keywords ?? [],
     ogImage: f.og_image ?? null,
@@ -79,6 +97,46 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
     hasShortDescription: !!(f.short_description ?? "").trim(),
     hasLongDescription: !!(f.long_description ?? "").trim(),
   });
+
+  const score = isProduct ? productScore.score : legacy.score;
+  const issues = legacy.issues;
+  const breakdown = productScore.breakdown;
+  const missing = productScore.missing;
+  const pointsToGo = 100 - productScore.score;
+
+  const autoFillMissing = async () => {
+    if (!entityId) return;
+    if (missing.length === 0) { toast.success("Ya tienes 100/100"); return; }
+    setAutoFilling(true);
+    try {
+      // image_alts is handled by the function as well
+      const { data, error } = await supabase.functions.invoke("product-seo-generate", {
+        body: {
+          product_id: entityId,
+          provider: "openai",
+          level: "avanzado",
+          overwrite_existing: true,
+          fields_to_generate: missing,
+        },
+      });
+      if (error) throw error;
+      if ((data as any)?.success === false) throw new Error((data as any).error ?? "Error IA");
+      toast.success(`Completado: ${(data as any)?.score ?? "?"}/100`);
+      // reload
+      const [{ data: meta }, { data: altRows }] = await Promise.all([
+        supabase.from("seo_meta" as any).select("*").eq("entity_type", entityType).eq("entity_id", entityId).maybeSingle(),
+        supabase.from("seo_image_alts" as any).select("image_url, alt_text").eq("entity_type", entityType).eq("entity_id", entityId),
+      ]);
+      setF((meta as any) ?? { ...empty });
+      const m: Record<string, string> = {};
+      ((altRows as any[]) ?? []).forEach((r) => { m[r.image_url] = r.alt_text; });
+      setAlts(m);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo completar");
+    } finally {
+      setAutoFilling(false);
+    }
+  };
 
   const save = async () => {
     if (!entityId) { toast.error("Guarda primero la entidad para poder asociar SEO"); return; }
@@ -173,11 +231,59 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
           {loading && <div className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 size={14} className="animate-spin" /> Cargando…</div>}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setAiOpen(true)} disabled={!entityId}>
-              <Sparkles size={14} /> Generar SEO con IA
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setAiOpen(true)} disabled={!entityId}>
+                <Sparkles size={14} /> Generar SEO con IA
+              </Button>
+              {isProduct && (
+                <Button
+                  type="button"
+                  variant="dark"
+                  size="sm"
+                  onClick={autoFillMissing}
+                  disabled={!entityId || autoFilling || missing.length === 0}
+                >
+                  {autoFilling ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+                  {missing.length === 0 ? "SEO 100/100" : `Completar faltantes para llegar a 100 (+${pointsToGo})`}
+                </Button>
+              )}
+            </div>
             {aiFaqs && <span className="text-xs text-emerald-600">{aiFaqs.length} FAQs listas para guardar</span>}
           </div>
+
+          {isProduct && (
+            <div className="rounded-md border bg-secondary/30 p-3">
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Detalle del score
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {missing.length === 0 ? "Todo OK" : `Faltan ${pointsToGo} pts en ${missing.length} campo(s)`}
+                </div>
+              </div>
+              <ul className="grid gap-1 text-sm sm:grid-cols-2">
+                {breakdown.map((row) => (
+                  <li key={row.field} className="flex items-start gap-2">
+                    {row.ok
+                      ? <CheckCircle2 size={14} className="mt-0.5 shrink-0 text-emerald-600" />
+                      : <AlertCircle size={14} className="mt-0.5 shrink-0 text-amber-600" />}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{row.label}</span>
+                        <span className="text-xs text-muted-foreground">{row.earned}/{row.weight}</span>
+                      </div>
+                      {!row.ok && (
+                        <div className="text-xs text-muted-foreground">
+                          {row.message} · <span className="italic">{row.fix}</span>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
 
           {/* Google snippet preview */}
           <div className="rounded-md border bg-secondary/30 p-3">
@@ -282,7 +388,7 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
             </div>
           )}
 
-          {issues.length > 0 && (
+          {!isProduct && issues.length > 0 && (
             <div className="rounded-md border bg-secondary/30 p-3">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sugerencias</div>
               <ul className="space-y-1 text-sm">
