@@ -64,7 +64,9 @@ export default function AdminProducts() {
   // Read ?filter=drafts from URL (used by importer "Ir a borradores")
   useEffect(() => {
     const f = searchParams.get("filter");
-    if (f === "drafts" || f === "visible" || f === "hidden") setFilter(f);
+    const s = searchParams.get("status");
+    if (f === "drafts" || f === "visible" || f === "hidden" || f === "imported" || f === "no-stock") setFilter(f);
+    else if (s === "pending") setFilter("drafts");
   }, [searchParams]);
 
   const load = async () => {
