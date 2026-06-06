@@ -32,7 +32,7 @@ const empty: Partial<SeoMetaRow> = {
   noindex: false,
 };
 
-export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescription, fallbackSlug, images = [] }: Props) => {
+export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescription, fallbackSlug, images = [], productName }: Props) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
