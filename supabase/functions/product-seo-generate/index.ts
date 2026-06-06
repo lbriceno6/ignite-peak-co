@@ -148,10 +148,20 @@ Deno.serve(async (req) => {
     const product_id: string = body.product_id;
     const provider: AIProvider = (body.provider ?? "openai") as AIProvider;
     const level: Level = (body.level ?? "equilibrado") as Level;
-    const overwrite: boolean = !!body.overwrite_existing;
-    const requested: FieldKey[] = Array.isArray(body.fields_to_generate) && body.fields_to_generate.length
+    let overwrite: boolean = !!body.overwrite_existing;
+    // protect_main: never touch fields that mirror the main product content
+    // (short_description, long_description). Defaults true when fix_to_100.
+    const fix_to_100: boolean = !!body.fix_to_100;
+    const protect_main: boolean =
+      typeof body.protect_main === "boolean" ? body.protect_main : fix_to_100;
+
+    let requested: FieldKey[] = Array.isArray(body.fields_to_generate) && body.fields_to_generate.length
       ? body.fields_to_generate as FieldKey[]
       : ALL_FIELDS;
+
+    if (protect_main) {
+      requested = requested.filter((f) => f !== "short_description" && f !== "long_description");
+    }
 
     if (!product_id) return json({ success: false, error: "Falta product_id" }, 400);
 
@@ -179,6 +189,37 @@ Deno.serve(async (req) => {
         default: return !!seoExisting[f];
       }
     };
+
+    // fix_to_100: regenerate ONLY the SEO fields that currently fail length /
+    // quality rules. Never touches main product content (name, description,
+    // price, stock, image). Forces overwrite on broken SEO fields only.
+    if (fix_to_100) {
+      const firstName = norm(product.name ?? "").split(" ")[0] ?? "";
+      const t = String(seoExisting.seo_title ?? "").trim();
+      const d = String(seoExisting.seo_description ?? "").trim();
+      const sl = String(seoExisting.slug ?? "").trim();
+      const sht = String(seoExisting.shopping_title ?? "").trim();
+      const shd = String(seoExisting.shopping_description ?? "").trim();
+      const kws = Array.isArray(seoExisting.keywords) ? seoExisting.keywords : [];
+      const tgs = Array.isArray(seoExisting.tags) ? seoExisting.tags : [];
+
+      const broken: FieldKey[] = [];
+      if (!t || t.length < 45 || t.length > 60 || (firstName && !norm(t).includes(firstName))) broken.push("seo_title");
+      if (!d || d.length < 130 || d.length > 160) broken.push("seo_description");
+      if (!sl || !/^[a-z0-9-]+$/.test(sl)) broken.push("slug");
+      if (!sht || sht.length > 150) broken.push("shopping_title");
+      if (!shd) broken.push("shopping_description");
+      if (kws.length < 5 || kws.length > 8) broken.push("keywords");
+      if (tgs.length < 3) broken.push("tags");
+      if (!seoExisting.canonical) broken.push("canonical");
+      if (!seoExisting.og_image) broken.push("og_image");
+      broken.push("image_alts");
+      broken.push("noindex");
+
+      requested = broken;
+      overwrite = true; // only the broken SEO fields are regenerated
+    }
+
     const fieldsToAsk = requested.filter((f) =>
       f === "noindex" || f === "canonical" || f === "og_image"
         ? false // computed locally
