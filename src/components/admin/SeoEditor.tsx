@@ -277,6 +277,20 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
                   {missing.length === 0 ? "SEO 100/100" : `Completar faltantes para llegar a 100 (+${pointsToGo})`}
                 </Button>
               )}
+              {isProduct && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={fixTo100}
+                  disabled={!entityId || autoFilling}
+                  title="Reescribe solo los campos SEO mal optimizados (sin tocar nombre, descripción principal, precio, stock ni imagen)"
+                >
+                  {autoFilling ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
+                  Corregir SEO para 100/100
+                </Button>
+              )}
+
             </div>
             {aiFaqs && <span className="text-xs text-emerald-600">{aiFaqs.length} FAQs listas para guardar</span>}
           </div>
