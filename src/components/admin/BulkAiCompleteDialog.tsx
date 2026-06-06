@@ -177,10 +177,14 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
     if (opts.detect_brand && (p.main_image || mainImage)) {
       try {
         const { data, error } = await supabase.functions.invoke("product-detect-brand", {
-          body: { image_url: mainImage || p.main_image },
+          body: {
+            image_url: mainImage || p.main_image,
+            provider: provider === "openai" ? "openai" : "lovable",
+            fallback: fallback === "none" ? undefined : (fallback === "openai" ? "openai" : "lovable"),
+          },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-detect-brand [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin marca");
         const brandName: string = (data as any).brand_name || "";
         const confidence: number = (data as any).confidence || 0;
         const matched = (data as any).matched_brand;
