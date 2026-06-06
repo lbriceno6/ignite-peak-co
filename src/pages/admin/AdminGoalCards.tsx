@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowUp, ArrowDown, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
+import { ArrowUp, ArrowDown, Eye, EyeOff, Plus, Trash2, Wand2, RefreshCw, AlertTriangle, Link2 } from "lucide-react";
+import { goalHref, isAutoGoalHref, normalizeGoal, suggestSpanishSlug } from "@/lib/goalLinks";
 
 type Goal = {
   id: string;
@@ -22,11 +23,25 @@ type Goal = {
 export default function AdminGoalCards() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productCounts, setProductCounts] = useState<Record<string, { bySlug: number; byName: number }>>({});
+  const [syncing, setSyncing] = useState(false);
 
   const load = async () => {
     setLoading(true);
     const { data } = await supabase.from("goal_cards").select("*").order("sort_order").order("created_at");
-    setGoals((data as Goal[]) ?? []);
+    const list = (data as Goal[]) ?? [];
+    setGoals(list);
+
+    // Diagnóstico: contar productos por slug y por nombre visible
+    const counts: Record<string, { bySlug: number; byName: number }> = {};
+    await Promise.all(list.map(async (g) => {
+      const [bySlug, byName] = await Promise.all([
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("goal", g.slug),
+        supabase.from("products").select("id", { count: "exact", head: true }).eq("goal", g.name),
+      ]);
+      counts[g.id] = { bySlug: bySlug.count ?? 0, byName: byName.count ?? 0 };
+    }));
+    setProductCounts(counts);
     setLoading(false);
   };
 
@@ -48,10 +63,36 @@ export default function AdminGoalCards() {
     const nextOrder = (goals[goals.length - 1]?.sort_order ?? 0) + 1;
     const slug = `objetivo-${Date.now()}`;
     const { error } = await supabase.from("goal_cards").insert({
-      slug, name: "Nuevo objetivo", description: "Descripción breve del objetivo.", cta_label: "Ver productos", cta_href: "/productos", sort_order: nextOrder,
+      slug, name: "Nuevo objetivo", description: "Descripción breve del objetivo.",
+      cta_label: "Ver productos", cta_href: goalHref(slug), sort_order: nextOrder,
     });
     if (error) toast.error(error.message);
     else { toast.success("Objetivo agregado"); load(); }
+  };
+
+  // Sincroniza products.goal: convierte "Desarrollar músculo" → "desarrollar-musculo"
+  const syncProducts = async () => {
+    if (!confirm("Normalizar el campo 'objetivo' de los productos para que coincida con el slug de cada Goal card. ¿Continuar?")) return;
+    setSyncing(true);
+    try {
+      const { data: products } = await supabase.from("products").select("id, goal").not("goal", "is", null);
+      const rows = (products as { id: string; goal: string | null }[] | null) ?? [];
+      let updated = 0;
+      for (const p of rows) {
+        if (!p.goal) continue;
+        const norm = normalizeGoal(p.goal);
+        const match = goals.find((g) =>
+          g.slug === p.goal || g.slug === norm || normalizeGoal(g.name) === norm
+        );
+        if (match && match.slug !== p.goal) {
+          const { error } = await supabase.from("products").update({ goal: match.slug }).eq("id", p.id);
+          if (!error) updated++;
+        }
+      }
+      toast.success(`Sincronización completa. ${updated} producto(s) actualizado(s).`);
+      load();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setSyncing(false); }
   };
 
   return (
@@ -59,9 +100,14 @@ export default function AdminGoalCards() {
       <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl">Objetivos de compra</h1>
-          <p className="text-muted-foreground">Edita las tarjetas de objetivos que aparecen en el Home.</p>
+          <p className="text-muted-foreground">Edita las tarjetas de objetivos que aparecen en el Home. La URL se genera automáticamente desde el slug.</p>
         </div>
-        <Button variant="dark" onClick={addNew}><Plus size={16} /> Agregar objetivo</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={syncProducts} disabled={syncing}>
+            <RefreshCw size={16} className={syncing ? "animate-spin" : ""} /> Sincronizar productos con objetivos
+          </Button>
+          <Button variant="dark" onClick={addNew}><Plus size={16} /> Agregar objetivo</Button>
+        </div>
       </div>
 
       {loading ? (
@@ -75,6 +121,7 @@ export default function AdminGoalCards() {
               isFirst={i === 0}
               isLast={i === goals.length - 1}
               position={i + 1}
+              counts={productCounts[g.id]}
               onChanged={load}
               onMoveUp={() => move(g.id, -1)}
               onMoveDown={() => move(g.id, 1)}
@@ -87,24 +134,50 @@ export default function AdminGoalCards() {
 }
 
 function GoalEditor({
-  goal, isFirst, isLast, position, onChanged, onMoveUp, onMoveDown,
+  goal, isFirst, isLast, position, counts, onChanged, onMoveUp, onMoveDown,
 }: {
   goal: Goal; isFirst: boolean; isLast: boolean; position: number;
+  counts?: { bySlug: number; byName: number };
   onChanged: () => void; onMoveUp: () => void; onMoveDown: () => void;
 }) {
   const [f, setF] = useState<Goal>(goal);
   const [saving, setSaving] = useState(false);
+  const autoMode = useMemo(() => isAutoGoalHref(f.cta_href, f.slug), [f.cta_href, f.slug]);
+  const [useCustomUrl, setUseCustomUrl] = useState(!autoMode);
 
-  useEffect(() => { setF(goal); }, [goal]);
+  useEffect(() => { setF(goal); setUseCustomUrl(!isAutoGoalHref(goal.cta_href, goal.slug)); }, [goal]);
   const set = (k: keyof Goal, v: any) => setF((p) => ({ ...p, [k]: v }));
   const dirty = JSON.stringify(f) !== JSON.stringify(goal);
 
+  const onNameChange = (name: string) => {
+    setF((p) => {
+      const isSlugTouched = p.slug && p.slug !== suggestSpanishSlug(p.name);
+      const newSlug = isSlugTouched ? p.slug : suggestSpanishSlug(name);
+      const newHref = !useCustomUrl ? goalHref(newSlug) : p.cta_href;
+      return { ...p, name, slug: newSlug, cta_href: newHref };
+    });
+  };
+
+  const onSlugChange = (slug: string) => {
+    const cleaned = suggestSpanishSlug(slug);
+    setF((p) => ({ ...p, slug: cleaned, cta_href: !useCustomUrl ? goalHref(cleaned) : p.cta_href }));
+  };
+
+  const applyAutoUrl = () => {
+    setUseCustomUrl(false);
+    set("cta_href", goalHref(f.slug));
+  };
+
   const save = async () => {
+    if (!f.slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(f.slug)) {
+      return toast.error("Slug inválido. Usa minúsculas, números y guiones (ej: desarrollar-musculo).");
+    }
     setSaving(true);
     try {
+      const finalHref = useCustomUrl ? (f.cta_href || goalHref(f.slug)) : goalHref(f.slug);
       const { error } = await supabase.from("goal_cards").update({
         name: f.name, description: f.description, slug: f.slug,
-        cta_label: f.cta_label, cta_href: f.cta_href, is_active: f.is_active,
+        cta_label: f.cta_label, cta_href: finalHref, is_active: f.is_active,
       }).eq("id", goal.id);
       if (error) throw error;
       toast.success("Objetivo guardado");
@@ -125,6 +198,9 @@ function GoalEditor({
     if (error) toast.error(error.message);
     else { toast.success("Eliminado"); onChanged(); }
   };
+
+  const totalProducts = (counts?.bySlug ?? 0) + (counts?.byName ?? 0);
+  const slugEnIngles = /^(build|lose|burn|gain|boost|improve)-/.test(f.slug);
 
   return (
     <div className={`rounded-lg border bg-background p-5 ${!f.is_active ? "opacity-60" : ""}`}>
@@ -148,11 +224,21 @@ function GoalEditor({
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <Label className="text-xs">Título</Label>
-            <Input value={f.name} onChange={(e) => set("name", e.target.value)} />
+            <Input value={f.name} onChange={(e) => onNameChange(e.target.value)} />
           </div>
           <div>
             <Label className="text-xs">Slug (se usa en la URL)</Label>
-            <Input value={f.slug} onChange={(e) => set("slug", e.target.value)} />
+            <div className="flex gap-2">
+              <Input value={f.slug} onChange={(e) => onSlugChange(e.target.value)} />
+              <Button type="button" variant="outline" size="sm" onClick={() => onSlugChange(suggestSpanishSlug(f.name))} title="Sugerir slug en español">
+                <Wand2 size={14} />
+              </Button>
+            </div>
+            {slugEnIngles && (
+              <p className="mt-1 flex items-center gap-1 text-xs text-amber-600">
+                <AlertTriangle size={12} /> Slug en inglés. Recomendado: usar español (ej: desarrollar-musculo).
+              </p>
+            )}
           </div>
         </div>
         <div>
@@ -160,14 +246,56 @@ function GoalEditor({
           <Textarea rows={2} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} />
         </div>
         <div className="rounded-md border bg-muted/30 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Botón</p>
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Botón</p>
+            <label className="flex items-center gap-2 text-xs">
+              <Switch checked={useCustomUrl} onCheckedChange={(v) => { setUseCustomUrl(v); if (!v) set("cta_href", goalHref(f.slug)); }} />
+              Usar URL personalizada
+            </label>
+          </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <Input placeholder="Texto (ej: Ver productos)" value={f.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} />
-            <Input placeholder="URL (ej: /productos?goal=energia)" value={f.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} />
+            <div className="flex gap-2">
+              <Input
+                placeholder={goalHref(f.slug || "slug")}
+                value={useCustomUrl ? (f.cta_href ?? "") : goalHref(f.slug)}
+                disabled={!useCustomUrl}
+                onChange={(e) => set("cta_href", e.target.value)}
+              />
+              {useCustomUrl && (
+                <Button type="button" variant="outline" size="sm" onClick={applyAutoUrl} title="Usar URL automática">
+                  <Link2 size={14} />
+                </Button>
+              )}
+            </div>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            URL automática: <code>{goalHref(f.slug || "slug")}</code>
+          </p>
         </div>
+
+        {/* Diagnóstico de productos */}
+        <div className="rounded-md border bg-muted/20 p-3 text-xs">
+          <div className="font-semibold uppercase tracking-wide text-muted-foreground mb-1">Diagnóstico</div>
+          <div className="grid gap-1 sm:grid-cols-2">
+            <span>Slug actual: <code>{goal.slug}</code></span>
+            <span>URL: <code>{goalHref(goal.slug)}</code></span>
+            <span>Productos con <code>goal = {goal.slug}</code>: <b>{counts?.bySlug ?? 0}</b></span>
+            <span>Productos con <code>goal = "{goal.name}"</code>: <b>{counts?.byName ?? 0}</b></span>
+          </div>
+          {totalProducts === 0 ? (
+            <p className="mt-2 flex items-center gap-1 text-amber-600">
+              <AlertTriangle size={12} /> No hay productos conectados a este objetivo.
+            </p>
+          ) : (counts?.byName ?? 0) > 0 ? (
+            <p className="mt-2 flex items-center gap-1 text-amber-600">
+              <AlertTriangle size={12} /> Hay productos guardados con el texto visible. Usa "Sincronizar productos" para migrarlos al slug.
+            </p>
+          ) : null}
+        </div>
+
         <div className="flex items-center justify-end gap-2 pt-1">
-          <Button variant="outline" onClick={() => setF(goal)} disabled={!dirty || saving}>Descartar</Button>
+          <Button variant="outline" onClick={() => { setF(goal); setUseCustomUrl(!isAutoGoalHref(goal.cta_href, goal.slug)); }} disabled={!dirty || saving}>Descartar</Button>
           <Button variant="dark" onClick={save} disabled={!dirty || saving}>{saving ? "Guardando…" : "Guardar"}</Button>
         </div>
       </div>
