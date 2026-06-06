@@ -199,10 +199,11 @@ export default function AdminProducts() {
   const bulkPublish = async () => {
     const ids = Array.from(selected);
     if (!ids.length) return;
-    // Set stock=1 only if current stock is 0
     const targets = items.filter((p) => ids.includes(p.id));
-    const needStock = targets.filter((p) => !Number(p.stock) || Number(p.stock) <= 0);
-    const fullyReady = targets.filter((p) => Number(p.stock) > 0);
+    const invalidPrice = targets.filter((p) => !p.price || Number(p.price) <= 0);
+    const eligible = targets.filter((p) => p.price && Number(p.price) > 0);
+    const needStock = eligible.filter((p) => !Number(p.stock) || Number(p.stock) <= 0);
+    const fullyReady = eligible.filter((p) => Number(p.stock) > 0);
     let ok = 0;
     if (fullyReady.length) {
       const { error } = await supabase.from("products")
@@ -216,7 +217,10 @@ export default function AdminProducts() {
         .in("id", needStock.map((p) => p.id));
       if (!error) ok += needStock.length;
     }
-    toast.success(`${ok} producto(s) publicado(s)${needStock.length ? ` · ${needStock.length} con stock=1 por defecto` : ""}`);
+    const parts: string[] = [`${ok} producto(s) publicado(s)`];
+    if (needStock.length) parts.push(`${needStock.length} con stock=1 por defecto`);
+    if (invalidPrice.length) parts.push(`${invalidPrice.length} omitidos por precio inválido`);
+    toast.success(parts.join(" · "));
     setSelected(new Set());
     setBulkOpen(false);
     load();
