@@ -46,26 +46,26 @@ export default function AdminGoalCards() {
 
   const addNew = async () => {
     const nextOrder = (goals[goals.length - 1]?.sort_order ?? 0) + 1;
-    const slug = `goal-${Date.now()}`;
+    const slug = `objetivo-${Date.now()}`;
     const { error } = await supabase.from("goal_cards").insert({
-      slug, name: "New goal", description: "Short description", cta_label: "Shop", cta_href: "/", sort_order: nextOrder,
+      slug, name: "Nuevo objetivo", description: "Descripción breve del objetivo.", cta_label: "Ver productos", cta_href: "/productos", sort_order: nextOrder,
     });
     if (error) toast.error(error.message);
-    else { toast.success("Goal card added"); load(); }
+    else { toast.success("Objetivo agregado"); load(); }
   };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl">Goal cards</h1>
-          <p className="text-muted-foreground">Edit the “Shop by goal” cards on the home page.</p>
+          <h1 className="font-display text-3xl">Objetivos de compra</h1>
+          <p className="text-muted-foreground">Edita las tarjetas de objetivos que aparecen en el Home.</p>
         </div>
-        <Button variant="dark" onClick={addNew}><Plus size={16} /> Add card</Button>
+        <Button variant="dark" onClick={addNew}><Plus size={16} /> Agregar objetivo</Button>
       </div>
 
       {loading ? (
-        <p className="text-muted-foreground">Loading…</p>
+        <p className="text-muted-foreground">Cargando…</p>
       ) : (
         <div className="space-y-4">
           {goals.map((g, i) => (
@@ -107,7 +107,7 @@ function GoalEditor({
         cta_label: f.cta_label, cta_href: f.cta_href, is_active: f.is_active,
       }).eq("id", goal.id);
       if (error) throw error;
-      toast.success("Card saved");
+      toast.success("Objetivo guardado");
       onChanged();
     } catch (e: any) { toast.error(e.message); }
     finally { setSaving(false); }
@@ -120,10 +120,10 @@ function GoalEditor({
   };
 
   const remove = async () => {
-    if (!confirm("Delete this goal card?")) return;
+    if (!confirm("¿Eliminar este objetivo?")) return;
     const { error } = await supabase.from("goal_cards").delete().eq("id", goal.id);
     if (error) toast.error(error.message);
-    else { toast.success("Deleted"); onChanged(); }
+    else { toast.success("Eliminado"); onChanged(); }
   };
 
   return (
@@ -131,44 +131,44 @@ function GoalEditor({
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-3">
           <span className="rounded-md bg-muted px-2 py-1 text-xs font-semibold tabular-nums">#{position}</span>
-          <p className="font-display text-lg leading-tight">{f.name || "Untitled"}</p>
+          <p className="font-display text-lg leading-tight">{f.name || "Sin título"}</p>
         </div>
         <div className="flex items-center gap-1">
           <div className="mr-2 flex items-center gap-2">
             {f.is_active ? <Eye size={14} className="text-muted-foreground" /> : <EyeOff size={14} className="text-muted-foreground" />}
             <Switch checked={f.is_active} onCheckedChange={toggleActive} />
           </div>
-          <Button variant="ghost" size="icon" onClick={onMoveUp} disabled={isFirst} aria-label="Move up"><ArrowUp size={16} /></Button>
-          <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast} aria-label="Move down"><ArrowDown size={16} /></Button>
-          <Button variant="ghost" size="icon" onClick={remove} aria-label="Delete"><Trash2 size={16} /></Button>
+          <Button variant="ghost" size="icon" onClick={onMoveUp} disabled={isFirst} aria-label="Subir"><ArrowUp size={16} /></Button>
+          <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={isLast} aria-label="Bajar"><ArrowDown size={16} /></Button>
+          <Button variant="ghost" size="icon" onClick={remove} aria-label="Eliminar"><Trash2 size={16} /></Button>
         </div>
       </div>
 
       <div className="grid gap-3">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <Label className="text-xs">Title</Label>
+            <Label className="text-xs">Título</Label>
             <Input value={f.name} onChange={(e) => set("name", e.target.value)} />
           </div>
           <div>
-            <Label className="text-xs">Slug (used for the URL)</Label>
+            <Label className="text-xs">Slug (se usa en la URL)</Label>
             <Input value={f.slug} onChange={(e) => set("slug", e.target.value)} />
           </div>
         </div>
         <div>
-          <Label className="text-xs">Subtitle / description</Label>
+          <Label className="text-xs">Subtítulo / descripción</Label>
           <Textarea rows={2} value={f.description ?? ""} onChange={(e) => set("description", e.target.value)} />
         </div>
         <div className="rounded-md border bg-muted/30 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Button</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Botón</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <Input placeholder="Label (e.g. Shop)" value={f.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} />
-            <Input placeholder="URL (e.g. /category/goal-build-muscle)" value={f.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} />
+            <Input placeholder="Texto (ej: Ver productos)" value={f.cta_label ?? ""} onChange={(e) => set("cta_label", e.target.value)} />
+            <Input placeholder="URL (ej: /productos?goal=energia)" value={f.cta_href ?? ""} onChange={(e) => set("cta_href", e.target.value)} />
           </div>
         </div>
         <div className="flex items-center justify-end gap-2 pt-1">
-          <Button variant="outline" onClick={() => setF(goal)} disabled={!dirty || saving}>Discard</Button>
-          <Button variant="dark" onClick={save} disabled={!dirty || saving}>{saving ? "Saving…" : "Save card"}</Button>
+          <Button variant="outline" onClick={() => setF(goal)} disabled={!dirty || saving}>Descartar</Button>
+          <Button variant="dark" onClick={save} disabled={!dirty || saving}>{saving ? "Guardando…" : "Guardar"}</Button>
         </div>
       </div>
     </div>
