@@ -185,7 +185,20 @@ export default function AdminWebImporter() {
       await supabase.from("imported_products").update({ status: "imported", created_product_id: created.id }).eq("id", p.id);
       ok++;
     }
-    toast.success(`Importados ${ok}${skipped ? `, omitidos ${skipped}` : ""} como borradores`);
+    if (ok > 0) {
+      toast.success(
+        `Importados ${ok}${skipped ? `, omitidos ${skipped}` : ""} como borradores. Para publicarlos debes activarlos, aprobarlos y asignar stock.`,
+        {
+          duration: 8000,
+          action: {
+            label: "Revisar borradores",
+            onClick: () => { window.location.href = "/admin/products?filter=drafts"; },
+          },
+        },
+      );
+    } else if (skipped > 0) {
+      toast.error(`No se importó nada. Omitidos: ${skipped}`);
+    }
     setSelected(new Set());
     await refresh();
   };
