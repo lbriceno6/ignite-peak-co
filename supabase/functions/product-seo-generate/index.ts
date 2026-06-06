@@ -47,17 +47,17 @@ function buildPrompt(product: any, level: Level, fields: FieldKey[]) {
 
 Tarea: ${tone}
 Genera SOLO los campos solicitados: ${fields.join(", ")}.
-Reglas duras:
-- seo_title: máx 60 chars, incluye nombre.
-- seo_description: 140-160 chars, comercial, sin claims médicos riesgosos.
-- slug: kebab-case, sin tildes, máx 60 chars, basado en nombre.
-- keywords: 3-8 palabras clave en español.
+Reglas duras (necesarias para llegar a SEO 100/100):
+- seo_title: 45-60 caracteres EXACTOS, debe incluir el nombre del producto.
+- seo_description: 130-160 caracteres EXACTOS, clara, comercial, natural, sin claims médicos.
+- slug: kebab-case, minúsculas, sin tildes ni caracteres especiales, máx 60 chars, basado en el nombre.
+- keywords: 5-8 palabras clave en español.
 - tags: 3-8 etiquetas (categoría, ingrediente, objetivo, beneficio).
-- shopping_title: máx 150 chars (producto + presentación + marca).
-- shopping_description: comercial, sin claims médicos.
-- short_description: máx 100 chars.
-- long_description: 2-4 párrafos, beneficios generales, uso si aplica.
-- image_alts: array por imagen {image_url, alt_text} 80-125 chars, incluye marca/presentación.
+- shopping_title: máx 150 chars, incluye producto + marca + presentación.
+- shopping_description: comercial, sin claims médicos prohibidos.
+- short_description: menos de 100 caracteres.
+- long_description: 2-4 párrafos, mínimo 120 caracteres, explica producto, beneficio general y forma de uso.
+- image_alts: array por imagen {image_url, alt_text}; cada alt 80-125 chars, debe describir producto, marca, presentación e ingrediente principal.
 No inventes datos que no existan; si falta marca/ingrediente, omite ese campo.
 Responde JSON puro.`;
 }
