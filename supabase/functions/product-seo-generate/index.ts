@@ -72,19 +72,49 @@ function trimTo(s: string | undefined, n: number) {
   return t.length <= n ? t : t.slice(0, n - 1).trim() + "…";
 }
 
-function computeScore(merged: any, imagesWithAlt: number, imagesTotal: number): number {
-  let score = 0;
-  const t = (merged.seo_title ?? "").trim();
-  if (t && t.length >= 30 && t.length <= 65) score += 25; else if (t) score += 12;
-  const d = (merged.seo_description ?? "").trim();
-  if (d && d.length >= 120 && d.length <= 170) score += 25; else if (d) score += 12;
-  if (merged.slug && /^[a-z0-9-]+$/.test(merged.slug)) score += 10;
-  if ((merged.keywords?.length ?? 0) >= 3) score += 10;
-  if (merged.og_image) score += 5;
-  if (imagesTotal > 0) score += Math.round((imagesWithAlt / imagesTotal) * 15);
-  if (merged.short_description && merged.long_description) score += 5;
-  if (merged.canonical) score += 5;
-  return Math.max(0, Math.min(100, score));
+const norm = (s: any) =>
+  String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+function computeScore(
+  merged: any, productName: string, imagesWithAlt: number, imagesTotal: number,
+): { score: number; complete: boolean } {
+  let s = 0;
+  const title = String(merged.seo_title ?? "").trim();
+  const firstName = norm(productName).split(" ")[0] ?? "";
+  if (title && title.length >= 45 && title.length <= 60 && (!firstName || norm(title).includes(firstName))) s += 12;
+
+  const desc = String(merged.seo_description ?? "").trim();
+  if (desc && desc.length >= 130 && desc.length <= 160) s += 12;
+
+  const slug = String(merged.slug ?? "").trim();
+  if (slug && /^[a-z0-9-]+$/.test(slug) && slug.length <= 75) s += 8;
+
+  const canonical = String(merged.canonical ?? "").trim();
+  if (canonical && (canonical.startsWith("/") || /^https?:\/\//.test(canonical))) s += 7;
+
+  if (merged.og_image) s += 7;
+
+  const kws = (Array.isArray(merged.keywords) ? merged.keywords : []).filter((x: any) => !!x);
+  if (kws.length >= 5 && kws.length <= 8) s += 8;
+
+  const tgs = (Array.isArray(merged.tags) ? merged.tags : []).filter((x: any) => !!x);
+  if (tgs.length >= 3) s += 8;
+
+  const sht = String(merged.shopping_title ?? "").trim();
+  if (sht && sht.length <= 150) s += 8;
+
+  if (String(merged.shopping_description ?? "").trim()) s += 8;
+
+  const sd = String(merged.short_description ?? "").trim();
+  if (sd && sd.length < 100) s += 7;
+
+  const ld = String(merged.long_description ?? "").trim();
+  if (ld && ld.length >= 120) s += 8;
+
+  if (imagesTotal === 0 || imagesWithAlt >= imagesTotal) s += 7;
+
+  const score = Math.max(0, Math.min(100, s));
+  return { score, complete: score >= 100 };
 }
 
 async function getOrigin(admin: any): Promise<string | null> {
