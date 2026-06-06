@@ -256,9 +256,11 @@ export default function AdminProducts() {
           <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="drafts">Borradores / pendientes</SelectItem>
             <SelectItem value="visible">Visibles en tienda</SelectItem>
+            <SelectItem value="drafts">Borradores / pendientes</SelectItem>
             <SelectItem value="hidden">Ocultos en tienda</SelectItem>
+            <SelectItem value="no-stock">Sin stock</SelectItem>
+            <SelectItem value="imported">Importados (Web Importer)</SelectItem>
           </SelectContent>
         </Select>
         {selected.size > 0 && (
