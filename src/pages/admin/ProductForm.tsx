@@ -112,6 +112,9 @@ export default function ProductForm() {
     (async () => {
       const { data: sup } = await supabase.from("suppliers").select("id, business_name").eq("is_active", true).order("business_name");
       setSuppliers(sup ?? []);
+      const { data: gc } = await (supabase.from("goal_cards" as any) as any)
+        .select("name,slug").eq("is_active", true).order("sort_order");
+      setGoalCards(((gc as any[]) ?? []).map((g) => ({ name: g.name, slug: g.slug })));
     })();
   }, []);
 
