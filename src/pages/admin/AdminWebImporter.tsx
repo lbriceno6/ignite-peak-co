@@ -221,6 +221,9 @@ export default function AdminWebImporter() {
           <h1 className="font-display text-3xl">Importador Web Inteligente</h1>
           <p className="text-sm text-muted-foreground">Pega una URL, analiza productos y revisa antes de publicar. Nada se publica automáticamente.</p>
         </div>
+        <Button asChild variant="outline" size="sm">
+          <a href="/admin/products?filter=drafts">Revisar borradores</a>
+        </Button>
       </header>
 
       <Alert>
