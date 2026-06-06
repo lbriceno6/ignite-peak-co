@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
-    <lastmod>2026-06-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/daily-multi-vitamin</loc>
     <lastmod>2026-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen</loc>
+    <loc>https://ignite-peak-co.lovable.app/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://ignite-peak-co.lovable.app/producto/Omega 3</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/b-12-3000-mcg-60-tab-subl</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -43,13 +43,19 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/bioprost</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/omega-3-ultra</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/creatine-hcl</loc>
+    <loc>https://ignite-peak-co.lovable.app/producto/probiotico-acidophilus-bifidus-30-comp-mast</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -73,19 +79,25 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra</loc>
-    <lastmod>2026-05-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/iso-whey-elite</loc>
     <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme</loc>
+    <loc>https://ignite-peak-co.lovable.app/producto/k2-d3-60-tab</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/Flexacil-Ultra</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/multivitaminico-para-cabello-piel-y-unas</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -103,8 +115,14 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ignite-peak-co.lovable.app/producto/bioprost</loc>
-    <lastmod>2026-05-29</lastmod>
+    <loc>https://ignite-peak-co.lovable.app/producto/b6-100-mg</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/citrato-de-magnesio-60-softg</loc>
+    <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -115,7 +133,97 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/mass-gainer-extreme</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/glucosamina-condroitina-acido-hialuronico-colageno</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/glicinato-de-magnesio-plus-60-cap</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/ashwagandha-500-mg-30-cap</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-virgen</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/lecitina-kelp-b6</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/calcio-magnesio-y-zinc</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/luteina-6-mg</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/neuro-complex-con-acido-alfa-lipoico-60-tab</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-oliva-extra-Doble-Virgen</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/creatine-hcl</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/levadura-de-cerveza-680-mg-100-tabletas</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/vitamina-d3-400-ui</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/aceite-de-ajo-sin-olor</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/ginger-kion-500-mg-60-capsulas</loc>
+    <lastmod>2026-06-06</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ignite-peak-co.lovable.app/producto/vitamina-e-400-ui-30-capsulas-blandas</loc>
     <lastmod>2026-06-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
