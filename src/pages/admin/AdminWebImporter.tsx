@@ -329,7 +329,19 @@ export default function AdminWebImporter() {
                         <div className="text-muted-foreground">{p.ai_category_suggestion || p.detected_category || "—"}</div>
                       </TableCell>
                       <TableCell className="text-xs">{intent || "—"}</TableCell>
-                      <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
+                      <TableCell>
+                        {p.status === "imported" && p.created_product_id ? (
+                          <a
+                            href={`/admin/products/${p.created_product_id}/edit`}
+                            className="inline-flex items-center gap-1 text-xs underline"
+                            title="Revisar y publicar"
+                          >
+                            <Badge variant="outline">Borrador en catálogo</Badge>
+                          </a>
+                        ) : (
+                          <Badge variant="outline">{p.status}</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => setDetail(p)} title="Ver detalle"><Eye className="h-4 w-4" /></Button>
