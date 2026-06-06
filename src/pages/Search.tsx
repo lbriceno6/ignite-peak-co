@@ -21,6 +21,16 @@ const rowToProduct = (r: any): Product => {
   const priceN = Number(r.price ?? 0) || 0;
   const saleN = Number(r.sale_price ?? 0) || 0;
   const hasSale = saleN > 0 && saleN < priceN;
+  const goalArr = Array.isArray(r.goal)
+    ? r.goal.map(String)
+    : r.goal
+      ? [String(r.goal)]
+      : [];
+  const ingredientsArr = Array.isArray(r.ingredients)
+    ? r.ingredients.map(String)
+    : r.ingredients
+      ? [String(r.ingredients)]
+      : [];
   return {
     id: r.id, slug: r.slug, name: r.name,
     shortBenefit: r.short_description ?? "",
@@ -31,11 +41,11 @@ const rowToProduct = (r: any): Product => {
     label: r.badge as Product["label"] | undefined,
     image: resolveProductImage(r.main_image),
     category: r.category ?? "",
-    // @ts-expect-error optional
     subcategory: r.subcategory ?? "",
-    goal: [],
+    goal: goalArr as any,
+    ingredients: ingredientsArr as any,
     brand: r.brand ?? "",
-  };
+  } as any;
 };
 
 const Search = () => {
@@ -85,6 +95,12 @@ const Search = () => {
             .eq("category", cat.name).eq("is_active", true).eq("approval_status", "approved").limit(60);
           rows = data ?? [];
         }
+      }
+      if (!rows.length && !q && !needSlug && !catSlug) {
+        const { data } = await supabase.from("products").select(PRODUCT_COLS)
+          .eq("is_active", true).eq("approval_status", "approved")
+          .order("created_at", { ascending: false }).limit(60);
+        rows = data ?? [];
       }
       if (!rows.length && q) {
         const { data, error } = await supabase.rpc("search_products" as any, { q });

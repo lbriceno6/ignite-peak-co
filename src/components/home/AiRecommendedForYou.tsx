@@ -121,6 +121,14 @@ export function AiRecommendedForYou({
   const { items, sourceTag, matchedIntent } = useMemo(() => {
     const limit = Math.max(1, totalProducts);
     const baseFallback = (fallbackEnabled ? (fallbackProducts && fallbackProducts.length ? fallbackProducts : products) : []).slice();
+    // Always top up fallback with general products so it reaches `limit` whenever possible.
+    const seenFb = new Set(baseFallback.map((p) => p.id));
+    for (const p of products) {
+      if (baseFallback.length >= limit) break;
+      if (seenFb.has(p.id)) continue;
+      baseFallback.push(p);
+      seenFb.add(p.id);
+    }
     const fallbackList = baseFallback.slice(0, limit);
 
     if (signals === null) {
@@ -154,15 +162,22 @@ export function AiRecommendedForYou({
     const intentIds = new Set(intent?.product_ids ?? []);
     const filtered = ranked.filter((p) => intentIds.has(p.id) || !recentlyViewedSlugs.has(p.slug));
     let interestProducts = filtered.slice(0, limit);
-    if (interestProducts.length < limit) {
+
+    // Fill in passes: fallback (no viewed) -> general (no viewed) -> fallback (viewed) -> general (viewed)
+    const fillFrom = (source: AnyProduct[], allowViewed: boolean) => {
       const seen = new Set(interestProducts.map((p) => p.id));
-      for (const p of fallbackList) {
-        if (seen.has(p.id) || recentlyViewedSlugs.has(p.slug)) continue;
+      for (const p of source) {
+        if (interestProducts.length >= limit) break;
+        if (seen.has(p.id)) continue;
+        if (!allowViewed && recentlyViewedSlugs.has(p.slug)) continue;
         interestProducts.push(p);
         seen.add(p.id);
-        if (interestProducts.length >= limit) break;
       }
-    }
+    };
+    if (interestProducts.length < limit) fillFrom(fallbackList, false);
+    if (interestProducts.length < limit) fillFrom(products, false);
+    if (interestProducts.length < limit) fillFrom(fallbackList, true);
+    if (interestProducts.length < limit) fillFrom(products, true);
 
     // Decide which list to show
     const interestHasContent = interestProducts.length > 0 && (hasIntentProducts || tag !== "initial");

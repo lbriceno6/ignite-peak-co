@@ -260,7 +260,12 @@ const Home = () => {
         pool = brandId ? products.filter((p) => (p.brand_id ?? "") === brandId) : products;
         break;
       case "tag":
-        pool = tag ? products.filter((p) => (p.badge ?? "").toLowerCase() === tag) : products;
+        pool = tag
+          ? [
+              ...products.filter((p) => (p.badge ?? "").toLowerCase() === tag),
+              ...products.filter((p) => (p.badge ?? "").toLowerCase() !== tag),
+            ]
+          : products;
         break;
       case "featured":
         pool = [
