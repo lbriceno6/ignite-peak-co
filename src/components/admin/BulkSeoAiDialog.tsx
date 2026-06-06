@@ -73,7 +73,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const updateRow = (id: string, patch: Partial<Row>) =>
     setRows((rs) => rs.map((r) => (r.id === id ? { ...r, ...patch } : r)));
 
-  const run = async () => {
+  const runWith = async (extraBody: Record<string, any>) => {
     setRunning(true);
     setDone(0);
     const selectedFields = (Object.keys(fields) as FieldKey[]).filter((k) => fields[k]);
@@ -88,6 +88,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             level,
             overwrite_existing: overwrite,
             fields_to_generate: selectedFields,
+            ...extraBody,
           },
         });
         if (error) {
@@ -120,6 +121,10 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     toast.success("SEO masivo completado");
     onDone();
   };
+
+  const run = () => runWith({});
+  const fixTo100 = () => runWith({ fix_to_100: true, protect_main: true });
+
 
   return (
     <Dialog open={open} onOpenChange={(v) => !running && onOpenChange(v)}>
@@ -228,9 +233,17 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={running}>
             {done > 0 && !running ? "Cerrar" : "Cancelar"}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={fixTo100}
+            disabled={running || products.length === 0}
+            title="Reescribe solo los campos SEO mal optimizados (no toca nombre, descripción principal, precio, stock ni imagen)"
+          >
+            {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Corregir SEO para 100/100</>}
           </Button>
           <Button onClick={run} disabled={running || products.length === 0}>
             {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Generar SEO con IA</>}
