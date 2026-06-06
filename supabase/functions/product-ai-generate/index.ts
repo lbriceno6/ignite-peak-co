@@ -57,8 +57,11 @@ Reglas de clasificación:
 - Si el enfoque es bienestar de un órgano o sistema → "Para tu salud" + la subcategoría correspondiente.
 - Si es un pack, combo, oferta o producto destacado → "Promociones" + la subcategoría correspondiente.`;
 
-function buildSystemPrompt(level: string) {
+function buildSystemPrompt(level: string, goalCards: string[]) {
   const guide = LEVEL_GUIDE[level] ?? LEVEL_GUIDE.equilibrado;
+  const goalsList = goalCards.length
+    ? `Objetivos existentes (Goal cards del Home) — prefiere uno de estos si encaja:\n- ${goalCards.join("\n- ")}\n\nSi ninguno encaja claramente, propón un objetivo nuevo en español neutro (ej: "Corazón y Circulación", "Digestión", "Defensas", "Belleza", "Articulaciones").`
+    : "Sugiere un objetivo claro en español (ej: Energía, Desarrollar músculo, Digestión, Corazón y Circulación, Belleza, Defensas, Bienestar general).";
   return `Eres un copywriter experto en ecommerce de productos naturales, suplementos y nutribatidos para la marca Nutribatidos.
 
 Nivel de contenido solicitado: ${level.toUpperCase()}.
@@ -66,17 +69,21 @@ Guía de tono: ${guide}
 
 ${TAXONOMY_TEXT}
 
+${goalsList}
+
 REGLAS OBLIGATORIAS:
 - Escribe siempre en español neutro.
 - NO hagas promesas médicas: nada de "cura", "elimina enfermedades", "trata", "sana", "reemplaza medicamentos", "garantiza resultados".
 - Usa lenguaje enfocado en: bienestar, energía, nutrición, recuperación, vitalidad, alimentación saludable, apoyo a un estilo de vida activo.
 - Sé claro, profesional y confiable.
+- SIEMPRE devuelve "main_ingredient" (ingrediente o principio activo principal, ej: "Omega 3", "Jengibre", "Creatina", "Multivitamínico", "Saw Palmetto", "Proteína con colágeno").
+- SIEMPRE devuelve "goal" (objetivo principal del producto en español, idealmente coincidiendo con un Goal card existente).
+- NUNCA inventes ni modifiques: precio, sale_price, stock, supplier, brand, imágenes. No incluyas esos campos.
 - Para "size_variants" usa el formato "etiqueta|precio" una por línea (ej: 500g|29.90).
-- "nutrition_facts" debe ser un objeto JSON simple (claves: proteina, carbohidratos, grasas, fibra, calorias, etc.).
+- "nutrition_facts" debe ser un objeto JSON simple.
 - "faqs" debe ser un arreglo de objetos {q, a}.
 - "slug" debe ser url-safe (a-z, 0-9, guiones).
-- SIEMPRE devuelve "category" y "subcategory" elegidos de la taxonomía oficial.
-- No incluyas campos que no conozcas con seguridad — déjalos vacíos o con un valor razonable.`;
+- SIEMPRE devuelve "category" y "subcategory" elegidos de la taxonomía oficial.`;
 }
 
 const TOOL_SCHEMA = {
@@ -118,7 +125,7 @@ const TOOL_SCHEMA = {
         seo_title: { type: "string" },
         seo_description: { type: "string" },
       },
-      required: ["short_description", "description"],
+      required: ["short_description", "description", "main_ingredient", "goal"],
       additionalProperties: false,
     },
   },
@@ -279,8 +286,10 @@ Deno.serve(async (req) => {
     const product = body.product ?? {};
 
     const { data: settings } = await admin.from("ai_product_settings").select("*").eq("id", 1).maybeSingle();
+    const { data: goalRows } = await admin.from("goal_cards").select("name").eq("is_active", true).order("sort_order");
+    const goalCards: string[] = (goalRows ?? []).map((g: any) => g.name).filter(Boolean);
 
-    const system = buildSystemPrompt(level);
+    const system = buildSystemPrompt(level, goalCards);
     const userPrompt = buildUserPrompt(mode, product);
 
     let result: any;
