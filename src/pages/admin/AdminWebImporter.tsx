@@ -180,7 +180,9 @@ export default function AdminWebImporter() {
         is_active: false,
         approval_status: "pending",
         stock: 0,
-      }).select("id").single();
+        source_url: p.source_url || null,
+        source_domain: p.source_domain || null,
+      } as never).select("id").single();
       if (error) { skipped++; continue; }
       await supabase.from("imported_products").update({ status: "imported", created_product_id: created.id }).eq("id", p.id);
       ok++;
@@ -327,7 +329,19 @@ export default function AdminWebImporter() {
                         <div className="text-muted-foreground">{p.ai_category_suggestion || p.detected_category || "—"}</div>
                       </TableCell>
                       <TableCell className="text-xs">{intent || "—"}</TableCell>
-                      <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
+                      <TableCell>
+                        {p.status === "imported" && p.created_product_id ? (
+                          <a
+                            href={`/admin/products/${p.created_product_id}/edit`}
+                            className="inline-flex items-center gap-1 text-xs underline"
+                            title="Revisar y publicar"
+                          >
+                            <Badge variant="outline">Borrador en catálogo</Badge>
+                          </a>
+                        ) : (
+                          <Badge variant="outline">{p.status}</Badge>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
                           <Button size="icon" variant="ghost" onClick={() => setDetail(p)} title="Ver detalle"><Eye className="h-4 w-4" /></Button>

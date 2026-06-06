@@ -27,7 +27,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
 import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
@@ -54,7 +54,7 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
-  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden">("all");
+  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
@@ -64,7 +64,9 @@ export default function AdminProducts() {
   // Read ?filter=drafts from URL (used by importer "Ir a borradores")
   useEffect(() => {
     const f = searchParams.get("filter");
-    if (f === "drafts" || f === "visible" || f === "hidden") setFilter(f);
+    const s = searchParams.get("status");
+    if (f === "drafts" || f === "visible" || f === "hidden" || f === "imported" || f === "no-stock") setFilter(f);
+    else if (s === "pending") setFilter("drafts");
   }, [searchParams]);
 
   const load = async () => {
@@ -84,6 +86,10 @@ export default function AdminProducts() {
       query = query.eq("is_active", true).eq("approval_status", "approved").gt("stock", 0);
     } else if (filter === "hidden") {
       query = query.or("is_active.eq.false,approval_status.neq.approved,stock.eq.0");
+    } else if (filter === "imported") {
+      query = query.not("source_url", "is", null);
+    } else if (filter === "no-stock") {
+      query = query.eq("stock", 0);
     }
     const { data, count, error } = await query;
     if (error) toast.error(error.message);
@@ -149,6 +155,13 @@ export default function AdminProducts() {
   };
 
   const publishOne = async (p: any) => {
+    if (!p.price || Number(p.price) <= 0) {
+      return toast.error("Agrega un precio válido antes de publicar");
+    }
+    if (!p.category) {
+      const ok = confirm("Este producto no tiene categoría. ¿Publicar de todos modos?");
+      if (!ok) return;
+    }
     if (!Number(p.stock) || Number(p.stock) <= 0) {
       setStockValue("10");
       setStockDialog({ id: p.id, name: p.name });
@@ -157,8 +170,17 @@ export default function AdminProducts() {
     const { error } = await supabase.from("products")
       .update({ is_active: true, approval_status: "approved" }).eq("id", p.id);
     if (error) return toast.error(error.message);
-    toast.success("Producto publicado");
+    toast.success("Producto publicado. Ya es visible para los usuarios.");
     load();
+  };
+
+  const previewAsPublic = (p: any) => {
+    const vis = computeVisibility(p);
+    if (vis.visible) {
+      toast.success("Visible para admin y público.");
+    } else {
+      toast.warning(`Visible para admin, pero NO para público: ${vis.reasons.join(" · ")}`, { duration: 7000 });
+    }
   };
 
   const confirmStockAndPublish = async () => {
@@ -177,10 +199,11 @@ export default function AdminProducts() {
   const bulkPublish = async () => {
     const ids = Array.from(selected);
     if (!ids.length) return;
-    // Set stock=1 only if current stock is 0
     const targets = items.filter((p) => ids.includes(p.id));
-    const needStock = targets.filter((p) => !Number(p.stock) || Number(p.stock) <= 0);
-    const fullyReady = targets.filter((p) => Number(p.stock) > 0);
+    const invalidPrice = targets.filter((p) => !p.price || Number(p.price) <= 0);
+    const eligible = targets.filter((p) => p.price && Number(p.price) > 0);
+    const needStock = eligible.filter((p) => !Number(p.stock) || Number(p.stock) <= 0);
+    const fullyReady = eligible.filter((p) => Number(p.stock) > 0);
     let ok = 0;
     if (fullyReady.length) {
       const { error } = await supabase.from("products")
@@ -194,7 +217,10 @@ export default function AdminProducts() {
         .in("id", needStock.map((p) => p.id));
       if (!error) ok += needStock.length;
     }
-    toast.success(`${ok} producto(s) publicado(s)${needStock.length ? ` · ${needStock.length} con stock=1 por defecto` : ""}`);
+    const parts: string[] = [`${ok} producto(s) publicado(s)`];
+    if (needStock.length) parts.push(`${needStock.length} con stock=1 por defecto`);
+    if (invalidPrice.length) parts.push(`${invalidPrice.length} omitidos por precio inválido`);
+    toast.success(parts.join(" · "));
     setSelected(new Set());
     setBulkOpen(false);
     load();
@@ -230,9 +256,11 @@ export default function AdminProducts() {
           <SelectTrigger className="w-56"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="drafts">Borradores / pendientes</SelectItem>
             <SelectItem value="visible">Visibles en tienda</SelectItem>
+            <SelectItem value="drafts">Borradores / pendientes</SelectItem>
             <SelectItem value="hidden">Ocultos en tienda</SelectItem>
+            <SelectItem value="no-stock">Sin stock</SelectItem>
+            <SelectItem value="imported">Importados (Web Importer)</SelectItem>
           </SelectContent>
         </Select>
         {selected.size > 0 && (
@@ -339,6 +367,7 @@ export default function AdminProducts() {
                         <CheckCircle2 size={16} className="text-emerald-600" />
                       </Button>
                     )}
+                    <Button variant="ghost" size="icon" onClick={() => previewAsPublic(p)} aria-label="Probar como público" title="Probar como público"><Eye size={16} /></Button>
                     <Button variant="ghost" size="icon" onClick={() => setReviewsFor({ id: p.id, name: p.name })} aria-label="Valoraciones" title="Valoraciones"><Star size={16} /></Button>
                     <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicar"><Copy size={16} /></Button>
                     <Button asChild variant="ghost" size="icon"><Link to={`/admin/products/${p.id}/edit`}><Pencil size={16} /></Link></Button>
