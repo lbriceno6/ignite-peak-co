@@ -180,9 +180,50 @@ export default function ProductForm() {
     } finally { setSaving(false); }
   };
 
+  // Compute visibility warning
+  const visibilityReasons: string[] = [];
+  if (isEdit) {
+    if (!f.is_active) visibilityReasons.push("inactivo");
+    if (f.approval_status && f.approval_status !== "approved") visibilityReasons.push(f.approval_status === "pending" ? "pendiente de aprobación" : `aprobación: ${f.approval_status}`);
+    if (!Number(f.stock) || Number(f.stock) <= 0) visibilityReasons.push("sin stock");
+    if (!f.price || Number(f.price) <= 0) visibilityReasons.push("precio inválido");
+    if (!f.main_image) visibilityReasons.push("sin imagen");
+  }
+
+  const publishNow = async () => {
+    if (!isEdit) return;
+    const stockNum = Number(f.stock) || 0;
+    if (stockNum <= 0) {
+      const v = prompt("Este producto tiene stock 0. Ingresa el stock disponible para publicarlo:", "10");
+      if (!v) return;
+      const n = Number(v);
+      if (!n || n <= 0) return toast.error("Stock inválido");
+      const { error } = await supabase.from("products").update({ is_active: true, approval_status: "approved", stock: n }).eq("id", id!);
+      if (error) return toast.error(error.message);
+      setF((p: any) => ({ ...p, is_active: true, approval_status: "approved", stock: n }));
+    } else {
+      const { error } = await supabase.from("products").update({ is_active: true, approval_status: "approved" }).eq("id", id!);
+      if (error) return toast.error(error.message);
+      setF((p: any) => ({ ...p, is_active: true, approval_status: "approved" }));
+    }
+    toast.success("Producto publicado");
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="font-display text-3xl">{isEdit ? "Editar producto" : "Crear producto"}</h1>
+
+      {isEdit && visibilityReasons.length > 0 && (
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <strong>Este producto no aparece en la tienda</strong>
+              <div className="text-xs mt-1">Motivo: {visibilityReasons.join(", ")}.</div>
+            </div>
+            <Button size="sm" variant="dark" onClick={publishNow}>Publicar producto</Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 rounded-lg border bg-background p-6">
         <Field label="Nombre"><Input value={f.name} onChange={(e) => set("name", e.target.value)} /></Field>
