@@ -249,6 +249,32 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
         )}
       </div>
 
+      {suggestions && (suggestions.main_ingredient || suggestions.goal) && (
+        <div className="rounded-md border bg-background p-3 text-sm space-y-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Resumen IA</div>
+          {suggestions.main_ingredient && (
+            <div><b>Ingrediente principal:</b> {suggestions.main_ingredient}</div>
+          )}
+          {suggestions.goal && (() => {
+            const m = matchedGoal(suggestions.goal);
+            return (
+              <div className="flex flex-wrap items-center gap-2">
+                <span><b>Objetivo:</b> {suggestions.goal}</span>
+                {m ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 size={12} /> Conectado con Goal cards
+                  </span>
+                ) : (
+                  <Button type="button" size="sm" variant="outline" onClick={() => createGoalCard(suggestions.goal!)}>
+                    <PlusCircle size={14} /> Crear objetivo "{suggestions.goal}"
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
