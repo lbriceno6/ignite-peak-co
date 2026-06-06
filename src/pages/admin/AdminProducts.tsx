@@ -367,6 +367,7 @@ export default function AdminProducts() {
                         <CheckCircle2 size={16} className="text-emerald-600" />
                       </Button>
                     )}
+                    <Button variant="ghost" size="icon" onClick={() => previewAsPublic(p)} aria-label="Probar como público" title="Probar como público"><Eye size={16} /></Button>
                     <Button variant="ghost" size="icon" onClick={() => setReviewsFor({ id: p.id, name: p.name })} aria-label="Valoraciones" title="Valoraciones"><Star size={16} /></Button>
                     <Button variant="ghost" size="icon" onClick={() => duplicate(p.id)} aria-label="Duplicar"><Copy size={16} /></Button>
                     <Button asChild variant="ghost" size="icon"><Link to={`/admin/products/${p.id}/edit`}><Pencil size={16} /></Link></Button>
