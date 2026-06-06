@@ -42,15 +42,33 @@ export default function Goal() {
       setLoading(true);
       const { data: g } = await sb.from("goals").select("*").eq("slug", slug).maybeSingle();
       if (!alive) return;
-      if (!g) {
-        setNotFoundInGoals(true);
-        setLoading(false);
-        return;
-      }
-      setGoal(g as Goal);
 
-      const ids: string[] = (g as Goal).related_product_ids ?? [];
-      const catIds: string[] = (g as Goal).related_category_ids ?? [];
+      // Fallback: si no existe en `goals`, intenta resolver desde `goal_cards`
+      let resolved: Goal | null = (g as Goal) ?? null;
+      let goalCardName: string | null = null;
+      if (!resolved) {
+        const { data: gc } = await sb.from("goal_cards").select("name,slug,description").eq("slug", slug).maybeSingle();
+        if (!gc) {
+          setNotFoundInGoals(true);
+          setLoading(false);
+          return;
+        }
+        goalCardName = (gc as any).name ?? null;
+        resolved = {
+          id: slug!, name: (gc as any).name, slug: (gc as any).slug,
+          title_seo: null, meta_description: null, image_url: null,
+          short_description: (gc as any).description ?? null, long_description: null,
+          canonical_url: null, related_category_ids: [], related_product_ids: [],
+        };
+      } else {
+        // Aunque sea goals, intenta obtener también el nombre visible del goal_card
+        const { data: gc } = await sb.from("goal_cards").select("name").eq("slug", slug).maybeSingle();
+        if (gc?.name) goalCardName = (gc as any).name;
+      }
+      setGoal(resolved);
+
+      const ids: string[] = resolved.related_product_ids ?? [];
+      const catIds: string[] = resolved.related_category_ids ?? [];
 
       let catNames: string[] = [];
       if (catIds.length) {
@@ -69,7 +87,9 @@ export default function Goal() {
       } else if (catNames.length) {
         q = q.in("category", catNames);
       } else {
-        q = q.ilike("goal", `%${(g as Goal).name}%`);
+        // Filtrar por products.goal = slug O por el nombre visible (compatibilidad)
+        const names = Array.from(new Set([slug!, resolved.name, goalCardName].filter(Boolean))) as string[];
+        q = q.in("goal", names);
       }
       const { data: prods } = await q.limit(60);
       if (!alive) return;

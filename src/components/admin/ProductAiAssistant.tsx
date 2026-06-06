@@ -103,7 +103,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     const nextOrder = (goalCards.length ?? 0) + 1;
     const { error } = await supabase.from("goal_cards" as any).insert({
       slug, name, description: `Productos para ${name.toLowerCase()}.`,
-      cta_label: "Ver productos", cta_href: `/category/goal-${slug}`, sort_order: nextOrder, is_active: true,
+      cta_label: "Ver productos", cta_href: `/objetivo/${slug}`, sort_order: nextOrder, is_active: true,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success(`Goal card "${name}" creado.`);
@@ -121,7 +121,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     if (s.badge !== undefined) patch.badge = s.badge;
     if (s.main_ingredient) patch.main_ingredient = s.main_ingredient;
     if (s.goal) {
-      // Guardar siempre el slug del goal card si existe, para conectar con /category/goal-{slug}
+      // Guardar siempre el slug del goal card si existe, para conectar con /objetivo/{slug}
       const m = matchedGoal(s.goal);
       patch.goal = m ? m.slug : s.goal;
     }

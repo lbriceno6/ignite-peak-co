@@ -180,6 +180,23 @@ function GoalEditor({
         cta_label: f.cta_label, cta_href: finalHref, is_active: f.is_active,
       }).eq("id", goal.id);
       if (error) throw error;
+
+      // Mantener redirección 301 desde URL antigua: /category/goal-{slug} → /objetivo/{slug}
+      const legacy = `/category/goal-${f.slug}`;
+      const target = `/objetivo/${f.slug}`;
+      await (supabase.from("seo_redirects" as any) as any)
+        .upsert({ from_path: legacy, to_path: target, active: true }, { onConflict: "from_path" });
+      // Si cambió el slug, redirigir también el slug viejo
+      if (goal.slug && goal.slug !== f.slug) {
+        await (supabase.from("seo_redirects" as any) as any).upsert(
+          [
+            { from_path: `/category/goal-${goal.slug}`, to_path: target, active: true },
+            { from_path: `/objetivo/${goal.slug}`, to_path: target, active: true },
+          ],
+          { onConflict: "from_path" },
+        );
+      }
+
       toast.success("Objetivo guardado");
       onChanged();
     } catch (e: any) { toast.error(e.message); }

@@ -1,6 +1,7 @@
 import { slugify } from "@/lib/slug";
 
-export const goalHref = (slug: string) => `/category/goal-${slug}`;
+export const goalHref = (slug: string) => `/objetivo/${slug}`;
+export const legacyGoalHref = (slug: string) => `/category/goal-${slug}`;
 
 export const isAutoGoalHref = (href?: string | null, slug?: string | null) => {
   if (!href) return true;

@@ -479,14 +479,14 @@ const Home = () => {
               key: g.id,
               name: g.name,
               desc: g.description ?? "",
-              href: `/category/goal-${g.slug}`,
+              href: `/objetivo/${g.slug}`,
               ctaLabel: g.cta_label,
             }))
           : fallbackGoals.map((g) => ({
               key: g.slug,
               name: g.name,
               desc: g.desc,
-              href: `/category/goal-${g.slug}`,
+              href: `/objetivo/${g.slug}`,
               ctaLabel: null as string | null,
             }));
         const normalizeName = (n: string) =>
