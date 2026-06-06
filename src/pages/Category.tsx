@@ -446,7 +446,7 @@ const Category = () => {
 
       let query = supabase
         .from("products")
-        .select("*, supplier:suppliers(id, business_name, slug, logo_url)", { count: "exact" });
+        .select("*, supplier:suppliers_public(id, business_name, slug, logo_url)" as any, { count: "exact" }) as any;
 
       // Route-level scope
       if (taxonomyMain) {
