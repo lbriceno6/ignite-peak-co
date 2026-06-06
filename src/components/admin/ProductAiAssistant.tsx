@@ -120,7 +120,11 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     if (s.subcategory) patch.subcategory = s.subcategory;
     if (s.badge !== undefined) patch.badge = s.badge;
     if (s.main_ingredient) patch.main_ingredient = s.main_ingredient;
-    if (s.goal) patch.goal = s.goal;
+    if (s.goal) {
+      // Guardar siempre el slug del goal card si existe, para conectar con /category/goal-{slug}
+      const m = matchedGoal(s.goal);
+      patch.goal = m ? m.slug : s.goal;
+    }
     if (s.flavor) patch.flavor = s.flavor;
     if (s.size) patch.size = s.size;
     if (s.size_variants) patch.size_variants = s.size_variants;
