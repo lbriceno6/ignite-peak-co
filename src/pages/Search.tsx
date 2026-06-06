@@ -44,10 +44,9 @@ const rowToProduct = (r: any): Product => {
     // @ts-expect-error optional
     subcategory: r.subcategory ?? "",
     goal: goalArr as any,
-    // @ts-expect-error optional
-    ingredients: ingredientsArr,
+    ingredients: ingredientsArr as any,
     brand: r.brand ?? "",
-  };
+  } as any;
 };
 
 const Search = () => {
