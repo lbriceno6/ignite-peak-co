@@ -41,7 +41,6 @@ const rowToProduct = (r: any): Product => {
     label: r.badge as Product["label"] | undefined,
     image: resolveProductImage(r.main_image),
     category: r.category ?? "",
-    // @ts-expect-error optional
     subcategory: r.subcategory ?? "",
     goal: goalArr as any,
     ingredients: ingredientsArr as any,
