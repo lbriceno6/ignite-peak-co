@@ -226,10 +226,15 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
     if (opts.optimize_image && (p.main_image || mainImage)) {
       try {
         const { data, error } = await supabase.functions.invoke("product-image-edit", {
-          body: { image_url: mainImage || p.main_image, background: "white_ecommerce" },
+          body: {
+            image_url: mainImage || p.main_image,
+            background: "white_ecommerce",
+            provider: provider === "openai" ? "openai" : "lovable",
+            fallback: fallback === "none" ? undefined : (fallback === "openai" ? "openai" : "lovable"),
+          },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-image-edit [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin imagen");
         const rawDataUrl = (data as any).image as string;
         // Client-side: normalize framing + WebP @ ~250KB
         const { blob } = await optimizeForCatalog(rawDataUrl, {
