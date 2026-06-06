@@ -456,6 +456,13 @@ export default function AdminProducts() {
         products={items.filter((p) => selected.has(p.id))}
         onDone={() => { setSelected(new Set()); load(); }}
       />
+
+      <BulkSeoAiDialog
+        open={bulkSeoOpen}
+        onOpenChange={setBulkSeoOpen}
+        products={items.filter((p) => selected.has(p.id))}
+        onDone={() => { load(); }}
+      />
     </div>
   );
 }
