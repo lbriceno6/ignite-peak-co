@@ -42,6 +42,7 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
   const [tagInput, setTagInput] = useState("");
   const [aiOpen, setAiOpen] = useState(false);
   const [aiFaqs, setAiFaqs] = useState<{ question: string; answer: string }[] | null>(null);
+  const [autoFilling, setAutoFilling] = useState(false);
 
 
 
