@@ -388,7 +388,7 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
             </div>
           )}
 
-          {issues.length > 0 && (
+          {!isProduct && issues.length > 0 && (
             <div className="rounded-md border bg-secondary/30 p-3">
               <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sugerencias</div>
               <ul className="space-y-1 text-sm">
