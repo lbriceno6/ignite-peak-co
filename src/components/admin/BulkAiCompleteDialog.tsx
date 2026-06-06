@@ -126,7 +126,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
       try {
         const { data, error } = await supabase.functions.invoke("product-ai-generate", {
           body: {
-            provider: "gemini",
+            provider,
+            fallback: fallback === "none" ? undefined : fallback,
             level: "equilibrado",
             mode: "fill",
             product: {
@@ -139,8 +140,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
             },
           },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-ai-generate [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin datos");
         const s = ((data as any).suggestions ?? {}) as any;
         if (opts.content) {
           if (s.name && !p.name) patch.name = s.name;
