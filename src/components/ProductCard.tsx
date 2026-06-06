@@ -92,13 +92,13 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-smooth hover:shadow-elevated hover:-translate-y-1">
-      <div className="relative aspect-square overflow-hidden bg-secondary">
+      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-secondary">
         <Link to={`/producto/${product.slug}`} className="block h-full w-full">
           <img
             src={resolveProductImage(product.image, productPlaceholder)}
             alt={product.name}
             loading="lazy"
-            className="h-full w-full object-contain object-center p-3 transition-smooth group-hover:scale-105"
+            className="h-full w-full object-cover object-center transition-smooth group-hover:scale-105"
             onError={(e) => {
               // eslint-disable-next-line no-console
               console.warn("[ProductCard] image failed to load", { id: product.id, slug: product.slug, src: product.image });
