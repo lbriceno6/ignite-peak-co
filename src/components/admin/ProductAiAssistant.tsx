@@ -5,8 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Sparkles, Loader2, Wand2 } from "lucide-react";
+import { Sparkles, Loader2, Wand2, CheckCircle2, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
+import { slugify } from "@/lib/slug";
 
 type Suggestions = {
   name?: string;
@@ -65,6 +66,16 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
   const [suggestions, setSuggestions] = useState<Suggestions | null>(null);
   const [open, setOpen] = useState(false);
   const [missingKey, setMissingKey] = useState<string | null>(null);
+  const [goalCards, setGoalCards] = useState<{ name: string; slug: string }[]>([]);
+
+  const loadGoals = async () => {
+    const { data } = await supabase
+      .from("goal_cards" as any)
+      .select("name, slug")
+      .eq("is_active", true)
+      .order("sort_order");
+    setGoalCards(((data as any[]) ?? []).map((g) => ({ name: g.name, slug: g.slug })));
+  };
 
   useEffect(() => {
     (async () => {
@@ -77,8 +88,27 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
         if ((data as any).default_provider) setProvider((data as any).default_provider);
         if ((data as any).default_level) setLevel((data as any).default_level);
       }
+      loadGoals();
     })();
   }, []);
+
+  const normalize = (s: string) =>
+    s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+  const matchedGoal = (g?: string) =>
+    g ? goalCards.find((gc) => normalize(gc.name) === normalize(g)) : undefined;
+
+  const createGoalCard = async (name: string) => {
+    const slug = slugify(name);
+    const nextOrder = (goalCards.length ?? 0) + 1;
+    const { error } = await supabase.from("goal_cards" as any).insert({
+      slug, name, description: `Productos para ${name.toLowerCase()}.`,
+      cta_label: "Ver productos", cta_href: `/productos?goal=${slug}`, sort_order: nextOrder, is_active: true,
+    } as any);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Goal card "${name}" creado.`);
+    await loadGoals();
+  };
 
   const toPatch = (s: Suggestions): Record<string, any> => {
     const patch: Record<string, any> = {};
