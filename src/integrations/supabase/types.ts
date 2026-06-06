@@ -4749,6 +4749,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_supplier_approved: { Args: { _supplier_id: string }; Returns: boolean }
       log_seo_change: {
         Args: {
           _entity_id: string
