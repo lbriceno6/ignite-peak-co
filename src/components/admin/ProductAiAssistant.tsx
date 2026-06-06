@@ -103,7 +103,7 @@ export function ProductAiAssistant({ product, isEdit, onApply }: Props) {
     const nextOrder = (goalCards.length ?? 0) + 1;
     const { error } = await supabase.from("goal_cards" as any).insert({
       slug, name, description: `Productos para ${name.toLowerCase()}.`,
-      cta_label: "Ver productos", cta_href: `/productos?goal=${slug}`, sort_order: nextOrder, is_active: true,
+      cta_label: "Ver productos", cta_href: `/category/goal-${slug}`, sort_order: nextOrder, is_active: true,
     } as any);
     if (error) { toast.error(error.message); return; }
     toast.success(`Goal card "${name}" creado.`);
