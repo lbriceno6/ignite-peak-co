@@ -444,6 +444,13 @@ export default function AdminProducts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <BulkAiCompleteDialog
+        open={bulkAiOpen}
+        onOpenChange={setBulkAiOpen}
+        products={items.filter((p) => selected.has(p.id))}
+        onDone={() => { setSelected(new Set()); load(); }}
+      />
     </div>
   );
 }
