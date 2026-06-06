@@ -441,6 +441,7 @@ export default function ProductForm() {
         <SeoEditor
           entityType="product"
           entityId={isEdit ? (id ?? null) : null}
+          productName={f.name}
           fallbackTitle={f.name}
           fallbackDescription={f.short_description ?? f.description ?? ""}
           fallbackSlug={f.slug}
