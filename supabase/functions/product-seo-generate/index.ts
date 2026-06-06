@@ -308,12 +308,8 @@ Deno.serve(async (req) => {
     const altsByUrl = new Set(((altsRows as any[]) ?? []).filter((a) => !!a.alt_text).map((a) => a.image_url));
     const imagesWithAlt = images.filter((u) => altsByUrl.has(u)).length;
 
-    const isComplete = !!(
-      merged.seo_title && merged.seo_description && (merged.slug || product.slug) &&
-      merged.og_image && merged.short_description && merged.long_description &&
-      Array.isArray(merged.keywords) && merged.keywords.length >= 3 &&
-      (images.length === 0 || imagesWithAlt >= 1)
-    );
+    if (!merged.slug && product.slug) (merged as any).slug = product.slug;
+    const { score, complete: isComplete } = computeScore(merged, product.name ?? "", imagesWithAlt, images.length);
 
     if (requested.includes("noindex")) {
       const desired = !isComplete; // complete => false, else keep true
@@ -326,7 +322,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const score = computeScore(merged, imagesWithAlt, images.length);
     await admin.from("seo_meta").update({ score, last_analyzed_at: new Date().toISOString() } as any)
       .eq("entity_type", "product").eq("entity_id", product_id);
 
