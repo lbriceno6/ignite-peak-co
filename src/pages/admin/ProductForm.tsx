@@ -57,6 +57,7 @@ export default function ProductForm() {
   const mainFileRef = useRef<HTMLInputElement>(null);
   const galleryFileRef = useRef<HTMLInputElement>(null);
   const [suppliers, setSuppliers] = useState<{ id: string; business_name: string }[]>([]);
+  const [goalCards, setGoalCards] = useState<{ name: string; slug: string }[]>([]);
   const { mains: dynamicMains, getSubsByMainName } = useTaxonomy({ activeOnly: true });
   const mainCategories = dynamicMains.length > 0 ? dynamicMains.map((m) => m.name) : staticMains;
   const getSubcategories = (name?: string | null) => {
@@ -111,6 +112,9 @@ export default function ProductForm() {
     (async () => {
       const { data: sup } = await supabase.from("suppliers").select("id, business_name").eq("is_active", true).order("business_name");
       setSuppliers(sup ?? []);
+      const { data: gc } = await (supabase.from("goal_cards" as any) as any)
+        .select("name,slug").eq("is_active", true).order("sort_order");
+      setGoalCards(((gc as any[]) ?? []).map((g) => ({ name: g.name, slug: g.slug })));
     })();
   }, []);
 
@@ -279,7 +283,26 @@ export default function ProductForm() {
             </Select>
           </Field>
           <Field label="Ingrediente principal"><Input value={f.main_ingredient ?? ""} onChange={(e) => set("main_ingredient", e.target.value)} /></Field>
-          <Field label="Objetivo"><Input value={f.goal ?? ""} onChange={(e) => set("goal", e.target.value)} /></Field>
+          <Field label="Objetivo">
+            <Select
+              value={f.goal ? f.goal : "__none__"}
+              onValueChange={(v) => set("goal", v === "__none__" ? "" : v)}
+            >
+              <SelectTrigger><SelectValue placeholder="Selecciona un objetivo" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sin objetivo</SelectItem>
+                {goalCards.map((g) => (
+                  <SelectItem key={g.slug} value={g.slug}>{g.name}</SelectItem>
+                ))}
+                {f.goal && !goalCards.some((g) => g.slug === f.goal) && (
+                  <SelectItem value={f.goal}>{f.goal} (sin conectar)</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Se guarda el slug del objetivo (ej: <code>desarrollar-musculo</code>) para conectar con <code>/category/goal-{f.goal || "slug"}</code>.
+            </p>
+          </Field>
           <Field label="Sabor"><Input value={f.flavor ?? ""} onChange={(e) => set("flavor", e.target.value)} /></Field>
           <Field label="Tamaño"><Input value={f.size ?? ""} onChange={(e) => set("size", e.target.value)} /></Field>
           <Field label="Stock"><Input type="number" value={f.stock} onChange={(e) => set("stock", e.target.value)} /></Field>

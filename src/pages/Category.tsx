@@ -453,7 +453,19 @@ const Category = () => {
         query = query.eq("category", taxonomyMain);
         if (taxonomySub) query = query.eq("subcategory", taxonomySub);
       } else if (slug.startsWith("goal-")) {
-        query = query.eq("goal", slug.replace("goal-", ""));
+        const goalSlug = slug.replace("goal-", "");
+        // Buscar por slug del goal card y también por el nombre visible (compatibilidad
+        // con productos antiguos que guardaban el texto en español: "Desarrollar músculo").
+        let goalNames: string[] = [];
+        try {
+          const { data: gc } = await (supabase.from("goal_cards" as any) as any)
+            .select("name,slug")
+            .eq("slug", goalSlug)
+            .maybeSingle();
+          if (gc?.name) goalNames.push(gc.name);
+        } catch { /* noop */ }
+        const candidates = Array.from(new Set([goalSlug, ...goalNames])).filter(Boolean);
+        query = query.in("goal", candidates);
       } else {
         const c = categories.find((x) => x.slug === slug);
         if (c) {
