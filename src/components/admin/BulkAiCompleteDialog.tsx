@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { optimizeForCatalog } from "@/lib/imageOptimize";
@@ -83,6 +84,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
   const [rows, setRows] = useState<RowState[]>([]);
   const [done, setDone] = useState(0);
   const [goalCards, setGoalCards] = useState<{ name: string; slug: string }[]>([]);
+  const [provider, setProvider] = useState<"openai" | "gemini" | "lovable" | "deepseek">("openai");
+  const [fallback, setFallback] = useState<"none" | "openai" | "gemini" | "lovable" | "deepseek">("lovable");
 
   useEffect(() => {
     if (!open) return;
@@ -123,7 +126,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
       try {
         const { data, error } = await supabase.functions.invoke("product-ai-generate", {
           body: {
-            provider: "gemini",
+            provider,
+            fallback: fallback === "none" ? undefined : fallback,
             level: "equilibrado",
             mode: "fill",
             product: {
@@ -136,8 +140,8 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
             },
           },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-ai-generate [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin datos");
         const s = ((data as any).suggestions ?? {}) as any;
         if (opts.content) {
           if (s.name && !p.name) patch.name = s.name;
@@ -173,10 +177,14 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
     if (opts.detect_brand && (p.main_image || mainImage)) {
       try {
         const { data, error } = await supabase.functions.invoke("product-detect-brand", {
-          body: { image_url: mainImage || p.main_image },
+          body: {
+            image_url: mainImage || p.main_image,
+            provider: provider === "openai" ? "openai" : "lovable",
+            fallback: fallback === "none" ? undefined : (fallback === "openai" ? "openai" : "lovable"),
+          },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-detect-brand [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin marca");
         const brandName: string = (data as any).brand_name || "";
         const confidence: number = (data as any).confidence || 0;
         const matched = (data as any).matched_brand;
@@ -218,10 +226,15 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
     if (opts.optimize_image && (p.main_image || mainImage)) {
       try {
         const { data, error } = await supabase.functions.invoke("product-image-edit", {
-          body: { image_url: mainImage || p.main_image, background: "white_ecommerce" },
+          body: {
+            image_url: mainImage || p.main_image,
+            background: "white_ecommerce",
+            provider: provider === "openai" ? "openai" : "lovable",
+            fallback: fallback === "none" ? undefined : (fallback === "openai" ? "openai" : "lovable"),
+          },
         });
-        if (error) throw error;
-        if ((data as any)?.error) throw new Error((data as any).error);
+        if (error) throw new Error(`product-image-edit [${p.name}] ${provider}: ${error.message}`);
+        if ((data as any)?.error || (data as any)?.success === false) throw new Error((data as any).error || "Sin imagen");
         const rawDataUrl = (data as any).image as string;
         // Client-side: normalize framing + WebP @ ~250KB
         const { blob } = await optimizeForCatalog(rawDataUrl, {
@@ -324,6 +337,34 @@ export function BulkAiCompleteDialog({ open, onOpenChange, products, onDone }: P
             Precio, precio de oferta, proveedor y stock existente nunca se modifican.
           </DialogDescription>
         </DialogHeader>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Modelo IA</Label>
+            <Select value={provider} onValueChange={(v) => setProvider(v as any)} disabled={running}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="openai">OpenAI (GPT-4o-mini)</SelectItem>
+                <SelectItem value="lovable">Lovable AI (Gemini)</SelectItem>
+                <SelectItem value="gemini">Gemini (key directa)</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Fallback si falla</Label>
+            <Select value={fallback} onValueChange={(v) => setFallback(v as any)} disabled={running}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin fallback</SelectItem>
+                <SelectItem value="lovable">Lovable AI</SelectItem>
+                <SelectItem value="openai">OpenAI</SelectItem>
+                <SelectItem value="gemini">Gemini</SelectItem>
+                <SelectItem value="deepseek">DeepSeek</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
           {OPTIONS.map((o) => (

@@ -297,32 +297,65 @@ Deno.serve(async (req) => {
     const system = buildSystemPrompt(level, goalCards);
     const userPrompt = buildUserPrompt(mode, product);
 
+    const tryProvider = async (prov: string) => {
+      if (prov === "deepseek") {
+        const key = settings?.deepseek_api_key || Deno.env.get("DEEPSEEK_API_KEY");
+        if (!key) throw new Error("Falta configurar DEEPSEEK_API_KEY en Supabase Secrets.");
+        return await callDeepSeek(key, system, userPrompt);
+      }
+      if (prov === "claude") {
+        const key = settings?.claude_api_key || Deno.env.get("ANTHROPIC_API_KEY");
+        if (!key) throw new Error("Falta configurar ANTHROPIC_API_KEY en Supabase Secrets.");
+        return await callClaude(key, system, userPrompt);
+      }
+      if (prov === "openai") {
+        const key = Deno.env.get("OPENAI_API_KEY") || settings?.openai_api_key;
+        if (!key) throw new Error("Falta configurar OPENAI_API_KEY en Supabase Secrets.");
+        return await callOpenAIDirect(key, system, userPrompt);
+      }
+      if (prov === "lovable") {
+        return await callLovableGateway(GATEWAY_MODEL.gemini, system, userPrompt);
+      }
+      // gemini
+      const key = settings?.gemini_api_key || Deno.env.get("GEMINI_API_KEY");
+      if (key) return await callGeminiDirect(key, system, userPrompt);
+      return await callLovableGateway(GATEWAY_MODEL.gemini, system, userPrompt);
+    };
+
     let result: any;
-    if (provider === "deepseek") {
-      const key = settings?.deepseek_api_key || Deno.env.get("DEEPSEEK_API_KEY");
-      if (!key) throw new Error("Configura tu API Key de DeepSeek para usar el asistente IA.");
-      result = await callDeepSeek(key, system, userPrompt);
-    } else if (provider === "claude") {
-      const key = settings?.claude_api_key;
-      if (!key) throw new Error("Configura tu API Key de Claude para usar el asistente IA.");
-      result = await callClaude(key, system, userPrompt);
-    } else if (provider === "openai") {
-      const key = settings?.openai_api_key;
-      if (key) result = await callOpenAIDirect(key, system, userPrompt);
-      else result = await callLovableGateway(GATEWAY_MODEL.openai, system, userPrompt);
-    } else {
-      const key = settings?.gemini_api_key;
-      if (key) result = await callGeminiDirect(key, system, userPrompt);
-      else result = await callLovableGateway(GATEWAY_MODEL.gemini, system, userPrompt);
+    let usedProvider = provider;
+    try {
+      result = await tryProvider(provider);
+    } catch (primaryErr) {
+      const fallback = body.fallback as string | undefined;
+      if (fallback && fallback !== provider) {
+        try {
+          result = await tryProvider(fallback);
+          usedProvider = fallback;
+        } catch (fbErr) {
+          return new Response(JSON.stringify({
+            success: false,
+            provider,
+            fallback,
+            error: `${provider}: ${primaryErr instanceof Error ? primaryErr.message : String(primaryErr)} | fallback ${fallback}: ${fbErr instanceof Error ? fbErr.message : String(fbErr)}`,
+          }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+      } else {
+        return new Response(JSON.stringify({
+          success: false,
+          provider,
+          error: primaryErr instanceof Error ? primaryErr.message : String(primaryErr),
+        }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
-    return new Response(JSON.stringify({ suggestions: result, provider, level }), {
+    return new Response(JSON.stringify({ success: true, suggestions: result, provider: usedProvider, level }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
     console.error("product-ai-generate error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ success: false, error: e instanceof Error ? e.message : "Unknown error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

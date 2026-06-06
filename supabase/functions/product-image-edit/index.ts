@@ -38,54 +38,91 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { image_url, background = "white_ecommerce", extra_instructions = "" } = await req.json();
+    const { image_url, background = "white_ecommerce", extra_instructions = "", provider = "lovable", fallback } = await req.json();
     if (!image_url || typeof image_url !== "string") {
-      return json({ error: "image_url requerido" }, 400);
+      return json({ success: false, error: "image_url requerido" }, 400);
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) return json({ error: "LOVABLE_API_KEY no configurada" }, 500);
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
 
     const bgPrompt = BACKGROUND_PROMPTS[background] ?? BACKGROUND_PROMPTS.white_ecommerce;
     const instruction = `${bgPrompt}\n${FRAMING}\n${PROTECTION}\n${extra_instructions || ""}`.trim();
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image",
-        messages: [
-          {
+    const callLovable = async (): Promise<string> => {
+      if (!LOVABLE_API_KEY) throw new Error("Falta configurar LOVABLE_API_KEY en Supabase Secrets");
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{
             role: "user",
             content: [
               { type: "text", text: instruction },
               { type: "image_url", image_url: { url: image_url } },
             ],
-          },
-        ],
-        modalities: ["image", "text"],
-      }),
-    });
+          }],
+          modalities: ["image", "text"],
+        }),
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        throw new Error(`Lovable AI ${r.status}: ${t.slice(0, 240)}`);
+      }
+      const data = await r.json();
+      const dataUrl = data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!dataUrl) throw new Error("Lovable AI no devolvió imagen");
+      return dataUrl as string;
+    };
 
-    if (!resp.ok) {
-      const t = await resp.text();
-      if (resp.status === 429) return json({ error: "Demasiadas solicitudes, intenta más tarde." }, 429);
-      if (resp.status === 402) return json({ error: "Sin créditos de IA. Agrega créditos en Lovable AI." }, 402);
-      console.error("image edit error", resp.status, t);
-      return json({ error: "Error generando imagen" }, 500);
+    const callOpenAI = async (): Promise<string> => {
+      if (!OPENAI_API_KEY) throw new Error("Falta configurar OPENAI_API_KEY en Supabase Secrets");
+      // Download source image
+      const imgResp = await fetch(image_url);
+      if (!imgResp.ok) throw new Error(`No se pudo descargar la imagen origen (${imgResp.status})`);
+      const imgBlob = await imgResp.blob();
+      const fileBlob = new Blob([await imgBlob.arrayBuffer()], { type: imgBlob.type || "image/png" });
+      const form = new FormData();
+      form.append("model", "gpt-image-1");
+      form.append("prompt", instruction);
+      form.append("size", "1024x1024");
+      form.append("background", background === "transparent" ? "transparent" : "opaque");
+      form.append("image", fileBlob, "product.png");
+      const r = await fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OPENAI_API_KEY}` },
+        body: form,
+      });
+      if (!r.ok) {
+        const t = await r.text();
+        throw new Error(`OpenAI ${r.status}: ${t.slice(0, 240)}`);
+      }
+      const data = await r.json();
+      const b64 = data?.data?.[0]?.b64_json;
+      if (!b64) throw new Error("OpenAI no devolvió imagen");
+      return `data:image/png;base64,${b64}`;
+    };
+
+    const run = (prov: string) => prov === "openai" ? callOpenAI() : callLovable();
+    let usedProvider = provider;
+    let image: string;
+    try { image = await run(provider); }
+    catch (primaryErr) {
+      if (fallback && fallback !== provider) {
+        try { image = await run(fallback); usedProvider = fallback; }
+        catch (fbErr) {
+          return json({ success: false, provider, error: `${primaryErr instanceof Error ? primaryErr.message : primaryErr} | fallback ${fallback}: ${fbErr instanceof Error ? fbErr.message : fbErr}` }, 502);
+        }
+      } else {
+        return json({ success: false, provider, error: primaryErr instanceof Error ? primaryErr.message : String(primaryErr) }, 502);
+      }
     }
 
-    const data = await resp.json();
-    const dataUrl = data?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!dataUrl) return json({ error: "La IA no devolvió imagen" }, 500);
-
-    return json({ image: dataUrl, background });
+    return json({ success: true, image, background, provider: usedProvider });
   } catch (e) {
     console.error("product-image-edit error", e);
-    return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
+    return json({ success: false, error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
 });
 

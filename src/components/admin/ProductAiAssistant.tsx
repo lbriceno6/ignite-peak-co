@@ -32,10 +32,11 @@ type Suggestions = {
 };
 
 const PROVIDERS = [
+  { value: "openai", label: "OpenAI (GPT-4o-mini)" },
   { value: "gemini", label: "Gemini" },
-  { value: "openai", label: "OpenAI" },
-  { value: "claude", label: "Claude" },
+  { value: "lovable", label: "Lovable AI" },
   { value: "deepseek", label: "DeepSeek" },
+  { value: "claude", label: "Claude" },
 ];
 
 const LEVELS = [
