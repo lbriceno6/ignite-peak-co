@@ -121,6 +121,14 @@ export function AiRecommendedForYou({
   const { items, sourceTag, matchedIntent } = useMemo(() => {
     const limit = Math.max(1, totalProducts);
     const baseFallback = (fallbackEnabled ? (fallbackProducts && fallbackProducts.length ? fallbackProducts : products) : []).slice();
+    // Always top up fallback with general products so it reaches `limit` whenever possible.
+    const seenFb = new Set(baseFallback.map((p) => p.id));
+    for (const p of products) {
+      if (baseFallback.length >= limit) break;
+      if (seenFb.has(p.id)) continue;
+      baseFallback.push(p);
+      seenFb.add(p.id);
+    }
     const fallbackList = baseFallback.slice(0, limit);
 
     if (signals === null) {
