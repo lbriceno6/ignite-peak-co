@@ -114,9 +114,14 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           });
         } else {
           const d = data as any;
-          const patch = d.seo_patch ?? {};
-          const afterTitle = patch.seo_title ? String(patch.seo_title).length : before.title;
-          const afterDesc = patch.seo_description ? String(patch.seo_description).length : before.desc;
+          const before = {
+            title: d.before?.title_length ?? 0,
+            desc: d.before?.description_length ?? 0,
+          };
+          const after = {
+            title: d.after?.title_length ?? before.title,
+            desc: d.after?.description_length ?? before.desc,
+          };
           updateRow(p.id, {
             status: "ok",
             provider: d.provider,
@@ -124,7 +129,8 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             completed: d.completed_fields,
             complete: !!d.complete,
             warnings: Array.isArray(d.warnings) ? d.warnings : [],
-            after: { title: afterTitle, desc: afterDesc },
+            before,
+            after,
           });
         }
       } catch (e: any) {
