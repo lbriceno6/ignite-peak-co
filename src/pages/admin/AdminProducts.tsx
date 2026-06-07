@@ -58,13 +58,19 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
-  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
+  const [filter, setFilter] = useState<
+    | "all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock"
+    | "seo-complete" | "seo-incomplete" | "seo-missing" | "seo-noindex" | "seo-low" | "seo-ready100"
+  >("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkAiOpen, setBulkAiOpen] = useState(false);
   const [bulkSeoOpen, setBulkSeoOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
   const [stockValue, setStockValue] = useState<string>("10");
+  const [seoMetaMap, setSeoMetaMap] = useState<Record<string, RawSeoMeta>>({});
+  const [seoAltsMap, setSeoAltsMap] = useState<Record<string, { total: number; withAlt: number }>>({});
+  const [missingFor, setMissingFor] = useState<{ id: string; name: string; info: ProductSeoStatusInfo } | null>(null);
   const [searchParams] = useSearchParams();
 
   // Read ?filter=drafts from URL (used by importer "Ir a borradores")
