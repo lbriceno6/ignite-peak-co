@@ -225,6 +225,20 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           </label>
         </div>
 
+        <label className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40">
+          <Checkbox
+            checked={skipComplete}
+            onCheckedChange={(v) => setSkipComplete(!!v)}
+            disabled={running}
+          />
+          <span>
+            Saltar productos con SEO completo
+            {completeCount > 0 && (
+              <span className="text-xs text-muted-foreground"> · {completeCount} se omitirán</span>
+            )}
+          </span>
+        </label>
+
         <div className="grid gap-2 sm:grid-cols-2">
           {FIELD_OPTIONS.map((o) => (
             <label
