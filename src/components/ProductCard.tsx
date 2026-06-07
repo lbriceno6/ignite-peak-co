@@ -180,8 +180,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
           )}
         </div>
 
-        <div className="mt-auto pt-1">
-          <div className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
+        <div data-pc="button-wrap" className="mt-auto pt-1">
+          <div data-pc="price-block" className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
             {!hasPrice ? (
               <span data-pc="price" className="font-display text-base font-bold text-destructive">Consultar precio</span>
             ) : product.oldPrice ? (
