@@ -91,10 +91,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
     );
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-smooth hover:shadow-elevated hover:-translate-y-1">
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-secondary">
+    <article data-pc="card" className="group relative flex flex-col overflow-hidden rounded-lg border border-border bg-card transition-smooth hover:shadow-elevated hover:-translate-y-1">
+      <div data-pc="image-wrap" className="relative aspect-square overflow-hidden rounded-t-lg bg-secondary">
         <Link to={`/producto/${product.slug}`} className="block h-full w-full">
           <img
+            data-pc="image"
             src={resolveProductImage(product.image, productPlaceholder)}
             alt={product.name}
             loading="lazy"
@@ -137,7 +138,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3 min-w-0">
+      <div data-pc="content" className="flex flex-1 flex-col gap-1 p-3 min-w-0">
         {product.brand && product.brand !== "Sin marca" && (
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
             {product.brand}
@@ -179,8 +180,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
           )}
         </div>
 
-        <div className="mt-auto pt-1">
-          <div className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
+        <div data-pc="button-wrap" className="mt-auto pt-1">
+          <div data-pc="price-block" className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
             {!hasPrice ? (
               <span data-pc="price" className="font-display text-base font-bold text-destructive">Consultar precio</span>
             ) : product.oldPrice ? (

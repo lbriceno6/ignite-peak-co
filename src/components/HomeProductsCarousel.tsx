@@ -78,13 +78,15 @@ export function HomeProductsCarousel({ config, products, eyebrow }: Props) {
             setApi={setApi}
             className="w-full"
           >
-            <CarouselContent className="-ml-3 sm:-ml-4">
+            <CarouselContent className="-ml-3 sm:-ml-4 items-stretch">
               {products.map((p) => (
                 <CarouselItem
                   key={p.id}
-                  className="pl-3 sm:pl-4 basis-[calc(100%/var(--cv-m))] sm:basis-[calc(100%/var(--cv-t))] lg:basis-[calc(100%/var(--cv-d))]"
+                  className="pl-3 sm:pl-4 basis-[calc(100%/var(--cv-m))] sm:basis-[calc(100%/var(--cv-t))] lg:basis-[calc(100%/var(--cv-d))] h-auto"
                 >
-                  <ProductCard product={p} />
+                  <div className="h-full">
+                    <ProductCard product={p} />
+                  </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
