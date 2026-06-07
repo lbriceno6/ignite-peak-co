@@ -79,7 +79,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, products, skipComplete]);
 
-  const total = products.length;
+  const total = effectiveTargets.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   const updateRow = (id: string, patch: Partial<Row>) =>
