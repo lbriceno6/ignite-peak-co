@@ -332,6 +332,12 @@ export default function AdminProducts() {
             <SelectItem value="hidden">Ocultos en tienda</SelectItem>
             <SelectItem value="no-stock">Sin stock</SelectItem>
             <SelectItem value="imported">Importados (Web Importer)</SelectItem>
+            <SelectItem value="seo-complete">SEO completo</SelectItem>
+            <SelectItem value="seo-incomplete">SEO incompleto / con errores</SelectItem>
+            <SelectItem value="seo-missing">Sin SEO</SelectItem>
+            <SelectItem value="seo-noindex">No index activo</SelectItem>
+            <SelectItem value="seo-low">SEO menor a 80</SelectItem>
+            <SelectItem value="seo-ready100">SEO listo para 100</SelectItem>
           </SelectContent>
         </Select>
         {selected.size > 0 && (
