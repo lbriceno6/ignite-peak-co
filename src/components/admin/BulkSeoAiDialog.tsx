@@ -160,7 +160,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles size={18} className="text-primary" /> SEO Inteligente Masivo — {products.length} producto(s)
+            <Sparkles size={18} className="text-primary" /> SEO Inteligente Masivo — {effectiveTargets.length} de {products.length} producto(s)
           </DialogTitle>
           <DialogDescription>
             Completa o corrige campos SEO con IA. Por defecto NO modifica el nombre principal del producto
