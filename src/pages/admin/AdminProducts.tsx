@@ -81,10 +81,67 @@ export default function AdminProducts() {
     else if (s === "pending") setFilter("drafts");
   }, [searchParams]);
 
+  const fetchSeoData = async (productIds: string[]) => {
+    if (!productIds.length) {
+      setSeoMetaMap({});
+      setSeoAltsMap({});
+      return {};
+    }
+    const [{ data: metas }, { data: alts }] = await Promise.all([
+      supabase.from("seo_meta").select("*").eq("entity_type", "product").in("entity_id", productIds),
+      supabase.from("seo_image_alts").select("entity_id, alt_text").eq("entity_type", "product").in("entity_id", productIds),
+    ]);
+    const metaMap: Record<string, RawSeoMeta> = {};
+    (metas ?? []).forEach((m: any) => { metaMap[m.entity_id] = m; });
+    const altMap: Record<string, { total: number; withAlt: number }> = {};
+    (alts ?? []).forEach((a: any) => {
+      const cur = altMap[a.entity_id] ?? { total: 0, withAlt: 0 };
+      cur.total += 1;
+      if (a.alt_text && a.alt_text.trim()) cur.withAlt += 1;
+      altMap[a.entity_id] = cur;
+    });
+    setSeoMetaMap(metaMap);
+    setSeoAltsMap(altMap);
+    return { metaMap, altMap };
+  };
+
   const load = async () => {
     setLoading(true);
+    const isSeoFilter = filter.startsWith("seo-");
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
+
+    if (isSeoFilter) {
+      // Fetch all products (capped) and filter client-side by SEO status
+      let query = supabase
+        .from("products")
+        .select("*, supplier:suppliers(id, business_name, slug)")
+        .order("sort_order", { ascending: true } as any)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (q.trim()) query = query.ilike("name", `%${q.trim()}%`);
+      const { data, error } = await query;
+      if (error) toast.error(error.message);
+      const all = data ?? [];
+      const ids = all.map((p: any) => p.id);
+      const { metaMap = {}, altMap = {} } = (await fetchSeoData(ids)) as any;
+      const filtered = all.filter((p: any) => {
+        const alts = altMap[p.id] ?? { total: 1, withAlt: p.main_image ? 0 : 0 };
+        const info = getProductSeoStatus(p, metaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+        if (filter === "seo-complete") return info.status === "complete";
+        if (filter === "seo-incomplete") return info.status === "incomplete" || info.status === "errors";
+        if (filter === "seo-missing") return info.status === "missing";
+        if (filter === "seo-noindex") return info.status === "noindex";
+        if (filter === "seo-low") return info.score < 80 && info.status !== "complete";
+        if (filter === "seo-ready100") return info.score >= 80 && info.status !== "complete" && info.status !== "noindex";
+        return true;
+      });
+      setTotal(filtered.length);
+      setItems(filtered.slice(from, from + pageSize));
+      setLoading(false);
+      return;
+    }
+
     let query = supabase
       .from("products")
       .select("*, supplier:suppliers(id, business_name, slug)", { count: "exact" })
@@ -105,8 +162,10 @@ export default function AdminProducts() {
     }
     const { data, count, error } = await query;
     if (error) toast.error(error.message);
-    setItems(data ?? []);
+    const rows = data ?? [];
+    setItems(rows);
     setTotal(count ?? 0);
+    await fetchSeoData(rows.map((p: any) => p.id));
     setLoading(false);
   };
 
