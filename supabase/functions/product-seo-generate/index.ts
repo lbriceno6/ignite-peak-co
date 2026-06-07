@@ -149,11 +149,15 @@ Deno.serve(async (req) => {
     const provider: AIProvider = (body.provider ?? "openai") as AIProvider;
     const level: Level = (body.level ?? "equilibrado") as Level;
     let overwrite: boolean = !!body.overwrite_existing;
-    // protect_main: never touch fields that mirror the main product content
-    // (short_description, long_description). Defaults true when fix_to_100.
+    // fix_to_100 / fix_out_of_range: re-generate SEO fields that exist but
+    // fail length/quality rules. Never touches main product content.
     const fix_to_100: boolean = !!body.fix_to_100;
+    const fix_out_of_range: boolean = !!body.fix_out_of_range || fix_to_100;
+    // improve_main: opt-in to also rewrite visible product copy
+    // (short/long description). Off by default — SEO mass run protects them.
+    const improve_main: boolean = !!body.improve_main;
     const protect_main: boolean =
-      typeof body.protect_main === "boolean" ? body.protect_main : fix_to_100;
+      typeof body.protect_main === "boolean" ? body.protect_main : !improve_main;
 
     let requested: FieldKey[] = Array.isArray(body.fields_to_generate) && body.fields_to_generate.length
       ? body.fields_to_generate as FieldKey[]
