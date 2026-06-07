@@ -276,16 +276,67 @@ Deno.serve(async (req) => {
           status: 500,
         }, 200);
       }
+
+      // Validation retry loop for seo_title (45-60) and seo_description (130-160).
+      // Try up to 2 extra times; keep best version.
+      const needTitle = aiFields.includes("seo_title");
+      const needDesc = aiFields.includes("seo_description");
+      const inTitleRange = (s: string) => s.length >= 45 && s.length <= 60;
+      const inDescRange = (s: string) => s.length >= 130 && s.length <= 160;
+      const bestOf = (a: string, b: string, ideal: [number, number]) => {
+        const dist = (s: string) =>
+          s.length < ideal[0] ? ideal[0] - s.length :
+          s.length > ideal[1] ? s.length - ideal[1] : 0;
+        return dist(b) <= dist(a) ? b : a;
+      };
+      let bestTitle = String(aiPayload.seo_title ?? "").trim();
+      let bestDesc = String(aiPayload.seo_description ?? "").trim();
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const titleBad = needTitle && !inTitleRange(bestTitle);
+        const descBad = needDesc && !inDescRange(bestDesc);
+        if (!titleBad && !descBad) break;
+        const fixInstr = `El producto se llama "${product.name ?? ""}".
+Reescribe SOLO los campos siguientes para cumplir EXACTAMENTE el rango de caracteres. Cuenta los caracteres antes de responder.
+${titleBad ? `- seo_title: ACTUAL="${bestTitle}" (${bestTitle.length} chars). Debe quedar entre 45 y 60 chars, ideal 50-58, incluyendo el nombre del producto. ${bestTitle.length < 45 ? "Amplíalo con presentación, ingrediente, categoría o beneficio." : "Resúmelo sin perder el nombre del producto."}` : ""}
+${descBad ? `- seo_description: ACTUAL="${bestDesc}" (${bestDesc.length} chars). Debe quedar entre 130 y 160 chars, ideal 145-155, clara y comercial. ${bestDesc.length < 130 ? "Amplíala con presentación, ingrediente, beneficio general o llamada comercial. NO uses claims médicos." : "Resúmela manteniendo el mensaje comercial."}` : ""}
+Responde JSON puro con SOLO las claves que reescribes.`;
+        try {
+          const out2 = await callAI({
+            provider,
+            messages: [
+              { role: "system", content: SYSTEM },
+              { role: "user", content: fixInstr },
+            ],
+            temperature: 0.3,
+            maxTokens: 400,
+            jsonMode: true,
+          });
+          const fixed = safeJsonParse<any>(out2.content) ?? {};
+          if (titleBad && typeof fixed.seo_title === "string") {
+            const t2 = fixed.seo_title.trim();
+            bestTitle = bestOf(bestTitle, t2, [45, 60]);
+          }
+          if (descBad && typeof fixed.seo_description === "string") {
+            const d2 = fixed.seo_description.trim();
+            bestDesc = bestOf(bestDesc, d2, [130, 160]);
+          }
+        } catch {
+          break;
+        }
+      }
+      if (needTitle) aiPayload.seo_title = bestTitle;
+      if (needDesc) aiPayload.seo_description = bestDesc;
     }
 
-    // Merge into seoPatch respecting overwrite rules
-    const seoPatch: Record<string, any> = {};
-    const applyIfAllowed = (key: FieldKey, value: any) => {
-      if (value === undefined || value === null || value === "") return;
-      if (key === "image_alts") return; // separate handling
-      if (!overwrite && fieldIsFilled(key)) return;
-      seoPatch[key === "long_description" ? "long_description" : key] = value;
-    };
+    const warnings: string[] = [];
+    const finalTitle = String(aiPayload.seo_title ?? "").trim();
+    if (finalTitle && (finalTitle.length < 45 || finalTitle.length > 60)) {
+      warnings.push(`Título SEO quedó en ${finalTitle.length} caracteres (ideal 45-60).`);
+    }
+    const finalDesc = String(aiPayload.seo_description ?? "").trim();
+    if (finalDesc && (finalDesc.length < 130 || finalDesc.length > 160)) {
+      warnings.push(`Meta descripción quedó en ${finalDesc.length} caracteres (ideal 130-160).`);
+    }
 
     applyIfAllowed("seo_title", trimTo(aiPayload.seo_title, 60));
     applyIfAllowed("seo_description", trimTo(aiPayload.seo_description, 160));
