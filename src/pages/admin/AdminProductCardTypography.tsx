@@ -14,6 +14,7 @@ import {
   type HomeProductCardStyle,
   type TextCfg,
   type ButtonCfg,
+  type LayoutCfg,
 } from "@/lib/homeProductCardStyle";
 import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 
