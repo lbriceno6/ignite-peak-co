@@ -27,12 +27,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye, Sparkles, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye, Sparkles, Search, AlertTriangle } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
 import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
 import { BulkAiCompleteDialog } from "@/components/admin/BulkAiCompleteDialog";
 import { BulkSeoAiDialog } from "@/components/admin/BulkSeoAiDialog";
+import { SeoMissingDialog } from "@/components/admin/SeoMissingDialog";
+import { getProductSeoStatus, type ProductSeoStatusInfo, type RawSeoMeta } from "@/lib/productSeoStatus";
 
 type VisibilityInfo = { visible: boolean; reasons: string[] };
 
@@ -56,13 +58,19 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [reviewsFor, setReviewsFor] = useState<{ id: string; name: string } | null>(null);
-  const [filter, setFilter] = useState<"all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock">("all");
+  const [filter, setFilter] = useState<
+    | "all" | "drafts" | "visible" | "hidden" | "imported" | "no-stock"
+    | "seo-complete" | "seo-incomplete" | "seo-missing" | "seo-noindex" | "seo-low" | "seo-ready100"
+  >("all");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkOpen, setBulkOpen] = useState(false);
   const [bulkAiOpen, setBulkAiOpen] = useState(false);
   const [bulkSeoOpen, setBulkSeoOpen] = useState(false);
   const [stockDialog, setStockDialog] = useState<{ id: string; name: string } | null>(null);
   const [stockValue, setStockValue] = useState<string>("10");
+  const [seoMetaMap, setSeoMetaMap] = useState<Record<string, RawSeoMeta>>({});
+  const [seoAltsMap, setSeoAltsMap] = useState<Record<string, { total: number; withAlt: number }>>({});
+  const [missingFor, setMissingFor] = useState<{ id: string; name: string; info: ProductSeoStatusInfo } | null>(null);
   const [searchParams] = useSearchParams();
 
   // Read ?filter=drafts from URL (used by importer "Ir a borradores")
@@ -73,10 +81,67 @@ export default function AdminProducts() {
     else if (s === "pending") setFilter("drafts");
   }, [searchParams]);
 
+  const fetchSeoData = async (productIds: string[]) => {
+    if (!productIds.length) {
+      setSeoMetaMap({});
+      setSeoAltsMap({});
+      return {};
+    }
+    const [{ data: metas }, { data: alts }] = await Promise.all([
+      supabase.from("seo_meta").select("*").eq("entity_type", "product").in("entity_id", productIds),
+      supabase.from("seo_image_alts").select("entity_id, alt_text").eq("entity_type", "product").in("entity_id", productIds),
+    ]);
+    const metaMap: Record<string, RawSeoMeta> = {};
+    (metas ?? []).forEach((m: any) => { metaMap[m.entity_id] = m; });
+    const altMap: Record<string, { total: number; withAlt: number }> = {};
+    (alts ?? []).forEach((a: any) => {
+      const cur = altMap[a.entity_id] ?? { total: 0, withAlt: 0 };
+      cur.total += 1;
+      if (a.alt_text && a.alt_text.trim()) cur.withAlt += 1;
+      altMap[a.entity_id] = cur;
+    });
+    setSeoMetaMap(metaMap);
+    setSeoAltsMap(altMap);
+    return { metaMap, altMap };
+  };
+
   const load = async () => {
     setLoading(true);
+    const isSeoFilter = filter.startsWith("seo-");
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
+
+    if (isSeoFilter) {
+      // Fetch all products (capped) and filter client-side by SEO status
+      let query = supabase
+        .from("products")
+        .select("*, supplier:suppliers(id, business_name, slug)")
+        .order("sort_order", { ascending: true } as any)
+        .order("created_at", { ascending: false })
+        .limit(1000);
+      if (q.trim()) query = query.ilike("name", `%${q.trim()}%`);
+      const { data, error } = await query;
+      if (error) toast.error(error.message);
+      const all = data ?? [];
+      const ids = all.map((p: any) => p.id);
+      const { metaMap = {}, altMap = {} } = (await fetchSeoData(ids)) as any;
+      const filtered = all.filter((p: any) => {
+        const alts = altMap[p.id] ?? { total: 1, withAlt: p.main_image ? 0 : 0 };
+        const info = getProductSeoStatus(p, metaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+        if (filter === "seo-complete") return info.status === "complete";
+        if (filter === "seo-incomplete") return info.status === "incomplete" || info.status === "errors";
+        if (filter === "seo-missing") return info.status === "missing";
+        if (filter === "seo-noindex") return info.status === "noindex";
+        if (filter === "seo-low") return info.score < 80 && info.status !== "complete";
+        if (filter === "seo-ready100") return info.score >= 80 && info.status !== "complete" && info.status !== "noindex";
+        return true;
+      });
+      setTotal(filtered.length);
+      setItems(filtered.slice(from, from + pageSize));
+      setLoading(false);
+      return;
+    }
+
     let query = supabase
       .from("products")
       .select("*, supplier:suppliers(id, business_name, slug)", { count: "exact" })
@@ -97,8 +162,10 @@ export default function AdminProducts() {
     }
     const { data, count, error } = await query;
     if (error) toast.error(error.message);
-    setItems(data ?? []);
+    const rows = data ?? [];
+    setItems(rows);
     setTotal(count ?? 0);
+    await fetchSeoData(rows.map((p: any) => p.id));
     setLoading(false);
   };
 
@@ -265,6 +332,12 @@ export default function AdminProducts() {
             <SelectItem value="hidden">Ocultos en tienda</SelectItem>
             <SelectItem value="no-stock">Sin stock</SelectItem>
             <SelectItem value="imported">Importados (Web Importer)</SelectItem>
+            <SelectItem value="seo-complete">SEO completo</SelectItem>
+            <SelectItem value="seo-incomplete">SEO incompleto / con errores</SelectItem>
+            <SelectItem value="seo-missing">Sin SEO</SelectItem>
+            <SelectItem value="seo-noindex">No index activo</SelectItem>
+            <SelectItem value="seo-low">SEO menor a 80</SelectItem>
+            <SelectItem value="seo-ready100">SEO listo para 100</SelectItem>
           </SelectContent>
         </Select>
         {selected.size > 0 && (
@@ -298,12 +371,19 @@ export default function AdminProducts() {
               <th className="p-3">Aprob.</th>
               <th className="p-3">Activo</th>
               <th className="p-3">Visible</th>
+              <th className="p-3">SEO</th>
               <th className="p-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {items.map((p, idx) => {
               const vis = computeVisibility(p);
+              const alts = seoAltsMap[p.id] ?? { total: 1, withAlt: 0 };
+              const seoInfo = getProductSeoStatus(p, seoMetaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+              const actionLabel =
+                seoInfo.status === "missing" ? "Generar SEO"
+                : seoInfo.status === "complete" ? "Ver SEO"
+                : "Corregir para 100";
               return (
                 <tr key={p.id} className="border-t">
                   <td className="p-3">
@@ -367,6 +447,38 @@ export default function AdminProducts() {
                       </div>
                     )}
                   </td>
+                  <td className="p-3">
+                    <div className="space-y-1">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${seoInfo.badgeClass}`}>
+                        {seoInfo.status === "errors" && <AlertTriangle size={10} />}
+                        {seoInfo.label}
+                        {seoInfo.status !== "noindex" && (
+                          <span className="opacity-70">· {seoInfo.score}/100</span>
+                        )}
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[11px]"
+                          onClick={() => { setSelected(new Set([p.id])); setBulkSeoOpen(true); }}
+                          title={actionLabel}
+                        >
+                          <Sparkles size={11} className="mr-1" /> {actionLabel}
+                        </Button>
+                        {seoInfo.status !== "complete" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[11px]"
+                            onClick={() => setMissingFor({ id: p.id, name: p.name, info: seoInfo })}
+                          >
+                            Ver faltantes
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </td>
                   <td className="p-3 text-right whitespace-nowrap">
                     {!vis.visible && (
                       <Button
@@ -389,7 +501,7 @@ export default function AdminProducts() {
               );
             })}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>
+              <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>
             )}
           </tbody>
         </table>
@@ -460,8 +572,26 @@ export default function AdminProducts() {
       <BulkSeoAiDialog
         open={bulkSeoOpen}
         onOpenChange={setBulkSeoOpen}
-        products={items.filter((p) => selected.has(p.id))}
+        products={items
+          .filter((p) => selected.has(p.id))
+          .map((p) => {
+            const alts = seoAltsMap[p.id] ?? { total: 1, withAlt: 0 };
+            const info = getProductSeoStatus(p, seoMetaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+            return { ...p, __seo_status: info.status };
+          })}
         onDone={() => { load(); }}
+      />
+
+      <SeoMissingDialog
+        open={!!missingFor}
+        onOpenChange={(v) => { if (!v) setMissingFor(null); }}
+        productName={missingFor?.name}
+        info={missingFor?.info ?? null}
+        onFix={() => {
+          if (!missingFor) return;
+          setSelected(new Set([missingFor.id]));
+          setBulkSeoOpen(true);
+        }}
       />
     </div>
   );

@@ -59,6 +59,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const [overwrite, setOverwrite] = useState(false);
   const [fixOutOfRange, setFixOutOfRange] = useState(true);
   const [improveMain, setImproveMain] = useState(false);
+  const [skipComplete, setSkipComplete] = useState(true);
   const [fields, setFields] = useState<Record<FieldKey, boolean>>(() =>
     Object.fromEntries(FIELD_OPTIONS.map((o) => [o.key, !o.mainCopy])) as any,
   );
@@ -66,13 +67,19 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const [rows, setRows] = useState<Row[]>([]);
   const [done, setDone] = useState(0);
 
+  const completeCount = products.filter((p: any) => p.__seo_status === "complete").length;
+  const effectiveTargets = skipComplete
+    ? products.filter((p: any) => p.__seo_status !== "complete")
+    : products;
+
   useEffect(() => {
     if (!open) return;
-    setRows(products.map((p) => ({ id: p.id, name: p.name, status: "pending" })));
+    setRows(effectiveTargets.map((p) => ({ id: p.id, name: p.name, status: "pending" })));
     setDone(0);
-  }, [open, products]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, products, skipComplete]);
 
-  const total = products.length;
+  const total = effectiveTargets.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
 
   const updateRow = (id: string, patch: Partial<Row>) =>
@@ -85,8 +92,9 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     if (!improveMain) {
       selectedFields = selectedFields.filter((f) => f !== "short_description" && f !== "long_description");
     }
-    for (let i = 0; i < products.length; i++) {
-      const p = products[i];
+    const targets = effectiveTargets;
+    for (let i = 0; i < targets.length; i++) {
+      const p = targets[i];
       updateRow(p.id, { status: "running" });
       try {
         const { data, error } = await supabase.functions.invoke("product-seo-generate", {
@@ -152,7 +160,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles size={18} className="text-primary" /> SEO Inteligente Masivo — {products.length} producto(s)
+            <Sparkles size={18} className="text-primary" /> SEO Inteligente Masivo — {effectiveTargets.length} de {products.length} producto(s)
           </DialogTitle>
           <DialogDescription>
             Completa o corrige campos SEO con IA. Por defecto NO modifica el nombre principal del producto
@@ -216,6 +224,20 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             </span>
           </label>
         </div>
+
+        <label className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40">
+          <Checkbox
+            checked={skipComplete}
+            onCheckedChange={(v) => setSkipComplete(!!v)}
+            disabled={running}
+          />
+          <span>
+            Saltar productos con SEO completo
+            {completeCount > 0 && (
+              <span className="text-xs text-muted-foreground"> · {completeCount} se omitirán</span>
+            )}
+          </span>
+        </label>
 
         <div className="grid gap-2 sm:grid-cols-2">
           {FIELD_OPTIONS.map((o) => (
@@ -306,12 +328,12 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           <Button
             variant="secondary"
             onClick={fixTo100}
-            disabled={running || products.length === 0}
+            disabled={running || effectiveTargets.length === 0}
             title="Reescribe solo los campos SEO mal optimizados (no toca nombre, descripción principal, precio, stock ni imagen)"
           >
             {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Corregir SEO para 100/100</>}
           </Button>
-          <Button onClick={run} disabled={running || products.length === 0}>
+          <Button onClick={run} disabled={running || effectiveTargets.length === 0}>
             {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Generar SEO con IA</>}
           </Button>
         </DialogFooter>
