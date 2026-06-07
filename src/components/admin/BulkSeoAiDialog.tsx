@@ -153,8 +153,8 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             <Sparkles size={18} className="text-primary" /> SEO Inteligente Masivo — {products.length} producto(s)
           </DialogTitle>
           <DialogDescription>
-            Genera meta title, descripción, slug, canonical, OG, keywords, tags, Shopping y alt text con IA.
-            Por defecto solo completa campos vacíos.
+            Completa o corrige campos SEO con IA. Por defecto NO modifica el nombre principal del producto
+            ni las descripciones visibles — solo metadata SEO.
           </DialogDescription>
         </DialogHeader>
 
@@ -182,29 +182,60 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Modo</Label>
+            <Label className="text-xs">Sobrescribir</Label>
             <label className="flex items-center gap-2 rounded-md border p-2 text-xs">
               <Checkbox
                 checked={overwrite}
                 onCheckedChange={(v) => setOverwrite(!!v)}
                 disabled={running}
               />
-              <span>{overwrite ? "Sobrescribir existentes" : "Solo completar vacíos"}</span>
+              <span>{overwrite ? "Sobrescribir todo" : "Solo completar vacíos"}</span>
             </label>
           </div>
         </div>
 
         <div className="grid gap-2 sm:grid-cols-2">
+          <label className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40">
+            <Checkbox
+              checked={fixOutOfRange}
+              onCheckedChange={(v) => setFixOutOfRange(!!v)}
+              disabled={running}
+            />
+            <span>Corregir campos SEO fuera del rango ideal (título corto, meta corta, etc.)</span>
+          </label>
+          <label className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-amber-500/10 border-amber-500/40">
+            <Checkbox
+              checked={improveMain}
+              onCheckedChange={(v) => setImproveMain(!!v)}
+              disabled={running}
+            />
+            <span>
+              <span className="font-medium">Avanzado:</span> mejorar también título y descripciones visibles del producto
+            </span>
+          </label>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-2">
           {FIELD_OPTIONS.map((o) => (
-            <label key={o.key} className="flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40">
+            <label
+              key={o.key}
+              className={`flex items-start gap-2 rounded-md border p-2 text-sm cursor-pointer hover:bg-muted/40 ${
+                o.mainCopy && !improveMain ? "opacity-50" : ""
+              }`}
+            >
               <Checkbox
-                checked={fields[o.key]}
+                checked={fields[o.key] && (!o.mainCopy || improveMain)}
                 onCheckedChange={(v) => setFields((prev) => ({ ...prev, [o.key]: !!v }))}
-                disabled={running}
+                disabled={running || (o.mainCopy && !improveMain)}
               />
               <span>{o.label}</span>
             </label>
           ))}
+        </div>
+
+        <div className="rounded-md bg-muted/40 border border-border p-2 text-xs text-muted-foreground">
+          El SEO masivo optimiza campos SEO. No modifica el título ni la descripción principal del producto,
+          salvo que actives la opción avanzada.
         </div>
 
         {(running || done > 0) && (
@@ -215,14 +246,14 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
         )}
 
         {rows.length > 0 && (
-          <div className="rounded-md border max-h-72 overflow-y-auto text-sm">
+          <div className="rounded-md border max-h-80 overflow-y-auto text-sm">
             <table className="w-full text-xs">
               <thead className="bg-muted/40 text-left">
                 <tr>
                   <th className="p-2">Producto</th>
                   <th className="p-2">Proveedor</th>
+                  <th className="p-2">Antes → Después</th>
                   <th className="p-2">Score</th>
-                  <th className="p-2">Campos</th>
                   <th className="p-2">Estado</th>
                 </tr>
               </thead>
@@ -238,12 +269,26 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
                       </div>
                     </td>
                     <td className="p-2">{r.provider ?? "—"}</td>
+                    <td className="p-2 text-[11px] leading-tight">
+                      {r.before && r.after ? (
+                        <>
+                          <div>Tít: {r.before.title}→{r.after.title}</div>
+                          <div>Meta: {r.before.desc}→{r.after.desc}</div>
+                        </>
+                      ) : "—"}
+                    </td>
                     <td className="p-2">{typeof r.score === "number" ? `${r.score}/100` : "—"}</td>
-                    <td className="p-2">{r.completed ?? "—"}</td>
                     <td className="p-2">
-                      {r.status === "ok" ? (r.complete ? "SEO completo" : "Faltan datos") :
-                       r.status === "error" ? <span className="text-destructive break-words">{r.error}</span> :
-                       r.status === "running" ? "Procesando…" : "Pendiente"}
+                      {r.status === "ok" ? (
+                        <div className="space-y-0.5">
+                          <div>{r.complete ? "SEO completo" : `${r.completed ?? 0} campos`}</div>
+                          {r.warnings && r.warnings.length > 0 && (
+                            <div className="text-amber-600 text-[10px]">{r.warnings.join(" · ")}</div>
+                          )}
+                        </div>
+                      ) : r.status === "error" ? (
+                        <span className="text-destructive break-words">{r.error}</span>
+                      ) : r.status === "running" ? "Procesando…" : "Pendiente"}
                     </td>
                   </tr>
                 ))}
