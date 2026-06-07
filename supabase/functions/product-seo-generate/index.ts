@@ -449,6 +449,7 @@ Responde JSON puro con SOLO las claves que reescribes.`;
       seo_patch: seoPatch,
       alts_written: altsWritten,
       noindex: (merged as any).noindex ?? false,
+      warnings,
     });
   } catch (e: any) {
     return new Response(
