@@ -27,12 +27,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye, Sparkles, Search } from "lucide-react";
+import { Pencil, Trash2, Plus, ArrowUp, ArrowDown, Copy, Star, CheckCircle2, EyeOff, Eye, Sparkles, Search, AlertTriangle } from "lucide-react";
 import { resolveProductImage } from "@/lib/productImage";
 import { PaginationBar } from "@/components/PaginationBar";
 import { AdminReviewsDialog } from "@/components/admin/AdminReviewsDialog";
 import { BulkAiCompleteDialog } from "@/components/admin/BulkAiCompleteDialog";
 import { BulkSeoAiDialog } from "@/components/admin/BulkSeoAiDialog";
+import { SeoMissingDialog } from "@/components/admin/SeoMissingDialog";
+import { getProductSeoStatus, type ProductSeoStatusInfo, type RawSeoMeta } from "@/lib/productSeoStatus";
 
 type VisibilityInfo = { visible: boolean; reasons: string[] };
 
