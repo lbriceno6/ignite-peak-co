@@ -92,8 +92,9 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     if (!improveMain) {
       selectedFields = selectedFields.filter((f) => f !== "short_description" && f !== "long_description");
     }
-    for (let i = 0; i < products.length; i++) {
-      const p = products[i];
+    const targets = effectiveTargets;
+    for (let i = 0; i < targets.length; i++) {
+      const p = targets[i];
       updateRow(p.id, { status: "running" });
       try {
         const { data, error } = await supabase.functions.invoke("product-seo-generate", {
