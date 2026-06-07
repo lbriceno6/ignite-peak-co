@@ -194,10 +194,11 @@ Deno.serve(async (req) => {
       }
     };
 
-    // fix_to_100: regenerate ONLY the SEO fields that currently fail length /
-    // quality rules. Never touches main product content (name, description,
-    // price, stock, image). Forces overwrite on broken SEO fields only.
-    if (fix_to_100) {
+    // fix_to_100 / fix_out_of_range: regenerate ONLY the SEO fields that
+    // currently fail length / quality rules. Never touches main product
+    // content (name, description, price, stock, image). Forces overwrite on
+    // broken SEO fields only.
+    if (fix_to_100 || fix_out_of_range) {
       const firstName = norm(product.name ?? "").split(" ")[0] ?? "";
       const t = String(seoExisting.seo_title ?? "").trim();
       const d = String(seoExisting.seo_description ?? "").trim();
@@ -220,7 +221,11 @@ Deno.serve(async (req) => {
       broken.push("image_alts");
       broken.push("noindex");
 
-      requested = broken;
+      // Intersect with the explicitly requested fields so the admin can
+      // still scope which SEO fields the auto-fix touches.
+      const reqSet = new Set(requested);
+      requested = broken.filter((b) => reqSet.has(b));
+      if (requested.length === 0) requested = broken;
       overwrite = true; // only the broken SEO fields are regenerated
     }
 
