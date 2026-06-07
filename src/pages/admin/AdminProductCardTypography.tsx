@@ -272,6 +272,73 @@ export default function AdminProductCardTypography() {
               </div>
             </div>
           </section>
+
+          {/* Estructura de tarjeta */}
+          <section className="rounded-lg border bg-background p-5">
+            <h2 className="mb-1 font-display text-lg">Estructura de tarjeta</h2>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Controla el layout de las tarjetas en los carruseles del Home para que queden alineadas
+              (imágenes, precios y botones al mismo nivel). No afecta al catálogo ni a la ficha de producto.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <Label>Alto imagen desktop (px)</Label>
+                <Input type="number" value={style.layout.imageHeightDesktop}
+                  onChange={(e) => updateLayout({ imageHeightDesktop: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Alto imagen mobile (px)</Label>
+                <Input type="number" value={style.layout.imageHeightMobile}
+                  onChange={(e) => updateLayout({ imageHeightMobile: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Ajuste de imagen</Label>
+                <Select value={style.layout.imageFit}
+                  onValueChange={(v) => updateLayout({ imageFit: v as "cover" | "contain" })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="contain">Contain (no recorta, ecommerce)</SelectItem>
+                    <SelectItem value="cover">Cover (rellena, recorta)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Fondo del área de imagen</Label>
+                <div className="flex gap-2">
+                  <input type="color" value={style.layout.imageBg}
+                    onChange={(e) => updateLayout({ imageBg: e.target.value })}
+                    className="h-10 w-12 rounded border" />
+                  <Input value={style.layout.imageBg}
+                    onChange={(e) => updateLayout({ imageBg: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label>Padding interno (px)</Label>
+                <Input type="number" value={style.layout.paddingInner}
+                  onChange={(e) => updateLayout({ paddingInner: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Espacio entre elementos (px)</Label>
+                <Input type="number" value={style.layout.gap}
+                  onChange={(e) => updateLayout({ gap: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Alto bloque precio (px)</Label>
+                <Input type="number" value={style.layout.priceBlockHeight}
+                  onChange={(e) => updateLayout({ priceBlockHeight: +e.target.value })} />
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch checked={style.layout.buttonBottom !== false}
+                  onCheckedChange={(v) => updateLayout({ buttonBottom: v })} />
+                <Label>Alinear botón abajo</Label>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Switch checked={style.layout.equalizeHeights !== false}
+                  onCheckedChange={(v) => updateLayout({ equalizeHeights: v })} />
+                <Label>Igualar altura de cards</Label>
+              </div>
+            </div>
+          </section>
         </div>
 
         {/* Live Preview */}
@@ -279,29 +346,46 @@ export default function AdminProductCardTypography() {
           <h2 className="mb-3 font-display text-lg">Vista previa en vivo</h2>
           <div className="hpc-scope rounded-xl border bg-secondary/40 p-4">
             <HomeProductCardStyles style={style} scope=".hpc-preview" />
-            <div className="hpc-preview">
-              <article className="flex flex-col overflow-hidden rounded-lg border border-border bg-card">
-                <div className="aspect-square bg-gradient-to-br from-primary/20 to-accent/20 grid place-items-center text-5xl">🥤</div>
-                <div className="flex flex-col gap-1 p-3">
-                  <div data-pc="category">SUPLEMENTOS · PROTEÍNAS</div>
-                  <div data-pc="title">Proteína Whey Premium 1kg sabor chocolate intenso</div>
-                  <p data-pc="description">Fórmula con 24g de proteína por porción, ideal para recuperación muscular y energía.</p>
-                  <div className="h-4 flex items-center">
-                    <div data-pc="recommended">{style.recommended.text || "Recomendado"}</div>
+            <div className="hpc-preview grid grid-cols-1 gap-3 sm:grid-cols-3 items-stretch">
+              {[
+                { name: "Whey 1kg", desc: "24g proteína por porción.", price: "S/ 89.00", old: "S/ 119.00", emoji: "🥤", hasPrice: true },
+                { name: "Proteína Whey Premium 1kg sabor chocolate intenso edición limitada", desc: "Fórmula con 24g de proteína por porción, ideal para recuperación muscular y energía sostenida.", price: "S/ 129.00", old: null, emoji: "🍫", hasPrice: true },
+                { name: "Pack avanzado deportivo", desc: "Suplemento personalizado para atletas.", price: null, old: null, emoji: "💪", hasPrice: false },
+              ].map((p, i) => (
+                <article key={i} data-pc="card" className="overflow-hidden rounded-lg border border-border bg-card">
+                  <div data-pc="image-wrap" className="grid place-items-center text-5xl">
+                    <span>{p.emoji}</span>
                   </div>
-                  <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-                    <span data-pc="price">S/ 89.00</span>
-                    <span data-pc="price-old">S/ 119.00</span>
+                  <div data-pc="content">
+                    <div data-pc="category">SUPLEMENTOS · PROTEÍNAS</div>
+                    <div data-pc="title">{p.name}</div>
+                    <p data-pc="description">{p.desc}</p>
+                    {style.recommended.show !== false && (
+                      <div data-pc="recommended">{style.recommended.text || "Recomendado"}</div>
+                    )}
+                    <div data-pc="button-wrap">
+                      <div data-pc="price-block">
+                        {p.hasPrice ? (
+                          <>
+                            <span data-pc="price">{p.price}</span>
+                            {p.old && <span data-pc="price-old">{p.old}</span>}
+                          </>
+                        ) : (
+                          <span data-pc="price">Consultar precio</span>
+                        )}
+                      </div>
+                      <button data-pc="button" type="button" className="mt-2 inline-flex items-center justify-center gap-2 px-3">
+                        {p.hasPrice ? "🛒 Agregar al carrito" : "💬 Consultar"}
+                      </button>
+                    </div>
                   </div>
-                  <button data-pc="button" type="button" className="mt-2 w-full inline-flex items-center justify-center gap-2 px-3">
-                    🛒 Agregar al carrito
-                  </button>
-                </div>
-              </article>
+                </article>
+              ))}
             </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            La vista previa refleja cambios al instante. Guarda para aplicar a todo el Home.
+            La vista previa muestra 3 productos (nombre corto, nombre largo, consultar precio) para validar
+            que imágenes, precios y botones queden alineados.
           </p>
         </aside>
       </div>
