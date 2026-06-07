@@ -338,6 +338,16 @@ Responde JSON puro con SOLO las claves que reescribes.`;
       warnings.push(`Meta descripción quedó en ${finalDesc.length} caracteres (ideal 130-160).`);
     }
 
+    // Merge into seoPatch respecting overwrite rules
+    const seoPatch: Record<string, any> = {};
+    const applyIfAllowed = (key: FieldKey, value: any) => {
+      if (value === undefined || value === null || value === "") return;
+      if (key === "image_alts") return;
+      if (!overwrite && fieldIsFilled(key)) return;
+      seoPatch[key === "long_description" ? "long_description" : key] = value;
+    };
+
+
     applyIfAllowed("seo_title", trimTo(aiPayload.seo_title, 60));
     applyIfAllowed("seo_description", trimTo(aiPayload.seo_description, 160));
     applyIfAllowed("short_description", trimTo(aiPayload.short_description, 100));
