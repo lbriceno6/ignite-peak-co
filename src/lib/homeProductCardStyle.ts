@@ -1,4 +1,4 @@
-// Tipografía configurable para las tarjetas de producto del Home.
+// Tipografía + estructura de las tarjetas de producto del Home.
 // Se guarda como JSON en site_content bajo la clave "home.product_card.style".
 
 export type TextCfg = {
@@ -28,6 +28,18 @@ export type ButtonCfg = {
   radius: number;
 };
 
+export type LayoutCfg = {
+  imageHeightDesktop: number;     // px
+  imageHeightMobile: number;      // px
+  imageFit: "cover" | "contain";
+  imageBg: string;                // background fill for image area
+  paddingInner: number;           // px
+  gap: number;                    // px
+  priceBlockHeight: number;       // px min height for the price line
+  buttonBottom: boolean;          // pin button to bottom
+  equalizeHeights: boolean;       // h-full so cards match row height
+};
+
 export type HomeProductCardStyle = {
   category: TextCfg;
   title: TextCfg;
@@ -36,6 +48,19 @@ export type HomeProductCardStyle = {
   price: TextCfg;
   priceOld: TextCfg;
   button: ButtonCfg;
+  layout: LayoutCfg;
+};
+
+export const DEFAULT_LAYOUT: LayoutCfg = {
+  imageHeightDesktop: 220,
+  imageHeightMobile: 180,
+  imageFit: "contain",
+  imageBg: "#FFFFFF",
+  paddingInner: 14,
+  gap: 8,
+  priceBlockHeight: 32,
+  buttonBottom: true,
+  equalizeHeights: true,
 };
 
 export const DEFAULT_STYLE: HomeProductCardStyle = {
@@ -68,27 +93,31 @@ export const DEFAULT_STYLE: HomeProductCardStyle = {
     textColor: "#FFFFFF", bgColor: "#35A936", hoverColor: "#1F7A2E",
     height: 44, radius: 8,
   },
+  layout: DEFAULT_LAYOUT,
 };
 
 export const PRESETS: Record<string, Partial<HomeProductCardStyle>> = {
   "Ecommerce limpio": DEFAULT_STYLE,
   "Compacto": {
     ...DEFAULT_STYLE,
-    title: { ...DEFAULT_STYLE.title, sizeDesktop: 16, sizeMobile: 15, weight: 600 },
-    description: { ...DEFAULT_STYLE.description, sizeDesktop: 13, sizeMobile: 12 },
+    title: { ...DEFAULT_STYLE.title, sizeDesktop: 16, sizeMobile: 15, weight: 600, maxLines: 2 },
+    description: { ...DEFAULT_STYLE.description, sizeDesktop: 13, sizeMobile: 12, maxLines: 2 },
     price: { ...DEFAULT_STYLE.price, sizeDesktop: 22, sizeMobile: 20, weight: 700 },
+    layout: { ...DEFAULT_LAYOUT, imageHeightDesktop: 180, imageHeightMobile: 150, paddingInner: 12, gap: 6, priceBlockHeight: 28 },
   },
   "Premium": {
     ...DEFAULT_STYLE,
-    title: { ...DEFAULT_STYLE.title, sizeDesktop: 19, sizeMobile: 17, weight: 600 },
-    description: { ...DEFAULT_STYLE.description, sizeDesktop: 14, sizeMobile: 13 },
+    title: { ...DEFAULT_STYLE.title, sizeDesktop: 19, sizeMobile: 17, weight: 600, maxLines: 2 },
+    description: { ...DEFAULT_STYLE.description, sizeDesktop: 14, sizeMobile: 13, maxLines: 2 },
     price: { ...DEFAULT_STYLE.price, sizeDesktop: 26, sizeMobile: 23, weight: 700 },
+    layout: { ...DEFAULT_LAYOUT, imageHeightDesktop: 260, imageHeightMobile: 200, paddingInner: 16, gap: 10, priceBlockHeight: 36 },
   },
   "Mobile compacto": {
     ...DEFAULT_STYLE,
-    title: { ...DEFAULT_STYLE.title, sizeDesktop: 15, sizeMobile: 14, weight: 600 },
-    description: { ...DEFAULT_STYLE.description, sizeDesktop: 12, sizeMobile: 12 },
+    title: { ...DEFAULT_STYLE.title, sizeDesktop: 15, sizeMobile: 14, weight: 600, maxLines: 2 },
+    description: { ...DEFAULT_STYLE.description, sizeDesktop: 12, sizeMobile: 12, maxLines: 2 },
     price: { ...DEFAULT_STYLE.price, sizeDesktop: 20, sizeMobile: 18, weight: 700 },
+    layout: { ...DEFAULT_LAYOUT, imageHeightDesktop: 170, imageHeightMobile: 140, paddingInner: 10, gap: 6, priceBlockHeight: 26 },
   },
 };
 
@@ -148,6 +177,52 @@ ${scope} [data-pc="button"]:hover{ background-color:${b.hoverColor} !important; 
 @media (min-width:640px){
 ${scope} [data-pc="button"]{ font-size:${clamp(b.sizeDesktop,8,40)}px !important; }
 }`;
+
+  // --- Layout / structure rules (only inside scope) ---
+  const L = { ...DEFAULT_LAYOUT, ...(style.layout || {}) };
+  const equalize = L.equalizeHeights !== false;
+  const bottom = L.buttonBottom !== false;
+
+  css += `
+${scope} [data-pc="card"]{
+  ${equalize ? "height:100% !important;" : ""}
+  display:flex !important;
+  flex-direction:column !important;
+}
+${scope} [data-pc="image-wrap"]{
+  aspect-ratio:auto !important;
+  height:${clamp(L.imageHeightMobile,80,600)}px !important;
+  background:${L.imageBg} !important;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+}
+@media (min-width:640px){
+${scope} [data-pc="image-wrap"]{ height:${clamp(L.imageHeightDesktop,80,800)}px !important; }
+}
+${scope} [data-pc="image"]{
+  width:100% !important;
+  height:100% !important;
+  object-fit:${L.imageFit} !important;
+  object-position:center !important;
+}
+${scope} [data-pc="content"]{
+  padding:${clamp(L.paddingInner,0,40)}px !important;
+  gap:${clamp(L.gap,0,40)}px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  flex:1 1 auto !important;
+  min-width:0;
+}
+${scope} [data-pc="price-block"]{
+  min-height:${clamp(L.priceBlockHeight,16,80)}px !important;
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:.5rem;
+}
+${scope} [data-pc="button-wrap"]{
+  ${bottom ? "margin-top:auto !important;" : ""}
+}
+${scope} [data-pc="button"]{ width:100% !important; }
+`;
+
   return css;
 };
 
@@ -165,6 +240,7 @@ export const parseStyle = (raw?: string | null): HomeProductCardStyle => {
       price: { ...DEFAULT_STYLE.price, ...parsed.price },
       priceOld: { ...DEFAULT_STYLE.priceOld, ...parsed.priceOld },
       button: { ...DEFAULT_STYLE.button, ...parsed.button },
+      layout: { ...DEFAULT_LAYOUT, ...(parsed.layout || {}) },
     };
   } catch {
     return DEFAULT_STYLE;
