@@ -48,6 +48,9 @@ type Row = {
   completed?: number;
   complete?: boolean;
   error?: string;
+  warnings?: string[];
+  before?: { title: number; desc: number };
+  after?: { title: number; desc: number };
 };
 
 export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props) {
