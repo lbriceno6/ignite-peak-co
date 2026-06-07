@@ -80,6 +80,9 @@ export default function AdminProductCardTypography() {
   const updateButton = (patch: Partial<ButtonCfg>) => {
     setStyle((s) => ({ ...s, button: { ...s.button, ...patch } }));
   };
+  const updateLayout = (patch: Partial<LayoutCfg>) => {
+    setStyle((s) => ({ ...s, layout: { ...s.layout, ...patch } }));
+  };
 
   if (loading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
 
