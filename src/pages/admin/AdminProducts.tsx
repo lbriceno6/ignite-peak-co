@@ -572,8 +572,26 @@ export default function AdminProducts() {
       <BulkSeoAiDialog
         open={bulkSeoOpen}
         onOpenChange={setBulkSeoOpen}
-        products={items.filter((p) => selected.has(p.id))}
+        products={items
+          .filter((p) => selected.has(p.id))
+          .map((p) => {
+            const alts = seoAltsMap[p.id] ?? { total: 1, withAlt: 0 };
+            const info = getProductSeoStatus(p, seoMetaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+            return { ...p, __seo_status: info.status };
+          })}
         onDone={() => { load(); }}
+      />
+
+      <SeoMissingDialog
+        open={!!missingFor}
+        onOpenChange={(v) => { if (!v) setMissingFor(null); }}
+        productName={missingFor?.name}
+        info={missingFor?.info ?? null}
+        onFix={() => {
+          if (!missingFor) return;
+          setSelected(new Set([missingFor.id]));
+          setBulkSeoOpen(true);
+        }}
       />
     </div>
   );
