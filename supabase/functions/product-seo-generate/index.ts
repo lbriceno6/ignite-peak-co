@@ -149,11 +149,15 @@ Deno.serve(async (req) => {
     const provider: AIProvider = (body.provider ?? "openai") as AIProvider;
     const level: Level = (body.level ?? "equilibrado") as Level;
     let overwrite: boolean = !!body.overwrite_existing;
-    // protect_main: never touch fields that mirror the main product content
-    // (short_description, long_description). Defaults true when fix_to_100.
+    // fix_to_100 / fix_out_of_range: re-generate SEO fields that exist but
+    // fail length/quality rules. Never touches main product content.
     const fix_to_100: boolean = !!body.fix_to_100;
+    const fix_out_of_range: boolean = !!body.fix_out_of_range || fix_to_100;
+    // improve_main: opt-in to also rewrite visible product copy
+    // (short/long description). Off by default — SEO mass run protects them.
+    const improve_main: boolean = !!body.improve_main;
     const protect_main: boolean =
-      typeof body.protect_main === "boolean" ? body.protect_main : fix_to_100;
+      typeof body.protect_main === "boolean" ? body.protect_main : !improve_main;
 
     let requested: FieldKey[] = Array.isArray(body.fields_to_generate) && body.fields_to_generate.length
       ? body.fields_to_generate as FieldKey[]
@@ -190,10 +194,11 @@ Deno.serve(async (req) => {
       }
     };
 
-    // fix_to_100: regenerate ONLY the SEO fields that currently fail length /
-    // quality rules. Never touches main product content (name, description,
-    // price, stock, image). Forces overwrite on broken SEO fields only.
-    if (fix_to_100) {
+    // fix_to_100 / fix_out_of_range: regenerate ONLY the SEO fields that
+    // currently fail length / quality rules. Never touches main product
+    // content (name, description, price, stock, image). Forces overwrite on
+    // broken SEO fields only.
+    if (fix_to_100 || fix_out_of_range) {
       const firstName = norm(product.name ?? "").split(" ")[0] ?? "";
       const t = String(seoExisting.seo_title ?? "").trim();
       const d = String(seoExisting.seo_description ?? "").trim();
@@ -216,7 +221,11 @@ Deno.serve(async (req) => {
       broken.push("image_alts");
       broken.push("noindex");
 
-      requested = broken;
+      // Intersect with the explicitly requested fields so the admin can
+      // still scope which SEO fields the auto-fix touches.
+      const reqSet = new Set(requested);
+      requested = broken.filter((b) => reqSet.has(b));
+      if (requested.length === 0) requested = broken;
       overwrite = true; // only the broken SEO fields are regenerated
     }
 
@@ -267,16 +276,77 @@ Deno.serve(async (req) => {
           status: 500,
         }, 200);
       }
+
+      // Validation retry loop for seo_title (45-60) and seo_description (130-160).
+      // Try up to 2 extra times; keep best version.
+      const needTitle = aiFields.includes("seo_title");
+      const needDesc = aiFields.includes("seo_description");
+      const inTitleRange = (s: string) => s.length >= 45 && s.length <= 60;
+      const inDescRange = (s: string) => s.length >= 130 && s.length <= 160;
+      const bestOf = (a: string, b: string, ideal: [number, number]) => {
+        const dist = (s: string) =>
+          s.length < ideal[0] ? ideal[0] - s.length :
+          s.length > ideal[1] ? s.length - ideal[1] : 0;
+        return dist(b) <= dist(a) ? b : a;
+      };
+      let bestTitle = String(aiPayload.seo_title ?? "").trim();
+      let bestDesc = String(aiPayload.seo_description ?? "").trim();
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const titleBad = needTitle && !inTitleRange(bestTitle);
+        const descBad = needDesc && !inDescRange(bestDesc);
+        if (!titleBad && !descBad) break;
+        const fixInstr = `El producto se llama "${product.name ?? ""}".
+Reescribe SOLO los campos siguientes para cumplir EXACTAMENTE el rango de caracteres. Cuenta los caracteres antes de responder.
+${titleBad ? `- seo_title: ACTUAL="${bestTitle}" (${bestTitle.length} chars). Debe quedar entre 45 y 60 chars, ideal 50-58, incluyendo el nombre del producto. ${bestTitle.length < 45 ? "Amplíalo con presentación, ingrediente, categoría o beneficio." : "Resúmelo sin perder el nombre del producto."}` : ""}
+${descBad ? `- seo_description: ACTUAL="${bestDesc}" (${bestDesc.length} chars). Debe quedar entre 130 y 160 chars, ideal 145-155, clara y comercial. ${bestDesc.length < 130 ? "Amplíala con presentación, ingrediente, beneficio general o llamada comercial. NO uses claims médicos." : "Resúmela manteniendo el mensaje comercial."}` : ""}
+Responde JSON puro con SOLO las claves que reescribes.`;
+        try {
+          const out2 = await callAI({
+            provider,
+            messages: [
+              { role: "system", content: SYSTEM },
+              { role: "user", content: fixInstr },
+            ],
+            temperature: 0.3,
+            maxTokens: 400,
+            jsonMode: true,
+          });
+          const fixed = safeJsonParse<any>(out2.content) ?? {};
+          if (titleBad && typeof fixed.seo_title === "string") {
+            const t2 = fixed.seo_title.trim();
+            bestTitle = bestOf(bestTitle, t2, [45, 60]);
+          }
+          if (descBad && typeof fixed.seo_description === "string") {
+            const d2 = fixed.seo_description.trim();
+            bestDesc = bestOf(bestDesc, d2, [130, 160]);
+          }
+        } catch {
+          break;
+        }
+      }
+      if (needTitle) aiPayload.seo_title = bestTitle;
+      if (needDesc) aiPayload.seo_description = bestDesc;
+    }
+
+    const warnings: string[] = [];
+    const finalTitle = String(aiPayload.seo_title ?? "").trim();
+    if (finalTitle && (finalTitle.length < 45 || finalTitle.length > 60)) {
+      warnings.push(`Título SEO quedó en ${finalTitle.length} caracteres (ideal 45-60).`);
+    }
+    const finalDesc = String(aiPayload.seo_description ?? "").trim();
+    if (finalDesc && (finalDesc.length < 130 || finalDesc.length > 160)) {
+      warnings.push(`Meta descripción quedó en ${finalDesc.length} caracteres (ideal 130-160).`);
     }
 
     // Merge into seoPatch respecting overwrite rules
     const seoPatch: Record<string, any> = {};
     const applyIfAllowed = (key: FieldKey, value: any) => {
       if (value === undefined || value === null || value === "") return;
-      if (key === "image_alts") return; // separate handling
+      if (key === "image_alts") return;
       if (!overwrite && fieldIsFilled(key)) return;
       seoPatch[key === "long_description" ? "long_description" : key] = value;
     };
+
 
     applyIfAllowed("seo_title", trimTo(aiPayload.seo_title, 60));
     applyIfAllowed("seo_description", trimTo(aiPayload.seo_description, 160));
@@ -379,6 +449,15 @@ Deno.serve(async (req) => {
       seo_patch: seoPatch,
       alts_written: altsWritten,
       noindex: (merged as any).noindex ?? false,
+      warnings,
+      before: {
+        title_length: String(seoExisting.seo_title ?? "").length,
+        description_length: String(seoExisting.seo_description ?? "").length,
+      },
+      after: {
+        title_length: String((merged as any).seo_title ?? "").length,
+        description_length: String((merged as any).seo_description ?? "").length,
+      },
     });
   } catch (e: any) {
     return new Response(
