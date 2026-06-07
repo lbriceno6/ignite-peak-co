@@ -57,8 +57,10 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const [provider, setProvider] = useState<"openai" | "deepseek" | "lovable">("openai");
   const [level, setLevel] = useState<"basico" | "equilibrado" | "avanzado">("equilibrado");
   const [overwrite, setOverwrite] = useState(false);
+  const [fixOutOfRange, setFixOutOfRange] = useState(true);
+  const [improveMain, setImproveMain] = useState(false);
   const [fields, setFields] = useState<Record<FieldKey, boolean>>(() =>
-    Object.fromEntries(FIELD_OPTIONS.map((o) => [o.key, true])) as any,
+    Object.fromEntries(FIELD_OPTIONS.map((o) => [o.key, !o.mainCopy])) as any,
   );
   const [running, setRunning] = useState(false);
   const [rows, setRows] = useState<Row[]>([]);
