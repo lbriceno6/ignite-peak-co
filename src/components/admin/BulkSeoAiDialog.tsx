@@ -23,9 +23,9 @@ type FieldKey =
   | "keywords" | "tags" | "shopping_title" | "shopping_description"
   | "short_description" | "long_description" | "image_alts" | "noindex";
 
-const FIELD_OPTIONS: { key: FieldKey; label: string }[] = [
-  { key: "seo_title", label: "Meta title" },
-  { key: "seo_description", label: "Meta description" },
+const FIELD_OPTIONS: { key: FieldKey; label: string; mainCopy?: boolean }[] = [
+  { key: "seo_title", label: "Título SEO (meta title)" },
+  { key: "seo_description", label: "Meta descripción" },
   { key: "slug", label: "Slug SEO" },
   { key: "canonical", label: "Canonical URL" },
   { key: "og_image", label: "Imagen OG" },
@@ -33,10 +33,10 @@ const FIELD_OPTIONS: { key: FieldKey; label: string }[] = [
   { key: "tags", label: "Tags" },
   { key: "shopping_title", label: "Título Google Shopping" },
   { key: "shopping_description", label: "Descripción Google Shopping" },
-  { key: "short_description", label: "Descripción corta" },
-  { key: "long_description", label: "Descripción larga" },
   { key: "image_alts", label: "Alt text de imágenes" },
   { key: "noindex", label: "Quitar no-index si está completo" },
+  { key: "short_description", label: "Descripción corta visible (avanzado)", mainCopy: true },
+  { key: "long_description", label: "Descripción larga visible (avanzado)", mainCopy: true },
 ];
 
 type Row = {
