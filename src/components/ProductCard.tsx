@@ -138,7 +138,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3 min-w-0">
+      <div data-pc="content" className="flex flex-1 flex-col gap-1 p-3 min-w-0">
         {product.brand && product.brand !== "Sin marca" && (
           <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
             {product.brand}
