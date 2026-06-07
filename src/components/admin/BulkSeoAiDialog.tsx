@@ -81,10 +81,17 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const runWith = async (extraBody: Record<string, any>) => {
     setRunning(true);
     setDone(0);
-    const selectedFields = (Object.keys(fields) as FieldKey[]).filter((k) => fields[k]);
+    let selectedFields = (Object.keys(fields) as FieldKey[]).filter((k) => fields[k]);
+    if (!improveMain) {
+      selectedFields = selectedFields.filter((f) => f !== "short_description" && f !== "long_description");
+    }
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
-      updateRow(p.id, { status: "running" });
+      const before = {
+        title: String((p as any).seo_title ?? "").length,
+        desc: String((p as any).seo_description ?? "").length,
+      };
+      updateRow(p.id, { status: "running", before });
       try {
         const { data, error } = await supabase.functions.invoke("product-seo-generate", {
           body: {
@@ -92,6 +99,8 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
             provider,
             level,
             overwrite_existing: overwrite,
+            fix_out_of_range: fixOutOfRange,
+            improve_main: improveMain,
             fields_to_generate: selectedFields,
             ...extraBody,
           },
@@ -109,12 +118,17 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           });
         } else {
           const d = data as any;
+          const patch = d.seo_patch ?? {};
+          const afterTitle = patch.seo_title ? String(patch.seo_title).length : before.title;
+          const afterDesc = patch.seo_description ? String(patch.seo_description).length : before.desc;
           updateRow(p.id, {
             status: "ok",
             provider: d.provider,
             score: d.score,
             completed: d.completed_fields,
             complete: !!d.complete,
+            warnings: Array.isArray(d.warnings) ? d.warnings : [],
+            after: { title: afterTitle, desc: afterDesc },
           });
         }
       } catch (e: any) {
@@ -128,7 +142,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   };
 
   const run = () => runWith({});
-  const fixTo100 = () => runWith({ fix_to_100: true, protect_main: true });
+  const fixTo100 = () => runWith({ fix_to_100: true, protect_main: !improveMain });
 
 
   return (
