@@ -371,12 +371,19 @@ export default function AdminProducts() {
               <th className="p-3">Aprob.</th>
               <th className="p-3">Activo</th>
               <th className="p-3">Visible</th>
+              <th className="p-3">SEO</th>
               <th className="p-3 text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {items.map((p, idx) => {
               const vis = computeVisibility(p);
+              const alts = seoAltsMap[p.id] ?? { total: 1, withAlt: 0 };
+              const seoInfo = getProductSeoStatus(p, seoMetaMap[p.id], Math.max(1, alts.total), alts.withAlt);
+              const actionLabel =
+                seoInfo.status === "missing" ? "Generar SEO"
+                : seoInfo.status === "complete" ? "Ver SEO"
+                : "Corregir para 100";
               return (
                 <tr key={p.id} className="border-t">
                   <td className="p-3">
@@ -440,6 +447,38 @@ export default function AdminProducts() {
                       </div>
                     )}
                   </td>
+                  <td className="p-3">
+                    <div className="space-y-1">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ${seoInfo.badgeClass}`}>
+                        {seoInfo.status === "errors" && <AlertTriangle size={10} />}
+                        {seoInfo.label}
+                        {seoInfo.status !== "noindex" && (
+                          <span className="opacity-70">· {seoInfo.score}/100</span>
+                        )}
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-[11px]"
+                          onClick={() => { setSelected(new Set([p.id])); setBulkSeoOpen(true); }}
+                          title={actionLabel}
+                        >
+                          <Sparkles size={11} className="mr-1" /> {actionLabel}
+                        </Button>
+                        {seoInfo.status !== "complete" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-[11px]"
+                            onClick={() => setMissingFor({ id: p.id, name: p.name, info: seoInfo })}
+                          >
+                            Ver faltantes
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </td>
                   <td className="p-3 text-right whitespace-nowrap">
                     {!vis.visible && (
                       <Button
@@ -462,7 +501,7 @@ export default function AdminProducts() {
               );
             })}
             {!loading && items.length === 0 && (
-              <tr><td colSpan={11} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>
+              <tr><td colSpan={12} className="p-8 text-center text-muted-foreground">Sin productos</td></tr>
             )}
           </tbody>
         </table>
