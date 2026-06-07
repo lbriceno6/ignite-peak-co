@@ -87,11 +87,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
     }
     for (let i = 0; i < products.length; i++) {
       const p = products[i];
-      const before = {
-        title: String((p as any).seo_title ?? "").length,
-        desc: String((p as any).seo_description ?? "").length,
-      };
-      updateRow(p.id, { status: "running", before });
+      updateRow(p.id, { status: "running" });
       try {
         const { data, error } = await supabase.functions.invoke("product-seo-generate", {
           body: {
