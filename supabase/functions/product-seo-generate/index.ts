@@ -450,6 +450,14 @@ Responde JSON puro con SOLO las claves que reescribes.`;
       alts_written: altsWritten,
       noindex: (merged as any).noindex ?? false,
       warnings,
+      before: {
+        title_length: String(seoExisting.seo_title ?? "").length,
+        description_length: String(seoExisting.seo_description ?? "").length,
+      },
+      after: {
+        title_length: String((merged as any).seo_title ?? "").length,
+        description_length: String((merged as any).seo_description ?? "").length,
+      },
     });
   } catch (e: any) {
     return new Response(
