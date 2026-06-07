@@ -328,12 +328,12 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
           <Button
             variant="secondary"
             onClick={fixTo100}
-            disabled={running || products.length === 0}
+            disabled={running || effectiveTargets.length === 0}
             title="Reescribe solo los campos SEO mal optimizados (no toca nombre, descripción principal, precio, stock ni imagen)"
           >
             {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Corregir SEO para 100/100</>}
           </Button>
-          <Button onClick={run} disabled={running || products.length === 0}>
+          <Button onClick={run} disabled={running || effectiveTargets.length === 0}>
             {running ? <><Loader2 size={14} className="animate-spin mr-1.5" /> Procesando…</> : <>Generar SEO con IA</>}
           </Button>
         </DialogFooter>
