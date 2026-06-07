@@ -59,6 +59,7 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const [overwrite, setOverwrite] = useState(false);
   const [fixOutOfRange, setFixOutOfRange] = useState(true);
   const [improveMain, setImproveMain] = useState(false);
+  const [skipComplete, setSkipComplete] = useState(true);
   const [fields, setFields] = useState<Record<FieldKey, boolean>>(() =>
     Object.fromEntries(FIELD_OPTIONS.map((o) => [o.key, !o.mainCopy])) as any,
   );
@@ -66,11 +67,17 @@ export function BulkSeoAiDialog({ open, onOpenChange, products, onDone }: Props)
   const [rows, setRows] = useState<Row[]>([]);
   const [done, setDone] = useState(0);
 
+  const completeCount = products.filter((p: any) => p.__seo_status === "complete").length;
+  const effectiveTargets = skipComplete
+    ? products.filter((p: any) => p.__seo_status !== "complete")
+    : products;
+
   useEffect(() => {
     if (!open) return;
-    setRows(products.map((p) => ({ id: p.id, name: p.name, status: "pending" })));
+    setRows(effectiveTargets.map((p) => ({ id: p.id, name: p.name, status: "pending" })));
     setDone(0);
-  }, [open, products]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, products, skipComplete]);
 
   const total = products.length;
   const pct = total ? Math.round((done / total) * 100) : 0;
