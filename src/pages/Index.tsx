@@ -770,6 +770,8 @@ const Home = () => {
       case "ai_recently_viewed": {
         const s = (b.settings ?? {}) as Record<string, any>;
         const pool = products.map(toCardProduct);
+        const rvOverrides = (s.carouselDesign as BlockCarouselOverrides | undefined);
+        const rvDesign = resolveDesign(globalCarouselDesign, rvOverrides);
         return (
           <AiRecentlyViewed
             key={b.id}
@@ -784,9 +786,11 @@ const Home = () => {
             visibleMobile={Number(s.visibleMobile ?? 1) || 1}
             autoplay={s.autoplay === true}
             hideIfEmpty={s.hideIfEmpty !== false}
+            design={rvDesign}
           />
         );
       }
+
 
       case "products_grid":
         if (!moreProducts.length) return null;
