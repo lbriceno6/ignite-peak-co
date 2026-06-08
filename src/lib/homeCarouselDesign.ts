@@ -30,6 +30,8 @@ export type CarouselLayoutCfg = {
   autoplaySpeed: number; // seconds
   loop: boolean;
   freeScrollMobile: boolean;
+  mobileAlign: "left-preview" | "center" | "full";
+  centerMobileCard: boolean;
 };
 
 export type CarouselBackgroundCfg = {
