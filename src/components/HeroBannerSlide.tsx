@@ -32,10 +32,35 @@ export function HeroBannerSlide({ slide, mode, asLinks = true }: Props) {
   const PrimaryWrap: any = asLinks && slide.primary_href ? Link : "span";
   const SecondaryWrap: any = asLinks && slide.secondary_href ? Link : "span";
 
+  const scopeId = `hbs-${slide.id}`;
+  const mobileImg = slide.image_mobile_url || slide.image_url || heroImage;
+  // Responsive CSS only emitted when not in forced preview mode
+  const responsiveCss = mode
+    ? ""
+    : `
+      #${scopeId} { min-height: ${design.size.heightDesktop}px; }
+      #${scopeId} .hbs-title { font-size: ${design.text.titleDesktop}px; }
+      #${scopeId} .hbs-sub { font-size: ${design.text.subtitleDesktop}px; }
+      @media (max-width: 1023px) and (min-width: 641px) {
+        #${scopeId} { min-height: ${design.size.heightTablet}px; }
+      }
+      @media (max-width: 640px) {
+        #${scopeId} { min-height: ${design.size.heightMobile}px;
+          align-items: ${({ top: "flex-start", center: "center", bottom: "flex-end" } as any)[design.align.mobileY]};
+          justify-content: ${({ left: "flex-start", center: "center", right: "flex-end" } as any)[design.align.mobileX]};
+        }
+        #${scopeId} .hbs-content { text-align: ${design.align.mobileX}; }
+        #${scopeId} .hbs-title { font-size: ${design.text.titleMobile}px; }
+        #${scopeId} .hbs-sub { font-size: ${design.text.subtitleMobile}px; }
+        #${scopeId} .hbs-image { content: url('${mobileImg}'); }
+      }
+    `;
   return (
-    <div style={styles.container}>
-      <img src={img} alt={slide.title} style={styles.image} />
+    <div id={scopeId} style={styles.container}>
+      {responsiveCss && <style dangerouslySetInnerHTML={{ __html: responsiveCss }} />}
+      <img src={img} alt={slide.title} className="hbs-image" style={styles.image} />
       <div style={styles.overlay} />
+
       <div style={styles.content}>
         {slide.eyebrow && (
           <span
