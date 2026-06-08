@@ -65,7 +65,7 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
   const css = buildAiBannerCss(scopeId, L);
 
   return (
-    <div className="space-y-4 rounded-md border bg-background p-3">
+    <div className="space-y-4 rounded-md border bg-background p-3 w-full max-w-full min-w-0 overflow-x-hidden">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Ancho y adaptación responsive
       </div>
