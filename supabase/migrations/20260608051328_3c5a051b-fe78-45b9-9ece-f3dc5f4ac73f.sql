@@ -1,0 +1,1 @@
+ALTER TABLE public.hero_slides ADD COLUMN IF NOT EXISTS design jsonb NOT NULL DEFAULT '{}'::jsonb; ALTER TABLE public.hero_slides ADD COLUMN IF NOT EXISTS image_mobile_url text;

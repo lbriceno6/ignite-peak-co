@@ -26,6 +26,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AiDynamicBanner } from "@/components/home/AiDynamicBanner";
 import { AiRecommendedForYou } from "@/components/home/AiRecommendedForYou";
 import { AiRecentlyViewed } from "@/components/home/AiRecentlyViewed";
+import { HeroBannerSlide } from "@/components/HeroBannerSlide";
+
 
 
 type HeroSlide = {
@@ -34,11 +36,14 @@ type HeroSlide = {
   title: string;
   subtitle: string | null;
   image_url: string | null;
+  image_mobile_url: string | null;
   primary_label: string | null;
   primary_href: string | null;
   secondary_label: string | null;
   secondary_href: string | null;
+  design: any;
 };
+
 
 type DbProduct = {
   id: string;
@@ -184,7 +189,7 @@ const Home = () => {
       supabase.from("categories").select("name,slug,icon,sort_order").eq("type", "product").order("sort_order").order("name"),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at,is_featured,featured_order").eq("is_published", true).eq("is_featured", true).order("featured_order", { ascending: true, nullsFirst: false }).order("published_at", { ascending: false }).limit(3),
       supabase.from("blog_posts").select("id,slug,title,excerpt,category,read_time,cover_image,published_at").eq("is_published", true).order("published_at", { ascending: false }).limit(3),
-      supabase.from("hero_slides").select("id,eyebrow,title,subtitle,image_url,primary_label,primary_href,secondary_label,secondary_href").eq("is_active", true).order("sort_order").order("created_at"),
+      supabase.from("hero_slides").select("id,eyebrow,title,subtitle,image_url,image_mobile_url,design,primary_label,primary_href,secondary_label,secondary_href").eq("is_active", true).order("sort_order").order("created_at"),
       supabase.from("home_blocks").select("*").eq("is_active", true).eq("is_deleted", false).order("sort_order"),
       supabase.from("goal_cards").select("id,slug,name,description,cta_label,cta_href").eq("is_active", true).order("sort_order").order("created_at"),
     ]);
@@ -332,11 +337,14 @@ const Home = () => {
               title: "Energía que viene de los Andes",
               subtitle: "Maca, cañihua y espirulina. Superalimentos puros, sin saborizantes ni químicos. Como lo hacían nuestras abuelas.",
               image_url: null,
+              image_mobile_url: null,
+              design: {},
               primary_label: "Ver productos",
               primary_href: "/categoria/nb-superalimentos",
               secondary_label: "Hablar por WhatsApp",
               secondary_href: "https://wa.me/51999999999",
             }];
+
         return (
           <section key={b.id} className="relative bg-surface-darker text-background">
             <Carousel
@@ -348,52 +356,11 @@ const Home = () => {
               <CarouselContent className="ml-0">
                 {displaySlides.map((s) => (
                   <CarouselItem key={s.id} className="pl-0">
-                    <div className="relative overflow-hidden">
-                      <img
-                        src={s.image_url || heroImage}
-                        alt={s.title}
-                        className="absolute inset-0 h-full w-full object-cover opacity-50"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-surface-darker via-surface-darker/80 to-transparent" />
-                      <div className="container-x relative grid min-h-[560px] items-center py-20 lg:min-h-[680px]">
-                        <div className="max-w-2xl">
-                          {s.eyebrow && (
-                            <span className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-bold tracking-wide text-accent">
-                              <Zap size={12} /> {s.eyebrow}
-                            </span>
-                          )}
-                          <h1 className="mt-6 font-display text-5xl leading-[0.95] sm:text-6xl lg:text-7xl">
-                            {s.title}
-                          </h1>
-                          {s.subtitle && (
-                            <p className="mt-6 max-w-xl text-base text-background/75 sm:text-lg">{s.subtitle}</p>
-                          )}
-                          <div className="mt-8 flex flex-wrap gap-3">
-                            {s.primary_label && s.primary_href && (
-                              <Button size="xl" variant="hero" asChild>
-                                <Link to={s.primary_href}>{s.primary_label} <ArrowRight /></Link>
-                              </Button>
-                            )}
-                            {s.secondary_label && s.secondary_href && (
-                              <Button size="xl" variant="outline" asChild className="border-background/30 bg-background/5 text-background hover:bg-background hover:text-foreground">
-                                <Link to={s.secondary_href}>{s.secondary_label}</Link>
-                              </Button>
-                            )}
-                          </div>
-                          <div className="mt-10 flex items-center gap-4 text-sm text-background/70">
-                            <div className="flex items-center gap-2">
-                              <Stars rating={5} />
-                              <span className="font-semibold text-background">4.9/5</span>
-                            </div>
-                            <span className="text-background/40">·</span>
-                            <span>Hecho en Perú · Envíos a todo el país en 24-48 horas</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                    <HeroBannerSlide slide={s as any} />
                   </CarouselItem>
                 ))}
               </CarouselContent>
+
 
               {displaySlides.length > 1 && (
                 <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2">
