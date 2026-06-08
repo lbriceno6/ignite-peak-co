@@ -61,7 +61,7 @@ export function HeroBannerSlide({ slide, mode, asLinks = true }: Props) {
       <img src={img} alt={slide.title} className="hbs-image" style={styles.image} />
       <div style={styles.overlay} />
 
-      <div style={styles.content}>
+      <div className="hbs-content" style={styles.content}>
         {slide.eyebrow && (
           <span
             className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold tracking-wide"
@@ -70,14 +70,15 @@ export function HeroBannerSlide({ slide, mode, asLinks = true }: Props) {
             <Zap size={12} /> {slide.eyebrow}
           </span>
         )}
-        <h1 className="mt-4 font-display font-bold" style={styles.title}>
+        <h1 className="hbs-title mt-4 font-display font-bold" style={styles.title}>
           {slide.title}
         </h1>
         {slide.subtitle && (
-          <p className="mt-4" style={styles.subtitle}>
+          <p className="hbs-sub mt-4" style={styles.subtitle}>
             {slide.subtitle}
           </p>
         )}
+
         <div
           className="mt-6 flex flex-wrap gap-3"
           style={{
