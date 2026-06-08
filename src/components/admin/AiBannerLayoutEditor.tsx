@@ -65,7 +65,7 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
   const css = buildAiBannerCss(scopeId, L);
 
   return (
-    <div className="space-y-4 rounded-md border bg-background p-3">
+    <div className="space-y-4 rounded-md border bg-background p-3 w-full max-w-full min-w-0 overflow-x-hidden">
       <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Ancho y adaptación responsive
       </div>
@@ -73,13 +73,13 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
       <SelectField label="Ancho" value={L.width} options={WIDTH_OPTS} onChange={(v) => set({ width: v })} />
 
       {isCustom && (
-        <div className="space-y-3 rounded border bg-muted/30 p-3">
+        <div className="space-y-3 rounded border bg-muted/30 p-3 min-w-0">
           {(["desktop", "tablet", "mobile"] as const).map((d) => {
             const k = (s: string) => `${s}${d[0].toUpperCase()}${d.slice(1)}` as keyof AiBannerLayout;
             return (
-              <div key={d} className="space-y-2">
+              <div key={d} className="space-y-2 min-w-0">
                 <div className="text-[11px] font-semibold uppercase text-muted-foreground">{d}</div>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(3,minmax(0,1fr))] min-w-0">
                   <NumberField label="max-width (0 = 100%)" value={L[k("maxWidth")] as number} onChange={(n) => set({ [k("maxWidth")]: n } as any)} />
                   <NumberField label="padding lateral" value={L[k("pad")] as number} onChange={(n) => set({ [k("pad")]: n } as any)} />
                   <NumberField label="altura" value={L[k("height")] as number} onChange={(n) => set({ [k("height")]: n } as any)} />
@@ -97,20 +97,20 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
 
       <div className="space-y-2">
         <div className="text-[11px] font-semibold uppercase text-muted-foreground">Imagen adaptable</div>
-        <div className="grid gap-2 sm:grid-cols-4">
+        <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(4,minmax(0,1fr))] min-w-0">
           <NumberField label="Zoom imagen (%)" min={50} max={200} value={L.imageZoom} onChange={(n) => set({ imageZoom: n })} />
           <NumberField label="Altura mínima" value={L.minHeight} onChange={(n) => set({ minHeight: n })} />
           <NumberField label="Altura máxima" value={L.maxHeight} onChange={(n) => set({ maxHeight: n })} />
-          <label className="flex items-center justify-between rounded border bg-background p-2 text-xs">
+          <label className="flex items-center justify-between rounded border bg-background p-2 text-xs min-w-0">
             <span>Esquinas redondeadas</span>
             <Switch checked={L.rounded} onCheckedChange={(v) => set({ rounded: v })} />
           </label>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 min-w-0">
         <div className="text-[11px] font-semibold uppercase text-muted-foreground">Mobile</div>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(3,minmax(0,1fr))] min-w-0">
           <label className="flex items-center justify-between rounded border bg-background p-2 text-xs">
             <span>Centrar imagen en mobile</span>
             <Switch checked={L.centerImageOnMobile} onCheckedChange={(v) => set({ centerImageOnMobile: v })} />
@@ -139,24 +139,26 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
             ))}
           </div>
         </div>
-        <div className="rounded border bg-muted/30 p-2 overflow-auto">
+        <div className="rounded border bg-muted/30 p-2 w-full max-w-full min-w-0 overflow-hidden">
           <style dangerouslySetInnerHTML={{ __html: css }} />
-          <section id={scopeId} style={{ width: previewW, maxWidth: "100%", margin: "0 auto" }}>
-            <div className="aidb-wrap">
-              <div className={`relative overflow-hidden ${L.rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`}>
-                {previewImage && (
-                  <img src={previewImage} alt="" className="aidb-img absolute inset-0 h-full w-full" />
-                )}
-                <div className="absolute inset-0 bg-black/40" aria-hidden />
-                <div className="aidb-inner relative grid items-center p-6 sm:p-10">
-                  <div className="max-w-xl text-white">
-                    <div className="text-xs opacity-80">Vista previa</div>
-                    <div className="font-display text-2xl">Banner dinámico IA</div>
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <section id={scopeId} style={{ width: "100%", maxWidth: previewW, margin: "0 auto" }}>
+              <div className="aidb-wrap">
+                <div className={`relative overflow-hidden ${L.rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`}>
+                  {previewImage && (
+                    <img src={previewImage} alt="" className="aidb-img absolute inset-0 h-full w-full max-w-full" />
+                  )}
+                  <div className="absolute inset-0 bg-black/40" aria-hidden />
+                  <div className="aidb-inner relative grid items-center p-6 sm:p-10">
+                    <div className="max-w-xl text-white">
+                      <div className="text-xs opacity-80">Vista previa</div>
+                      <div className="font-display text-2xl">Banner dinámico IA</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </div>
