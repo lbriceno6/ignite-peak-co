@@ -104,6 +104,7 @@ export function AiRecentlyViewed({
       config={config}
       products={items}
       eyebrow={eyebrow || "Tu historial"}
+      design={design}
     />
   );
 }
