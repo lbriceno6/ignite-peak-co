@@ -208,41 +208,59 @@ export function HomeCarouselDesignEditor({
         <AccordionItem value="bg">
           <AccordionTrigger className="text-sm" disabled={bgDisabled}>6. Fondo del carrusel</AccordionTrigger>
           <AccordionContent>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <Label className="text-xs">Tipo de fondo</Label>
-                <Select value={background.type} onValueChange={(v: any) => setB({ type: v })} disabled={bgDisabled}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transparent">Transparente</SelectItem>
-                    <SelectItem value="white">Blanco</SelectItem>
-                    <SelectItem value="soft">Gris suave</SelectItem>
-                    <SelectItem value="solid">Color sólido</SelectItem>
-                    <SelectItem value="gradient">Degradado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-xs">Color principal</Label>
-                <div className="flex gap-2">
-                  <Input type="color" value={background.color1} onChange={(e) => setB({ color1: e.target.value })} className="h-9 w-16 p-1" disabled={bgDisabled} />
-                  <Input value={background.color1} onChange={(e) => setB({ color1: e.target.value })} disabled={bgDisabled} />
+            {(() => {
+              const t = background.type;
+              const color1Enabled = !bgDisabled && (t === "white" || t === "soft" || t === "solid" || t === "gradient");
+              const color2Enabled = !bgDisabled && t === "gradient";
+              const dirEnabled = !bgDisabled && t === "gradient";
+              return (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <Label className="text-xs">Tipo de fondo</Label>
+                    <Select value={background.type} onValueChange={(v: any) => setB({ type: v })} disabled={bgDisabled}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="transparent">Transparente</SelectItem>
+                        <SelectItem value="white">Blanco</SelectItem>
+                        <SelectItem value="soft">Gris suave</SelectItem>
+                        <SelectItem value="solid">Color sólido</SelectItem>
+                        <SelectItem value="gradient">Degradado</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {t === "transparent" && "Sin fondo. Colores desactivados."}
+                      {t === "white" && "Blanco por defecto (#ffffff). Color principal opcional."}
+                      {t === "soft" && "Gris suave por defecto (#f5f5f5). Color principal opcional."}
+                      {t === "solid" && "Usa el color principal."}
+                      {t === "gradient" && "Degradado entre color principal y secundario."}
+                    </p>
+                  </div>
+                  <div className={color1Enabled ? "" : "opacity-50"}>
+                    <Label className="text-xs">Color principal {(t === "white" || t === "soft") && "(opcional)"}</Label>
+                    <div className="flex gap-2">
+                      <Input type="color" value={background.color1 || "#ffffff"} onChange={(e) => setB({ color1: e.target.value })} className="h-9 w-16 p-1" disabled={!color1Enabled} />
+                      <Input value={background.color1} onChange={(e) => setB({ color1: e.target.value })} disabled={!color1Enabled} placeholder="#ffffff" />
+                    </div>
+                  </div>
+                  <div className={color2Enabled ? "" : "opacity-50"}>
+                    <Label className="text-xs">Color secundario (degradado)</Label>
+                    <div className="flex gap-2">
+                      <Input type="color" value={background.color2 || "#ffffff"} onChange={(e) => setB({ color2: e.target.value })} className="h-9 w-16 p-1" disabled={!color2Enabled} />
+                      <Input value={background.color2} onChange={(e) => setB({ color2: e.target.value })} disabled={!color2Enabled} />
+                    </div>
+                  </div>
+                  <div className={dirEnabled ? "" : "opacity-50"}>
+                    <Label className="text-xs">Dirección degradado (deg)</Label>
+                    <Input type="number" value={background.gradientDirection} onChange={(e) => setB({ gradientDirection: Number(e.target.value) || 0 })} disabled={!dirEnabled} />
+                  </div>
+                  <Num label="Opacidad (0-1)" value={background.opacity} step={0.05} onChange={(v) => setB({ opacity: Math.max(0, Math.min(1, v)) })} />
+                  <Num label="Border radius (px)" value={background.radius} onChange={(v) => setB({ radius: v })} />
+                  <Num label="Padding interno (px)" value={background.paddingInner} onChange={(v) => setB({ paddingInner: v })} />
+                  <Num label="Margen superior (px)" value={background.marginTop} onChange={(v) => setB({ marginTop: v })} />
+                  <Num label="Margen inferior (px)" value={background.marginBottom} onChange={(v) => setB({ marginBottom: v })} />
                 </div>
-              </div>
-              <div>
-                <Label className="text-xs">Color secundario (degradado)</Label>
-                <div className="flex gap-2">
-                  <Input type="color" value={background.color2} onChange={(e) => setB({ color2: e.target.value })} className="h-9 w-16 p-1" disabled={bgDisabled} />
-                  <Input value={background.color2} onChange={(e) => setB({ color2: e.target.value })} disabled={bgDisabled} />
-                </div>
-              </div>
-              <Num label="Dirección degradado (deg)" value={background.gradientDirection} onChange={(v) => setB({ gradientDirection: v })} />
-              <Num label="Opacidad (0-1)" value={background.opacity} step={0.05} onChange={(v) => setB({ opacity: Math.max(0, Math.min(1, v)) })} />
-              <Num label="Border radius (px)" value={background.radius} onChange={(v) => setB({ radius: v })} />
-              <Num label="Padding interno (px)" value={background.paddingInner} onChange={(v) => setB({ paddingInner: v })} />
-              <Num label="Margen superior (px)" value={background.marginTop} onChange={(v) => setB({ marginTop: v })} />
-              <Num label="Margen inferior (px)" value={background.marginBottom} onChange={(v) => setB({ marginBottom: v })} />
-            </div>
+              );
+            })()}
           </AccordionContent>
         </AccordionItem>
 
