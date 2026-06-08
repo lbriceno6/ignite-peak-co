@@ -961,8 +961,6 @@ function PromotionsCarouselSettings({
   const mode: "auto" | "manual" = settings.carousel_mode === "manual" ? "manual" : "auto";
   const selected: string[] = Array.isArray(settings.promotion_ids) ? settings.promotion_ids : [];
   const maxProducts: number = Number(settings.max_products ?? 0);
-  const perViewDesktopRaw = Number(settings.products_per_view_desktop ?? 4);
-  const perViewDesktop = Math.min(6, Math.max(2, Number.isFinite(perViewDesktopRaw) ? perViewDesktopRaw : 4));
 
   useEffect(() => {
     (async () => {
@@ -1009,44 +1007,20 @@ function PromotionsCarouselSettings({
         </button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <Label className="text-xs">Límite de productos a mostrar</Label>
-          <Input
-            type="number"
-            min={0}
-            max={50}
-            value={maxProducts}
-            onChange={(e) => onChange({ max_products: Math.max(0, Number(e.target.value || 0)) })}
-            placeholder="0 = sin límite"
-          />
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            0 = sin límite. Cantidad total de productos que cargará el carrusel.
-          </p>
-        </div>
-        <div>
-          <Label className="text-xs">Productos visibles en pantalla (escritorio)</Label>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {[2, 3, 4, 5, 6].map((n) => {
-              const active = perViewDesktop === n;
-              return (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => onChange({ products_per_view_desktop: n })}
-                  className={`h-9 w-10 rounded-md border text-sm font-semibold transition ${
-                    active ? "border-accent bg-accent text-accent-foreground" : "bg-background hover:border-foreground/40"
-                  }`}
-                >
-                  {n}
-                </button>
-              );
-            })}
-          </div>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Tarjetas visibles a la vez en escritorio. Tablet: máx. 3 · Móvil: 1.
-          </p>
-        </div>
+      <div>
+        <Label className="text-xs">Límite de productos a cargar</Label>
+        <Input
+          type="number"
+          min={0}
+          max={50}
+          value={maxProducts}
+          onChange={(e) => onChange({ max_products: Math.max(0, Number(e.target.value || 0)) })}
+          placeholder="0 = sin límite"
+        />
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          0 = sin límite de productos cargados. No controla el tamaño del carrusel.
+          El tamaño, productos visibles y fondo se configuran en <strong>“Diseño del carrusel”</strong> más abajo.
+        </p>
       </div>
 
       {mode === "manual" && (
