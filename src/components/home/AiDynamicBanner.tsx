@@ -150,34 +150,30 @@ export function AiDynamicBanner({
   const hasManualContent = !!(fallbackTitle || fallbackImage || fallbackSubtitle);
   if (!resolved && !hasManualContent && hideIfNoSignal) return null;
 
-  const wrapperClass = containerWidth === "full" ? "" : "container-x";
-  const inner = `relative overflow-hidden ${rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`;
+  const safeId = `aidb-${String(blockId).replace(/[^a-zA-Z0-9_-]/g, "")}`;
+  const overlayAlpha = Math.max(0, Math.min(100, Number(overlayOpacity) || 0)) / 100;
+  const css = buildAiBannerCss(safeId, L);
+  const inner = `relative overflow-hidden ${L.rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`;
   const eyebrowText =
     (resolved as any)?.eyebrow ||
     eyebrow ||
     (resolved ? `Para ti · ${resolved.name}` : "Recomendado para ti");
 
-  const safeId = `aidb-${String(blockId).replace(/[^a-zA-Z0-9_-]/g, "")}`;
-  const overlayAlpha = Math.max(0, Math.min(100, Number(overlayOpacity) || 0)) / 100;
-
   return (
     <section
+      id={safeId}
       key={blockId}
       style={{ paddingTop: spacingTop, paddingBottom: spacingBottom }}
     >
-      <style>{`
-        #${safeId} { min-height: ${heightMobile}px; }
-        @media (min-width: 640px) { #${safeId} { min-height: ${heightTablet}px; } }
-        @media (min-width: 1024px) { #${safeId} { min-height: ${heightDesktop}px; } }
-      `}</style>
-      <div className={wrapperClass}>
+      <style dangerouslySetInnerHTML={{ __html: css }} />
+      <div className="aidb-wrap">
         <div className={inner}>
           {image && (
             <img
               src={image}
               alt={title}
               loading="lazy"
-              className="absolute inset-0 h-full w-full object-cover"
+              className="aidb-img absolute inset-0 h-full w-full"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = "none";
               }}
@@ -190,10 +186,7 @@ export function AiDynamicBanner({
               aria-hidden
             />
           )}
-          <div
-            id={safeId}
-            className="relative grid items-center p-6 sm:p-10 lg:p-12"
-          >
+          <div className="aidb-inner relative grid items-center p-6 sm:p-10 lg:p-12">
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/15 px-3 py-1 text-xs font-bold tracking-wide text-accent">
                 <Sparkles size={12} /> {eyebrowText}
