@@ -92,6 +92,12 @@ export const defaultHeroSlideDesign: HeroSlideDesign = {
     hideSecondary: false,
   },
   align: { desktopX: "left", desktopY: "center", mobileX: "center", mobileY: "bottom" },
+  content: {
+    padLeftDesktop: 64, padRightDesktop: 64, padTopDesktop: 64, padBottomDesktop: 64,
+    padLeftMobile: 20, padRightMobile: 20, padTopMobile: 32, padBottomMobile: 32,
+    offsetXDesktop: 0, offsetYDesktop: 0, offsetXMobile: 0, offsetYMobile: 0,
+    maxWidthDesktop: 560, maxWidthMobile: 0,
+  },
 };
 
 export function mergeHeroSlideDesign(partial: any): HeroSlideDesign {
