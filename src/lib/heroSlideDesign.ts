@@ -51,6 +51,22 @@ export type HeroSlideDesign = {
     mobileX: HeroPosX;
     mobileY: HeroPosY;
   };
+  content: {
+    padLeftDesktop: number;
+    padRightDesktop: number;
+    padTopDesktop: number;
+    padBottomDesktop: number;
+    padLeftMobile: number;
+    padRightMobile: number;
+    padTopMobile: number;
+    padBottomMobile: number;
+    offsetXDesktop: number;
+    offsetYDesktop: number;
+    offsetXMobile: number;
+    offsetYMobile: number;
+    maxWidthDesktop: number;
+    maxWidthMobile: number; // 0 = 100%
+  };
 };
 
 export const defaultHeroSlideDesign: HeroSlideDesign = {
@@ -76,6 +92,12 @@ export const defaultHeroSlideDesign: HeroSlideDesign = {
     hideSecondary: false,
   },
   align: { desktopX: "left", desktopY: "center", mobileX: "center", mobileY: "bottom" },
+  content: {
+    padLeftDesktop: 64, padRightDesktop: 64, padTopDesktop: 64, padBottomDesktop: 64,
+    padLeftMobile: 20, padRightMobile: 20, padTopMobile: 32, padBottomMobile: 32,
+    offsetXDesktop: 0, offsetYDesktop: 0, offsetXMobile: 0, offsetYMobile: 0,
+    maxWidthDesktop: 560, maxWidthMobile: 0,
+  },
 };
 
 export function mergeHeroSlideDesign(partial: any): HeroSlideDesign {
@@ -88,6 +110,7 @@ export function mergeHeroSlideDesign(partial: any): HeroSlideDesign {
     text: { ...d.text, ...(p.text || {}) },
     buttons: { ...d.buttons, ...(p.buttons || {}) },
     align: { ...d.align, ...(p.align || {}) },
+    content: { ...d.content, ...(p.content || {}) },
   };
 }
 
@@ -159,14 +182,23 @@ export function getHeroStyles(d: HeroSlideDesign, mode: HeroSizeMode) {
   const objPosMap = (x: HeroPosX, y: HeroPosY) =>
     `${x === "left" ? "0%" : x === "right" ? "100%" : "50%"} ${y === "top" ? "0%" : y === "bottom" ? "100%" : "50%"}`;
 
+  const isMobile = mode === "mobile";
+  const padLeft = isMobile ? d.content.padLeftMobile : d.content.padLeftDesktop;
+  const padRight = isMobile ? d.content.padRightMobile : d.content.padRightDesktop;
+  const padTop = isMobile ? d.content.padTopMobile : d.content.padTopDesktop;
+  const padBottom = isMobile ? d.content.padBottomMobile : d.content.padBottomDesktop;
+  const offX = isMobile ? d.content.offsetXMobile : d.content.offsetXDesktop;
+  const offY = isMobile ? d.content.offsetYMobile : d.content.offsetYDesktop;
+  const maxW = isMobile ? d.content.maxWidthMobile : d.content.maxWidthDesktop;
+
   return {
     container: {
       position: "relative" as const,
       minHeight: `${height}px`,
-      paddingTop: `${d.size.paddingY}px`,
-      paddingBottom: `${d.size.paddingY}px`,
-      paddingLeft: `${d.size.paddingX}px`,
-      paddingRight: `${d.size.paddingX}px`,
+      paddingTop: `${padTop}px`,
+      paddingBottom: `${padBottom}px`,
+      paddingLeft: `${padLeft}px`,
+      paddingRight: `${padRight}px`,
       display: "flex",
       alignItems: itemsMap[alignY],
       justifyContent: justifyMap[alignX],
@@ -192,9 +224,11 @@ export function getHeroStyles(d: HeroSlideDesign, mode: HeroSizeMode) {
     content: {
       position: "relative" as const,
       zIndex: 1,
-      maxWidth: `${d.text.maxWidth}px`,
+      maxWidth: maxW > 0 ? `${maxW}px` : "100%",
+      width: maxW > 0 ? undefined : "100%",
       color: d.text.color,
       textAlign: textAlignMap[alignX] as any,
+      transform: (offX || offY) ? `translate(${offX}px, ${offY}px)` : undefined,
     } as React.CSSProperties,
     title: {
       fontSize: `${titleSize}px`,

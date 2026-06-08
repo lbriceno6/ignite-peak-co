@@ -358,6 +358,61 @@ function SlideEditor({
                 <PosYSelect label="Mobile vertical" value={design.align.mobileY} onChange={(v) => setSection("align", { mobileY: v })} />
               </AccordionContent>
             </AccordionItem>
+
+            {/* CONTENT POSITION */}
+            <AccordionItem value="content-pos">
+              <AccordionTrigger>9. Posición del contenido (padding & offset)</AccordionTrigger>
+              <AccordionContent className="space-y-4">
+                <p className="text-xs text-muted-foreground">
+                  Controla la separación exacta del bloque de texto desde cada borde y un desplazamiento fino. Útil
+                  para que el texto no quede pegado al borde y se vea más premium.
+                </p>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Desktop — padding (px)</p>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <NumberField label="Izquierda" value={design.content.padLeftDesktop} onChange={(v) => setSection("content", { padLeftDesktop: v })} />
+                    <NumberField label="Derecha" value={design.content.padRightDesktop} onChange={(v) => setSection("content", { padRightDesktop: v })} />
+                    <NumberField label="Superior" value={design.content.padTopDesktop} onChange={(v) => setSection("content", { padTopDesktop: v })} />
+                    <NumberField label="Inferior" value={design.content.padBottomDesktop} onChange={(v) => setSection("content", { padBottomDesktop: v })} />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Desktop — offset (px)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <NumberField label="Offset X" value={design.content.offsetXDesktop} onChange={(v) => setSection("content", { offsetXDesktop: v })} />
+                    <NumberField label="Offset Y" value={design.content.offsetYDesktop} onChange={(v) => setSection("content", { offsetYDesktop: v })} />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mobile — padding (px)</p>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    <NumberField label="Izquierda" value={design.content.padLeftMobile} onChange={(v) => setSection("content", { padLeftMobile: v })} />
+                    <NumberField label="Derecha" value={design.content.padRightMobile} onChange={(v) => setSection("content", { padRightMobile: v })} />
+                    <NumberField label="Superior" value={design.content.padTopMobile} onChange={(v) => setSection("content", { padTopMobile: v })} />
+                    <NumberField label="Inferior" value={design.content.padBottomMobile} onChange={(v) => setSection("content", { padBottomMobile: v })} />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mobile — offset (px)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <NumberField label="Offset X" value={design.content.offsetXMobile} onChange={(v) => setSection("content", { offsetXMobile: v })} />
+                    <NumberField label="Offset Y" value={design.content.offsetYMobile} onChange={(v) => setSection("content", { offsetYMobile: v })} />
+                  </div>
+                </div>
+
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Ancho del bloque de texto (px)</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <NumberField label="Ancho máx. desktop" value={design.content.maxWidthDesktop} onChange={(v) => setSection("content", { maxWidthDesktop: v })} />
+                    <NumberField label="Ancho máx. mobile (0 = 100%)" value={design.content.maxWidthMobile} onChange={(v) => setSection("content", { maxWidthMobile: v })} />
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
           </Accordion>
 
           <div className="flex items-center justify-end gap-2 pt-1">

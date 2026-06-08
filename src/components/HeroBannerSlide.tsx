@@ -38,18 +38,32 @@ export function HeroBannerSlide({ slide, mode, asLinks = true }: Props) {
   const responsiveCss = mode
     ? ""
     : `
-      #${scopeId} { min-height: ${design.size.heightDesktop}px; }
+      #${scopeId} {
+        min-height: ${design.size.heightDesktop}px;
+        padding: ${design.content.padTopDesktop}px ${design.content.padRightDesktop}px ${design.content.padBottomDesktop}px ${design.content.padLeftDesktop}px;
+      }
+      #${scopeId} .hbs-content {
+        max-width: ${design.content.maxWidthDesktop}px;
+        transform: translate(${design.content.offsetXDesktop}px, ${design.content.offsetYDesktop}px);
+      }
       #${scopeId} .hbs-title { font-size: ${design.text.titleDesktop}px; }
       #${scopeId} .hbs-sub { font-size: ${design.text.subtitleDesktop}px; }
       @media (max-width: 1023px) and (min-width: 641px) {
         #${scopeId} { min-height: ${design.size.heightTablet}px; }
       }
       @media (max-width: 640px) {
-        #${scopeId} { min-height: ${design.size.heightMobile}px;
+        #${scopeId} {
+          min-height: ${design.size.heightMobile}px;
+          padding: ${design.content.padTopMobile}px ${design.content.padRightMobile}px ${design.content.padBottomMobile}px ${design.content.padLeftMobile}px;
           align-items: ${({ top: "flex-start", center: "center", bottom: "flex-end" } as any)[design.align.mobileY]};
           justify-content: ${({ left: "flex-start", center: "center", right: "flex-end" } as any)[design.align.mobileX]};
         }
-        #${scopeId} .hbs-content { text-align: ${design.align.mobileX}; }
+        #${scopeId} .hbs-content {
+          text-align: ${design.align.mobileX};
+          max-width: ${design.content.maxWidthMobile > 0 ? design.content.maxWidthMobile + "px" : "100%"};
+          width: ${design.content.maxWidthMobile > 0 ? "auto" : "100%"};
+          transform: translate(${design.content.offsetXMobile}px, ${design.content.offsetYMobile}px);
+        }
         #${scopeId} .hbs-title { font-size: ${design.text.titleMobile}px; }
         #${scopeId} .hbs-sub { font-size: ${design.text.subtitleMobile}px; }
         #${scopeId} .hbs-image { content: url('${mobileImg}'); }
