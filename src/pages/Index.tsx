@@ -176,6 +176,7 @@ const Home = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 6000, stopOnInteraction: false, stopOnMouseEnter: true }));
+  const { design: globalCarouselDesign } = useHomeCarouselGlobal();
   const { content } = useSiteContent(GUIDES_KEYS, {
     "home.guides.eyebrow": "Conocimiento",
     "home.guides.title": "Guías y consejos",
