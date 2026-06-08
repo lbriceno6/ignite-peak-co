@@ -51,6 +51,22 @@ export type HeroSlideDesign = {
     mobileX: HeroPosX;
     mobileY: HeroPosY;
   };
+  content: {
+    padLeftDesktop: number;
+    padRightDesktop: number;
+    padTopDesktop: number;
+    padBottomDesktop: number;
+    padLeftMobile: number;
+    padRightMobile: number;
+    padTopMobile: number;
+    padBottomMobile: number;
+    offsetXDesktop: number;
+    offsetYDesktop: number;
+    offsetXMobile: number;
+    offsetYMobile: number;
+    maxWidthDesktop: number;
+    maxWidthMobile: number; // 0 = 100%
+  };
 };
 
 export const defaultHeroSlideDesign: HeroSlideDesign = {
