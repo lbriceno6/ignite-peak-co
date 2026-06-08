@@ -87,6 +87,8 @@ export const DEFAULT_LAYOUT: CarouselLayoutCfg = {
   autoplaySpeed: 5,
   loop: true,
   freeScrollMobile: true,
+  mobileAlign: "left-preview",
+  centerMobileCard: false,
 };
 
 export const DEFAULT_BG: CarouselBackgroundCfg = {
