@@ -78,9 +78,9 @@ export function HomeProductsCarousel({ config, products, eyebrow, design }: Prop
           <div className="relative mt-6 sm:mt-8">
             <Carousel
               opts={{
-                align: "start",
+                align: layout.centerMobileCard || layout.mobileAlign === "center" ? "center" : "start",
                 loop: layout.loop && products.length > layout.itemsDesktop,
-                dragFree: layout.freeScrollMobile,
+                dragFree: layout.freeScrollMobile && !layout.centerMobileCard,
               }}
               plugins={plugins}
               setApi={setApi}
