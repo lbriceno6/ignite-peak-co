@@ -139,24 +139,26 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
             ))}
           </div>
         </div>
-        <div className="rounded border bg-muted/30 p-2 overflow-auto">
+        <div className="rounded border bg-muted/30 p-2 w-full max-w-full min-w-0 overflow-hidden">
           <style dangerouslySetInnerHTML={{ __html: css }} />
-          <section id={scopeId} style={{ width: previewW, maxWidth: "100%", margin: "0 auto" }}>
-            <div className="aidb-wrap">
-              <div className={`relative overflow-hidden ${L.rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`}>
-                {previewImage && (
-                  <img src={previewImage} alt="" className="aidb-img absolute inset-0 h-full w-full" />
-                )}
-                <div className="absolute inset-0 bg-black/40" aria-hidden />
-                <div className="aidb-inner relative grid items-center p-6 sm:p-10">
-                  <div className="max-w-xl text-white">
-                    <div className="text-xs opacity-80">Vista previa</div>
-                    <div className="font-display text-2xl">Banner dinámico IA</div>
+          <div className="w-full max-w-full min-w-0 overflow-hidden">
+            <section id={scopeId} style={{ width: "100%", maxWidth: previewW, margin: "0 auto" }}>
+              <div className="aidb-wrap">
+                <div className={`relative overflow-hidden ${L.rounded ? "rounded-2xl" : ""} bg-surface-darker text-background`}>
+                  {previewImage && (
+                    <img src={previewImage} alt="" className="aidb-img absolute inset-0 h-full w-full max-w-full" />
+                  )}
+                  <div className="absolute inset-0 bg-black/40" aria-hidden />
+                  <div className="aidb-inner relative grid items-center p-6 sm:p-10">
+                    <div className="max-w-xl text-white">
+                      <div className="text-xs opacity-80">Vista previa</div>
+                      <div className="font-display text-2xl">Banner dinámico IA</div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
+          </div>
         </div>
       </div>
     </div>
