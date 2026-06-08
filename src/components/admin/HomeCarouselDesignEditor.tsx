@@ -130,8 +130,32 @@ export function HomeCarouselDesignEditor({
               <Num label="Gap tablet (px)" value={layout.gapTablet} onChange={(v) => setL({ gapTablet: v })} />
               <Num label="Gap mobile (px)" value={layout.gapMobile} onChange={(v) => setL({ gapMobile: v })} />
             </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 border-t pt-4">
+              <div className="sm:col-span-2">
+                <Label className="text-xs font-semibold">Alineación mobile del carrusel</Label>
+                <Select value={layout.mobileAlign} onValueChange={(v: any) => setL({ mobileAlign: v })} disabled={layoutDisabled}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left-preview">Izquierda con preview del siguiente producto</SelectItem>
+                    <SelectItem value="center">Centrado</SelectItem>
+                    <SelectItem value="full">Pantalla completa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Controla cómo se ve la primera card en mobile: con preview lateral, centrada o sin padding lateral.
+                </p>
+              </div>
+              <label className="sm:col-span-2 flex items-center justify-between gap-3 text-sm rounded-md border bg-muted/30 p-3">
+                <span>
+                  Centrar card principal en mobile
+                  <span className="block text-[11px] text-muted-foreground">Aplica snap-align center y centra la card horizontalmente.</span>
+                </span>
+                <Switch checked={layout.centerMobileCard} onCheckedChange={(v) => setL({ centerMobileCard: v })} disabled={layoutDisabled} />
+              </label>
+            </div>
           </AccordionContent>
         </AccordionItem>
+
 
         <AccordionItem value="card">
           <AccordionTrigger className="text-sm" disabled={layoutDisabled}>3. Tamaño de cards</AccordionTrigger>
