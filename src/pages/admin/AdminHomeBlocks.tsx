@@ -398,6 +398,9 @@ export default function AdminHomeBlocks() {
       </div>
 
       {savingOrder && <p className="text-xs text-muted-foreground">Guardando orden…</p>}
+
+      <GlobalCarouselConfigCard />
+
       {!loading && visibleCount === 0 && !showTrash && (
         <div className="rounded-md border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
           No hay secciones visibles en el Home. Agrega o activa una sección para mostrar contenido.
