@@ -13,6 +13,8 @@ import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
+import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
+import { resolveDesign, type BlockCarouselOverrides } from "@/lib/homeCarouselDesign";
 import type { ProductsCarouselConfig, CarouselSource } from "@/hooks/useProductsCarouselConfig";
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
