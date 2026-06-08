@@ -181,8 +181,8 @@ export function resolveDesign(
 function bgCss(bg: CarouselBackgroundCfg): string {
   switch (bg.type) {
     case "transparent": return "transparent";
-    case "white": return "#ffffff";
-    case "soft": return "hsl(var(--muted))";
+    case "white": return bg.color1 || "#ffffff";
+    case "soft": return bg.color1 || "#f5f5f5";
     case "solid": return bg.color1 || "#ffffff";
     case "gradient":
       return `linear-gradient(${bg.gradientDirection || 135}deg, ${bg.color1 || "#ffffff"}, ${bg.color2 || "#f0f0f0"})`;
