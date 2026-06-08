@@ -270,15 +270,19 @@ ${sel} [data-pc="image"]{
 @media (max-width:767px){
   ${sel} .hcs-container{
     ${L.mobileAlign === "full" ? "padding-left:0;padding-right:0;" : ""}
+    --carousel-mobile-padding:${L.padMobile}px;
   }
   ${sel} .hcs-track{
-    scroll-padding-inline:${L.padMobile}px;
-    ${L.centerMobileCard ? "justify-content:center;" : ""}
+    scroll-padding-inline:var(--carousel-mobile-padding);
+    scroll-snap-type:x mandatory;
+    ${L.centerMobileCard ? "margin-left:0;margin-right:0;justify-content:center;" : ""}
   }
   ${sel} .hcs-item{
-    ${L.centerMobileCard ? `flex-basis:calc(100% - ${L.padMobile * 2}px);` : ""}
+    ${L.centerMobileCard ? `flex-basis:calc(100% - ${L.padMobile * 2}px);padding-left:0;padding-right:0;margin-right:${L.gapMobile}px;` : ""}
     scroll-snap-align:${L.centerMobileCard || L.mobileAlign === "center" ? "center" : "start"};
+    scroll-snap-stop:always;
   }
+  ${sel} .hcs-item:last-child{ ${L.centerMobileCard ? "margin-right:0;" : ""} }
 }
 `.trim();
 }
