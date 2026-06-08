@@ -73,13 +73,13 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
       <SelectField label="Ancho" value={L.width} options={WIDTH_OPTS} onChange={(v) => set({ width: v })} />
 
       {isCustom && (
-        <div className="space-y-3 rounded border bg-muted/30 p-3">
+        <div className="space-y-3 rounded border bg-muted/30 p-3 min-w-0">
           {(["desktop", "tablet", "mobile"] as const).map((d) => {
             const k = (s: string) => `${s}${d[0].toUpperCase()}${d.slice(1)}` as keyof AiBannerLayout;
             return (
-              <div key={d} className="space-y-2">
+              <div key={d} className="space-y-2 min-w-0">
                 <div className="text-[11px] font-semibold uppercase text-muted-foreground">{d}</div>
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(3,minmax(0,1fr))] min-w-0">
                   <NumberField label="max-width (0 = 100%)" value={L[k("maxWidth")] as number} onChange={(n) => set({ [k("maxWidth")]: n } as any)} />
                   <NumberField label="padding lateral" value={L[k("pad")] as number} onChange={(n) => set({ [k("pad")]: n } as any)} />
                   <NumberField label="altura" value={L[k("height")] as number} onChange={(n) => set({ [k("height")]: n } as any)} />
