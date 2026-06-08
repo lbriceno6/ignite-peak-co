@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/components/admin/IntentBannersManager";
 import { HomeCarouselDesignEditor } from "@/components/admin/HomeCarouselDesignEditor";
+import { AiBannerLayoutEditor } from "@/components/admin/AiBannerLayoutEditor";
 import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
@@ -2486,7 +2487,7 @@ function AiBlockSettings({
               ))}
             </select>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-xs flex flex-col gap-1">
               Padding superior
               <Input type="number" value={Number(settings.spacingTop ?? 32)}
@@ -2497,16 +2498,14 @@ function AiBlockSettings({
               <Input type="number" value={Number(settings.spacingBottom ?? 32)}
                 onChange={(e) => onChange({ spacingBottom: Number(e.target.value) || 0 })} />
             </label>
-            <label className="text-xs flex flex-col gap-1">
-              Ancho
-              <select className="h-9 rounded-md border bg-background px-2 text-sm"
-                value={settings.containerWidth === "full" ? "full" : "container"}
-                onChange={(e) => onChange({ containerWidth: e.target.value })}>
-                <option value="container">Contenedor</option>
-                <option value="full">Full width</option>
-              </select>
-            </label>
           </div>
+
+          <AiBannerLayoutEditor
+            value={(settings.layout && typeof settings.layout === "object" ? settings.layout : {}) as any}
+            onChange={(layout) => onChange({ layout })}
+            previewImage={blockImage ?? undefined}
+          />
+
           <div className="grid gap-2 sm:grid-cols-2">
             <label className="flex items-center justify-between rounded border bg-background p-2 text-sm">
               <span>Esquinas redondeadas</span>
