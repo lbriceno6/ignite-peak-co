@@ -76,19 +76,16 @@ export function AiDynamicBanner({
   fallbackCtaLabel,
   fallbackCtaHref,
   fallbackIntentSlug,
-  containerWidth = "container",
   spacingTop = 32,
   spacingBottom = 32,
-  rounded = true,
   hideIfNoSignal = false,
   confidenceThreshold = 0.2,
   overlayEnabled = true,
   overlayColor = "#000000",
   overlayOpacity = 55,
-  heightDesktop = 420,
-  heightTablet = 340,
-  heightMobile = 260,
+  layout,
 }: Props) {
+  const L = useMemo(() => mergeAiBannerLayout(layout || {}), [layout]);
   const enabled = useAiBlockEnabled("home_dynamic_banner");
   const [intents, setIntents] = useState<Intent[]>([]);
   const [signals, setSignals] = useState<BrowseSignal[]>([]);
