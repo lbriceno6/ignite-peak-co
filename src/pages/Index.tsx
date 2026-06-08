@@ -335,11 +335,14 @@ const Home = () => {
               title: "Energía que viene de los Andes",
               subtitle: "Maca, cañihua y espirulina. Superalimentos puros, sin saborizantes ni químicos. Como lo hacían nuestras abuelas.",
               image_url: null,
+              image_mobile_url: null,
+              design: {},
               primary_label: "Ver productos",
               primary_href: "/categoria/nb-superalimentos",
               secondary_label: "Hablar por WhatsApp",
               secondary_href: "https://wa.me/51999999999",
             }];
+
         return (
           <section key={b.id} className="relative bg-surface-darker text-background">
             <Carousel
