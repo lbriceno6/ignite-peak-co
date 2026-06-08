@@ -34,11 +34,14 @@ type HeroSlide = {
   title: string;
   subtitle: string | null;
   image_url: string | null;
+  image_mobile_url: string | null;
   primary_label: string | null;
   primary_href: string | null;
   secondary_label: string | null;
   secondary_href: string | null;
+  design: any;
 };
+
 
 type DbProduct = {
   id: string;
