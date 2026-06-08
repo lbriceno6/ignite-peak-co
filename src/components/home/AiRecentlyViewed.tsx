@@ -24,6 +24,7 @@ type Props = {
   visibleMobile?: number;
   autoplay?: boolean;
   hideIfEmpty?: boolean;
+  design?: CarouselDesign;
 };
 
 export function AiRecentlyViewed({
