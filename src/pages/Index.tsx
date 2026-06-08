@@ -660,6 +660,15 @@ const Home = () => {
 
       case "ai_dynamic_banner": {
         const s = (b.settings ?? {}) as Record<string, any>;
+        // Back-compat: lift legacy individual fields into the `layout` object.
+        const legacyLayout = {
+          width: s.containerWidth === "full" ? "full" : undefined,
+          heightDesktop: typeof s.banner_height_desktop === "number" ? s.banner_height_desktop : undefined,
+          heightTablet: typeof s.banner_height_tablet === "number" ? s.banner_height_tablet : undefined,
+          heightMobile: typeof s.banner_height_mobile === "number" ? s.banner_height_mobile : undefined,
+          rounded: s.rounded === false ? false : undefined,
+        };
+        const layout = { ...legacyLayout, ...(s.layout && typeof s.layout === "object" ? s.layout : {}) };
         return (
           <AiDynamicBanner
             key={b.id}
@@ -671,18 +680,14 @@ const Home = () => {
             fallbackCtaLabel={b.cta_label}
             fallbackCtaHref={b.cta_href}
             fallbackIntentSlug={typeof s.fallback_intent_slug === "string" ? s.fallback_intent_slug : undefined}
-            containerWidth={s.containerWidth === "full" ? "full" : "container"}
             spacingTop={typeof s.spacingTop === "number" ? s.spacingTop : 32}
             spacingBottom={typeof s.spacingBottom === "number" ? s.spacingBottom : 32}
-            rounded={s.rounded !== false}
             hideIfNoSignal={s.hideIfNoSignal === true}
             confidenceThreshold={typeof s.confidenceThreshold === "number" ? s.confidenceThreshold : 0.2}
             overlayEnabled={s.overlay_enabled !== false}
             overlayColor={typeof s.overlay_color === "string" ? s.overlay_color : "#000000"}
             overlayOpacity={typeof s.overlay_opacity === "number" ? s.overlay_opacity : 55}
-            heightDesktop={typeof s.banner_height_desktop === "number" ? s.banner_height_desktop : 420}
-            heightTablet={typeof s.banner_height_tablet === "number" ? s.banner_height_tablet : 340}
-            heightMobile={typeof s.banner_height_mobile === "number" ? s.banner_height_mobile : 260}
+            layout={layout}
           />
         );
       }
