@@ -250,16 +250,16 @@ ${sel} [data-pc="card"]{
 ${sel} [data-pc="content"]{display:flex;flex-direction:column;flex:1;}
 ${sel} [data-pc="button-wrap"]{${L.buttonBottom ? "margin-top:auto;" : ""}}
 ${sel} [data-pc="image-wrap"]{
-  height:${L.imageHeightMobile}px;
-  aspect-ratio:auto;
+  height:${L.imageHeightMobile}px !important;
+  aspect-ratio:auto !important;
   background:hsl(var(--secondary));
 }
-@media (min-width:768px){ ${sel} [data-pc="image-wrap"]{height:${L.imageHeightTablet}px;} }
-@media (min-width:1024px){ ${sel} [data-pc="image-wrap"]{height:${L.imageHeightDesktop}px;} }
+@media (min-width:768px){ ${sel} [data-pc="image-wrap"]{height:${L.imageHeightTablet}px !important;} }
+@media (min-width:1024px){ ${sel} [data-pc="image-wrap"]{height:${L.imageHeightDesktop}px !important;} }
 ${sel} [data-pc="image"]{
-  width:100%;height:100%;
-  object-fit:${L.imageFit};
-  object-position:${L.imagePosition};
+  width:100% !important;height:100% !important;
+  object-fit:${L.imageFit} !important;
+  object-position:${L.imagePosition} !important;
 }
 `.trim();
 }
