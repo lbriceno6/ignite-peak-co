@@ -271,7 +271,7 @@ export function AiRecommendedForYou({
           </span>
         </div>
       )}
-      <HomeProductsCarousel config={config} products={items} eyebrow={dynEyebrow} />
+      <HomeProductsCarousel config={config} products={items} eyebrow={dynEyebrow} design={design} />
     </div>
   );
 }
