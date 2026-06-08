@@ -30,6 +30,8 @@ export type CarouselLayoutCfg = {
   autoplaySpeed: number; // seconds
   loop: boolean;
   freeScrollMobile: boolean;
+  mobileAlign: "left-preview" | "center" | "full";
+  centerMobileCard: boolean;
 };
 
 export type CarouselBackgroundCfg = {
@@ -85,6 +87,8 @@ export const DEFAULT_LAYOUT: CarouselLayoutCfg = {
   autoplaySpeed: 5,
   loop: true,
   freeScrollMobile: true,
+  mobileAlign: "left-preview",
+  centerMobileCard: false,
 };
 
 export const DEFAULT_BG: CarouselBackgroundCfg = {
@@ -260,6 +264,21 @@ ${sel} [data-pc="image"]{
   width:100% !important;height:100% !important;
   object-fit:${L.imageFit} !important;
   object-position:${L.imagePosition} !important;
+}
+
+/* Mobile alignment */
+@media (max-width:767px){
+  ${sel} .hcs-container{
+    ${L.mobileAlign === "full" ? "padding-left:0;padding-right:0;" : ""}
+  }
+  ${sel} .hcs-track{
+    scroll-padding-inline:${L.padMobile}px;
+    ${L.centerMobileCard ? "justify-content:center;" : ""}
+  }
+  ${sel} .hcs-item{
+    ${L.centerMobileCard ? `flex-basis:calc(100% - ${L.padMobile * 2}px);` : ""}
+    scroll-snap-align:${L.centerMobileCard || L.mobileAlign === "center" ? "center" : "start"};
+  }
 }
 `.trim();
 }
