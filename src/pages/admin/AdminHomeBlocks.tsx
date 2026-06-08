@@ -26,6 +26,17 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/components/admin/IntentBannersManager";
+import { HomeCarouselDesignEditor } from "@/components/admin/HomeCarouselDesignEditor";
+import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  DEFAULT_BG, DEFAULT_LAYOUT,
+  type BlockCarouselOverrides, type CarouselBackgroundCfg, type CarouselLayoutCfg,
+} from "@/lib/homeCarouselDesign";
+
+const CAROUSEL_BLOCK_TYPES = new Set([
+  "best_sellers", "promotions_carousel", "ai_recommended_for_you", "ai_recently_viewed",
+]);
 
 type CarouselSettings = {
   carousel_mode?: "auto" | "manual";
