@@ -1774,8 +1774,10 @@ export type Database = {
       hero_slides: {
         Row: {
           created_at: string
+          design: Json
           eyebrow: string | null
           id: string
+          image_mobile_url: string | null
           image_url: string | null
           is_active: boolean
           primary_href: string | null
@@ -1789,8 +1791,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          design?: Json
           eyebrow?: string | null
           id?: string
+          image_mobile_url?: string | null
           image_url?: string | null
           is_active?: boolean
           primary_href?: string | null
@@ -1804,8 +1808,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          design?: Json
           eyebrow?: string | null
           id?: string
+          image_mobile_url?: string | null
           image_url?: string | null
           is_active?: boolean
           primary_href?: string | null
