@@ -110,6 +110,7 @@ export function mergeHeroSlideDesign(partial: any): HeroSlideDesign {
     text: { ...d.text, ...(p.text || {}) },
     buttons: { ...d.buttons, ...(p.buttons || {}) },
     align: { ...d.align, ...(p.align || {}) },
+    content: { ...d.content, ...(p.content || {}) },
   };
 }
 
