@@ -51,6 +51,7 @@ type Props = {
   /** Optional override texts for the "no history" state. */
   fallbackTitle?: string | null;
   fallbackSubtitle?: string | null;
+  design?: CarouselDesign;
 };
 
 const INTENT_TITLES: Record<string, { title: string; subtitle: string }> = {
