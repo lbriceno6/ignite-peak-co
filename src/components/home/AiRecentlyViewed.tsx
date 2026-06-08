@@ -39,6 +39,7 @@ export function AiRecentlyViewed({
   visibleMobile = 1,
   autoplay = false,
   hideIfEmpty = true,
+  design,
 }: Props) {
   const enabled = useAiBlockEnabled("home_recently_viewed");
   const [loaded, setLoaded] = useState(false);
