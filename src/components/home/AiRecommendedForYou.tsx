@@ -94,6 +94,7 @@ export function AiRecommendedForYou({
   showSourceBadge = false,
   fallbackTitle,
   fallbackSubtitle,
+  design,
 }: Props) {
   const enabled = useAiBlockEnabled("home_recommended");
   const [signals, setSignals] = useState<BrowseSignal[] | null>(null);
