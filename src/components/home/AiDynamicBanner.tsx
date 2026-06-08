@@ -10,6 +10,7 @@ import {
   type BrowseSignal,
 } from "@/lib/userPersonalization";
 import { useAiBlockEnabled } from "@/hooks/useAiBlockToggles";
+import { mergeAiBannerLayout, buildAiBannerCss, type AiBannerLayout } from "@/lib/aiBannerLayout";
 
 type Props = {
   blockId: string;
@@ -20,18 +21,14 @@ type Props = {
   fallbackCtaLabel?: string | null;
   fallbackCtaHref?: string | null;
   fallbackIntentSlug?: string;
-  containerWidth?: "container" | "full";
   spacingTop?: number;
   spacingBottom?: number;
-  rounded?: boolean;
   hideIfNoSignal?: boolean;
   confidenceThreshold?: number;
   overlayEnabled?: boolean;
   overlayColor?: string;
   overlayOpacity?: number; // 0-100
-  heightDesktop?: number;
-  heightTablet?: number;
-  heightMobile?: number;
+  layout?: Partial<AiBannerLayout> | null;
 };
 
 /**
