@@ -414,15 +414,19 @@ const Home = () => {
       case "product_carousel": {
         const built = buildCarouselFromBlock(b);
         if (!built) return null;
+        const overrides = ((b.settings ?? {}) as any).carouselDesign as BlockCarouselOverrides | undefined;
+        const design = resolveDesign(globalCarouselDesign, overrides);
         return (
           <HomeProductsCarousel
             key={b.id}
             config={built.config}
             products={built.products}
             eyebrow={b.eyebrow}
+            design={design}
           />
         );
       }
+
 
       case "promotions_carousel":
         return (
