@@ -97,20 +97,20 @@ export function AiBannerLayoutEditor({ value, onChange, previewImage }: Props) {
 
       <div className="space-y-2">
         <div className="text-[11px] font-semibold uppercase text-muted-foreground">Imagen adaptable</div>
-        <div className="grid gap-2 sm:grid-cols-4">
+        <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(4,minmax(0,1fr))] min-w-0">
           <NumberField label="Zoom imagen (%)" min={50} max={200} value={L.imageZoom} onChange={(n) => set({ imageZoom: n })} />
           <NumberField label="Altura mínima" value={L.minHeight} onChange={(n) => set({ minHeight: n })} />
           <NumberField label="Altura máxima" value={L.maxHeight} onChange={(n) => set({ maxHeight: n })} />
-          <label className="flex items-center justify-between rounded border bg-background p-2 text-xs">
+          <label className="flex items-center justify-between rounded border bg-background p-2 text-xs min-w-0">
             <span>Esquinas redondeadas</span>
             <Switch checked={L.rounded} onCheckedChange={(v) => set({ rounded: v })} />
           </label>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 min-w-0">
         <div className="text-[11px] font-semibold uppercase text-muted-foreground">Mobile</div>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 grid-cols-1 sm:[grid-template-columns:repeat(2,minmax(0,1fr))] lg:[grid-template-columns:repeat(3,minmax(0,1fr))] min-w-0">
           <label className="flex items-center justify-between rounded border bg-background p-2 text-xs">
             <span>Centrar imagen en mobile</span>
             <Switch checked={L.centerImageOnMobile} onCheckedChange={(v) => set({ centerImageOnMobile: v })} />
