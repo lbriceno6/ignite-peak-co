@@ -26,6 +26,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { AiDynamicBanner } from "@/components/home/AiDynamicBanner";
 import { AiRecommendedForYou } from "@/components/home/AiRecommendedForYou";
 import { AiRecentlyViewed } from "@/components/home/AiRecentlyViewed";
+import { HeroBannerSlide } from "@/components/HeroBannerSlide";
+
 
 
 type HeroSlide = {
