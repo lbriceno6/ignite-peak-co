@@ -428,7 +428,9 @@ const Home = () => {
       }
 
 
-      case "promotions_carousel":
+      case "promotions_carousel": {
+        const overrides = ((b.settings ?? {}) as any).carouselDesign as BlockCarouselOverrides | undefined;
+        const design = resolveDesign(globalCarouselDesign, overrides);
         return (
           <PromotionsCarousel
             key={b.id}
@@ -442,8 +444,10 @@ const Home = () => {
               settings: b.settings ?? {},
             }}
             products={products}
+            design={design}
           />
         );
+      }
 
 
 
