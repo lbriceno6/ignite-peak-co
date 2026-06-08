@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import type { Product } from "@/data/catalog";
+import type { CarouselDesign } from "@/lib/homeCarouselDesign";
 import {
   fetchRecentBrowseSignals,
   getRecentlyViewedSlugs,
