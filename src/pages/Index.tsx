@@ -734,6 +734,8 @@ const Home = () => {
           category: fbRaw[i].category ?? null,
         }));
 
+        const aiOverrides = (s.carouselDesign as BlockCarouselOverrides | undefined);
+        const aiDesign = resolveDesign(globalCarouselDesign, aiOverrides);
         return (
           <AiRecommendedForYou
             key={b.id}
@@ -759,9 +761,11 @@ const Home = () => {
             showSourceBadge={s.show_source_badge === true}
             fallbackTitle={typeof s.fallback_title === "string" ? s.fallback_title : null}
             fallbackSubtitle={typeof s.fallback_subtitle === "string" ? s.fallback_subtitle : null}
+            design={aiDesign}
           />
         );
       }
+
 
       case "ai_recently_viewed": {
         const s = (b.settings ?? {}) as Record<string, any>;
