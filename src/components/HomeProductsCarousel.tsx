@@ -52,7 +52,7 @@ export function HomeProductsCarousel({ config, products, eyebrow, design }: Prop
   if (!products.length) return null;
 
   return (
-    <section id={scopeId} className="hcs-scope">
+    <section id={scopeId} className="hcs-scope hpc-scope">
       <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
       <div className="hcs-bg">
         <div className="hcs-container">
