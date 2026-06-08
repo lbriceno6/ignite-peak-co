@@ -265,5 +265,20 @@ ${sel} [data-pc="image"]{
   object-fit:${L.imageFit} !important;
   object-position:${L.imagePosition} !important;
 }
+
+/* Mobile alignment */
+@media (max-width:767px){
+  ${sel} .hcs-container{
+    ${L.mobileAlign === "full" ? "padding-left:0;padding-right:0;" : ""}
+  }
+  ${sel} .hcs-track{
+    scroll-padding-inline:${L.padMobile}px;
+    ${L.centerMobileCard ? "justify-content:center;" : ""}
+  }
+  ${sel} .hcs-item{
+    ${L.centerMobileCard ? `flex-basis:calc(100% - ${L.padMobile * 2}px);` : ""}
+    scroll-snap-align:${L.centerMobileCard || L.mobileAlign === "center" ? "center" : "start"};
+  }
+}
 `.trim();
 }
