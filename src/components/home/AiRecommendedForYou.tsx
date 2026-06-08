@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import type { Product } from "@/data/catalog";
+import type { CarouselDesign } from "@/lib/homeCarouselDesign";
 import {
   fetchActiveIntents,
   fetchRecentBrowseSignals,
@@ -50,6 +51,7 @@ type Props = {
   /** Optional override texts for the "no history" state. */
   fallbackTitle?: string | null;
   fallbackSubtitle?: string | null;
+  design?: CarouselDesign;
 };
 
 const INTENT_TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -92,6 +94,7 @@ export function AiRecommendedForYou({
   showSourceBadge = false,
   fallbackTitle,
   fallbackSubtitle,
+  design,
 }: Props) {
   const enabled = useAiBlockEnabled("home_recommended");
   const [signals, setSignals] = useState<BrowseSignal[] | null>(null);
@@ -268,7 +271,7 @@ export function AiRecommendedForYou({
           </span>
         </div>
       )}
-      <HomeProductsCarousel config={config} products={items} eyebrow={dynEyebrow} />
+      <HomeProductsCarousel config={config} products={items} eyebrow={dynEyebrow} design={design} />
     </div>
   );
 }

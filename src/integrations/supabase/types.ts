@@ -1888,6 +1888,30 @@ export type Database = {
         }
         Relationships: []
       }
+      home_carousel_global: {
+        Row: {
+          background: Json
+          created_at: string
+          id: string
+          layout: Json
+          updated_at: string
+        }
+        Insert: {
+          background?: Json
+          created_at?: string
+          id?: string
+          layout?: Json
+          updated_at?: string
+        }
+        Update: {
+          background?: Json
+          created_at?: string
+          id?: string
+          layout?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       imported_products: {
         Row: {
           ai_benefits: Json | null

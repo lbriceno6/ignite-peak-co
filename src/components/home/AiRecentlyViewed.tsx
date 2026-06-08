@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import type { Product } from "@/data/catalog";
+import type { CarouselDesign } from "@/lib/homeCarouselDesign";
 import {
   fetchRecentBrowseSignals,
   getRecentlyViewedSlugs,
@@ -23,6 +24,7 @@ type Props = {
   visibleMobile?: number;
   autoplay?: boolean;
   hideIfEmpty?: boolean;
+  design?: CarouselDesign;
 };
 
 export function AiRecentlyViewed({
@@ -37,6 +39,7 @@ export function AiRecentlyViewed({
   visibleMobile = 1,
   autoplay = false,
   hideIfEmpty = true,
+  design,
 }: Props) {
   const enabled = useAiBlockEnabled("home_recently_viewed");
   const [loaded, setLoaded] = useState(false);
@@ -101,6 +104,7 @@ export function AiRecentlyViewed({
       config={config}
       products={items}
       eyebrow={eyebrow || "Tu historial"}
+      design={design}
     />
   );
 }

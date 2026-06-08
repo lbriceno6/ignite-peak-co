@@ -13,6 +13,8 @@ import { goals as fallbackGoals, reviews, type Product } from "@/data/catalog";
 import { supabase } from "@/integrations/supabase/client";
 import { useSiteContent } from "@/hooks/useSiteContent";
 import { HomeProductsCarousel } from "@/components/HomeProductsCarousel";
+import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
+import { resolveDesign, type BlockCarouselOverrides } from "@/lib/homeCarouselDesign";
 import type { ProductsCarouselConfig, CarouselSource } from "@/hooks/useProductsCarouselConfig";
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
@@ -174,6 +176,7 @@ const Home = () => {
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const autoplay = useRef(Autoplay({ delay: 6000, stopOnInteraction: false, stopOnMouseEnter: true }));
+  const { design: globalCarouselDesign } = useHomeCarouselGlobal();
   const { content } = useSiteContent(GUIDES_KEYS, {
     "home.guides.eyebrow": "Conocimiento",
     "home.guides.title": "Guías y consejos",
@@ -411,15 +414,19 @@ const Home = () => {
       case "product_carousel": {
         const built = buildCarouselFromBlock(b);
         if (!built) return null;
+        const overrides = ((b.settings ?? {}) as any).carouselDesign as BlockCarouselOverrides | undefined;
+        const design = resolveDesign(globalCarouselDesign, overrides);
         return (
           <HomeProductsCarousel
             key={b.id}
             config={built.config}
             products={built.products}
             eyebrow={b.eyebrow}
+            design={design}
           />
         );
       }
+
 
       case "promotions_carousel":
         return (
@@ -727,6 +734,8 @@ const Home = () => {
           category: fbRaw[i].category ?? null,
         }));
 
+        const aiOverrides = (s.carouselDesign as BlockCarouselOverrides | undefined);
+        const aiDesign = resolveDesign(globalCarouselDesign, aiOverrides);
         return (
           <AiRecommendedForYou
             key={b.id}
@@ -752,13 +761,17 @@ const Home = () => {
             showSourceBadge={s.show_source_badge === true}
             fallbackTitle={typeof s.fallback_title === "string" ? s.fallback_title : null}
             fallbackSubtitle={typeof s.fallback_subtitle === "string" ? s.fallback_subtitle : null}
+            design={aiDesign}
           />
         );
       }
 
+
       case "ai_recently_viewed": {
         const s = (b.settings ?? {}) as Record<string, any>;
         const pool = products.map(toCardProduct);
+        const rvOverrides = (s.carouselDesign as BlockCarouselOverrides | undefined);
+        const rvDesign = resolveDesign(globalCarouselDesign, rvOverrides);
         return (
           <AiRecentlyViewed
             key={b.id}
@@ -773,9 +786,11 @@ const Home = () => {
             visibleMobile={Number(s.visibleMobile ?? 1) || 1}
             autoplay={s.autoplay === true}
             hideIfEmpty={s.hideIfEmpty !== false}
+            design={rvDesign}
           />
         );
       }
+
 
       case "products_grid":
         if (!moreProducts.length) return null;

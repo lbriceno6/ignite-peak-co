@@ -26,6 +26,17 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
 import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/components/admin/IntentBannersManager";
+import { HomeCarouselDesignEditor } from "@/components/admin/HomeCarouselDesignEditor";
+import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  DEFAULT_BG, DEFAULT_LAYOUT,
+  type BlockCarouselOverrides, type CarouselBackgroundCfg, type CarouselLayoutCfg,
+} from "@/lib/homeCarouselDesign";
+
+const CAROUSEL_BLOCK_TYPES = new Set([
+  "best_sellers", "promotions_carousel", "ai_recommended_for_you", "ai_recently_viewed",
+]);
 
 type CarouselSettings = {
   carousel_mode?: "auto" | "manual";
@@ -387,6 +398,9 @@ export default function AdminHomeBlocks() {
       </div>
 
       {savingOrder && <p className="text-xs text-muted-foreground">Guardando orden…</p>}
+
+      <GlobalCarouselConfigCard />
+
       {!loading && visibleCount === 0 && !showTrash && (
         <div className="rounded-md border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
           No hay secciones visibles en el Home. Agrega o activa una sección para mostrar contenido.
@@ -847,12 +861,20 @@ function BlockEditor({
             />
           )}
 
+          {CAROUSEL_BLOCK_TYPES.has(block.block_type) && (
+            <BlockCarouselDesignSection
+              settings={(f.settings ?? {}) as Record<string, any>}
+              onChange={(next) => set("settings", { ...(f.settings ?? {}), ...next })}
+            />
+          )}
+
           <div className="flex items-center justify-end gap-2 pt-1">
             <Button variant="outline" onClick={() => setF(block)} disabled={!dirty || saving}>Discard</Button>
             <Button variant="dark" onClick={save} disabled={!dirty || saving}>
               {saving ? "Saving…" : "Save section"}
             </Button>
           </div>
+
         </div>
       </div>
     </div>
@@ -2870,6 +2892,101 @@ function BannerAppearanceSettings({
           La previsualización usa altura desktop (limitada a 320px aquí). En el Home se aplica la altura completa por breakpoint.
         </p>
       </div>
+    </div>
+  );
+}
+
+// ============== Global Carousel Config (Configuración global de carruseles) ==============
+function GlobalCarouselConfigCard() {
+  const { design, loading, save } = useHomeCarouselGlobal();
+  const [layout, setLayout] = useState<CarouselLayoutCfg>(design.layout);
+  const [background, setBackground] = useState<CarouselBackgroundCfg>(design.background);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { setLayout(design.layout); setBackground(design.background); }, [design]);
+
+  const dirty =
+    JSON.stringify(layout) !== JSON.stringify(design.layout) ||
+    JSON.stringify(background) !== JSON.stringify(design.background);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const err = await save({ layout, background });
+    setSaving(false);
+    if (err) toast.error(err.message);
+    else toast.success("Configuración global guardada");
+  };
+
+  return (
+    <div className="rounded-lg border bg-background p-5">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="global">
+          <AccordionTrigger>
+            <div className="text-left">
+              <p className="font-display text-lg leading-tight">Configuración global de carruseles</p>
+              <p className="text-xs text-muted-foreground">Valores predeterminados para todos los carruseles del Home (ancho, productos visibles, gap, cards, imagen, fondo).</p>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            {loading ? (
+              <p className="text-sm text-muted-foreground">Cargando…</p>
+            ) : (
+              <div className="space-y-4">
+                <HomeCarouselDesignEditor
+                  scope="global"
+                  layout={layout}
+                  background={background}
+                  onLayoutChange={setLayout}
+                  onBackgroundChange={setBackground}
+                />
+                <div className="flex items-center justify-end gap-2">
+                  <Button variant="outline" onClick={() => { setLayout(design.layout); setBackground(design.background); }} disabled={!dirty || saving}>Descartar</Button>
+                  <Button variant="dark" onClick={handleSave} disabled={!dirty || saving}>{saving ? "Guardando…" : "Guardar configuración global"}</Button>
+                </div>
+              </div>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+}
+
+// ============== Per-block Carousel Design (Diseño del carrusel) ==============
+export function BlockCarouselDesignSection({
+  settings, onChange,
+}: { settings: Record<string, any>; onChange: (next: Record<string, any>) => void }) {
+  const cd = (settings.carouselDesign ?? {}) as BlockCarouselOverrides;
+  const useGlobalLayout = cd.useGlobalLayout !== false;
+  const useGlobalBackground = cd.useGlobalBackground !== false;
+  const layout: CarouselLayoutCfg = { ...DEFAULT_LAYOUT, ...(cd.layout ?? {}) };
+  const background: CarouselBackgroundCfg = { ...DEFAULT_BG, ...(cd.background ?? {}) };
+
+  const updateCd = (patch: Partial<BlockCarouselOverrides>) => {
+    const next: BlockCarouselOverrides = { ...cd, ...patch };
+    onChange({ carouselDesign: next });
+  };
+
+  return (
+    <div className="rounded-md border bg-muted/30 p-3">
+      <Accordion type="single" collapsible>
+        <AccordionItem value="design">
+          <AccordionTrigger className="text-sm">Diseño del carrusel</AccordionTrigger>
+          <AccordionContent>
+            <HomeCarouselDesignEditor
+              scope="block"
+              layout={layout}
+              background={background}
+              useGlobalLayout={useGlobalLayout}
+              useGlobalBackground={useGlobalBackground}
+              onToggleUseGlobalLayout={(v) => updateCd({ useGlobalLayout: v })}
+              onToggleUseGlobalBackground={(v) => updateCd({ useGlobalBackground: v })}
+              onLayoutChange={(L) => updateCd({ layout: L, useGlobalLayout: false })}
+              onBackgroundChange={(B) => updateCd({ background: B, useGlobalBackground: false })}
+            />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 }

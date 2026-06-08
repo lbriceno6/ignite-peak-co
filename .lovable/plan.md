@@ -1,98 +1,83 @@
-# Importador Web Inteligente
+## Goal
+Add full visual control of every Home carousel from **Home page sections** in the admin, both globally and per-carousel, without affecting catalog / product / category pages.
 
-Nuevo módulo admin en `/admin/importador-web` para extraer productos de URLs externas, revisarlos y publicarlos como borradores en Nutribatidos. **Nunca publica automáticamente.**
+## Scope (Home carousels only)
+Ofertas, Best sellers, Promociones, Recomendados IA, Productos vistos, Favoritos, Destacados, Carrusel manual de productos, Carrusel por categoría, Carrusel por promoción.
 
-## 1. Base de datos (migración)
+---
 
-**Tabla `imported_products`**
-- `id`, `job_id` (fk), `source_url`, `source_domain`
-- Datos originales: `original_title`, `original_description`, `original_price`, `original_sale_price`, `original_currency`, `original_image_url`, `original_gallery_urls` (jsonb)
-- Detectado: `detected_brand`, `detected_category`, `detected_stock`, `imported_data` (jsonb crudo)
-- IA: `ai_rewritten_title`, `ai_rewritten_description`, `ai_long_description`, `ai_benefits`, `ai_meta_title`, `ai_meta_description`, `ai_keywords` (jsonb), `ai_category_suggestion`, `ai_intent_suggestion`, `ai_ingredients` (jsonb)
-- `stored_image_url` (cuando se sube a Storage)
-- `status` enum: pending, reviewed, imported, discarded, error
-- `created_product_id` (fk products), `created_by`, `created_at`, `updated_at`
+## 1. Data model
 
-**Tabla `web_import_jobs`**
-- `id`, `source_url`, `source_domain`, `mode` (auto/category/product)
-- `products_found`, `products_imported`, `status` (running/done/error), `error_message`
-- `created_by`, timestamps
+New table `public.home_carousel_global` (single row, key='default'):
+- width preset + max-width per device, padding per device
+- items per device, gap per device
+- card min-height/width, equal height, button bottom
+- image height per device, object-fit, object-position
+- controls: arrows, dots, autoplay, speed, loop, free-scroll mobile
+- background: type (transparent/white/soft-gray/solid/gradient), color1, color2, gradient direction, opacity, radius, padding, margin-top, margin-bottom
 
-RLS: solo admins (`has_role(auth.uid(),'admin')`). GRANTs para `authenticated` y `service_role`.
+Extend `home_blocks.config` (jsonb already exists) for every carousel-type block with:
+- `useGlobalLayout: boolean` (default true)
+- `useGlobalBackground: boolean` (default true)
+- `layout: { ...same shape as global layout }`
+- `background: { ...same shape as global background }`
 
-## 2. Edge Function `web-product-importer`
+No schema change beyond the global table; per-carousel overrides live in the existing `config` jsonb.
 
-`supabase/functions/web-product-importer/index.ts`
+## 2. New shared util `src/lib/homeCarouselDesign.ts`
+- `CarouselLayoutCfg`, `CarouselBackgroundCfg` types + defaults
+- `PRESETS` (Compacto, Ecommerce limpio, Amplio premium, Pantalla completa, Mobile optimizado, Fondo destacado)
+- `mergeLayout(global, block)` and `mergeBackground(global, block)`
+- `buildScopedCss(scopeId, layout, background)` → emits responsive CSS with media queries scoped to `#hcs-{id}` controlling: container max-width, padding, item flex-basis (= `calc(100% / items - gap)`), gap, card min-h/min-w, image height, background, radius, margins. Returns `{ css, containerProps }`.
 
-Recibe `{ url, mode }`. Validaciones:
-- URL http/https
-- Bloquear localhost, IPs privadas (10/8, 172.16/12, 192.168/16, 127/8, ::1, fc00::/7)
-- Solo HTML (validar content-type)
-- Timeout 15s con `AbortController`
-- Máx 3 MB de body
-- Máx 30 productos
+## 3. Frontend rendering
+- `HomeProductsCarousel.tsx`: accept optional `design?: { layout, background }` prop. Wrap output in `<section id="hcs-{id}" className="hcs-scope">` with injected `<style>` from `buildScopedCss`. Use `items` from layout to drive `basis` of `CarouselItem` per breakpoint via CSS custom properties. Show/hide arrows/dots + autoplay plugin based on controls.
+- `ProductCard.tsx`: already has `data-pc` hooks from earlier work; ensure `image-wrap` height + `object-fit`/`object-position` honor the scope CSS variables.
+- `Index.tsx`: load global config once (hook `useHomeCarouselGlobal`), pass merged `design` to every carousel rendering (products carousel, category carousel, promotion carousel, AI reco, recently viewed, favorites, ofertas, best sellers, destacados, promociones).
+- Scope is `.hcs-scope` (Home only) so catalog / category / product / checkout pages are untouched.
 
-Extracción en orden:
-1. JSON-LD `@type: Product` (parseo de `<script type=application/ld+json>`)
-2. OpenGraph / meta tags (`og:title`, `og:image`, `product:price:amount`)
-3. Microdata `itemtype=schema.org/Product`
-4. Selectores comunes: `.product-card`, `.product-item`, `[class*=product]`, `.price`, `img`
-5. Fallback IA con Gemini (`google/gemini-3-flash-preview`) si LOVABLE_API_KEY presente — recibe HTML truncado y devuelve JSON
+## 4. Admin UI (inside `AdminHomeBlocks.tsx`, no new page)
+At top of the page, new accordion **"Configuración global de carruseles"** with subsections:
+- Tamaño y ancho (width preset + per-device max-width, padding)
+- Productos visibles y separación
+- Tamaño de cards e imagen
+- Controles del carrusel
+- Fondo del carrusel (type, colors, opacity, radius, paddings, margins)
+- Presets (apply preset button)
+- Live preview (3 mock products: short name, long name, sale price) with Desktop / Tablet / Mobile toggle
 
-Devuelve `{ job_id, products: [...], errors: [] }`. Inserta en tablas con auth del admin.
+Inside each carousel-type block editor, new accordion **"Diseño del carrusel"**:
+- Toggle "Usar configuración global" (layout)
+- Toggle "Usar fondo global" (background)
+- When off → render the same field set as global, scoped to that block
+- Same live preview component
 
-## 3. Edge Function `web-product-rewrite`
+Persistence: global table via supabase upsert; per-block via existing config jsonb.
 
-Recibe `imported_product_id`. Llama Lovable AI Gateway con prompt comercial Nutribatidos (tono natural, sin diagnósticos médicos, sin inventar ingredientes/certificaciones, no copiar literal). Devuelve y guarda en columnas `ai_*`.
+## 5. Card alignment guarantees
+CSS emitted by `buildScopedCss` enforces:
+- `.hcs-scope [data-pc="card"] { display:flex; flex-direction:column; height:100%; }`
+- `.hcs-scope [data-pc="content"] { flex:1; display:flex; flex-direction:column; }`
+- `.hcs-scope [data-pc="button-wrap"] { margin-top:auto; }`
+- `.hcs-scope [data-pc="image-wrap"] { height: var(--hcs-img-h); }`
+- `.hcs-scope [data-pc="image"] { object-fit: contain; object-position: center; width:100%; height:100%; }`
+- Title/desc/category line-clamps via existing typography settings (no override here).
 
-## 4. Edge Function `web-product-save-image`
+## 6. Files
 
-Recibe `imported_product_id`. Descarga `original_image_url`, valida MIME (jpg/png/webp) y tamaño (<5MB), sube a bucket `imported-images` (crear público), guarda en `stored_image_url`.
+**New**
+- `supabase/migrations/<ts>_home_carousel_global.sql` (table + grants + RLS: read anon; write admin via has_role)
+- `src/lib/homeCarouselDesign.ts`
+- `src/hooks/useHomeCarouselGlobal.ts`
+- `src/components/admin/HomeCarouselDesignEditor.tsx` (reusable for global + per-block)
+- `src/components/admin/HomeCarouselPreview.tsx`
 
-## 5. UI Admin `/admin/importador-web`
+**Edited**
+- `src/components/HomeProductsCarousel.tsx` (accept design prop, scoped CSS)
+- `src/components/ProductCard.tsx` (ensure data-pc hooks honor scope vars — small additions only)
+- `src/pages/Index.tsx` (load global, pass merged design to each carousel)
+- `src/pages/admin/AdminHomeBlocks.tsx` (add global accordion at top + per-block "Diseño del carrusel" accordion)
 
-`src/pages/admin/AdminWebImporter.tsx`:
-- Aviso de uso responsable (no ocultable)
-- Form: input URL + select modo + botón "Analizar web"
-- Tabs: **Resultados actuales** | **Historial**
-- Tabla de productos extraídos con checkbox, imagen, nombre, precio, marca, categoría detectada, URL, estado
-- Acciones por fila: Ver detalle (drawer), Reescribir con IA, Guardar imagen, Descartar
-- Acciones bulk: Importar seleccionados como borrador, Descartar
-- Historial: tabla `web_import_jobs` con filtros dominio/estado, botón reanalizar/eliminar
-
-Drawer detalle: edición inline de todos los campos antes de importar, sugerencias IA visibles, selector de categoría e intención (autocompletados desde `categories` y `purchase_intents`).
-
-## 6. Importación al catálogo
-
-Botón "Importar como borrador" → insert en `products`:
-- `name` = `ai_rewritten_title || original_title`
-- `short_description`, `description`, `price`, `sale_price`
-- `main_image` = `stored_image_url || original_image_url`
-- `is_active = false`, `approval_status = 'pending'`
-- `slug` autogenerado, chequear duplicados por slug/URL/nombre similar → warning
-
-Actualiza `imported_products.status = 'imported'` y `created_product_id`.
-
-## 7. Registro de ruta y menú
-
-- Añadir ruta en `src/App.tsx` bajo `/admin`
-- Añadir item en `AdminLayout` sidebar: "Importador Web Inteligente" → `/admin/importador-web`
-
-## 8. Sugerencias de intención (cliente)
-
-Mapeo simple en frontend al detectar palabras clave en título/descripción:
-- colágeno → `colagenos` / intención `colageno`
-- maca → `energia`
-- omega 3 → `bienestar`
-- proteína → `fitness`
-
-Se aplica como default editable.
-
-## Notas técnicas
-- Storage: crear bucket `imported-images` público con RLS write admin-only.
-- No tocar productos existentes ni publicarlos automáticamente.
-- Toda función edge usa `verify_jwt` default + `getClaims` + `has_role` check.
-- Sin nuevas dependencias npm (parseo HTML con regex + DOMParser via `deno-dom` npm import si necesario).
-
-## Entregables
-1 migración SQL, 3 edge functions, 1 página admin nueva, 1 bucket, ajustes a `App.tsx` y `AdminLayout`.
+## 7. Out of scope
+- Catalog / category / product / checkout pages (untouched, different scope class).
+- Hero banner, typography, layout systems (already separate).
