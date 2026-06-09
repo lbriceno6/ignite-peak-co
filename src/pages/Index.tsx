@@ -19,6 +19,7 @@ import type { ProductsCarouselConfig, CarouselSource } from "@/hooks/useProducts
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
 import { buildCsScopedCss, resolveCsLayout } from "@/lib/categoryShowcaseLayout";
+import { mergeDbLayout, buildDbCss } from "@/lib/doubleBannersLayout";
 
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
@@ -581,27 +582,30 @@ const Home = () => {
         const rounded = s.rounded !== false ? "rounded-2xl" : "";
         const shadow = s.shadow !== false ? "shadow-md hover:shadow-xl" : "";
         const hover = s.hoverEffect !== false;
-        const wrapperClass = s.containerWidth === "full" ? "" : "container-x";
+        const dbLayout = mergeDbLayout(s.layout || {});
+        const dbScope = `dbp-${b.id}`;
+        const dbCss = buildDbCss(dbScope, dbLayout);
         const sectionStyle: React.CSSProperties = {
           paddingTop: typeof s.spacingTop === "number" ? s.spacingTop : 40,
           paddingBottom: typeof s.spacingBottom === "number" ? s.spacingBottom : 40,
           backgroundColor: typeof s.backgroundColor === "string" && s.backgroundColor ? s.backgroundColor : undefined,
         };
         return (
-          <section key={b.id} style={sectionStyle}>
-            <div className={wrapperClass}>
-              <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2">
+          <section key={b.id} id={dbScope} style={sectionStyle}>
+            <style dangerouslySetInnerHTML={{ __html: dbCss }} />
+            <div className="db-wrap">
+              <div className="db-grid">
                 {activeBanners.map((bn, i) => {
                   const imageUrl = bn.uploaded_image_url || bn.custom_image_url || "/placeholder.svg";
                   const alt = bn.alt_text || `Promoción ${i + 1}`;
-                  const cardClass = `group relative block overflow-hidden ${rounded} ${shadow} ${hover ? "transition-all duration-300" : ""}`.trim();
+                  const cardClass = `db-card group relative block overflow-hidden ${rounded} ${shadow} ${hover ? "transition-all duration-300" : ""}`.trim();
                   const img = (
-                    <div className={`${aspect} w-full overflow-hidden`}>
+                    <div className={`db-img-wrap ${aspect} w-full overflow-hidden`}>
                       <img
                         src={imageUrl}
                         alt={alt}
                         loading="lazy"
-                        className={`h-full w-full object-cover ${hover ? "transition-transform duration-500 group-hover:scale-[1.03]" : ""}`}
+                        className={`db-img ${hover ? "group-hover:scale-[1.05]" : ""}`}
                         onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/placeholder.svg"; }}
                       />
                     </div>
@@ -610,14 +614,10 @@ const Home = () => {
                     const isExternal = /^https?:\/\//i.test(bn.link_url);
                     if (isExternal || bn.open_new_tab) {
                       return (
-                        <a
-                          key={bn.id || i}
-                          href={bn.link_url}
+                        <a key={bn.id || i} href={bn.link_url}
                           target={bn.open_new_tab ? "_blank" : undefined}
                           rel={bn.open_new_tab ? "noopener noreferrer" : undefined}
-                          className={cardClass}
-                          aria-label={alt}
-                        >
+                          className={cardClass} aria-label={alt}>
                           {img}
                         </a>
                       );
@@ -638,6 +638,7 @@ const Home = () => {
             </div>
           </section>
         );
+
       }
 
       case "instagram_testimonials": {
