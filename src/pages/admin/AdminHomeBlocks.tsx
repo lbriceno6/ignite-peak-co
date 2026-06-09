@@ -1666,6 +1666,11 @@ function CategoryShowcaseSettings({
           })}
         </div>
       )}
+
+      <CategoryShowcaseLayoutEditor
+        value={settings.layout as any}
+        onChange={(next) => onChange({ layout: next })}
+      />
     </div>
   );
 }
