@@ -1886,6 +1886,14 @@ function DoublePromoBannersSettings({
         </label>
       </div>
 
+      <DoubleBannersLayoutEditor
+        value={(settings.layout ?? null) as any}
+        onChange={(next) => onChange({ layout: { ...(settings.layout ?? {}), ...next } })}
+        previewImage={banners[0]?.uploaded_image_url || banners[0]?.custom_image_url || undefined}
+      />
+
+
+
       <div className="space-y-3">
         {banners.map((banner, idx) => (
           <div key={banner.id || idx} className="rounded-md border bg-background p-3 space-y-3">
