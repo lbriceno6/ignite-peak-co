@@ -8,6 +8,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
 import { HomeCardConfigContext } from "@/context/HomeCardConfigContext";
+import { useActiveShippingProviders, resolveDeliveryText } from "@/hooks/useActiveShippingProviders";
 import type { Product } from "@/data/catalog";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import { buildScopedCss, DEFAULT_BG, DEFAULT_LAYOUT, type CarouselDesign } from "@/lib/homeCarouselDesign";
@@ -150,5 +151,8 @@ function HomeProductCardStylesInline() {
 
 function HomeCardConfigProviderInline({ children }: { children: import("react").ReactNode }) {
   const { style } = useHomeProductCardStyle();
-  return <HomeCardConfigContext.Provider value={style}>{children}</HomeCardConfigContext.Provider>;
+  const { providers } = useActiveShippingProviders();
+  const text = resolveDeliveryText(providers, style.recommended.providerId, style.recommended.fallback || style.recommended.text || "");
+  const enriched = { ...style, recommended: { ...style.recommended, text } };
+  return <HomeCardConfigContext.Provider value={enriched}>{children}</HomeCardConfigContext.Provider>;
 }
