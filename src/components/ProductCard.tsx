@@ -12,6 +12,8 @@ import { promosForProduct } from "@/lib/promotions";
 import { PromoBadge } from "./PromoBadge";
 import { resolveProductImage } from "@/lib/productImage";
 import productPlaceholder from "@/assets/product-placeholder.jpg";
+import { useHomeCardConfig } from "@/context/HomeCardConfigContext";
+import { resolveTopText } from "@/lib/homeProductCardStyle";
 
 const WHATSAPP_BASE =
   "https://wa.me/51999999999?text=";
@@ -73,6 +75,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const { format } = useCurrency();
   const { promotions } = usePromotions();
   const wished = wishlist.includes(product.id);
+  const homeCfg = useHomeCardConfig();
+  const isHome = !!homeCfg;
+  const topTextValue = isHome ? resolveTopText(homeCfg!.topText, product as any) : "";
+  const showHomeTopText = isHome && homeCfg!.topText.mode !== "none" && homeCfg!.topText.show !== false && !!topTextValue;
 
   const hasPrice = Number(product.price) > 0;
   const discount = hasPrice && product.oldPrice
@@ -139,10 +145,18 @@ export const ProductCard = ({ product }: { product: Product }) => {
       </div>
 
       <div data-pc="content" className="flex flex-1 flex-col gap-1 p-3 min-w-0">
-        {product.brand && product.brand !== "Sin marca" && (
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
-            {product.brand}
-          </div>
+        {isHome ? (
+          showHomeTopText ? (
+            <div data-pc="top-text" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
+              {topTextValue}
+            </div>
+          ) : null
+        ) : (
+          product.brand && product.brand !== "Sin marca" && (
+            <div data-pc="brand" className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
+              {product.brand}
+            </div>
+          )
         )}
         <div data-pc="category" className="h-4 text-[11px] uppercase tracking-wider text-muted-foreground truncate">
           {subcat || "\u00A0"}
