@@ -18,6 +18,7 @@ import { resolveDesign, type BlockCarouselOverrides } from "@/lib/homeCarouselDe
 import type { ProductsCarouselConfig, CarouselSource } from "@/hooks/useProductsCarouselConfig";
 import { PromotionsCarousel } from "@/components/PromotionsCarousel";
 import { resolveProductImage } from "@/lib/productImage";
+import { buildCsScopedCss, resolveCsLayout } from "@/lib/categoryShowcaseLayout";
 
 import heroImage from "@/assets/hero.jpg";
 import promoImage from "@/assets/promo-banner.jpg";
