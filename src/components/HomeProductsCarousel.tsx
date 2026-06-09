@@ -150,5 +150,9 @@ function HomeProductCardStylesInline() {
 
 function HomeCardConfigProviderInline({ children }: { children: import("react").ReactNode }) {
   const { style } = useHomeProductCardStyle();
-  return <HomeCardConfigContext.Provider value={style}>{children}</HomeCardConfigContext.Provider>;
+  const { providers } = require("@/hooks/useActiveShippingProviders").useActiveShippingProviders();
+  const { resolveDeliveryText } = require("@/hooks/useActiveShippingProviders");
+  const text = resolveDeliveryText(providers, style.recommended.providerId, style.recommended.fallback || style.recommended.text || "");
+  const enriched = { ...style, recommended: { ...style.recommended, text } };
+  return <HomeCardConfigContext.Provider value={enriched}>{children}</HomeCardConfigContext.Provider>;
 }
