@@ -14,6 +14,7 @@ export type TextCfg = {
   strikethrough?: boolean;
   show?: boolean;
   text?: string;
+  icon?: "clock" | "truck" | "none";
 };
 
 export type ButtonCfg = {
