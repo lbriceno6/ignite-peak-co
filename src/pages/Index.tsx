@@ -1281,13 +1281,17 @@ const Home = () => {
 
         if (tiles.length === 0) return null;
 
+        const layout = resolveCsLayout((s.layout ?? {}) as any);
+        const scopeId = `cshow-${b.id}`;
+        const scopedCss = buildCsScopedCss(layout, scopeId);
+
         const desktopColsClass: Record<number, string> = {
           3: "lg:grid-cols-3",
           4: "lg:grid-cols-4",
           5: "lg:grid-cols-5",
           6: "lg:grid-cols-6",
         };
-        const gridClass = `grid grid-cols-1 sm:grid-cols-2 ${desktopColsClass[desktopColumns]} gap-5`;
+        const gridClass = `cs-grid cs-grid-mobile grid-cols-1 sm:grid-cols-2 ${desktopColsClass[desktopColumns]}`;
 
         const Tile = (t: Tile) => {
           const background = t.useGradient
@@ -1296,24 +1300,24 @@ const Home = () => {
           return (
             <Link
               to={t.href}
-              className={`group relative flex aspect-[4/6] flex-col overflow-hidden rounded-3xl shadow-product ${animations ? "transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl" : ""}`}
+              className={`cs-tile group relative overflow-hidden rounded-3xl shadow-product ${animations ? "transition-all duration-300 ease-in-out hover:-translate-y-1 hover:shadow-2xl" : ""}`}
               style={{ background }}
               aria-label={t.title}
             >
-              <div className="relative flex flex-1 items-center justify-center p-6">
+              <div className="cs-img-wrap">
                 {t.image ? (
                   <img
                     src={t.image}
                     alt={t.title}
                     loading="lazy"
-                    className={`max-h-full w-full object-contain drop-shadow-xl ${animations ? "transition-transform duration-500 ease-out group-hover:scale-105" : ""}`}
+                    className={`drop-shadow-xl ${animations ? "transition-transform duration-500 ease-out group-hover:scale-105" : ""}`}
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).style.display = "none";
                     }}
                   />
                 ) : null}
               </div>
-              <div className="px-6 pb-8 pt-2 text-center">
+              <div className="cs-text pt-2">
                 <h3
                   className="font-display text-2xl font-bold uppercase leading-tight tracking-wide sm:text-3xl"
                   style={{ color: t.textColor }}
@@ -1328,13 +1332,15 @@ const Home = () => {
         return (
           <section
             key={b.id}
+            id={scopeId}
             style={{
               backgroundColor: bg,
               paddingTop: `${spacingTop}px`,
               paddingBottom: `${spacingBottom}px`,
             }}
           >
-            <div className="container-x">
+            <style dangerouslySetInnerHTML={{ __html: scopedCss }} />
+            <div className="cs-wrap">
               {(b.title || b.subtitle) && (
                 <div className="mb-10 text-center">
                   {b.eyebrow && <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent">{b.eyebrow}</span>}
@@ -1349,17 +1355,17 @@ const Home = () => {
 
               {mobileLayout === "carousel" ? (
                 <>
-                  <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 snap-x snap-mandatory sm:hidden">
+                  <div className="cs-carousel sm:hidden">
                     {tiles.map((t, i) => (
-                      <div key={i} className="w-[78%] flex-shrink-0 snap-start">{Tile(t)}</div>
+                      <div key={i}>{Tile(t)}</div>
                     ))}
                   </div>
-                  <div className={`hidden sm:${gridClass}`}>
+                  <div className={`hidden sm:grid ${gridClass}`}>
                     {tiles.map((t, i) => <div key={i}>{Tile(t)}</div>)}
                   </div>
                 </>
               ) : (
-                <div className={gridClass}>
+                <div className={`grid ${gridClass}`}>
                   {tiles.map((t, i) => <div key={i}>{Tile(t)}</div>)}
                 </div>
               )}
@@ -1373,6 +1379,7 @@ const Home = () => {
           </section>
         );
       }
+
 
       default:
         return null;
