@@ -541,7 +541,9 @@ export default function AdminProductCardTypography() {
                       <div data-pc="title">{p.name}</div>
                       <p data-pc="description">{p.desc}</p>
                       {style.recommended.show !== false && (
-                        <div data-pc="recommended">{style.recommended.text || "Recomendado"}</div>
+                        <div data-pc="recommended">
+                          {resolveDeliveryText(shippingProviders, style.recommended.providerId, style.recommended.fallback || style.recommended.text || "")}
+                        </div>
                       )}
                       <div data-pc="button-wrap">
                         <div data-pc="price-block">
