@@ -7,6 +7,7 @@ import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/com
 import { ProductCard } from "@/components/ProductCard";
 import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 import { useHomeProductCardStyle } from "@/hooks/useHomeProductCardStyle";
+import { HomeCardConfigContext } from "@/context/HomeCardConfigContext";
 import type { Product } from "@/data/catalog";
 import type { ProductsCarouselConfig } from "@/hooks/useProductsCarouselConfig";
 import { buildScopedCss, DEFAULT_BG, DEFAULT_LAYOUT, type CarouselDesign } from "@/lib/homeCarouselDesign";
