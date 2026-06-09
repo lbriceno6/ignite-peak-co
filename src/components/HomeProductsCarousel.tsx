@@ -148,7 +148,7 @@ function HomeProductCardStylesInline() {
   return <HomeProductCardStyles style={style} scope=".hcs-scope" />;
 }
 
-function HomeCardConfigProviderInline({ children }: { children: React.ReactNode }) {
+function HomeCardConfigProviderInline({ children }: { children: import("react").ReactNode }) {
   const { style } = useHomeProductCardStyle();
   return <HomeCardConfigContext.Provider value={style}>{children}</HomeCardConfigContext.Provider>;
 }
