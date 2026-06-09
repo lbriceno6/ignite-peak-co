@@ -11,10 +11,13 @@ import {
   PRESETS,
   STYLE_KEY,
   parseStyle,
+  resolveTopText,
   type HomeProductCardStyle,
   type TextCfg,
   type ButtonCfg,
   type LayoutCfg,
+  type TopTextCfg,
+  type TopTextMode,
 } from "@/lib/homeProductCardStyle";
 import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
 
@@ -28,6 +31,16 @@ const TEXT_SECTIONS: Section[] = [
   { key: "recommended", label: "Texto Recomendado" },
   { key: "price", label: "Precio" },
   { key: "priceOld", label: "Precio anterior" },
+  { key: "brand", label: "Marca / proveedor" },
+];
+
+const TOP_TEXT_MODES: { value: TopTextMode; label: string }[] = [
+  { value: "none", label: "No mostrar" },
+  { value: "brand", label: "Mostrar marca" },
+  { value: "supplier", label: "Mostrar proveedor" },
+  { value: "store", label: "Mostrar tienda / Nutribatidos" },
+  { value: "category", label: "Mostrar categoría principal" },
+  { value: "custom", label: "Personalizado" },
 ];
 
 export default function AdminProductCardTypography() {
@@ -77,6 +90,9 @@ export default function AdminProductCardTypography() {
   const updateText = (k: Section["key"], patch: Partial<TextCfg>) => {
     setStyle((s) => ({ ...s, [k]: { ...(s[k] as TextCfg), ...patch } }));
   };
+  const updateTopText = (patch: Partial<TopTextCfg>) => {
+    setStyle((s) => ({ ...s, topText: { ...s.topText, ...patch } }));
+  };
   const updateButton = (patch: Partial<ButtonCfg>) => {
     setStyle((s) => ({ ...s, button: { ...s.button, ...patch } }));
   };
@@ -86,12 +102,18 @@ export default function AdminProductCardTypography() {
 
   if (loading) return <div className="p-6 text-muted-foreground">Cargando…</div>;
 
+  const previewProducts = [
+    { name: "Whey 1kg", desc: "24g proteína por porción.", price: "S/ 89.00", old: "S/ 119.00", emoji: "🥤", hasPrice: true, brand: "OPTIMUM", supplier: "Optimum Perú", category: "Proteínas" },
+    { name: "Proteína Whey Premium 1kg sabor chocolate intenso", desc: "Fórmula con 24g de proteína, recuperación muscular y energía.", price: "S/ 129.00", old: null, emoji: "🍫", hasPrice: true, brand: "NUTRIBATIDOS", supplier: "Nutribatidos", category: "Suplementos" },
+    { name: "Pack avanzado deportivo", desc: "Suplemento personalizado para atletas.", price: null as string | null, old: null, emoji: "💪", hasPrice: false, brand: "", supplier: "", category: "Packs" },
+  ];
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <div>
         <h1 className="font-display text-3xl">Tipografía de productos del Home</h1>
         <p className="text-muted-foreground">
-          Controla cómo se ven los textos de las tarjetas de producto en los carruseles del Home
+          Controla qué textos se ven y cómo se ven en las tarjetas de los carruseles del Home
           (Ofertas, Favoritos, Destacados…). No afecta al catálogo ni a la ficha de producto.
         </p>
       </div>
@@ -114,6 +136,112 @@ export default function AdminProductCardTypography() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
         <div className="space-y-6">
+
+          {/* Top text mode */}
+          <section className="rounded-lg border bg-background p-5">
+            <header className="mb-4 flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <h2 className="font-display text-lg">Texto superior de producto</h2>
+                <p className="text-xs text-muted-foreground">
+                  Decide qué se muestra arriba del título (donde aparecía “NUTRIBATIDOS”).
+                </p>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                Mostrar
+                <Switch
+                  checked={style.topText.show !== false}
+                  onCheckedChange={(v) => updateTopText({ show: v })}
+                />
+              </label>
+            </header>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <Label>Modo</Label>
+                <Select
+                  value={style.topText.mode}
+                  onValueChange={(v) => updateTopText({ mode: v as TopTextMode })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TOP_TEXT_MODES.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {style.topText.mode === "store" && (
+                <div>
+                  <Label>Nombre de tienda</Label>
+                  <Input
+                    value={style.topText.storeName}
+                    onChange={(e) => updateTopText({ storeName: e.target.value })}
+                  />
+                </div>
+              )}
+              {style.topText.mode === "custom" && (
+                <div className="sm:col-span-2">
+                  <Label>Texto personalizado</Label>
+                  <Input
+                    value={style.topText.customText}
+                    onChange={(e) => updateTopText({ customText: e.target.value })}
+                    placeholder="Ej: Recomendado por Lucía"
+                  />
+                </div>
+              )}
+              {(style.topText.mode === "brand" || style.topText.mode === "supplier" || style.topText.mode === "category") && (
+                <div>
+                  <Label>Fallback (si no existe)</Label>
+                  <Input
+                    value={style.topText.fallback}
+                    onChange={(e) => updateTopText({ fallback: e.target.value })}
+                    placeholder="Dejar vacío para no mostrar nada"
+                  />
+                </div>
+              )}
+              <div>
+                <Label>Tamaño desktop (px)</Label>
+                <Input type="number" value={style.topText.sizeDesktop}
+                  onChange={(e) => updateTopText({ sizeDesktop: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Tamaño mobile (px)</Label>
+                <Input type="number" value={style.topText.sizeMobile}
+                  onChange={(e) => updateTopText({ sizeMobile: +e.target.value })} />
+              </div>
+              <div>
+                <Label>Peso</Label>
+                <Select value={String(style.topText.weight)} onValueChange={(v) => updateTopText({ weight: +v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {[300, 400, 500, 600, 700, 800].map((w) => <SelectItem key={w} value={String(w)}>{w}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Color</Label>
+                <div className="flex gap-2">
+                  <input type="color" value={style.topText.color}
+                    onChange={(e) => updateTopText({ color: e.target.value })} className="h-10 w-12 rounded border" />
+                  <Input value={style.topText.color}
+                    onChange={(e) => updateTopText({ color: e.target.value })} />
+                </div>
+              </div>
+              <div>
+                <Label>Transformación</Label>
+                <Select value={style.topText.transform ?? "uppercase"}
+                  onValueChange={(v) => updateTopText({ transform: v as any })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Normal</SelectItem>
+                    <SelectItem value="uppercase">MAYÚSCULAS</SelectItem>
+                    <SelectItem value="lowercase">minúsculas</SelectItem>
+                    <SelectItem value="capitalize">Capitalizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
           {TEXT_SECTIONS.map(({ key, label }) => {
             const cfg = style[key] as TextCfg;
             const isCategory = key === "category";
@@ -123,12 +251,10 @@ export default function AdminProductCardTypography() {
               <section key={String(key)} className="rounded-lg border bg-background p-5">
                 <header className="mb-4 flex items-center justify-between">
                   <h2 className="font-display text-lg">{label}</h2>
-                  {isRecommended && (
-                    <label className="flex items-center gap-2 text-sm">
-                      Mostrar
-                      <Switch checked={cfg.show !== false} onCheckedChange={(v) => updateText(key, { show: v })} />
-                    </label>
-                  )}
+                  <label className="flex items-center gap-2 text-sm">
+                    Mostrar
+                    <Switch checked={cfg.show !== false} onCheckedChange={(v) => updateText(key, { show: v })} />
+                  </label>
                 </header>
 
                 {isRecommended && (
@@ -217,7 +343,13 @@ export default function AdminProductCardTypography() {
 
           {/* Botón */}
           <section className="rounded-lg border bg-background p-5">
-            <h2 className="mb-4 font-display text-lg">Botón Agregar al carrito</h2>
+            <header className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-lg">Botón Agregar al carrito</h2>
+              <label className="flex items-center gap-2 text-sm">
+                Mostrar
+                <Switch checked={style.button.show !== false} onCheckedChange={(v) => updateButton({ show: v })} />
+              </label>
+            </header>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div>
                 <Label>Fuente</Label>
@@ -347,45 +479,50 @@ export default function AdminProductCardTypography() {
           <div className="hpc-scope rounded-xl border bg-secondary/40 p-4">
             <HomeProductCardStyles style={style} scope=".hpc-preview" />
             <div className="hpc-preview grid grid-cols-1 gap-3 sm:grid-cols-3 items-stretch">
-              {[
-                { name: "Whey 1kg", desc: "24g proteína por porción.", price: "S/ 89.00", old: "S/ 119.00", emoji: "🥤", hasPrice: true },
-                { name: "Proteína Whey Premium 1kg sabor chocolate intenso edición limitada", desc: "Fórmula con 24g de proteína por porción, ideal para recuperación muscular y energía sostenida.", price: "S/ 129.00", old: null, emoji: "🍫", hasPrice: true },
-                { name: "Pack avanzado deportivo", desc: "Suplemento personalizado para atletas.", price: null, old: null, emoji: "💪", hasPrice: false },
-              ].map((p, i) => (
-                <article key={i} data-pc="card" className="overflow-hidden rounded-lg border border-border bg-card">
-                  <div data-pc="image-wrap" className="grid place-items-center text-5xl">
-                    <span>{p.emoji}</span>
-                  </div>
-                  <div data-pc="content">
-                    <div data-pc="category">SUPLEMENTOS · PROTEÍNAS</div>
-                    <div data-pc="title">{p.name}</div>
-                    <p data-pc="description">{p.desc}</p>
-                    {style.recommended.show !== false && (
-                      <div data-pc="recommended">{style.recommended.text || "Recomendado"}</div>
-                    )}
-                    <div data-pc="button-wrap">
-                      <div data-pc="price-block">
-                        {p.hasPrice ? (
-                          <>
-                            <span data-pc="price">{p.price}</span>
-                            {p.old && <span data-pc="price-old">{p.old}</span>}
-                          </>
-                        ) : (
-                          <span data-pc="price">Consultar precio</span>
-                        )}
-                      </div>
-                      <button data-pc="button" type="button" className="mt-2 inline-flex items-center justify-center gap-2 px-3">
-                        {p.hasPrice ? "🛒 Agregar al carrito" : "💬 Consultar"}
-                      </button>
+              {previewProducts.map((p, i) => {
+                const topText = resolveTopText(style.topText, {
+                  brand: p.brand,
+                  category: p.category,
+                  supplier: { business_name: p.supplier },
+                });
+                return (
+                  <article key={i} data-pc="card" className="overflow-hidden rounded-lg border border-border bg-card">
+                    <div data-pc="image-wrap" className="grid place-items-center text-5xl">
+                      <span>{p.emoji}</span>
                     </div>
-                  </div>
-                </article>
-              ))}
+                    <div data-pc="content">
+                      {style.topText.mode !== "none" && style.topText.show !== false && topText && (
+                        <div data-pc="top-text">{topText}</div>
+                      )}
+                      <div data-pc="category">SUPLEMENTOS · PROTEÍNAS</div>
+                      <div data-pc="title">{p.name}</div>
+                      <p data-pc="description">{p.desc}</p>
+                      {style.recommended.show !== false && (
+                        <div data-pc="recommended">{style.recommended.text || "Recomendado"}</div>
+                      )}
+                      <div data-pc="button-wrap">
+                        <div data-pc="price-block">
+                          {p.hasPrice ? (
+                            <>
+                              <span data-pc="price">{p.price}</span>
+                              {p.old && <span data-pc="price-old">{p.old}</span>}
+                            </>
+                          ) : (
+                            <span data-pc="price">Consultar precio</span>
+                          )}
+                        </div>
+                        <button data-pc="button" type="button" className="mt-2 inline-flex items-center justify-center gap-2 px-3">
+                          {p.hasPrice ? "🛒 Agregar al carrito" : "💬 Consultar"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
           <p className="mt-3 text-xs text-muted-foreground">
-            La vista previa muestra 3 productos (nombre corto, nombre largo, consultar precio) para validar
-            que imágenes, precios y botones queden alineados.
+            La vista previa muestra 3 productos para validar alineación cuando ocultas/mostrás elementos.
           </p>
         </aside>
       </div>
