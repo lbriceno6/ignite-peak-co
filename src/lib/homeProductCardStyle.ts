@@ -14,6 +14,7 @@ export type TextCfg = {
   strikethrough?: boolean;
   show?: boolean;
   text?: string;
+  icon?: "clock" | "truck" | "none";
 };
 
 export type ButtonCfg = {
@@ -89,8 +90,8 @@ export const DEFAULT_STYLE: HomeProductCardStyle = {
     color: "#666666", lineHeight: 1.45, maxLines: 2, show: true,
   },
   recommended: {
-    font: "Inter", sizeDesktop: 13, sizeMobile: 13, weight: 400,
-    color: "#666666", show: true, text: "Recomendado", maxLines: 1,
+    font: "Inter", sizeDesktop: 13, sizeMobile: 13, weight: 500,
+    color: "#666666", show: true, text: "Entrega: 7–15 días hábiles", maxLines: 1, icon: "clock",
   },
   price: {
     font: "Inter", sizeDesktop: 24, sizeMobile: 22, weight: 700,

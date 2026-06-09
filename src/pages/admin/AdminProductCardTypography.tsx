@@ -28,7 +28,7 @@ const TEXT_SECTIONS: Section[] = [
   { key: "category", label: "Categoría" },
   { key: "title", label: "Título" },
   { key: "description", label: "Descripción corta" },
-  { key: "recommended", label: "Texto Recomendado" },
+  { key: "recommended", label: "Tiempo de entrega" },
   { key: "price", label: "Precio" },
   { key: "priceOld", label: "Precio anterior" },
   { key: "brand", label: "Marca / proveedor" },
@@ -252,15 +252,35 @@ export default function AdminProductCardTypography() {
                 <header className="mb-4 flex items-center justify-between">
                   <h2 className="font-display text-lg">{label}</h2>
                   <label className="flex items-center gap-2 text-sm">
-                    Mostrar
+                    {isRecommended ? "Mostrar tiempo de entrega" : "Mostrar"}
                     <Switch checked={cfg.show !== false} onCheckedChange={(v) => updateText(key, { show: v })} />
                   </label>
                 </header>
 
                 {isRecommended && (
-                  <div className="mb-4">
-                    <Label>Texto</Label>
-                    <Input value={cfg.text ?? "Recomendado"} onChange={(e) => updateText(key, { text: e.target.value })} />
+                  <div className="mb-4 grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <Label>Texto de entrega por defecto</Label>
+                      <Input
+                        value={cfg.text ?? "Entrega: 7–15 días hábiles"}
+                        onChange={(e) => updateText(key, { text: e.target.value })}
+                        placeholder="Entrega: 7–15 días hábiles"
+                      />
+                    </div>
+                    <div>
+                      <Label>Ícono</Label>
+                      <Select
+                        value={(cfg as any).icon ?? "clock"}
+                        onValueChange={(v) => updateText(key, { icon: v as any } as any)}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="clock">🕒 Reloj</SelectItem>
+                          <SelectItem value="truck">🚚 Camión</SelectItem>
+                          <SelectItem value="none">Ninguno</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 )}
 
