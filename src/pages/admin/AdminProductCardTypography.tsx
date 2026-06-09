@@ -20,6 +20,7 @@ import {
   type TopTextMode,
 } from "@/lib/homeProductCardStyle";
 import { HomeProductCardStyles } from "@/components/HomeProductCardStyles";
+import { useActiveShippingProviders, resolveDeliveryText } from "@/hooks/useActiveShippingProviders";
 
 const FONTS = ["Inter", "Roboto", "Poppins", "Montserrat", "Open Sans", "Lato", "Nunito", "Work Sans"];
 
@@ -48,6 +49,7 @@ export default function AdminProductCardTypography() {
   const [saved, setSaved] = useState<HomeProductCardStyle>(DEFAULT_STYLE);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { providers: shippingProviders } = useActiveShippingProviders();
 
   const load = async () => {
     setLoading(true);
@@ -260,12 +262,24 @@ export default function AdminProductCardTypography() {
                 {isRecommended && (
                   <div className="mb-4 grid gap-4 sm:grid-cols-2">
                     <div>
-                      <Label>Texto de entrega por defecto</Label>
-                      <Input
-                        value={cfg.text ?? "Entrega: 7–15 días hábiles"}
-                        onChange={(e) => updateText(key, { text: e.target.value })}
-                        placeholder="Entrega: 7–15 días hábiles"
-                      />
+                      <Label>Transportista por defecto</Label>
+                      <Select
+                        value={(cfg as any).providerId || "__auto__"}
+                        onValueChange={(v) => updateText(key, { providerId: v === "__auto__" ? "" : v } as any)}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Automático (primer activo)" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__auto__">Automático (primer activo)</SelectItem>
+                          {shippingProviders.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name}{p.estimated_days ? ` — ${p.estimated_days}` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Se administra en “Transportistas de envío”. Solo se listan los activos.
+                      </p>
                     </div>
                     <div>
                       <Label>Ícono</Label>
@@ -281,8 +295,17 @@ export default function AdminProductCardTypography() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div className="sm:col-span-2">
+                      <Label>Texto fallback (si no hay transportistas activos)</Label>
+                      <Input
+                        value={(cfg as any).fallback ?? "Entrega: 7–15 días hábiles"}
+                        onChange={(e) => updateText(key, { fallback: e.target.value } as any)}
+                        placeholder="Entrega: 7–15 días hábiles"
+                      />
+                    </div>
                   </div>
                 )}
+
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   <div>
