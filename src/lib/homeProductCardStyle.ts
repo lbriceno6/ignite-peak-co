@@ -26,18 +26,28 @@ export type ButtonCfg = {
   hoverColor: string;
   height: number;
   radius: number;
+  show?: boolean;
 };
 
 export type LayoutCfg = {
-  imageHeightDesktop: number;     // px
-  imageHeightMobile: number;      // px
+  imageHeightDesktop: number;
+  imageHeightMobile: number;
   imageFit: "cover" | "contain";
-  imageBg: string;                // background fill for image area
-  paddingInner: number;           // px
-  gap: number;                    // px
-  priceBlockHeight: number;       // px min height for the price line
-  buttonBottom: boolean;          // pin button to bottom
-  equalizeHeights: boolean;       // h-full so cards match row height
+  imageBg: string;
+  paddingInner: number;
+  gap: number;
+  priceBlockHeight: number;
+  buttonBottom: boolean;
+  equalizeHeights: boolean;
+};
+
+export type TopTextMode = "none" | "brand" | "supplier" | "store" | "category" | "custom";
+
+export type TopTextCfg = TextCfg & {
+  mode: TopTextMode;
+  storeName: string;
+  customText: string;
+  fallback: string;
 };
 
 export type HomeProductCardStyle = {
@@ -47,6 +57,8 @@ export type HomeProductCardStyle = {
   recommended: TextCfg;
   price: TextCfg;
   priceOld: TextCfg;
+  brand: TextCfg;
+  topText: TopTextCfg;
   button: ButtonCfg;
   layout: LayoutCfg;
 };
@@ -66,15 +78,15 @@ export const DEFAULT_LAYOUT: LayoutCfg = {
 export const DEFAULT_STYLE: HomeProductCardStyle = {
   category: {
     font: "Inter", sizeDesktop: 12, sizeMobile: 12, weight: 500,
-    color: "#666666", transform: "uppercase", letterSpacing: 0.04, maxLines: 1,
+    color: "#666666", transform: "uppercase", letterSpacing: 0.04, maxLines: 1, show: true,
   },
   title: {
     font: "Inter", sizeDesktop: 18, sizeMobile: 16, weight: 600,
-    color: "#151515", lineHeight: 1.3, maxLines: 2,
+    color: "#151515", lineHeight: 1.3, maxLines: 2, show: true,
   },
   description: {
     font: "Inter", sizeDesktop: 14, sizeMobile: 13, weight: 400,
-    color: "#666666", lineHeight: 1.45, maxLines: 2,
+    color: "#666666", lineHeight: 1.45, maxLines: 2, show: true,
   },
   recommended: {
     font: "Inter", sizeDesktop: 13, sizeMobile: 13, weight: 400,
@@ -82,16 +94,28 @@ export const DEFAULT_STYLE: HomeProductCardStyle = {
   },
   price: {
     font: "Inter", sizeDesktop: 24, sizeMobile: 22, weight: 700,
-    color: "#151515",
+    color: "#151515", show: true,
   },
   priceOld: {
     font: "Inter", sizeDesktop: 13, sizeMobile: 13, weight: 400,
-    color: "#888888", strikethrough: true,
+    color: "#888888", strikethrough: true, show: true,
+  },
+  brand: {
+    font: "Inter", sizeDesktop: 11, sizeMobile: 11, weight: 600,
+    color: "#666666", transform: "uppercase", letterSpacing: 0.04, maxLines: 1, show: true,
+  },
+  topText: {
+    font: "Inter", sizeDesktop: 11, sizeMobile: 11, weight: 600,
+    color: "#666666", transform: "uppercase", letterSpacing: 0.04, maxLines: 1, show: true,
+    mode: "none",
+    storeName: "NUTRIBATIDOS",
+    customText: "",
+    fallback: "",
   },
   button: {
     font: "Inter", sizeDesktop: 14, sizeMobile: 13, weight: 700,
     textColor: "#FFFFFF", bgColor: "#35A936", hoverColor: "#1F7A2E",
-    height: 44, radius: 8,
+    height: 44, radius: 8, show: true,
   },
   layout: DEFAULT_LAYOUT,
 };
@@ -148,21 +172,38 @@ ${scope} [data-pc="${sel}"]{ font-size:${clamp(c.sizeDesktop,8,80)}px !important
   return base;
 };
 
+const hideRule = (sel: string, scope: string) =>
+  `${scope} [data-pc="${sel}"]{display:none !important;}`;
+
 export const buildScopedCss = (style: HomeProductCardStyle, scope = ".hpc-scope") => {
   let css = "";
-  css += textRule("category", style.category, scope);
-  css += textRule("title", style.title, scope);
-  css += textRule("description", style.description, scope);
-  if (style.recommended.show !== false) {
-    css += textRule("recommended", style.recommended, scope);
-  } else {
-    css += `${scope} [data-pc="recommended"]{display:none !important;}`;
+
+  // Map (data-pc) -> TextCfg
+  const textParts: Array<[string, TextCfg]> = [
+    ["category", style.category],
+    ["title", style.title],
+    ["description", style.description],
+    ["recommended", style.recommended],
+    ["price", style.price],
+    ["price-old", style.priceOld],
+    ["brand", style.brand],
+    ["top-text", style.topText],
+  ];
+
+  for (const [sel, cfg] of textParts) {
+    if (cfg.show === false) {
+      css += hideRule(sel, scope);
+    } else {
+      css += textRule(sel, cfg, scope);
+    }
   }
-  css += textRule("price", style.price, scope);
-  css += textRule("price-old", style.priceOld, scope);
 
   const b = style.button;
-  css += `
+  if (b.show === false) {
+    css += hideRule("button", scope);
+    css += `${scope} [data-pc="button-wrap"]{ /* keep wrapper for price */ }`;
+  } else {
+    css += `
 ${scope} [data-pc="button"]{
   font-family:'${b.font}',system-ui,sans-serif !important;
   font-size:${clamp(b.sizeMobile,8,40)}px !important;
@@ -177,8 +218,8 @@ ${scope} [data-pc="button"]:hover{ background-color:${b.hoverColor} !important; 
 @media (min-width:640px){
 ${scope} [data-pc="button"]{ font-size:${clamp(b.sizeDesktop,8,40)}px !important; }
 }`;
+  }
 
-  // --- Layout / structure rules (only inside scope) ---
   const L = { ...DEFAULT_LAYOUT, ...(style.layout || {}) };
   const equalize = L.equalizeHeights !== false;
   const bottom = L.buttonBottom !== false;
@@ -239,10 +280,36 @@ export const parseStyle = (raw?: string | null): HomeProductCardStyle => {
       recommended: { ...DEFAULT_STYLE.recommended, ...parsed.recommended },
       price: { ...DEFAULT_STYLE.price, ...parsed.price },
       priceOld: { ...DEFAULT_STYLE.priceOld, ...parsed.priceOld },
+      brand: { ...DEFAULT_STYLE.brand, ...(parsed.brand || {}) },
+      topText: { ...DEFAULT_STYLE.topText, ...(parsed.topText || {}) },
       button: { ...DEFAULT_STYLE.button, ...parsed.button },
       layout: { ...DEFAULT_LAYOUT, ...(parsed.layout || {}) },
     };
   } catch {
     return DEFAULT_STYLE;
+  }
+};
+
+// Resolve the top-text content for a product, given the topText config.
+export const resolveTopText = (
+  cfg: TopTextCfg,
+  product: { brand?: string | null; category?: string | null; supplier?: { business_name?: string | null } | null } | null | undefined,
+): string => {
+  if (!cfg || cfg.mode === "none" || cfg.show === false) return "";
+  const fallback = (cfg.fallback || "").trim();
+  const isBrandValid = (b?: string | null) => !!b && b.trim() !== "" && b !== "Sin marca";
+  switch (cfg.mode) {
+    case "brand":
+      return isBrandValid(product?.brand ?? null) ? (product!.brand as string) : fallback;
+    case "supplier":
+      return product?.supplier?.business_name?.trim() || fallback;
+    case "store":
+      return (cfg.storeName || "NUTRIBATIDOS").trim();
+    case "category":
+      return (product?.category || "").trim() || fallback;
+    case "custom":
+      return (cfg.customText || "").trim();
+    default:
+      return "";
   }
 };
