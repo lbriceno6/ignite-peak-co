@@ -28,7 +28,7 @@ const TEXT_SECTIONS: Section[] = [
   { key: "category", label: "Categoría" },
   { key: "title", label: "Título" },
   { key: "description", label: "Descripción corta" },
-  { key: "recommended", label: "Texto Recomendado" },
+  { key: "recommended", label: "Tiempo de entrega" },
   { key: "price", label: "Precio" },
   { key: "priceOld", label: "Precio anterior" },
   { key: "brand", label: "Marca / proveedor" },
