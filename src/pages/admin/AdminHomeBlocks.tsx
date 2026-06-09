@@ -29,6 +29,7 @@ import { IntentBannersManager, IntentPreviewTester, IntentDiagnostics } from "@/
 import { HomeCarouselDesignEditor } from "@/components/admin/HomeCarouselDesignEditor";
 import { AiBannerLayoutEditor } from "@/components/admin/AiBannerLayoutEditor";
 import { CategoryShowcaseLayoutEditor } from "@/components/admin/CategoryShowcaseLayoutEditor";
+import { DoubleBannersLayoutEditor } from "@/components/admin/DoubleBannersLayoutEditor";
 import { useHomeCarouselGlobal } from "@/hooks/useHomeCarouselGlobal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
