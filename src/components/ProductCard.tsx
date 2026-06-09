@@ -181,18 +181,37 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </Link>
         ) : null}
 
-        <div className="h-4 flex items-center">
-          {product.reviews > 0 ? (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Stars rating={product.rating} />
-              <span>({product.reviews})</span>
-            </div>
-          ) : (
-            <div data-pc="recommended" className="text-[11px] font-semibold text-primary">
-              {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
-            </div>
-          )}
-        </div>
+        {isHome ? (
+          <>
+            {product.reviews > 0 && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Stars rating={product.rating} />
+                <span>({product.reviews})</span>
+              </div>
+            )}
+            {homeCfg!.recommended.show !== false && (
+              <div data-pc="recommended" className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground truncate">
+                {homeCfg!.recommended.icon === "truck" ? <span aria-hidden>🚚</span>
+                  : homeCfg!.recommended.icon === "none" ? null
+                  : <span aria-hidden>🕒</span>}
+                <span className="truncate">{(homeCfg!.recommended.text || "Entrega: 7–15 días hábiles").trim()}</span>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="h-4 flex items-center">
+            {product.reviews > 0 ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Stars rating={product.rating} />
+                <span>({product.reviews})</span>
+              </div>
+            ) : (
+              <div data-pc="recommended" className="text-[11px] font-semibold text-primary">
+                {labelEs === "Nuevo" ? "Nuevo producto" : "Recomendado"}
+              </div>
+            )}
+          </div>
+        )}
 
         <div data-pc="button-wrap" className="mt-auto pt-1">
           <div data-pc="price-block" className="min-h-[1.5rem] flex items-baseline gap-2 flex-wrap">
