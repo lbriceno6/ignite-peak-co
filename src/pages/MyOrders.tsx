@@ -66,6 +66,7 @@ const MyOrders = () => {
                   <th className="px-4 py-3 text-left">Pedido</th>
                   <th className="px-4 py-3 text-left">Fecha</th>
                   <th className="px-4 py-3 text-left">Estado</th>
+                  <th className="px-4 py-3 text-left">Transportista</th>
                   <th className="px-4 py-3 text-left">Envío</th>
                   <th className="px-4 py-3 text-left">Pago</th>
                   <th className="px-4 py-3 text-right">Total</th>
@@ -81,8 +82,9 @@ const MyOrders = () => {
                       <td className="px-4 py-3 font-medium">{o.order_code}</td>
                       <td className="px-4 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
-                        <Badge className={statusVariant[o.status] ?? ""} variant="secondary">{statusLabel[o.status] ?? o.status}</Badge>
+                        <Badge className={ORDER_STATUS_CLASS[o.status] ?? ""} variant="secondary">{ORDER_STATUS_LABEL[o.status] ?? o.status}</Badge>
                       </td>
+                      <td className="px-4 py-3">{carrierName(sh?.carrier_code)}</td>
                       <td className="px-4 py-3">
                         <Badge className={SHIPMENT_BADGE_CLASS[sStatus]} variant="secondary">{SHIPMENT_LABEL[sStatus]}</Badge>
                         {sh?.last_checked_at && (
