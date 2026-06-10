@@ -114,6 +114,12 @@ import Promotions from "./pages/Promotions.tsx";
 import AdminGoals from "./pages/admin/AdminGoals.tsx";
 import AdminBrands from "./pages/admin/AdminBrands.tsx";
 import AdminBrandForm from "./pages/admin/AdminBrandForm.tsx";
+import CrmDashboard from "./pages/admin/crm/CrmDashboard.tsx";
+import CrmCustomers from "./pages/admin/crm/CrmCustomers.tsx";
+import CrmCustomerDetail from "./pages/admin/crm/CrmCustomerDetail.tsx";
+import CrmAbandonedCarts from "./pages/admin/crm/CrmAbandonedCarts.tsx";
+import CrmTemplates from "./pages/admin/crm/CrmTemplates.tsx";
+import CrmSegments from "./pages/admin/crm/CrmSegments.tsx";
 import BrandPage from "./pages/BrandPage.tsx";
 import { AnalyticsScripts } from "@/components/AnalyticsScripts";
 import { RedirectGate } from "@/components/RedirectGate";
@@ -287,6 +293,12 @@ const App = () => (
               <Route path="brands/:id/edit" element={<AdminBrandForm />} />
               <Route path="marcas" element={<AdminBrands />} />
               <Route path="combos-inteligentes" element={<AdminCombos />} />
+              <Route path="crm" element={<CrmDashboard />} />
+              <Route path="crm/clientes" element={<CrmCustomers />} />
+              <Route path="crm/clientes/:id" element={<CrmCustomerDetail />} />
+              <Route path="crm/carritos" element={<CrmAbandonedCarts />} />
+              <Route path="crm/plantillas" element={<CrmTemplates />} />
+              <Route path="crm/segmentos" element={<CrmSegments />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

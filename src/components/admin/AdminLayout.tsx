@@ -33,6 +33,10 @@ import {
   ShieldCheck,
   Gift,
   Award,
+  Heart,
+  MessageCircle,
+  ListChecks,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -116,6 +120,17 @@ const defaultSections = [
       { key: "resellers", to: "/admin/resellers", label: "Revendedores", icon: Users },
       { key: "reseller-tiers", to: "/admin/reseller-tiers", label: "Niveles revendedor", icon: Tags },
       { key: "reseller-payouts", to: "/admin/reseller-payouts", label: "Pagos revendedor", icon: Wallet },
+    ],
+  },
+  {
+    key: "crm",
+    label: "CRM",
+    items: [
+      { key: "crm-dashboard", to: "/admin/crm", label: "Panel CRM", icon: Heart, end: true },
+      { key: "crm-clientes", to: "/admin/crm/clientes", label: "Clientes 360", icon: Users },
+      { key: "crm-carritos", to: "/admin/crm/carritos", label: "Carritos abandonados", icon: ShoppingCart },
+      { key: "crm-plantillas", to: "/admin/crm/plantillas", label: "Plantillas WhatsApp", icon: MessageCircle },
+      { key: "crm-segmentos", to: "/admin/crm/segmentos", label: "Segmentos", icon: ListChecks },
     ],
   },
   {

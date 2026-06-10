@@ -1367,6 +1367,335 @@ export type Database = {
           },
         ]
       }
+      crm_abandoned_cart_status: {
+        Row: {
+          contacted_at: string | null
+          recovered_order_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contacted_at?: string | null
+          recovered_order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contacted_at?: string | null
+          recovered_order_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_abandoned_cart_status_recovered_order_id_fkey"
+            columns: ["recovered_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_abandoned_cart_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_abandoned_cart_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_customer_interests: {
+        Row: {
+          computed_at: string
+          interest_code: string
+          is_primary: boolean
+          score: number
+          user_id: string
+        }
+        Insert: {
+          computed_at?: string
+          interest_code: string
+          is_primary?: boolean
+          score?: number
+          user_id: string
+        }
+        Update: {
+          computed_at?: string
+          interest_code?: string
+          is_primary?: boolean
+          score?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_customer_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_customer_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_customer_notes: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_customer_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_customer_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_customer_tags: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          tag: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          tag: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          tag?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_customer_tags_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_customer_tags_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_interest_keywords: {
+        Row: {
+          interest_code: string
+          keyword: string
+          weight: number
+        }
+        Insert: {
+          interest_code: string
+          keyword: string
+          weight?: number
+        }
+        Update: {
+          interest_code?: string
+          keyword?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      crm_message_templates: {
+        Row: {
+          body: string
+          category: string | null
+          channel: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string | null
+          channel?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      crm_tasks: {
+        Row: {
+          assignee: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assignee?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assignee?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_whatsapp_log: {
+        Row: {
+          body: string | null
+          created_at: string
+          created_by: string | null
+          direction: string
+          external_id: string | null
+          id: string
+          phone: string | null
+          status: string
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          external_id?: string | null
+          id?: string
+          phone?: string | null
+          status?: string
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          created_by?: string | null
+          direction?: string
+          external_id?: string | null
+          id?: string
+          phone?: string | null
+          status?: string
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_whatsapp_log_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "crm_message_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crm_whatsapp_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "crm_whatsapp_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_segments: {
         Row: {
           code: string
@@ -4765,6 +5094,45 @@ export type Database = {
       }
     }
     Views: {
+      crm_abandoned_carts_v: {
+        Row: {
+          contacted_at: string | null
+          email: string | null
+          full_name: string | null
+          items: number | null
+          items_json: Json | null
+          last_activity: string | null
+          monto: number | null
+          phone: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      crm_customers: {
+        Row: {
+          address: string | null
+          avg_ticket: number | null
+          city: string | null
+          country: string | null
+          days_since_last: number | null
+          email: string | null
+          estado: string | null
+          first_order_at: string | null
+          frequency_days: number | null
+          full_name: string | null
+          has_abandoned_cart: boolean | null
+          last_order_at: string | null
+          phone: string | null
+          postal_code: string | null
+          primary_interest: string | null
+          registered_at: string | null
+          total_orders: number | null
+          total_spent: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       suppliers_public: {
         Row: {
           business_name: string | null
@@ -4837,6 +5205,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      crm_recompute_interests: { Args: never; Returns: undefined }
       current_supplier_id: { Args: never; Returns: string }
       current_supplier_status: { Args: never; Returns: string }
       delete_email: {
