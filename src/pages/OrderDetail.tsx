@@ -87,6 +87,11 @@ const OrderDetail = () => {
           />
         </div>
 
+        <div className="mt-6">
+          <ShipmentTracking shipment={shipment} carrierName="Shalom" />
+        </div>
+
+
         <div className="grid gap-6 mt-8 lg:grid-cols-[1fr_320px]">
           <div className="rounded-lg border border-border">
             <div className="border-b border-border px-5 py-3 font-display uppercase">Productos</div>
