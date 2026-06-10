@@ -21,6 +21,7 @@ export default function AdminOrderDetail() {
   const [order, setOrder] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const { format } = useCurrency();
 
   const { shipment, reload: reloadShipment } = useOrderShipment(id);
   const [form, setForm] = useState({ carrier_code: "shalom", tracking_number: "", tracking_code: "", ose_id: "" });
