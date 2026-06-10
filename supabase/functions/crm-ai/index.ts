@@ -1,8 +1,9 @@
 // Edge function: crm-ai — asistente IA del CRM (solo admin).
 // Acciones: summary | intent | recommend | whatsapp | next_action | coupon.
-// No ejecuta SQL ni accede a la BD: razona sobre los datos recibidos.
+// Usa el provider configurado (DeepSeek por defecto si hay key, sino Lovable AI).
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { callAI, getProviderConfig, type AIProvider } from "../_shared/ai-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,16 +28,23 @@ const SCHEMAS: Record<string, string> = {
   coupon:      `{"codigo": string, "descuento_pct": number, "motivo": string, "mensaje": string}`,
 };
 
+function pickProvider(requested?: string): AIProvider {
+  const order: AIProvider[] = requested && ["deepseek", "lovable", "openai", "gemini", "anthropic"].includes(requested)
+    ? [requested as AIProvider, "deepseek", "lovable", "openai"]
+    : ["deepseek", "lovable", "openai"];
+  for (const p of order) {
+    if (getProviderConfig(p).hasKey) return p;
+  }
+  return "lovable";
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableKey) return json({ error: "LOVABLE_API_KEY missing" }, 500);
 
-    // Autenticación + verificación de rol admin
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace(/^Bearer\s+/i, "");
     if (!token) return json({ error: "no auth" }, 401);
@@ -53,9 +61,13 @@ Deno.serve(async (req) => {
     });
     if (!isAdmin) return json({ error: "admin required" }, 403);
 
-    const { action, customer, catalog } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { action, customer, catalog, provider: reqProvider } = body || {};
     if (!action || !SCHEMAS[action]) return json({ error: "invalid action" }, 400);
     if (!customer) return json({ error: "customer required" }, 400);
+
+    const provider = pickProvider(reqProvider);
+    console.log(`[crm-ai] action=${action} provider=${provider}`);
 
     const userPrompt = `Acción: ${action}
 Cliente: ${JSON.stringify(customer)}
@@ -63,37 +75,28 @@ Catálogo de referencia (nombres de productos comprados): ${JSON.stringify((cata
 
 Responde ÚNICAMENTE con un JSON con este schema: ${SCHEMAS[action]}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${lovableKey}`,
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    try {
+      const ai = await callAI({
+        provider,
         messages: [
           { role: "system", content: SYSTEM },
           { role: "user", content: userPrompt },
         ],
-        response_format: { type: "json_object" },
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const txt = await aiResp.text();
-      if (aiResp.status === 429) return json({ error: "Límite de uso. Intenta más tarde." }, 429);
-      if (aiResp.status === 402) return json({ error: "Sin créditos de IA. Recarga en Settings → Workspace." }, 402);
-      return json({ error: "AI error", detail: txt }, 500);
+        temperature: 0.4,
+        maxTokens: 800,
+        jsonMode: true,
+      });
+      let parsed: any;
+      try { parsed = JSON.parse(ai.content); } catch { parsed = { raw: ai.content }; }
+      return json({ action, provider, model: ai.model, result: parsed });
+    } catch (aiErr: any) {
+      const msg = String(aiErr?.message || aiErr);
+      console.error("[crm-ai] AI error:", msg);
+      return json({ error: msg, provider }, 502);
     }
-
-    const data = await aiResp.json();
-    const content = data?.choices?.[0]?.message?.content || "{}";
-    let parsed: any;
-    try { parsed = JSON.parse(content); } catch { parsed = { raw: content }; }
-
-    return json({ action, result: parsed });
-  } catch (e) {
-    return json({ error: String((e as any)?.message || e) }, 500);
+  } catch (e: any) {
+    console.error("[crm-ai] fatal:", e);
+    return json({ error: String(e?.message || e) }, 500);
   }
 });
 
