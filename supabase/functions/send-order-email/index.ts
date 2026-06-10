@@ -63,6 +63,28 @@ Deno.serve(async (req) => {
       .single();
     if (oErr || !order) throw new Error(oErr?.message ?? "order not found");
 
+    // SECURITY: only the order owner, an admin, or a service-role caller may
+    // trigger this email. Prevents spam/harassment of arbitrary customers.
+    const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    let authorized = token === serviceKey;
+    if (!authorized && token) {
+      const { data: claimsData } = await supa.auth.getClaims(token);
+      const uid = claimsData?.claims?.sub as string | undefined;
+      if (uid) {
+        if (uid === order.user_id) authorized = true;
+        else {
+          const { data: isAdmin } = await supa.rpc("has_role", { _user_id: uid, _role: "admin" });
+          if (isAdmin) authorized = true;
+        }
+      }
+    }
+    if (!authorized) {
+      return new Response(JSON.stringify({ ok: false, error: "forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: items } = await supa
       .from("order_items")
       .select("product_slug, product_name, product_image, variant, quantity, unit_price")
