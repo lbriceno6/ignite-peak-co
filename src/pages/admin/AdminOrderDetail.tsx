@@ -112,29 +112,33 @@ export default function AdminOrderDetail() {
     reloadShipment();
   };
 
-  if (!order) return <div className="text-muted-foreground">Loading…</div>;
+  if (!order) return <div className="text-muted-foreground">Cargando…</div>;
 
   const status = (shipment?.status_internal ?? "sin_tracking") as ShipmentStatus;
+  const orderStatusClass = STATUS_CLASS_ES[order.status] ?? "";
 
   return (
     <div className="space-y-6">
-      <Link to="/admin/orders" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={14} /> Back to orders</Link>
+      <Link to="/admin/orders" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><ArrowLeft size={14} /> Volver a pedidos</Link>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl">{order.order_code}</h1>
           <p className="text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
         </div>
-        <div className="w-48">
-          <Select value={order.status} onValueChange={updateStatus}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s} className="capitalize">{s}</SelectItem>)}</SelectContent>
-          </Select>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className={`border ${orderStatusClass}`}>{STATUS_LABEL_ES[order.status] ?? order.status}</Badge>
+          <div className="w-48">
+            <Select value={order.status} onValueChange={updateStatus}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL_ES[s]}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader><CardTitle>Items</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Productos</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             {items.map((i) => (
               <div key={i.id} className="flex items-center gap-4 border-b pb-3 last:border-0">
@@ -152,16 +156,17 @@ export default function AdminOrderDetail() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Summary</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Resumen</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
               <Row label="Subtotal" value={`$${Number(order.subtotal).toFixed(2)}`} />
-              <Row label="Shipping" value={`$${Number(order.shipping).toFixed(2)}`} />
+              <Row label="Envío" value={`$${Number(order.shipping).toFixed(2)}`} />
               <Row label="Total" value={`$${Number(order.total).toFixed(2)}`} bold />
-              <Row label="Payment" value={order.payment_method} />
+              <Row label="Pago" value={order.payment_method} />
+              <Row label="Transportista" value={shipment?.carrier_code === "olva" ? "Olva Courier" : shipment?.carrier_code === "shalom" ? "Shalom" : (shipment?.carrier_code ? shipment.carrier_code.charAt(0).toUpperCase() + shipment.carrier_code.slice(1) : "—")} />
             </CardContent>
           </Card>
           <Card>
-            <CardHeader><CardTitle>Shipping</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Dirección de envío</CardTitle></CardHeader>
             <CardContent className="space-y-1 text-sm">
               <div>{order.shipping_name}</div>
               <div className="text-muted-foreground">{order.shipping_address}</div>
@@ -172,6 +177,7 @@ export default function AdminOrderDetail() {
           </Card>
         </div>
       </div>
+
 
       {/* Gestión de envío */}
       <Card>
