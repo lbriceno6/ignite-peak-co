@@ -16,6 +16,20 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, serviceKey)
 
+  // SECURITY: only admins or server-to-server (service role) callers may trigger these emails.
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return json({ error: 'unauthorized' }, 401)
+  }
+  const token = authHeader.slice(7)
+  if (token !== serviceKey) {
+    const { data: claimsData } = await supabase.auth.getClaims(token)
+    const uid = claimsData?.claims?.sub as string | undefined
+    if (!uid) return json({ error: 'unauthorized' }, 401)
+    const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: uid, _role: 'admin' })
+    if (!isAdmin) return json({ error: 'forbidden' }, 403)
+  }
+
   let body: { event: Event; supplier_id: string; reason?: string }
   try {
     body = await req.json()
