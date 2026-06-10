@@ -54,7 +54,16 @@ async function decryptShalom(b64: string): Promise<string> {
 async function shalomPostMultipart(path: string, fields: Record<string, string>): Promise<any> {
   const fd = new FormData();
   for (const [k, v] of Object.entries(fields)) fd.append(k, v ?? "");
-  const res = await fetch(`${SHALOM_API}${path}`, { method: "POST", body: fd });
+  const res = await fetch(`${SHALOM_API}${path}`, {
+    method: "POST",
+    body: fd,
+    headers: {
+      "Origin": "https://shalom.com.pe",
+      "Referer": "https://shalom.com.pe/",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+    },
+  });
   const text = await res.text();
   if (!res.ok) throw new Error(`shalom_http_${res.status}:${text.slice(0, 200)}`);
   let body: any;
