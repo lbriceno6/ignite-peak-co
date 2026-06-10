@@ -37,6 +37,10 @@ Deno.serve(async (req) => {
 
     // ----- Admin action: AI suggests new pricing rules -----
     if (action === "suggest") {
+      // Require admin role
+      if (!user_id) return json({ error: "unauthorized" }, 401);
+      const { data: isAdmin } = await sb.rpc("has_role", { _user_id: user_id, _role: "admin" });
+      if (!isAdmin) return json({ error: "forbidden" }, 403);
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) return json({ error: "missing key" }, 500);
       const { data: segments } = await sb.from("customer_segments").select("code,name,description").eq("is_active", true);
