@@ -202,7 +202,14 @@ Deno.serve(async (req) => {
     }
 
     const { data: existing } = await admin.from("order_shipments").select("*").eq("order_id", order_id).maybeSingle();
-    let effectiveOse = ose_id ?? existing?.ose_id ?? null;
+    // ose_id from Shalom is always numeric. Discard any non-numeric junk that may
+    // have been entered manually in the OSE ID field.
+    const isNumericOse = (v: unknown) => v != null && /^\d+$/.test(String(v).trim());
+    let effectiveOse: string | null = isNumericOse(ose_id)
+      ? String(ose_id).trim()
+      : isNumericOse(existing?.ose_id)
+        ? String(existing!.ose_id).trim()
+        : null;
     const effectiveNumber = tracking_number ?? existing?.tracking_number ?? null;
     const effectiveCode = tracking_code ?? existing?.tracking_code ?? null;
 
@@ -218,10 +225,10 @@ Deno.serve(async (req) => {
           buscar = await shalomPostMultipart(BUSCAR_PATH, {
             numero: String(effectiveNumber),
             codigo: String(effectiveCode ?? ""),
-            ose_id: effectiveOse ? String(effectiveOse) : "",
+            ose_id: "",
           });
           const b = buscar?.data ?? buscar ?? {};
-          effectiveOse = b.ose_id ?? effectiveOse;
+          if (b?.ose_id) effectiveOse = String(b.ose_id);
         }
         if (effectiveOse) {
           estados = await shalomPostMultipart(ESTADOS_PATH, { ose_id: String(effectiveOse) });
