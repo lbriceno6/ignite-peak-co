@@ -78,7 +78,8 @@ export default function AdminOrderDetail() {
   const refreshTracking = async () => {
     if (!id) return;
     setRefreshing(true);
-    const { data, error } = await supabase.functions.invoke("shalom-tracking-query", {
+    const fnName = form.carrier_code === "olva" ? "olva-tracking-query" : "shalom-tracking-query";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: {
         order_id: id,
         tracking_number: form.tracking_number || null,
