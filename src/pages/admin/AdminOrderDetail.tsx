@@ -78,7 +78,8 @@ export default function AdminOrderDetail() {
   const refreshTracking = async () => {
     if (!id) return;
     setRefreshing(true);
-    const { data, error } = await supabase.functions.invoke("shalom-tracking-query", {
+    const fnName = form.carrier_code === "olva" ? "olva-tracking-query" : "shalom-tracking-query";
+    const { data, error } = await supabase.functions.invoke(fnName, {
       body: {
         order_id: id,
         tracking_number: form.tracking_number || null,
@@ -174,17 +175,19 @@ export default function AdminOrderDetail() {
               </Select>
             </div>
             <div>
-              <Label>Número de orden / tracking</Label>
+              <Label>{form.carrier_code === "olva" ? "Tracking / Remito" : "Número de orden / tracking"}</Label>
               <Input className="mt-1" value={form.tracking_number} onChange={(e) => setForm({ ...form, tracking_number: e.target.value })} />
             </div>
             <div>
-              <Label>Código Shalom</Label>
+              <Label>{form.carrier_code === "olva" ? "Emisión" : "Código Shalom"}</Label>
               <Input className="mt-1" value={form.tracking_code} onChange={(e) => setForm({ ...form, tracking_code: e.target.value })} />
             </div>
-            <div>
-              <Label>OSE ID</Label>
-              <Input className="mt-1" value={form.ose_id} onChange={(e) => setForm({ ...form, ose_id: e.target.value })} />
-            </div>
+            {form.carrier_code !== "olva" && (
+              <div>
+                <Label>OSE ID</Label>
+                <Input className="mt-1" value={form.ose_id} onChange={(e) => setForm({ ...form, ose_id: e.target.value })} />
+              </div>
+            )}
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -194,10 +197,17 @@ export default function AdminOrderDetail() {
             <Button onClick={refreshTracking} disabled={refreshing || (!form.tracking_number && !form.ose_id)}>
               {refreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} Actualizar tracking ahora
             </Button>
-            {form.tracking_number && (
+            {form.tracking_number && form.carrier_code === "shalom" && (
               <Button asChild variant="ghost">
                 <a href={`https://shalom.com.pe/tracking?numero=${encodeURIComponent(form.tracking_number)}`} target="_blank" rel="noreferrer">
                   <ExternalLink size={14} /> Ver en Shalom
+                </a>
+              </Button>
+            )}
+            {form.tracking_number && form.carrier_code === "olva" && (
+              <Button asChild variant="ghost">
+                <a href={`https://tracking.olvaexpress.pe/tracking?tracking=${encodeURIComponent(form.tracking_number)}&emision=${encodeURIComponent(form.tracking_code)}`} target="_blank" rel="noreferrer">
+                  <ExternalLink size={14} /> Ver en Olva
                 </a>
               </Button>
             )}

@@ -33,8 +33,8 @@ Deno.serve(async (req) => {
 
   const { data: shipments } = await admin
     .from("order_shipments")
-    .select("order_id,status_internal,last_checked_at,tracking_number,tracking_code,ose_id")
-    .eq("carrier_code", "shalom")
+    .select("order_id,carrier_code,status_internal,last_checked_at,tracking_number,tracking_code,ose_id")
+    .in("carrier_code", ["shalom", "olva"])
     .not("status_internal", "in", "(entregado,cancelado,devuelto,sin_tracking)");
 
   const due = (shipments ?? []).filter((s: any) => {
@@ -42,17 +42,17 @@ Deno.serve(async (req) => {
     const last = s.last_checked_at ? new Date(s.last_checked_at).getTime() : 0;
     const age = now - last;
     if (["destino", "reparto", "demora"].includes(s.status_internal)) return age >= TWO_H;
-    return age >= SIX_H; // origen, transito, preparando
+    return age >= SIX_H;
   });
 
   const wrapperKey = Deno.env.get("SHALOM_WRAPPER_API_KEY")!;
   const projectUrl = Deno.env.get("SUPABASE_URL")!;
-  const fnUrl = `${projectUrl}/functions/v1/shalom-tracking-query`;
 
   let ok = 0, fail = 0;
   for (const s of due) {
+    const fn = s.carrier_code === "olva" ? "olva-tracking-query" : "shalom-tracking-query";
     try {
-      const r = await fetch(fnUrl, {
+      const r = await fetch(`${projectUrl}/functions/v1/${fn}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
