@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useOrderShipmentsMap } from "@/hooks/useOrderShipment";
 import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
+import { ORDER_STATUS_CLASS, ORDER_STATUS_LABEL } from "@/lib/orderStatus";
 
 type Order = {
   id: string;
@@ -18,18 +19,13 @@ type Order = {
   created_at: string;
 };
 
-const statusVariant: Record<string, string> = {
-  pending: "bg-muted text-foreground",
-  confirmed: "bg-blue-500/15 text-blue-600",
-  preparing: "bg-amber-500/15 text-amber-600",
-  shipped: "bg-purple-500/15 text-purple-600",
-  delivered: "bg-success/15 text-success",
-  cancelled: "bg-destructive/15 text-destructive",
+const CARRIER_LABEL: Record<string, string> = {
+  shalom: "Shalom",
+  olva: "Olva Courier",
 };
-
-const statusLabel: Record<string, string> = {
-  pending: "Pendiente", confirmed: "Confirmado", preparing: "En preparación",
-  shipped: "Enviado", delivered: "Entregado", cancelled: "Cancelado",
+const carrierName = (code?: string | null) => {
+  if (!code) return "—";
+  return CARRIER_LABEL[code] || code.charAt(0).toUpperCase() + code.slice(1);
 };
 
 const MyOrders = () => {
