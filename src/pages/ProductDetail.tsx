@@ -230,6 +230,15 @@ const ProductDetail = () => {
       { "@type": "ListItem", position: product.category ? 3 : 2, name: product.name, item: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}` },
     ],
   };
+  const faqJsonLd = faqs.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  } : null;
 
   return (
     <Layout>
@@ -241,7 +250,7 @@ const ProductDetail = () => {
         fallbackDescription={dbp.short_description || dbp.description || product.name}
         fallbackImage={mainImg}
         type="website"
-        extraJsonLd={[productJsonLd, breadcrumbJsonLd]}
+        extraJsonLd={[productJsonLd, breadcrumbJsonLd, ...(faqJsonLd ? [faqJsonLd] : [])]}
       />
       <Helmet>
         <meta property="og:type" content="product" />
