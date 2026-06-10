@@ -12,6 +12,7 @@ import { ArrowLeft, RefreshCw, Save, ExternalLink, Loader2, AlertTriangle } from
 import { useOrderShipment } from "@/hooks/useOrderShipment";
 import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
 import { ORDER_STATUSES, ORDER_STATUS_LABEL, ORDER_STATUS_CLASS, shipmentToOrderStatus, nextOrderStatus } from "@/lib/orderStatus";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Carrier = { id: string; name: string; code: string | null; is_active: boolean };
 
@@ -20,6 +21,7 @@ export default function AdminOrderDetail() {
   const [order, setOrder] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [carriers, setCarriers] = useState<Carrier[]>([]);
+  const { format } = useCurrency();
 
   const { shipment, reload: reloadShipment } = useOrderShipment(id);
   const [form, setForm] = useState({ carrier_code: "shalom", tracking_number: "", tracking_code: "", ose_id: "" });
@@ -144,7 +146,7 @@ export default function AdminOrderDetail() {
                   {i.variant && <div className="text-xs text-muted-foreground">{i.variant}</div>}
                 </div>
                 <div className="text-sm text-muted-foreground">x{i.quantity}</div>
-                <div className="font-semibold">${(Number(i.unit_price) * i.quantity).toFixed(2)}</div>
+                <div className="font-semibold">{format(Number(i.unit_price) * i.quantity)}</div>
               </div>
             ))}
           </CardContent>
@@ -154,9 +156,9 @@ export default function AdminOrderDetail() {
           <Card>
             <CardHeader><CardTitle>Resumen</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row label="Subtotal" value={`$${Number(order.subtotal).toFixed(2)}`} />
-              <Row label="Envío" value={`$${Number(order.shipping).toFixed(2)}`} />
-              <Row label="Total" value={`$${Number(order.total).toFixed(2)}`} bold />
+              <Row label="Subtotal" value={format(Number(order.subtotal))} />
+              <Row label="Envío" value={format(Number(order.shipping))} />
+              <Row label="Total" value={format(Number(order.total))} bold />
               <Row label="Pago" value={order.payment_method} />
               <Row label="Transportista" value={shipment?.carrier_code === "olva" ? "Olva Courier" : shipment?.carrier_code === "shalom" ? "Shalom" : (shipment?.carrier_code ? shipment.carrier_code.charAt(0).toUpperCase() + shipment.carrier_code.slice(1) : "—")} />
             </CardContent>
