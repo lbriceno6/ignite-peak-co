@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useOrderShipmentsMap } from "@/hooks/useOrderShipment";
+import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
 
 type Order = {
   id: string;
@@ -44,6 +46,9 @@ const MyOrders = () => {
     });
   }, [user]);
 
+  const ids = useMemo(() => orders.map((o) => o.id), [orders]);
+  const { map: shipMap } = useOrderShipmentsMap(ids);
+
   return (
     <Layout>
       <div className="container-x py-12">
@@ -65,26 +70,39 @@ const MyOrders = () => {
                   <th className="px-4 py-3 text-left">Pedido</th>
                   <th className="px-4 py-3 text-left">Fecha</th>
                   <th className="px-4 py-3 text-left">Estado</th>
+                  <th className="px-4 py-3 text-left">Envío</th>
                   <th className="px-4 py-3 text-left">Pago</th>
                   <th className="px-4 py-3 text-right">Total</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-medium">{o.order_code}</td>
-                    <td className="px-4 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
-                    <td className="px-4 py-3">
-                      <Badge className={statusVariant[o.status] ?? ""} variant="secondary">{statusLabel[o.status] ?? o.status}</Badge>
-                    </td>
-                    <td className="px-4 py-3 capitalize">{o.payment_method}</td>
-                    <td className="px-4 py-3 text-right font-semibold">{format(Number(o.total))}</td>
-                    <td className="px-4 py-3 text-right">
-                      <Button asChild size="sm" variant="outline"><Link to={`/my-orders/${o.id}`}>Ver detalles</Link></Button>
-                    </td>
-                  </tr>
-                ))}
+                {orders.map((o) => {
+                  const sh = shipMap[o.id];
+                  const sStatus = (sh?.status_internal ?? "sin_tracking") as ShipmentStatus;
+                  return (
+                    <tr key={o.id} className="border-t border-border">
+                      <td className="px-4 py-3 font-medium">{o.order_code}</td>
+                      <td className="px-4 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
+                      <td className="px-4 py-3">
+                        <Badge className={statusVariant[o.status] ?? ""} variant="secondary">{statusLabel[o.status] ?? o.status}</Badge>
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge className={SHIPMENT_BADGE_CLASS[sStatus]} variant="secondary">{SHIPMENT_LABEL[sStatus]}</Badge>
+                        {sh?.last_checked_at && (
+                          <div className="text-[10px] text-muted-foreground mt-1">
+                            {new Date(sh.last_checked_at).toLocaleString()}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 capitalize">{o.payment_method}</td>
+                      <td className="px-4 py-3 text-right font-semibold">{format(Number(o.total))}</td>
+                      <td className="px-4 py-3 text-right">
+                        <Button asChild size="sm" variant="outline"><Link to={`/my-orders/${o.id}`}>Ver detalles</Link></Button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

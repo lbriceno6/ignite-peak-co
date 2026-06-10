@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/context/CurrencyContext";
 import { XCircle, Loader2 } from "lucide-react";
 import { AiPostPurchaseInsights } from "@/components/order/AiPostPurchaseInsights";
+import { ShipmentTracking } from "@/components/order/ShipmentTracking";
+import { useOrderShipment } from "@/hooks/useOrderShipment";
 
 type Order = any;
 type Item = { id: string; product_slug: string; product_name: string; product_image: string | null; variant: string | null; quantity: number; unit_price: number };
@@ -32,6 +34,8 @@ const OrderDetail = () => {
   const { format } = useCurrency();
 
   const [resellerCode, setResellerCode] = useState<string | null>(null);
+
+  const { shipment } = useOrderShipment(id);
 
   useEffect(() => {
     (async () => {
@@ -82,6 +86,11 @@ const OrderDetail = () => {
             }))}
           />
         </div>
+
+        <div className="mt-6">
+          <ShipmentTracking shipment={shipment} carrierName="Shalom" />
+        </div>
+
 
         <div className="grid gap-6 mt-8 lg:grid-cols-[1fr_320px]">
           <div className="rounded-lg border border-border">

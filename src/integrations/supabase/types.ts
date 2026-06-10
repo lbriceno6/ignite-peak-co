@@ -2440,6 +2440,102 @@ export type Database = {
           },
         ]
       }
+      order_shipments: {
+        Row: {
+          carrier_code: string
+          carrier_id: string | null
+          created_at: string
+          delivered_at: string | null
+          destination_name: string | null
+          error_message: string | null
+          estimated_delivery_at: string | null
+          history_json: Json
+          id: string
+          last_checked_at: string | null
+          last_event_date: string | null
+          last_event_description: string | null
+          last_event_time: string | null
+          last_event_title: string | null
+          order_id: string
+          origin_name: string | null
+          ose_id: string | null
+          raw_response: Json | null
+          registered_at: string | null
+          status_external: string | null
+          status_internal: string
+          tracking_code: string | null
+          tracking_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          carrier_code?: string
+          carrier_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          destination_name?: string | null
+          error_message?: string | null
+          estimated_delivery_at?: string | null
+          history_json?: Json
+          id?: string
+          last_checked_at?: string | null
+          last_event_date?: string | null
+          last_event_description?: string | null
+          last_event_time?: string | null
+          last_event_title?: string | null
+          order_id: string
+          origin_name?: string | null
+          ose_id?: string | null
+          raw_response?: Json | null
+          registered_at?: string | null
+          status_external?: string | null
+          status_internal?: string
+          tracking_code?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carrier_code?: string
+          carrier_id?: string | null
+          created_at?: string
+          delivered_at?: string | null
+          destination_name?: string | null
+          error_message?: string | null
+          estimated_delivery_at?: string | null
+          history_json?: Json
+          id?: string
+          last_checked_at?: string | null
+          last_event_date?: string | null
+          last_event_description?: string | null
+          last_event_time?: string | null
+          last_event_title?: string | null
+          order_id?: string
+          origin_name?: string | null
+          ose_id?: string | null
+          raw_response?: Json | null
+          registered_at?: string | null
+          status_external?: string | null
+          status_internal?: string
+          tracking_code?: string | null
+          tracking_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_shipments_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "shipping_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string
