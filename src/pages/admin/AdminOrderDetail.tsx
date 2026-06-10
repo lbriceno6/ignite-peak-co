@@ -156,9 +156,9 @@ export default function AdminOrderDetail() {
           <Card>
             <CardHeader><CardTitle>Resumen</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <Row label="Subtotal" value={`$${Number(order.subtotal).toFixed(2)}`} />
-              <Row label="Envío" value={`$${Number(order.shipping).toFixed(2)}`} />
-              <Row label="Total" value={`$${Number(order.total).toFixed(2)}`} bold />
+              <Row label="Subtotal" value={format(Number(order.subtotal))} />
+              <Row label="Envío" value={format(Number(order.shipping))} />
+              <Row label="Total" value={format(Number(order.total))} bold />
               <Row label="Pago" value={order.payment_method} />
               <Row label="Transportista" value={shipment?.carrier_code === "olva" ? "Olva Courier" : shipment?.carrier_code === "shalom" ? "Shalom" : (shipment?.carrier_code ? shipment.carrier_code.charAt(0).toUpperCase() + shipment.carrier_code.slice(1) : "—")} />
             </CardContent>
