@@ -96,7 +96,7 @@ export default function AdminOrderDetail() {
   if (!order) return <div className="text-muted-foreground">Cargando…</div>;
 
   const status = (shipment?.status_internal ?? "sin_tracking") as ShipmentStatus;
-  const orderStatusClass = STATUS_CLASS_ES[order.status] ?? "";
+  const orderStatusClass = ORDER_STATUS_CLASS[order.status] ?? "";
 
   return (
     <div className="space-y-6">
@@ -107,11 +107,11 @@ export default function AdminOrderDetail() {
           <p className="text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className={`border ${orderStatusClass}`}>{STATUS_LABEL_ES[order.status] ?? order.status}</Badge>
+          <Badge variant="outline" className={`border ${orderStatusClass}`}>{ORDER_STATUS_LABEL[order.status] ?? order.status}</Badge>
           <div className="w-48">
             <Select value={order.status} onValueChange={updateStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL_ES[s]}</SelectItem>)}</SelectContent>
+              <SelectContent>{ORDER_STATUSES.map((s) => <SelectItem key={s} value={s}>{ORDER_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
