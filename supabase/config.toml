@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.ai-product-seo-optimize]
 verify_jwt = true
+
+[functions.shalom-tracking-cron]
+verify_jwt = false
