@@ -12,6 +12,7 @@ import { ArrowLeft, RefreshCw, Save, ExternalLink, Loader2, AlertTriangle } from
 import { useOrderShipment } from "@/hooks/useOrderShipment";
 import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
 import { ORDER_STATUSES, ORDER_STATUS_LABEL, ORDER_STATUS_CLASS, shipmentToOrderStatus, nextOrderStatus } from "@/lib/orderStatus";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type Carrier = { id: string; name: string; code: string | null; is_active: boolean };
 
