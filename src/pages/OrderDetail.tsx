@@ -88,7 +88,7 @@ const OrderDetail = () => {
         </div>
 
         <div className="mt-6">
-          <ShipmentTracking shipment={shipment} carrierName="Shalom" />
+          <ShipmentTracking shipment={shipment} carrierName={shipment?.carrier_code === "olva" ? "Olva Courier" : shipment?.carrier_code === "shalom" ? "Shalom" : (shipment?.carrier_code ? shipment.carrier_code.charAt(0).toUpperCase() + shipment.carrier_code.slice(1) : "Shalom")} />
         </div>
 
 
