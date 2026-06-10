@@ -92,7 +92,7 @@ const Logo = ({ className }: { className?: string }) => {
     return <span className={cn("inline-block h-8 w-24 lg:h-10", className)} aria-hidden />;
   }
   if (content.logo_image_url) {
-    return <img src={content.logo_image_url} alt="Logo" className={cn("h-8 w-auto object-contain lg:h-10", className)} />;
+    return <img src={content.logo_image_url} alt="Nutribatidos logo" className={cn("h-8 w-auto object-contain lg:h-10", className)} />;
   }
   return (
     <span className={cn("font-display text-2xl tracking-tight lg:text-3xl", className)}>
