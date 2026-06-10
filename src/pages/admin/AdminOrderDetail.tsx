@@ -146,7 +146,7 @@ export default function AdminOrderDetail() {
                   {i.variant && <div className="text-xs text-muted-foreground">{i.variant}</div>}
                 </div>
                 <div className="text-sm text-muted-foreground">x{i.quantity}</div>
-                <div className="font-semibold">${(Number(i.unit_price) * i.quantity).toFixed(2)}</div>
+                <div className="font-semibold">{format(Number(i.unit_price) * i.quantity)}</div>
               </div>
             ))}
           </CardContent>
