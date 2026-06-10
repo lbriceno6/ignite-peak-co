@@ -158,54 +158,39 @@ export type Database = {
       }
       ai_product_settings: {
         Row: {
-          claude_api_key: string | null
           created_at: string
-          deepseek_api_key: string | null
           default_level: string
           default_provider: string
-          gemini_api_key: string | null
           id: number
-          image_api_key: string | null
           image_default_background: string
           image_default_format: string
           image_default_size: string
           image_provider: string
           image_quality: number
-          openai_api_key: string | null
           updated_at: string
         }
         Insert: {
-          claude_api_key?: string | null
           created_at?: string
-          deepseek_api_key?: string | null
           default_level?: string
           default_provider?: string
-          gemini_api_key?: string | null
           id?: number
-          image_api_key?: string | null
           image_default_background?: string
           image_default_format?: string
           image_default_size?: string
           image_provider?: string
           image_quality?: number
-          openai_api_key?: string | null
           updated_at?: string
         }
         Update: {
-          claude_api_key?: string | null
           created_at?: string
-          deepseek_api_key?: string | null
           default_level?: string
           default_provider?: string
-          gemini_api_key?: string | null
           id?: number
-          image_api_key?: string | null
           image_default_background?: string
           image_default_format?: string
           image_default_size?: string
           image_provider?: string
           image_quality?: number
-          openai_api_key?: string | null
           updated_at?: string
         }
         Relationships: []
