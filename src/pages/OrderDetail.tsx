@@ -35,6 +35,8 @@ const OrderDetail = () => {
 
   const [resellerCode, setResellerCode] = useState<string | null>(null);
 
+  const { shipment } = useOrderShipment(id);
+
   useEffect(() => {
     (async () => {
       const { data: o } = await supabase.from("orders").select("*").eq("id", id).maybeSingle();
