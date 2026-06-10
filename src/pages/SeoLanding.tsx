@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
+import DOMPurify from "dompurify";
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
@@ -110,7 +111,7 @@ export default function SeoLanding({ kind }: { kind: Kind }) {
         {landing?.body_html && (
           <article
             className="prose prose-neutral dark:prose-invert mt-12 max-w-3xl"
-            dangerouslySetInnerHTML={{ __html: landing.body_html }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(landing.body_html, { USE_PROFILES: { html: true } }) }}
           />
         )}
 

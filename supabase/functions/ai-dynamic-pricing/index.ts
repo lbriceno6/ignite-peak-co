@@ -21,10 +21,26 @@ Deno.serve(async (req) => {
     const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const sb = createClient(SUPABASE_URL, SERVICE);
     const body = await req.json().catch(() => ({}));
-    const { action = "evaluate", user_id = null, session_id = null, context = {} } = body;
+    const { action = "evaluate", session_id = null, context = {} } = body;
+    // SECURITY: never trust user_id from body. Derive it from the JWT.
+    let user_id: string | null = null;
+    try {
+      const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.slice(7);
+        const { data: claimsData } = await sb.auth.getClaims(token);
+        user_id = (claimsData?.claims?.sub as string) ?? null;
+      }
+    } catch (_e) {
+      user_id = null;
+    }
 
     // ----- Admin action: AI suggests new pricing rules -----
     if (action === "suggest") {
+      // Require admin role
+      if (!user_id) return json({ error: "unauthorized" }, 401);
+      const { data: isAdmin } = await sb.rpc("has_role", { _user_id: user_id, _role: "admin" });
+      if (!isAdmin) return json({ error: "forbidden" }, 403);
       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
       if (!LOVABLE_API_KEY) return json({ error: "missing key" }, 500);
       const { data: segments } = await sb.from("customer_segments").select("code,name,description").eq("is_active", true);

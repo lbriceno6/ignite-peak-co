@@ -16,6 +16,27 @@ Deno.serve(async (req) => {
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   const supabase = createClient(supabaseUrl, serviceKey)
 
+  // SECURITY: authenticate the caller. Authorization rules applied after we
+  // know the event + supplier:
+  //   - service role: anything
+  //   - admin: anything
+  //   - supplier owner: only `new` / `resubmit` for their own supplier row
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return json({ error: 'unauthorized' }, 401)
+  }
+  const token = authHeader.slice(7)
+  let callerUid: string | null = null
+  let callerIsAdmin = false
+  const isServiceRole = token === serviceKey
+  if (!isServiceRole) {
+    const { data: claimsData } = await supabase.auth.getClaims(token)
+    callerUid = (claimsData?.claims?.sub as string) ?? null
+    if (!callerUid) return json({ error: 'unauthorized' }, 401)
+    const { data: isAdmin } = await supabase.rpc('has_role', { _user_id: callerUid, _role: 'admin' })
+    callerIsAdmin = !!isAdmin
+  }
+
   let body: { event: Event; supplier_id: string; reason?: string }
   try {
     body = await req.json()
@@ -30,6 +51,14 @@ Deno.serve(async (req) => {
     .eq('id', body.supplier_id)
     .maybeSingle()
   if (!sup) return json({ error: 'supplier not found' }, 404)
+
+  if (!isServiceRole && !callerIsAdmin) {
+    const isOwner = callerUid && sup.user_id === callerUid
+    const ownerAllowed = body.event === 'new' || body.event === 'resubmit'
+    if (!isOwner || !ownerAllowed) return json({ error: 'forbidden' }, 403)
+    // owners cannot pass a custom reason for status emails
+    body.reason = undefined
+  }
 
   const reason = body.reason ?? sup.rejection_reason ?? null
 
