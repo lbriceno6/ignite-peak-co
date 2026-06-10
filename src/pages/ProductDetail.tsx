@@ -400,9 +400,9 @@ const ProductDetail = () => {
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-stretch">
             <div className="flex items-center justify-between rounded-md border sm:justify-start">
-              <button onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Minus size={14} /></button>
-              <span className="w-12 text-center font-display text-lg">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Plus size={14} /></button>
+              <button type="button" aria-label="Disminuir cantidad" onClick={() => setQty((q) => Math.max(1, q - 1))} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Minus size={14} /></button>
+              <span className="w-12 text-center font-display text-lg" aria-live="polite">{qty}</span>
+              <button type="button" aria-label="Aumentar cantidad" onClick={() => setQty((q) => q + 1)} className="grid h-12 w-12 place-items-center hover:bg-secondary"><Plus size={14} /></button>
             </div>
             <Button size="lg" variant="accent" className="w-full flex-1 sm:w-auto" onClick={() => {
               add(
