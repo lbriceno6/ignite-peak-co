@@ -11,26 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, RefreshCw, Save, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
 import { useOrderShipment } from "@/hooks/useOrderShipment";
 import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
-
-const STATUSES = ["pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"];
-
-const STATUS_LABEL_ES: Record<string, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmado",
-  preparing: "Preparando",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
-};
-
-const STATUS_CLASS_ES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-  preparing: "bg-purple-100 text-purple-800 border-purple-200",
-  shipped: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  delivered: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  cancelled: "bg-rose-100 text-rose-800 border-rose-200",
-};
+import { ORDER_STATUSES, ORDER_STATUS_LABEL, ORDER_STATUS_CLASS, shipmentToOrderStatus, nextOrderStatus } from "@/lib/orderStatus";
 
 type Carrier = { id: string; name: string; code: string | null; is_active: boolean };
 
@@ -90,7 +71,20 @@ export default function AdminOrderDetail() {
     setSaving(false);
     if (error) return toast.error("No se pudo guardar: " + error.message);
     toast.success("Tracking guardado");
+    await autoSyncOrderStatus(shipment?.status_internal ?? "preparando");
     reloadShipment();
+  };
+
+  const autoSyncOrderStatus = async (shipmentStatus: string) => {
+    if (!order) return;
+    const target = shipmentToOrderStatus(shipmentStatus);
+    const next = nextOrderStatus(order.status, target);
+    if (!next) return;
+    const { error } = await supabase.from("orders").update({ status: next as any }).eq("id", id!);
+    if (!error) {
+      toast.success(`Estado del pedido actualizado a "${ORDER_STATUS_LABEL[next]}"`);
+      load();
+    }
   };
 
   const refreshTracking = async () => {
@@ -109,13 +103,15 @@ export default function AdminOrderDetail() {
     if (error) return toast.error("Error: " + error.message);
     if ((data as any)?.warning) toast.warning("Última consulta con aviso: " + (data as any).warning);
     else toast.success("Tracking actualizado");
+    const newStatus = (data as any)?.shipment?.status_internal ?? (data as any)?.status_internal;
+    if (newStatus) await autoSyncOrderStatus(newStatus);
     reloadShipment();
   };
 
   if (!order) return <div className="text-muted-foreground">Cargando…</div>;
 
   const status = (shipment?.status_internal ?? "sin_tracking") as ShipmentStatus;
-  const orderStatusClass = STATUS_CLASS_ES[order.status] ?? "";
+  const orderStatusClass = ORDER_STATUS_CLASS[order.status] ?? "";
 
   return (
     <div className="space-y-6">
@@ -126,11 +122,11 @@ export default function AdminOrderDetail() {
           <p className="text-muted-foreground">{new Date(order.created_at).toLocaleString()}</p>
         </div>
         <div className="flex items-center gap-3">
-          <Badge variant="outline" className={`border ${orderStatusClass}`}>{STATUS_LABEL_ES[order.status] ?? order.status}</Badge>
+          <Badge variant="outline" className={`border ${orderStatusClass}`}>{ORDER_STATUS_LABEL[order.status] ?? order.status}</Badge>
           <div className="w-48">
             <Select value={order.status} onValueChange={updateStatus}>
               <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{STATUS_LABEL_ES[s]}</SelectItem>)}</SelectContent>
+              <SelectContent>{ORDER_STATUSES.map((s) => <SelectItem key={s} value={s}>{ORDER_STATUS_LABEL[s]}</SelectItem>)}</SelectContent>
             </Select>
           </div>
         </div>
