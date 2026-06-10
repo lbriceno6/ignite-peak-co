@@ -71,7 +71,20 @@ export default function AdminOrderDetail() {
     setSaving(false);
     if (error) return toast.error("No se pudo guardar: " + error.message);
     toast.success("Tracking guardado");
+    await autoSyncOrderStatus(shipment?.status_internal ?? "preparando");
     reloadShipment();
+  };
+
+  const autoSyncOrderStatus = async (shipmentStatus: string) => {
+    if (!order) return;
+    const target = shipmentToOrderStatus(shipmentStatus);
+    const next = nextOrderStatus(order.status, target);
+    if (!next) return;
+    const { error } = await supabase.from("orders").update({ status: next as any }).eq("id", id!);
+    if (!error) {
+      toast.success(`Estado del pedido actualizado a "${ORDER_STATUS_LABEL[next]}"`);
+      load();
+    }
   };
 
   const refreshTracking = async () => {
@@ -90,6 +103,8 @@ export default function AdminOrderDetail() {
     if (error) return toast.error("Error: " + error.message);
     if ((data as any)?.warning) toast.warning("Última consulta con aviso: " + (data as any).warning);
     else toast.success("Tracking actualizado");
+    const newStatus = (data as any)?.shipment?.status_internal ?? (data as any)?.status_internal;
+    if (newStatus) await autoSyncOrderStatus(newStatus);
     reloadShipment();
   };
 
