@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ORDER_STATUSES, ORDER_STATUS_LABEL, ORDER_STATUS_CLASS } from "@/lib/orderStatus";
+import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const FILTER_STATUSES = ["all", ...ORDER_STATUSES];
 const FILTER_LABEL: Record<string, string> = { all: "Todos", ...ORDER_STATUS_LABEL };
@@ -20,13 +22,19 @@ const carrierName = (code?: string | null) => {
   return CARRIER_LABEL[code] || code.charAt(0).toUpperCase() + code.slice(1);
 };
 
-type ShipInfo = { carrier_code: string | null; tracking_number: string | null };
+type ShipInfo = {
+  carrier_code: string | null;
+  tracking_number: string | null;
+  status_internal: ShipmentStatus | null;
+  last_checked_at: string | null;
+};
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [shipments, setShipments] = useState<Record<string, ShipInfo>>({});
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
+  const { format } = useCurrency();
 
   useEffect(() => {
     (async () => {
@@ -36,11 +44,16 @@ export default function AdminOrders() {
       if (ids.length) {
         const { data: ships } = await (supabase as any)
           .from("order_shipments")
-          .select("order_id,carrier_code,tracking_number")
+          .select("order_id,carrier_code,tracking_number,status_internal,last_checked_at")
           .in("order_id", ids);
         const map: Record<string, ShipInfo> = {};
         (ships ?? []).forEach((s: any) => {
-          map[s.order_id] = { carrier_code: s.carrier_code, tracking_number: s.tracking_number };
+          map[s.order_id] = {
+            carrier_code: s.carrier_code,
+            tracking_number: s.tracking_number,
+            status_internal: s.status_internal,
+            last_checked_at: s.last_checked_at,
+          };
         });
         setShipments(map);
       }
@@ -85,6 +98,7 @@ export default function AdminOrders() {
               <th className="p-3">Estado</th>
               <th className="p-3">Transportista</th>
               <th className="p-3">N° de orden</th>
+              <th className="p-3">Envío</th>
               <th className="p-3">Pago</th>
               <th className="p-3">Total</th>
             </tr>
@@ -92,6 +106,7 @@ export default function AdminOrders() {
           <tbody>
             {filtered.map((o) => {
               const sh = shipments[o.id];
+              const sStatus = (sh?.status_internal ?? "sin_tracking") as ShipmentStatus;
               return (
                 <tr key={o.id} className="border-t hover:bg-muted/30">
                   <td className="p-3"><Link to={`/admin/orders/${o.id}`} className="font-medium hover:underline">{o.order_code}</Link></td>
@@ -104,12 +119,20 @@ export default function AdminOrders() {
                   </td>
                   <td className="p-3">{carrierName(sh?.carrier_code)}</td>
                   <td className="p-3 font-mono text-xs">{sh?.tracking_number || "—"}</td>
+                  <td className="p-3">
+                    <Badge className={SHIPMENT_BADGE_CLASS[sStatus]} variant="secondary">{SHIPMENT_LABEL[sStatus]}</Badge>
+                    {sh?.last_checked_at && (
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        {new Date(sh.last_checked_at).toLocaleString()}
+                      </div>
+                    )}
+                  </td>
                   <td className="p-3 capitalize">{o.payment_method}</td>
-                  <td className="p-3 font-semibold">${Number(o.total).toFixed(2)}</td>
+                  <td className="p-3 font-semibold">{format(Number(o.total))}</td>
                 </tr>
               );
             })}
-            {filtered.length === 0 && <tr><td colSpan={8} className="p-8 text-center text-muted-foreground">Sin pedidos</td></tr>}
+            {filtered.length === 0 && <tr><td colSpan={9} className="p-8 text-center text-muted-foreground">Sin pedidos</td></tr>}
           </tbody>
         </table>
       </div>
