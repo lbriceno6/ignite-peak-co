@@ -1,83 +1,126 @@
-## Goal
-Add full visual control of every Home carousel from **Home page sections** in the admin, both globally and per-carousel, without affecting catalog / product / category pages.
+# Shalom Shipment Tracking — Nutribatidos
 
-## Scope (Home carousels only)
-Ofertas, Best sellers, Promociones, Recomendados IA, Productos vistos, Favoritos, Destacados, Carrusel manual de productos, Carrusel por categoría, Carrusel por promoción.
+Implementación completa de seguimiento de envíos con Shalom API: secrets, base de datos, edge functions, panel admin, vista cliente con línea de progreso y cron de actualización automática.
 
----
+## 1. Secrets (Supabase)
 
-## 1. Data model
+Solicitar al usuario via `add_secret`:
+- `SHALOM_API_KEY`
+- `SHALOM_EMAIL`
+- `SHALOM_PASSWORD`
 
-New table `public.home_carousel_global` (single row, key='default'):
-- width preset + max-width per device, padding per device
-- items per device, gap per device
-- card min-height/width, equal height, button bottom
-- image height per device, object-fit, object-position
-- controls: arrows, dots, autoplay, speed, loop, free-scroll mobile
-- background: type (transparent/white/soft-gray/solid/gradient), color1, color2, gradient direction, opacity, radius, padding, margin-top, margin-bottom
+(Se piden antes de desplegar las edge functions.)
 
-Extend `home_blocks.config` (jsonb already exists) for every carousel-type block with:
-- `useGlobalLayout: boolean` (default true)
-- `useGlobalBackground: boolean` (default true)
-- `layout: { ...same shape as global layout }`
-- `background: { ...same shape as global background }`
+## 2. Base de datos (migration)
 
-No schema change beyond the global table; per-carousel overrides live in the existing `config` jsonb.
+Nueva tabla `public.order_shipments` (relación 1:1 con `orders`, índice único por `order_id`):
 
-## 2. New shared util `src/lib/homeCarouselDesign.ts`
-- `CarouselLayoutCfg`, `CarouselBackgroundCfg` types + defaults
-- `PRESETS` (Compacto, Ecommerce limpio, Amplio premium, Pantalla completa, Mobile optimizado, Fondo destacado)
-- `mergeLayout(global, block)` and `mergeBackground(global, block)`
-- `buildScopedCss(scopeId, layout, background)` → emits responsive CSS with media queries scoped to `#hcs-{id}` controlling: container max-width, padding, item flex-basis (= `calc(100% / items - gap)`), gap, card min-h/min-w, image height, background, radius, margins. Returns `{ css, containerProps }`.
+```
+id, order_id (FK orders), carrier_id (FK shipping_providers), carrier_code,
+tracking_number, tracking_code, ose_id,
+status_internal, status_external,
+origin_name, destination_name,
+registered_at, estimated_delivery_at, delivered_at,
+last_event_title, last_event_description, last_event_date, last_event_time,
+history_json (jsonb), raw_response (jsonb),
+last_checked_at, error_message,
+created_at, updated_at
+```
 
-## 3. Frontend rendering
-- `HomeProductsCarousel.tsx`: accept optional `design?: { layout, background }` prop. Wrap output in `<section id="hcs-{id}" className="hcs-scope">` with injected `<style>` from `buildScopedCss`. Use `items` from layout to drive `basis` of `CarouselItem` per breakpoint via CSS custom properties. Show/hide arrows/dots + autoplay plugin based on controls.
-- `ProductCard.tsx`: already has `data-pc` hooks from earlier work; ensure `image-wrap` height + `object-fit`/`object-position` honor the scope CSS variables.
-- `Index.tsx`: load global config once (hook `useHomeCarouselGlobal`), pass merged `design` to every carousel rendering (products carousel, category carousel, promotion carousel, AI reco, recently viewed, favorites, ofertas, best sellers, destacados, promociones).
-- Scope is `.hcs-scope` (Home only) so catalog / category / product / checkout pages are untouched.
+RLS:
+- `authenticated` puede SELECT cuando `order_id` pertenece a `auth.uid()` (vía join con `orders.user_id`).
+- `admin` (has_role) puede ALL.
+- `service_role` ALL (cron/edge functions).
+- GRANTs explícitos a `authenticated` (SELECT) y `service_role` (ALL).
 
-## 4. Admin UI (inside `AdminHomeBlocks.tsx`, no new page)
-At top of the page, new accordion **"Configuración global de carruseles"** with subsections:
-- Tamaño y ancho (width preset + per-device max-width, padding)
-- Productos visibles y separación
-- Tamaño de cards e imagen
-- Controles del carrusel
-- Fondo del carrusel (type, colors, opacity, radius, paddings, margins)
-- Presets (apply preset button)
-- Live preview (3 mock products: short name, long name, sale price) with Desktop / Tablet / Mobile toggle
+Trigger `update_updated_at_column` para `updated_at`.
 
-Inside each carousel-type block editor, new accordion **"Diseño del carrusel"**:
-- Toggle "Usar configuración global" (layout)
-- Toggle "Usar fondo global" (background)
-- When off → render the same field set as global, scoped to that block
-- Same live preview component
+Asegurar transportista Shalom: `INSERT ... ON CONFLICT` en `shipping_providers` (code `shalom`, name "Shalom", estimated_days "3–7 días hábiles", is_active true). Si la tabla no tiene columna `api_provider`, agregarla nullable.
 
-Persistence: global table via supabase upsert; per-block via existing config jsonb.
+## 3. Edge Functions
 
-## 5. Card alignment guarantees
-CSS emitted by `buildScopedCss` enforces:
-- `.hcs-scope [data-pc="card"] { display:flex; flex-direction:column; height:100%; }`
-- `.hcs-scope [data-pc="content"] { flex:1; display:flex; flex-direction:column; }`
-- `.hcs-scope [data-pc="button-wrap"] { margin-top:auto; }`
-- `.hcs-scope [data-pc="image-wrap"] { height: var(--hcs-img-h); }`
-- `.hcs-scope [data-pc="image"] { object-fit: contain; object-position: center; width:100%; height:100%; }`
-- Title/desc/category line-clamps via existing typography settings (no override here).
+### `shalom-tracking-query` (verify_jwt = true, admin/owner-only)
+Input: `{ order_id, numero?, codigo?, ose_id? }`
+- Valida que el caller sea admin (vía `has_role`) o dueño del pedido.
+- Si `ose_id` → `GET https://api.shalom-api-peru.com/v1/tracking/{ose_id}/events`
+- Sino → `GET /v1/tracking?numero=...&codigo=...`
+- Headers: `X-API-Key: SHALOM_API_KEY`. Si responde 401/403 con necesidad de sesión, hace `POST /v1/shalom/sessions` con email/password y reintenta con `Authorization: Bearer <session_token>` (cacheado en memoria del runtime).
+- Mapea eventos → `status_internal` (ver tabla §4).
+- Upsert en `order_shipments` (no borra datos previos si falla; setea `error_message` y `last_checked_at`).
+- Devuelve el shipment normalizado.
 
-## 6. Files
+### `shalom-tracking-cron` (verify_jwt = false, protegida por header `x-cron-secret`)
+- Lista shipments con `carrier_code='shalom'` y status no terminal.
+- Aplica throttling según `status_internal`:
+  - `origen`/`transito`: refrescar si `last_checked_at` > 6h
+  - `reparto`/`destino`: > 2h
+  - `entregado`/`cancelado`/`devuelto`: skip
+- Llama internamente la lógica de consulta (refactor en helper compartido dentro del archivo).
+- Mantiene último estado si API falla.
 
-**New**
-- `supabase/migrations/<ts>_home_carousel_global.sql` (table + grants + RLS: read anon; write admin via has_role)
-- `src/lib/homeCarouselDesign.ts`
-- `src/hooks/useHomeCarouselGlobal.ts`
-- `src/components/admin/HomeCarouselDesignEditor.tsx` (reusable for global + per-block)
-- `src/components/admin/HomeCarouselPreview.tsx`
+Programar con `pg_cron` + `pg_net` cada hora (usando `supabase--insert` para crear el job, no migration).
 
-**Edited**
-- `src/components/HomeProductsCarousel.tsx` (accept design prop, scoped CSS)
-- `src/components/ProductCard.tsx` (ensure data-pc hooks honor scope vars — small additions only)
-- `src/pages/Index.tsx` (load global, pass merged design to each carousel)
-- `src/pages/admin/AdminHomeBlocks.tsx` (add global accordion at top + per-block "Diseño del carrusel" accordion)
+## 4. Mapeo de estados
 
-## 7. Out of scope
-- Catalog / category / product / checkout pages (untouched, different scope class).
-- Hero banner, typography, layout systems (already separate).
+Función pura `mapShalomStatus(events, deliveredFlag)` → uno de:
+`sin_tracking | preparando | origen | transito | demora | destino | reparto | entregado | cancelado | devuelto`
+
+Heurística por palabras clave en `event.title/description` (en orden de prioridad: entregado > reparto > destino > demora > transito > origen > preparando).
+
+## 5. Admin — detalle de pedido
+
+`src/pages/admin/AdminOrderDetail.tsx`: nuevo bloque "Gestión de envío":
+- Select transportista (lista activa de `shipping_providers`).
+- Inputs: `tracking_number`, `tracking_code`, `ose_id`.
+- Lectura de campos del shipment actual (estado, origen, destino, fechas, último movimiento, historial).
+- Botón "Guardar tracking" → upsert directo en `order_shipments` (admin RLS).
+- Botón "Actualizar tracking ahora" → invoca `shalom-tracking-query`.
+- Render del historial (`history_json`) en lista.
+
+## 6. Cliente — Mis pedidos
+
+`src/pages/MyOrders.tsx`:
+- Nueva columna "Envío" con badge según `status_internal` y `last_checked_at`.
+- Fetch en paralelo: shipments con `order_id IN (...)`.
+
+`src/pages/OrderDetail.tsx`:
+- Nuevo bloque visual `ShipmentTracking` (nuevo componente `src/components/order/ShipmentTracking.tsx`):
+  - Header: estado principal grande + n° de orden Shalom + última actualización.
+  - Grid: origen, destino, fecha registro, fecha entrega.
+  - Info envío: transportista, tracking, código, remitente, destinatario, contenido, pago (si vienen en raw).
+  - **Línea de progreso** horizontal (En origen → En tránsito → En destino → Entregado) con steps activos. Demora en rojo destacado.
+  - Historial: lista con fecha, hora, descripción, ubicación.
+- Tokens semánticos (no hardcodear colores); rojo para demora vía `text-destructive`/`bg-destructive/10`.
+
+## 7. Seguridad
+
+- API key/email/password solo en edge functions (`Deno.env.get`).
+- RLS asegura que cliente solo ve su shipment.
+- `shalom-tracking-query` valida ownership/admin antes de cualquier acción.
+- Errores técnicos no se exponen al cliente (mensaje genérico "Última actualización: ...").
+
+## Archivos a crear/editar
+
+Nuevos:
+- `supabase/functions/shalom-tracking-query/index.ts`
+- `supabase/functions/shalom-tracking-cron/index.ts`
+- `src/components/order/ShipmentTracking.tsx`
+- `src/hooks/useOrderShipment.ts`
+- `src/lib/shalomStatus.ts` (mapeo + labels frontend)
+
+Editados:
+- `src/pages/admin/AdminOrderDetail.tsx`
+- `src/pages/MyOrders.tsx`
+- `src/pages/OrderDetail.tsx`
+- `supabase/config.toml` (registrar nuevas functions si requieren override)
+
+Migration + cron job vía `supabase--insert`.
+
+## Orden de ejecución
+
+1. Pedir secrets.
+2. Migration (tabla + RLS + GRANTs + seed Shalom provider).
+3. Edge functions + deploy.
+4. Cron job (`supabase--insert` con `cron.schedule`).
+5. UI admin + cliente.
+6. Verificación (build, navegar a `/admin/orders/:id` y `/my-orders/:id`).
