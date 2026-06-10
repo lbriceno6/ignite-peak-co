@@ -279,9 +279,19 @@ Deno.serve(async (req) => {
       }));
 
     // Fase 15 — Personal context for authenticated users:
-    // recent orders, subscriptions, and goal so Lucía can recommend reorder/upsell.
+    // SECURITY: derive userId from the verified JWT, never trust client-supplied user_id.
     let userCtx: any = null;
-    const userId = context?.user_id ?? null;
+    let userId: string | null = null;
+    try {
+      const authHeader = req.headers.get("Authorization") || req.headers.get("authorization");
+      if (authHeader?.startsWith("Bearer ")) {
+        const token = authHeader.slice(7);
+        const { data: claimsData } = await admin.auth.getClaims(token);
+        userId = (claimsData?.claims?.sub as string) ?? null;
+      }
+    } catch (_e) {
+      userId = null;
+    }
     if (userId) {
       const [{ data: profile }, { data: recentOrders }, { data: subs }] = await Promise.all([
         admin.from("profiles").select("full_name, goal").eq("id", userId).maybeSingle(),
