@@ -1,8 +1,9 @@
 // Shalom Wrapper — tracking query edge function.
 //
 // Uses the public tracking endpoints from shalom.com.pe/rastrea (no login required).
-// Responses come AES-encrypted (CryptoJS OpenSSL format, passphrase ".Ov3rsku112024l4r43l.")
-// and are decrypted server-side.
+// Responses arrive as { encrypted: true, data: "<base64>" }.
+// Cipher: AES-256-CBC, PKCS7. Key is the fixed base64 key shipped in shalom.com.pe's
+// front-end bundle. The base64-decoded payload is [IV(16) || ciphertext].
 //
 // Endpoints:
 //   POST https://serviceswebapi.shalomcontrol.com/api/v1/web/rastrea/buscar
@@ -19,68 +20,9 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 const SHALOM_API = "https://serviceswebapi.shalomcontrol.com";
 const BUSCAR_PATH = "/api/v1/web/rastrea/buscar";
 const ESTADOS_PATH = "/api/v1/web/rastrea/estados";
-const AES_PASSPHRASE = ".Ov3rsku112024l4r43l.";
+const AES_KEY_B64 = "uQn/bQ94PXBEfId70zjN+VE1hSU7kh9VBXTOUd68Ssc=";
 
-// ---------- AES (CryptoJS / OpenSSL "Salted__" compatible) ----------
-
-async function md5(bytes: Uint8Array): Promise<Uint8Array> {
-  // Deno doesn't expose md5 via SubtleCrypto. Minimal MD5 impl.
-  // Source: public-domain compact implementation.
-  const s: number[] = [];
-  const k: number[] = [];
-  for (let i = 0; i < 64; i++) {
-    k[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
-    s[i] = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][((i >>> 4) << 2) | (i & 3)];
-  }
-  function add32(a: number, b: number) { return (a + b) & 0xffffffff; }
-  function leftRotate(x: number, c: number) { return (x << c) | (x >>> (32 - c)); }
-  const msg = new Uint8Array(((bytes.length + 8) >>> 6) * 64 + 64);
-  msg.set(bytes);
-  msg[bytes.length] = 0x80;
-  const bitLen = bytes.length * 8;
-  const view = new DataView(msg.buffer);
-  view.setUint32(msg.length - 8, bitLen >>> 0, true);
-  view.setUint32(msg.length - 4, Math.floor(bitLen / 4294967296), true);
-  let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
-  for (let chunk = 0; chunk < msg.length; chunk += 64) {
-    const M: number[] = [];
-    for (let j = 0; j < 16; j++) M.push(view.getUint32(chunk + j * 4, true));
-    let A = a0, B = b0, C = c0, D = d0;
-    for (let i = 0; i < 64; i++) {
-      let F = 0, g = 0;
-      if (i < 16) { F = (B & C) | (~B & D); g = i; }
-      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
-      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
-      else { F = C ^ (B | ~D); g = (7 * i) % 16; }
-      F = add32(add32(add32(F, A), k[i]), M[g]);
-      A = D; D = C; C = B; B = add32(B, leftRotate(F, s[i]));
-    }
-    a0 = add32(a0, A); b0 = add32(b0, B); c0 = add32(c0, C); d0 = add32(d0, D);
-  }
-  const out = new Uint8Array(16);
-  const ov = new DataView(out.buffer);
-  ov.setUint32(0, a0, true); ov.setUint32(4, b0, true);
-  ov.setUint32(8, c0, true); ov.setUint32(12, d0, true);
-  return out;
-}
-
-// EVP_BytesToKey with MD5 (matches OpenSSL "enc" + CryptoJS default)
-async function evpKDF(passphrase: Uint8Array, salt: Uint8Array, keyLen = 32, ivLen = 16): Promise<{ key: Uint8Array; iv: Uint8Array }> {
-  const target = keyLen + ivLen;
-  const out = new Uint8Array(target);
-  let prev = new Uint8Array(0);
-  let offset = 0;
-  while (offset < target) {
-    const buf = new Uint8Array(prev.length + passphrase.length + salt.length);
-    buf.set(prev, 0);
-    buf.set(passphrase, prev.length);
-    buf.set(salt, prev.length + passphrase.length);
-    prev = await md5(buf);
-    out.set(prev.subarray(0, Math.min(prev.length, target - offset)), offset);
-    offset += prev.length;
-  }
-  return { key: out.subarray(0, keyLen), iv: out.subarray(keyLen, keyLen + ivLen) };
-}
+// ---------- AES-256-CBC (Shalom front-end format) ----------
 
 function b64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
@@ -89,22 +31,27 @@ function b64ToBytes(b64: string): Uint8Array {
   return out;
 }
 
-async function decryptCryptoJSAES(b64: string, passphrase: string): Promise<string> {
+let cachedKey: CryptoKey | null = null;
+async function getKey(): Promise<CryptoKey> {
+  if (cachedKey) return cachedKey;
+  const raw = b64ToBytes(AES_KEY_B64);
+  cachedKey = await crypto.subtle.importKey("raw", raw, { name: "AES-CBC" }, false, ["decrypt"]);
+  return cachedKey;
+}
+
+async function decryptShalom(b64: string): Promise<string> {
   const data = b64ToBytes(b64);
-  // OpenSSL format: "Salted__" + 8-byte salt + ciphertext
-  const header = new TextDecoder().decode(data.subarray(0, 8));
-  if (header !== "Salted__") throw new Error("invalid_cryptojs_payload");
-  const salt = data.subarray(8, 16);
+  if (data.length < 32) throw new Error("invalid_payload_length");
+  const iv = data.subarray(0, 16);
   const ct = data.subarray(16);
-  const { key, iv } = await evpKDF(new TextEncoder().encode(passphrase), salt, 32, 16);
-  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "AES-CBC" }, false, ["decrypt"]);
-  const plain = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, ct);
+  const key = await getKey();
+  const plain = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, key, ct);
   return new TextDecoder().decode(plain);
 }
 
 // ---------- Shalom API ----------
 
-async function shalomPostMultipart(path: string, fields: Record<string, string>): Promise<unknown> {
+async function shalomPostMultipart(path: string, fields: Record<string, string>): Promise<any> {
   const fd = new FormData();
   for (const [k, v] of Object.entries(fields)) fd.append(k, v ?? "");
   const res = await fetch(`${SHALOM_API}${path}`, { method: "POST", body: fd });
@@ -113,55 +60,78 @@ async function shalomPostMultipart(path: string, fields: Record<string, string>)
   let body: any;
   try { body = JSON.parse(text); } catch { throw new Error("shalom_non_json"); }
   if (body?.encrypted === true && typeof body.data === "string") {
-    const plain = await decryptCryptoJSAES(body.data, AES_PASSPHRASE);
+    const plain = await decryptShalom(body.data);
     try { return JSON.parse(plain); } catch { return { raw: plain }; }
   }
   return body;
 }
 
-// ---------- Status mapping ----------
+// ---------- Normalization ----------
 
 type Event = { title?: string; description?: string; date?: string; time?: string; location?: string };
 
-const mapStatus = (events: Event[], delivered?: boolean) => {
-  if (delivered) return "entregado";
-  if (!events || events.length === 0) return "preparando";
-  const text = events.map((e) => `${e.title ?? ""} ${e.description ?? ""}`.toLowerCase()).join(" || ");
-  const has = (...n: string[]) => n.some((x) => text.includes(x));
-  if (has("entregado", "delivered")) return "entregado";
-  if (has("reparto", "para entrega", "out for delivery")) return "reparto";
-  if (has("en destino", "agencia destino", "arribó", "arribo a destino", "destino")) return "destino";
-  if (has("demora", "retraso", "rezagado")) return "demora";
-  if (has("tránsito", "transito", "in transit", "en ruta")) return "transito";
-  if (has("origen", "recepcionado", "recibido en agencia")) return "origen";
+const STATE_ORDER: Array<{ key: string; title: string }> = [
+  { key: "registrado", title: "Registrado" },
+  { key: "origen", title: "En origen" },
+  { key: "transito", title: "En tránsito" },
+  { key: "demora", title: "Demora de envío" },
+  { key: "destino", title: "En destino" },
+  { key: "reparto", title: "En reparto" },
+  { key: "entregado", title: "Entregado" },
+];
+
+function splitDateTime(s?: string | null): { date?: string; time?: string } {
+  if (!s) return {};
+  const [d, t] = String(s).split(" ");
+  return { date: d, time: t };
+}
+
+function eventsFromEstados(estados: any): Event[] {
+  const root = estados?.data ?? estados ?? {};
+  const out: Event[] = [];
+  for (const { key, title } of STATE_ORDER) {
+    const v = root?.[key];
+    if (!v || typeof v !== "object") continue;
+    const fecha = v.fecha ?? v.date ?? null;
+    const { date, time } = splitDateTime(fecha);
+    out.push({ title, date, time, description: v.carguero ? `Carguero ${v.carguero}` : undefined });
+  }
+  // Newest first
+  return out.reverse();
+}
+
+function mapStatusFromEstados(estados: any, deliveredFlag?: boolean): string {
+  if (deliveredFlag) return "entregado";
+  const root = estados?.data ?? estados ?? {};
+  if (root?.entregado) return "entregado";
+  if (root?.reparto) return "reparto";
+  if (root?.demora) return "demora";
+  if (root?.destino) return "destino";
+  if (root?.transito) return "transito";
+  if (root?.origen) return "origen";
+  if (root?.registrado) return "preparando";
   return "preparando";
-};
+}
 
 function normalize(buscar: any, estados: any) {
-  // Both responses are arbitrary JSON; we try common field names.
   const search = buscar?.data ?? buscar ?? {};
-  const states = estados?.data ?? estados ?? {};
-  const eventsRaw: any[] = (Array.isArray(states) ? states : (states.estados ?? states.events ?? states.movimientos ?? [])) || [];
-  const events: Event[] = eventsRaw.map((e: any) => ({
-    title: e.titulo ?? e.title ?? e.estado ?? e.descripcion_estado,
-    description: e.descripcion ?? e.description ?? e.detalle ?? e.observacion,
-    date: e.fecha ?? e.date,
-    time: e.hora ?? e.time,
-    location: e.ubicacion ?? e.location ?? e.agencia,
-  }));
-  const ose_id = search.ose_id ?? search.oseId ?? search.id ?? states.ose_id ?? null;
-  const origin = search.origen ?? search.agencia_origen ?? search.origin ?? null;
-  const destination = search.destino ?? search.agencia_destino ?? search.destination ?? null;
-  const delivered = Boolean(search.entregado ?? search.delivered);
+  const root = estados?.data ?? estados ?? {};
+  const events = eventsFromEstados(estados);
+  const ose_id = search.ose_id ?? null;
+  const origin =
+    (search.origen && (search.origen.nombre ?? search.origen)) ?? null;
+  const destination =
+    (search.destino && (search.destino.nombre ?? search.destino)) ?? null;
+  const delivered = Boolean(search.entregado) || Boolean(root?.entregado);
   return {
     events,
     ose_id: ose_id ? String(ose_id) : null,
     origin,
     destination,
     delivered,
-    registered_at: search.fecha_registro ?? search.registered_at ?? null,
-    estimated_delivery_at: search.fecha_estimada ?? search.estimated_delivery_at ?? null,
-    delivered_at: search.fecha_entrega ?? search.delivered_at ?? null,
+    registered_at: search.fecha_emision ?? search.fecha_traslado ?? root?.registrado?.fecha ?? null,
+    estimated_delivery_at: null,
+    delivered_at: root?.entregado?.fecha ?? null,
   };
 }
 
@@ -235,7 +205,6 @@ Deno.serve(async (req) => {
       if (!effectiveNumber && !effectiveOse) {
         errorMessage = "missing_tracking_input";
       } else {
-        // 1) buscar (needs numero + codigo; ose_id optional)
         if (effectiveNumber) {
           buscar = await shalomPostMultipart(BUSCAR_PATH, {
             numero: String(effectiveNumber),
@@ -243,9 +212,8 @@ Deno.serve(async (req) => {
             ose_id: effectiveOse ? String(effectiveOse) : "",
           });
           const b = buscar?.data ?? buscar ?? {};
-          effectiveOse = b.ose_id ?? b.oseId ?? b.id ?? effectiveOse;
+          effectiveOse = b.ose_id ?? effectiveOse;
         }
-        // 2) estados (needs ose_id)
         if (effectiveOse) {
           estados = await shalomPostMultipart(ESTADOS_PATH, { ose_id: String(effectiveOse) });
         }
@@ -267,7 +235,7 @@ Deno.serve(async (req) => {
 
     if ((buscar || estados) && !errorMessage) {
       const n = normalize(buscar, estados);
-      const status_internal = mapStatus(n.events, n.delivered);
+      const status_internal = mapStatusFromEstados(estados, n.delivered);
       const last = n.events[0];
       upsertPayload = {
         ...upsertPayload,
