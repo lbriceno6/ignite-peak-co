@@ -4,9 +4,20 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  // SECURITY: this endpoint mutates every user's orders/subscriptions and must
+  // only be reachable from trusted server callers (cron / admin scripts) using
+  // the service role key.
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ') || authHeader.slice(7) !== serviceKey) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    serviceKey,
   );
 
   try {
