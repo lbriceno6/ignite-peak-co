@@ -1,35 +1,125 @@
 // Shalom Wrapper — tracking query edge function.
 //
-// Flujo: el admin (o el dueño del pedido) llama esta función con
-// { order_id, tracking_number?, tracking_code?, ose_id? }.
-// La función:
-//   1. Verifica que el caller sea admin o dueño del pedido.
-//   2. Hace login a Shalom Pro (cache en memoria).
-//   3. Consulta tracking en Shalom (con endpoints configurables).
-//   4. Mapea eventos a status interno.
-//   5. Upsert en public.order_shipments. Si la API falla mantiene
-//      el último estado guardado y solo escribe error_message.
+// Uses the public tracking endpoints from shalom.com.pe/rastrea (no login required).
+// Responses come AES-encrypted (CryptoJS OpenSSL format, passphrase ".Ov3rsku112024l4r43l.")
+// and are decrypted server-side.
 //
-// Credenciales (NUNCA expuestas al frontend):
-//   - SHALOM_USER, SHALOM_PASSWORD: login Shalom Pro
-//   - SHALOM_WRAPPER_API_KEY: opcional, para validar invocaciones server-to-server
+// Endpoints:
+//   POST https://serviceswebapi.shalomcontrol.com/api/v1/web/rastrea/buscar
+//     multipart: numero, codigo, ose_id (ose_id may be empty)
+//   POST https://serviceswebapi.shalomcontrol.com/api/v1/web/rastrea/estados
+//     multipart: ose_id
 //
-// Endpoints configurables (opcionales, valores por defecto best-effort):
-//   - SHALOM_BASE_URL          (default: https://shalom.com.pe)
-//   - SHALOM_LOGIN_PATH        (default: /api/auth/login)
-//   - SHALOM_TRACKING_PATH     (default: /api/tracking)
-//   - SHALOM_TRACKING_BY_OSE   (default: /api/tracking/{ose_id}/events)
+// Input: { order_id, tracking_number?, tracking_code?, ose_id? }
+// AuthZ: caller must be admin / order owner, OR pass x-wrapper-key = SHALOM_WRAPPER_API_KEY.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const SHALOM_BASE = Deno.env.get("SHALOM_BASE_URL") ?? "https://shalom.com.pe";
-const SHALOM_LOGIN_PATH = Deno.env.get("SHALOM_LOGIN_PATH") ?? "/api/auth/login";
-const SHALOM_TRACKING_PATH = Deno.env.get("SHALOM_TRACKING_PATH") ?? "/api/tracking";
-const SHALOM_TRACKING_BY_OSE = Deno.env.get("SHALOM_TRACKING_BY_OSE") ?? "/api/tracking/{ose_id}/events";
+const SHALOM_API = "https://serviceswebapi.shalomcontrol.com";
+const BUSCAR_PATH = "/api/v1/web/rastrea/buscar";
+const ESTADOS_PATH = "/api/v1/web/rastrea/estados";
+const AES_PASSPHRASE = ".Ov3rsku112024l4r43l.";
 
-// In-memory session cache (per warm instance).
-let cachedSession: { token: string; cookie: string | null; expiresAt: number } | null = null;
+// ---------- AES (CryptoJS / OpenSSL "Salted__" compatible) ----------
+
+async function md5(bytes: Uint8Array): Promise<Uint8Array> {
+  // Deno doesn't expose md5 via SubtleCrypto. Minimal MD5 impl.
+  // Source: public-domain compact implementation.
+  const s: number[] = [];
+  const k: number[] = [];
+  for (let i = 0; i < 64; i++) {
+    k[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 4294967296);
+    s[i] = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21][((i >>> 4) << 2) | (i & 3)];
+  }
+  function add32(a: number, b: number) { return (a + b) & 0xffffffff; }
+  function leftRotate(x: number, c: number) { return (x << c) | (x >>> (32 - c)); }
+  const msg = new Uint8Array(((bytes.length + 8) >>> 6) * 64 + 64);
+  msg.set(bytes);
+  msg[bytes.length] = 0x80;
+  const bitLen = bytes.length * 8;
+  const view = new DataView(msg.buffer);
+  view.setUint32(msg.length - 8, bitLen >>> 0, true);
+  view.setUint32(msg.length - 4, Math.floor(bitLen / 4294967296), true);
+  let a0 = 0x67452301, b0 = 0xefcdab89, c0 = 0x98badcfe, d0 = 0x10325476;
+  for (let chunk = 0; chunk < msg.length; chunk += 64) {
+    const M: number[] = [];
+    for (let j = 0; j < 16; j++) M.push(view.getUint32(chunk + j * 4, true));
+    let A = a0, B = b0, C = c0, D = d0;
+    for (let i = 0; i < 64; i++) {
+      let F = 0, g = 0;
+      if (i < 16) { F = (B & C) | (~B & D); g = i; }
+      else if (i < 32) { F = (D & B) | (~D & C); g = (5 * i + 1) % 16; }
+      else if (i < 48) { F = B ^ C ^ D; g = (3 * i + 5) % 16; }
+      else { F = C ^ (B | ~D); g = (7 * i) % 16; }
+      F = add32(add32(add32(F, A), k[i]), M[g]);
+      A = D; D = C; C = B; B = add32(B, leftRotate(F, s[i]));
+    }
+    a0 = add32(a0, A); b0 = add32(b0, B); c0 = add32(c0, C); d0 = add32(d0, D);
+  }
+  const out = new Uint8Array(16);
+  const ov = new DataView(out.buffer);
+  ov.setUint32(0, a0, true); ov.setUint32(4, b0, true);
+  ov.setUint32(8, c0, true); ov.setUint32(12, d0, true);
+  return out;
+}
+
+// EVP_BytesToKey with MD5 (matches OpenSSL "enc" + CryptoJS default)
+async function evpKDF(passphrase: Uint8Array, salt: Uint8Array, keyLen = 32, ivLen = 16): Promise<{ key: Uint8Array; iv: Uint8Array }> {
+  const target = keyLen + ivLen;
+  const out = new Uint8Array(target);
+  let prev = new Uint8Array(0);
+  let offset = 0;
+  while (offset < target) {
+    const buf = new Uint8Array(prev.length + passphrase.length + salt.length);
+    buf.set(prev, 0);
+    buf.set(passphrase, prev.length);
+    buf.set(salt, prev.length + passphrase.length);
+    prev = await md5(buf);
+    out.set(prev.subarray(0, Math.min(prev.length, target - offset)), offset);
+    offset += prev.length;
+  }
+  return { key: out.subarray(0, keyLen), iv: out.subarray(keyLen, keyLen + ivLen) };
+}
+
+function b64ToBytes(b64: string): Uint8Array {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function decryptCryptoJSAES(b64: string, passphrase: string): Promise<string> {
+  const data = b64ToBytes(b64);
+  // OpenSSL format: "Salted__" + 8-byte salt + ciphertext
+  const header = new TextDecoder().decode(data.subarray(0, 8));
+  if (header !== "Salted__") throw new Error("invalid_cryptojs_payload");
+  const salt = data.subarray(8, 16);
+  const ct = data.subarray(16);
+  const { key, iv } = await evpKDF(new TextEncoder().encode(passphrase), salt, 32, 16);
+  const cryptoKey = await crypto.subtle.importKey("raw", key, { name: "AES-CBC" }, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({ name: "AES-CBC", iv }, cryptoKey, ct);
+  return new TextDecoder().decode(plain);
+}
+
+// ---------- Shalom API ----------
+
+async function shalomPostMultipart(path: string, fields: Record<string, string>): Promise<unknown> {
+  const fd = new FormData();
+  for (const [k, v] of Object.entries(fields)) fd.append(k, v ?? "");
+  const res = await fetch(`${SHALOM_API}${path}`, { method: "POST", body: fd });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`shalom_http_${res.status}:${text.slice(0, 200)}`);
+  let body: any;
+  try { body = JSON.parse(text); } catch { throw new Error("shalom_non_json"); }
+  if (body?.encrypted === true && typeof body.data === "string") {
+    const plain = await decryptCryptoJSAES(body.data, AES_PASSPHRASE);
+    try { return JSON.parse(plain); } catch { return { raw: plain }; }
+  }
+  return body;
+}
+
+// ---------- Status mapping ----------
 
 type Event = { title?: string; description?: string; date?: string; time?: string; location?: string };
 
@@ -40,92 +130,42 @@ const mapStatus = (events: Event[], delivered?: boolean) => {
   const has = (...n: string[]) => n.some((x) => text.includes(x));
   if (has("entregado", "delivered")) return "entregado";
   if (has("reparto", "para entrega", "out for delivery")) return "reparto";
-  if (has("en destino", "agencia destino", "arribó", "arribo a destino")) return "destino";
+  if (has("en destino", "agencia destino", "arribó", "arribo a destino", "destino")) return "destino";
   if (has("demora", "retraso", "rezagado")) return "demora";
   if (has("tránsito", "transito", "in transit", "en ruta")) return "transito";
-  if (has("origen", "recepcionado", "recibido en agencia", "en origen")) return "origen";
+  if (has("origen", "recepcionado", "recibido en agencia")) return "origen";
   return "preparando";
 };
 
-async function shalomLogin(): Promise<{ token: string; cookie: string | null }> {
-  const now = Date.now();
-  if (cachedSession && cachedSession.expiresAt > now + 30_000) {
-    return { token: cachedSession.token, cookie: cachedSession.cookie };
-  }
-  const user = Deno.env.get("SHALOM_USER");
-  const pass = Deno.env.get("SHALOM_PASSWORD");
-  if (!user || !pass) throw new Error("missing_shalom_credentials");
-
-  const res = await fetch(`${SHALOM_BASE}${SHALOM_LOGIN_PATH}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ email: user, username: user, password: pass }),
-  });
-  const cookie = res.headers.get("set-cookie");
-  const text = await res.text();
-  let body: any = {};
-  try { body = JSON.parse(text); } catch { /* not json */ }
-  if (!res.ok) throw new Error(`shalom_login_failed:${res.status}:${text.slice(0, 200)}`);
-
-  const token = body?.token ?? body?.access_token ?? body?.data?.token ?? "";
-  cachedSession = { token, cookie, expiresAt: now + 30 * 60 * 1000 };
-  return { token, cookie };
-}
-
-async function shalomFetch(path: string): Promise<any> {
-  const { token, cookie } = await shalomLogin();
-  const headers: Record<string, string> = { "Accept": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  if (cookie) headers["Cookie"] = cookie;
-
-  const res = await fetch(`${SHALOM_BASE}${path}`, { headers });
-  if (res.status === 401 || res.status === 403) {
-    // session may have expired
-    cachedSession = null;
-    const retry = await shalomLogin();
-    const h2: Record<string, string> = { "Accept": "application/json" };
-    if (retry.token) h2["Authorization"] = `Bearer ${retry.token}`;
-    if (retry.cookie) h2["Cookie"] = retry.cookie;
-    const r2 = await fetch(`${SHALOM_BASE}${path}`, { headers: h2 });
-    const t2 = await r2.text();
-    if (!r2.ok) throw new Error(`shalom_fetch_failed:${r2.status}:${t2.slice(0, 200)}`);
-    try { return JSON.parse(t2); } catch { return { raw: t2 }; }
-  }
-  const text = await res.text();
-  if (!res.ok) throw new Error(`shalom_fetch_failed:${res.status}:${text.slice(0, 200)}`);
-  try { return JSON.parse(text); } catch { return { raw: text }; }
-}
-
-function normalize(raw: any): {
-  events: Event[];
-  ose_id: string | null;
-  origin: string | null;
-  destination: string | null;
-  delivered: boolean;
-  registered_at: string | null;
-  estimated_delivery_at: string | null;
-  delivered_at: string | null;
-} {
-  const data = raw?.data ?? raw ?? {};
-  const eventsRaw: any[] = data.events ?? data.movimientos ?? data.history ?? data.eventos ?? [];
+function normalize(buscar: any, estados: any) {
+  // Both responses are arbitrary JSON; we try common field names.
+  const search = buscar?.data ?? buscar ?? {};
+  const states = estados?.data ?? estados ?? {};
+  const eventsRaw: any[] = (Array.isArray(states) ? states : (states.estados ?? states.events ?? states.movimientos ?? [])) || [];
   const events: Event[] = eventsRaw.map((e: any) => ({
-    title: e.title ?? e.titulo ?? e.estado ?? e.status,
-    description: e.description ?? e.descripcion ?? e.detalle ?? e.observacion,
-    date: e.date ?? e.fecha,
-    time: e.time ?? e.hora,
-    location: e.location ?? e.ubicacion ?? e.agencia,
+    title: e.titulo ?? e.title ?? e.estado ?? e.descripcion_estado,
+    description: e.descripcion ?? e.description ?? e.detalle ?? e.observacion,
+    date: e.fecha ?? e.date,
+    time: e.hora ?? e.time,
+    location: e.ubicacion ?? e.location ?? e.agencia,
   }));
+  const ose_id = search.ose_id ?? search.oseId ?? search.id ?? states.ose_id ?? null;
+  const origin = search.origen ?? search.agencia_origen ?? search.origin ?? null;
+  const destination = search.destino ?? search.agencia_destino ?? search.destination ?? null;
+  const delivered = Boolean(search.entregado ?? search.delivered);
   return {
     events,
-    ose_id: data.ose_id ?? data.oseId ?? data.id ?? null,
-    origin: data.origen ?? data.origin ?? data.agencia_origen ?? null,
-    destination: data.destino ?? data.destination ?? data.agencia_destino ?? null,
-    delivered: Boolean(data.entregado ?? data.delivered),
-    registered_at: data.fecha_registro ?? data.registered_at ?? null,
-    estimated_delivery_at: data.fecha_estimada ?? data.estimated_delivery_at ?? null,
-    delivered_at: data.fecha_entrega ?? data.delivered_at ?? null,
+    ose_id: ose_id ? String(ose_id) : null,
+    origin,
+    destination,
+    delivered,
+    registered_at: search.fecha_registro ?? search.registered_at ?? null,
+    estimated_delivery_at: search.fecha_estimada ?? search.estimated_delivery_at ?? null,
+    delivered_at: search.fecha_entrega ?? search.delivered_at ?? null,
   };
 }
+
+// ---------- Edge function ----------
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -145,13 +185,12 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // AuthZ: either valid user (admin or order owner) OR server-to-server wrapper key
     let userId: string | null = null;
     if (authHeader?.startsWith("Bearer ")) {
       const { data } = await supabase.auth.getClaims(authHeader.replace("Bearer ", ""));
       userId = data?.claims?.sub ?? null;
     }
-    const isWrapper = expectedKey && wrapperKey === expectedKey;
+    const isWrapper = !!expectedKey && wrapperKey === expectedKey;
 
     if (!userId && !isWrapper) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -167,7 +206,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Verify caller owns order or is admin (skip when wrapper key used)
     if (!isWrapper) {
       const { data: order } = await admin.from("orders").select("user_id").eq("id", order_id).maybeSingle();
       if (!order) {
@@ -184,25 +222,33 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Load existing shipment to keep last state on failure
     const { data: existing } = await admin.from("order_shipments").select("*").eq("order_id", order_id).maybeSingle();
-    const effectiveOse = ose_id ?? existing?.ose_id ?? null;
+    let effectiveOse = ose_id ?? existing?.ose_id ?? null;
     const effectiveNumber = tracking_number ?? existing?.tracking_number ?? null;
     const effectiveCode = tracking_code ?? existing?.tracking_code ?? null;
 
-    let raw: any = null;
+    let buscar: any = null;
+    let estados: any = null;
     let errorMessage: string | null = null;
 
     try {
-      if (effectiveOse) {
-        raw = await shalomFetch(SHALOM_TRACKING_BY_OSE.replace("{ose_id}", encodeURIComponent(effectiveOse)));
-      } else if (effectiveNumber) {
-        const qs = new URLSearchParams();
-        qs.set("numero", effectiveNumber);
-        if (effectiveCode) qs.set("codigo", effectiveCode);
-        raw = await shalomFetch(`${SHALOM_TRACKING_PATH}?${qs.toString()}`);
-      } else {
+      if (!effectiveNumber && !effectiveOse) {
         errorMessage = "missing_tracking_input";
+      } else {
+        // 1) buscar (needs numero + codigo; ose_id optional)
+        if (effectiveNumber) {
+          buscar = await shalomPostMultipart(BUSCAR_PATH, {
+            numero: String(effectiveNumber),
+            codigo: String(effectiveCode ?? ""),
+            ose_id: effectiveOse ? String(effectiveOse) : "",
+          });
+          const b = buscar?.data ?? buscar ?? {};
+          effectiveOse = b.ose_id ?? b.oseId ?? b.id ?? effectiveOse;
+        }
+        // 2) estados (needs ose_id)
+        if (effectiveOse) {
+          estados = await shalomPostMultipart(ESTADOS_PATH, { ose_id: String(effectiveOse) });
+        }
       }
     } catch (e: any) {
       errorMessage = String(e?.message ?? e).slice(0, 500);
@@ -214,18 +260,18 @@ Deno.serve(async (req) => {
       carrier_code: "shalom",
       tracking_number: effectiveNumber,
       tracking_code: effectiveCode,
-      ose_id: effectiveOse,
+      ose_id: effectiveOse ? String(effectiveOse) : null,
       last_checked_at: now,
       error_message: errorMessage,
     };
 
-    if (raw && !errorMessage) {
-      const n = normalize(raw);
+    if ((buscar || estados) && !errorMessage) {
+      const n = normalize(buscar, estados);
       const status_internal = mapStatus(n.events, n.delivered);
       const last = n.events[0];
       upsertPayload = {
         ...upsertPayload,
-        ose_id: n.ose_id ?? effectiveOse,
+        ose_id: n.ose_id ?? upsertPayload.ose_id,
         status_internal,
         status_external: last?.title ?? null,
         origin_name: n.origin,
@@ -238,12 +284,11 @@ Deno.serve(async (req) => {
         last_event_date: last?.date ?? null,
         last_event_time: last?.time ?? null,
         history_json: n.events,
-        raw_response: raw,
+        raw_response: { buscar, estados },
         error_message: null,
       };
     }
 
-    // Look up carrier_id for shalom (best-effort)
     if (!existing?.carrier_id) {
       const { data: carrier } = await admin.from("shipping_providers").select("id").eq("code", "shalom").maybeSingle();
       if (carrier?.id) upsertPayload.carrier_id = carrier.id;
