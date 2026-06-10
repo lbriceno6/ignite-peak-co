@@ -11,26 +11,7 @@ import { toast } from "sonner";
 import { ArrowLeft, RefreshCw, Save, ExternalLink, Loader2, AlertTriangle } from "lucide-react";
 import { useOrderShipment } from "@/hooks/useOrderShipment";
 import { SHIPMENT_BADGE_CLASS, SHIPMENT_LABEL, type ShipmentStatus } from "@/lib/shalomStatus";
-
-const STATUSES = ["pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"];
-
-const STATUS_LABEL_ES: Record<string, string> = {
-  pending: "Pendiente",
-  confirmed: "Confirmado",
-  preparing: "Preparando",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
-};
-
-const STATUS_CLASS_ES: Record<string, string> = {
-  pending: "bg-amber-100 text-amber-800 border-amber-200",
-  confirmed: "bg-blue-100 text-blue-800 border-blue-200",
-  preparing: "bg-purple-100 text-purple-800 border-purple-200",
-  shipped: "bg-indigo-100 text-indigo-800 border-indigo-200",
-  delivered: "bg-emerald-100 text-emerald-800 border-emerald-200",
-  cancelled: "bg-rose-100 text-rose-800 border-rose-200",
-};
+import { ORDER_STATUSES, ORDER_STATUS_LABEL, ORDER_STATUS_CLASS, shipmentToOrderStatus, nextOrderStatus } from "@/lib/orderStatus";
 
 type Carrier = { id: string; name: string; code: string | null; is_active: boolean };
 
