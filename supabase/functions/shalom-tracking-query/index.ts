@@ -54,7 +54,16 @@ async function decryptShalom(b64: string): Promise<string> {
 async function shalomPostMultipart(path: string, fields: Record<string, string>): Promise<any> {
   const fd = new FormData();
   for (const [k, v] of Object.entries(fields)) fd.append(k, v ?? "");
-  const res = await fetch(`${SHALOM_API}${path}`, { method: "POST", body: fd });
+  const res = await fetch(`${SHALOM_API}${path}`, {
+    method: "POST",
+    body: fd,
+    headers: {
+      "Origin": "https://shalom.com.pe",
+      "Referer": "https://shalom.com.pe/",
+      "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+      "Accept": "application/json, text/plain, */*",
+    },
+  });
   const text = await res.text();
   if (!res.ok) throw new Error(`shalom_http_${res.status}:${text.slice(0, 200)}`);
   let body: any;
@@ -193,7 +202,14 @@ Deno.serve(async (req) => {
     }
 
     const { data: existing } = await admin.from("order_shipments").select("*").eq("order_id", order_id).maybeSingle();
-    let effectiveOse = ose_id ?? existing?.ose_id ?? null;
+    // ose_id from Shalom is always numeric. Discard any non-numeric junk that may
+    // have been entered manually in the OSE ID field.
+    const isNumericOse = (v: unknown) => v != null && /^\d+$/.test(String(v).trim());
+    let effectiveOse: string | null = isNumericOse(ose_id)
+      ? String(ose_id).trim()
+      : isNumericOse(existing?.ose_id)
+        ? String(existing!.ose_id).trim()
+        : null;
     const effectiveNumber = tracking_number ?? existing?.tracking_number ?? null;
     const effectiveCode = tracking_code ?? existing?.tracking_code ?? null;
 
@@ -209,10 +225,10 @@ Deno.serve(async (req) => {
           buscar = await shalomPostMultipart(BUSCAR_PATH, {
             numero: String(effectiveNumber),
             codigo: String(effectiveCode ?? ""),
-            ose_id: effectiveOse ? String(effectiveOse) : "",
+            ose_id: "",
           });
           const b = buscar?.data ?? buscar ?? {};
-          effectiveOse = b.ose_id ?? effectiveOse;
+          if (b?.ose_id) effectiveOse = String(b.ose_id);
         }
         if (effectiveOse) {
           estados = await shalomPostMultipart(ESTADOS_PATH, { ose_id: String(effectiveOse) });
