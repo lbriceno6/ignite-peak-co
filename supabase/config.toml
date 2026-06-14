@@ -44,3 +44,9 @@ verify_jwt = true
 
 [functions.shalom-tracking-cron]
 verify_jwt = false
+
+[functions.wa-webhook]
+verify_jwt = false
+
+[functions.wa-send]
+verify_jwt = true
