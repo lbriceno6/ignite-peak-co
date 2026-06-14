@@ -116,6 +116,7 @@ import AdminBrands from "./pages/admin/AdminBrands.tsx";
 import AdminBrandForm from "./pages/admin/AdminBrandForm.tsx";
 import CrmDashboard from "./pages/admin/crm/CrmDashboard.tsx";
 import CrmCustomers from "./pages/admin/crm/CrmCustomers.tsx";
+import WhatsAppInbox from "./pages/admin/WhatsAppInbox.tsx";
 import CrmCustomerDetail from "./pages/admin/crm/CrmCustomerDetail.tsx";
 import CrmAbandonedCarts from "./pages/admin/crm/CrmAbandonedCarts.tsx";
 import CrmTemplates from "./pages/admin/crm/CrmTemplates.tsx";
@@ -299,6 +300,7 @@ const App = () => (
               <Route path="crm/carritos" element={<CrmAbandonedCarts />} />
               <Route path="crm/plantillas" element={<CrmTemplates />} />
               <Route path="crm/segmentos" element={<CrmSegments />} />
+              <Route path="whatsapp" element={<WhatsAppInbox />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
