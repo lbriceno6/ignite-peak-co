@@ -131,6 +131,7 @@ const defaultSections = [
       { key: "crm-carritos", to: "/admin/crm/carritos", label: "Carritos abandonados", icon: ShoppingCart },
       { key: "crm-plantillas", to: "/admin/crm/plantillas", label: "Plantillas WhatsApp", icon: MessageCircle },
       { key: "crm-segmentos", to: "/admin/crm/segmentos", label: "Segmentos", icon: ListChecks },
+      { key: "whatsapp", to: "/admin/whatsapp", label: "WhatsApp", icon: MessageCircle },
     ],
   },
   {
