@@ -5029,6 +5029,205 @@ export type Database = {
         }
         Relationships: []
       }
+      wa_contacts: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          name: string | null
+          phone: string | null
+          profile_id: string | null
+          wa_id: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          wa_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          phone?: string | null
+          profile_id?: string | null
+          wa_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_conversations: {
+        Row: {
+          assigned_to: string | null
+          channel: string
+          contact_id: string
+          created_at: string
+          id: string
+          last_inbound_at: string | null
+          last_message_at: string | null
+          last_message_preview: string | null
+          status: string
+          unread_count: number
+        }
+        Insert: {
+          assigned_to?: string | null
+          channel?: string
+          contact_id: string
+          created_at?: string
+          id?: string
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          status?: string
+          unread_count?: number
+        }
+        Update: {
+          assigned_to?: string | null
+          channel?: string
+          contact_id?: string
+          created_at?: string
+          id?: string
+          last_inbound_at?: string | null
+          last_message_at?: string | null
+          last_message_preview?: string | null
+          status?: string
+          unread_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_conversations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "wa_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wa_messages: {
+        Row: {
+          body: string | null
+          channel: string
+          contact_id: string
+          conversation_id: string
+          created_at: string
+          direction: string
+          error: string | null
+          id: string
+          media_mime: string | null
+          media_url: string | null
+          raw: Json | null
+          sent_by: string | null
+          status: string
+          type: string
+          wa_message_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          channel?: string
+          contact_id: string
+          conversation_id: string
+          created_at?: string
+          direction: string
+          error?: string | null
+          id?: string
+          media_mime?: string | null
+          media_url?: string | null
+          raw?: Json | null
+          sent_by?: string | null
+          status?: string
+          type?: string
+          wa_message_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          channel?: string
+          contact_id?: string
+          conversation_id?: string
+          created_at?: string
+          direction?: string
+          error?: string | null
+          id?: string
+          media_mime?: string | null
+          media_url?: string | null
+          raw?: Json | null
+          sent_by?: string | null
+          status?: string
+          type?: string
+          wa_message_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_messages_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "wa_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "wa_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "wa_conversations_v"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_messages_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       web_import_jobs: {
         Row: {
           created_at: string
@@ -5178,6 +5377,62 @@ export type Database = {
         }
         Relationships: []
       }
+      wa_conversations_v: {
+        Row: {
+          assigned_to: string | null
+          channel: string | null
+          contact_id: string | null
+          created_at: string | null
+          id: string | null
+          last_inbound_at: string | null
+          last_message_at: string | null
+          last_message_preview: string | null
+          name: string | null
+          phone: string | null
+          profile_id: string | null
+          status: string | null
+          unread_count: number | null
+          wa_id: string | null
+          window_open: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wa_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_contacts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "crm_customers"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "wa_conversations_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wa_conversations_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: true
+            referencedRelation: "wa_contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       activate_reseller: {
@@ -5312,6 +5567,20 @@ export type Database = {
       user_has_confirmed_purchase: {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean
+      }
+      wa_ingest_inbound: {
+        Args: {
+          p_body: string
+          p_channel: string
+          p_media_mime: string
+          p_media_url: string
+          p_name: string
+          p_raw: Json
+          p_type: string
+          p_wa_id: string
+          p_wa_message_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
