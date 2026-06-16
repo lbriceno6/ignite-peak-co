@@ -144,24 +144,37 @@ Deno.serve(async (req) => {
       );
 
     const toneGuide = TONE_GUIDE[tone] ?? TONE_GUIDE.equilibrado;
-    const system = `Eres un redactor de blog SEO para Nutribatidos (tienda peruana de suplementos naturales).
-Escribe SIEMPRE en español, tono: ${toneGuide}
+    const system = `Eres un redactor de blog para Nutribatidos (tienda peruana de suplementos naturales).
+Escribe SIEMPRE en español, con un tono cercano, humano y conversacional (como un amigo experto que recomienda algo), tono base: ${toneGuide}
+
+Estilo del artículo:
+- Natural y fluido: habla de "tú", haz preguntas al lector, usa ejemplos cotidianos con los que la gente se identifique (ej. "ese bajón de las 3pm", "después de entrenar").
+- ATRACTIVO y escaneable con EMOJIS, pero con moderación (1 emoji por título de sección y, ocasionalmente, al inicio de un punto de lista). Nunca pongas filas de emojis ni más de uno seguido.
+- Referencias divulgativas: apóyate en ideas conocidas de nutrición/bienestar ("muchos nutricionistas suelen recomendar…", "suele asociarse con…"), SIN inventar estudios concretos ni citar fuentes falsas.
+
+FORMATO DEL CONTENIDO (MUY IMPORTANTE — el blog NO renderiza Markdown, es texto plano):
+- NO uses sintaxis Markdown: nada de "##", "**", "__", ni "#". Se verían como caracteres feos.
+- Títulos de sección: una línea propia que empiece con un emoji y el título en texto normal. Ej: "💪 Energía para tu día".
+- Separa párrafos y secciones con UNA línea en blanco.
+- Listas: cada ítem en su línea empezando con "• " (puedes anteponer un emoji al ítem). Ej: "• 🦴 Apoya tus huesos".
+- Para resaltar, NO uses asteriscos; simplemente redacta con énfasis natural.
+
 Reglas:
-- Artículo útil y atractivo construido en torno al producto indicado, mencionándolo de forma natural.
-- SIN afirmaciones médicas ni promesas de curación; usa lenguaje suave ("puede ayudar a complementar").
+- Construye el artículo en torno al producto indicado, mencionándolo de forma natural (no como anuncio agresivo).
+- SIN afirmaciones médicas ni promesas de curación; usa lenguaje suave ("puede ayudar a complementar", "suele asociarse con").
 - Moneda S/ (PEN) si mencionas precio.
-- Devuelve SIEMPRE un JSON válido, sin markdown alrededor ni texto extra.`;
+- Devuelve SIEMPRE un JSON válido, sin texto fuera del JSON.`;
 
     const userPrompt = `Producto: ${JSON.stringify(product)}
 
-Genera un artículo de blog. Responde ÚNICAMENTE con un JSON con este schema exacto:
+Genera un artículo de blog atractivo, natural y con emojis, en TEXTO PLANO (sin Markdown). Responde ÚNICAMENTE con un JSON con este schema exacto:
 {
-  "title": "string, atractivo, máx 70 caracteres",
-  "slug": "string en kebab-case",
-  "excerpt": "string, máx 160 caracteres",
+  "title": "string atractivo, máx 70 caracteres; puede incluir 1 emoji al inicio o final",
+  "slug": "string en kebab-case (sin emojis)",
+  "excerpt": "string gancho de máx 160 caracteres; puede incluir 1 emoji",
   "category": "string (ej. Nutrición, Suplementos, Bienestar)",
   "read_time": "string (ej. '5 min')",
-  "content": "string en Markdown, 600-900 palabras, con subtítulos ## y párrafos; menciona el producto con naturalidad",
+  "content": "string en TEXTO PLANO (sin ##, sin **), 600-900 palabras: gancho inicial + 3-5 secciones (cada título en su línea empezando con un emoji), al menos una lista con viñetas '• ', líneas en blanco entre párrafos, tono cercano con ejemplos cotidianos, y un cierre invitando a probar el producto. Menciona el producto con naturalidad.",
   "image_prompt": "string EN INGLÉS describiendo una imagen de portada editorial para este artículo (sin texto ni logos)"
 }`;
 
