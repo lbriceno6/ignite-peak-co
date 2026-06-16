@@ -23,6 +23,17 @@ import {
 import { Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+/** Extrae el mensaje real del cuerpo de un error de edge function (non-2xx). */
+async function edgeErrorMessage(e: any): Promise<string> {
+  try {
+    if (e?.context && typeof e.context.json === "function") {
+      const body = await e.context.json();
+      if (body?.error) return body.error;
+    }
+  } catch { /* ignore */ }
+  return e?.message ?? String(e);
+}
+
 type ProductLite = { id: string; name: string };
 
 export function BlogAiGenerateDialog({ onCreated }: { onCreated?: () => void }) {
@@ -87,7 +98,7 @@ export function BlogAiGenerateDialog({ onCreated }: { onCreated?: () => void }) 
       onCreated?.();
       navigate(`/admin/blog/${inserted.id}/edit`);
     } catch (e: any) {
-      toast.error(e.message ?? String(e));
+      toast.error(await edgeErrorMessage(e));
     } finally {
       setLoading(false);
     }
