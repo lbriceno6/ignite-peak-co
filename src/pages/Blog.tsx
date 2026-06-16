@@ -22,6 +22,7 @@ const Blog = () => {
   const { slug } = useParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [post, setPost] = useState<Post | null>(null);
+  const [related, setRelated] = useState<Post[]>([]);
   const [cats, setCats] = useState<{ name: string; icon: string | null; description: string | null }[]>([]);
   const [q, setQ] = useState("");
   const [activeCat, setActiveCat] = useState("Todos");
@@ -32,7 +33,25 @@ const Blog = () => {
       setLoading(true);
       if (slug) {
         const { data } = await supabase.from("blog_posts").select("*").eq("slug", slug).eq("is_published", true).maybeSingle();
-        setPost(data as Post | null);
+        const current = data as Post | null;
+        setPost(current);
+        // Artículos relacionados: prioriza la misma categoría, completa con recientes.
+        if (current) {
+          const { data: rel } = await supabase
+            .from("blog_posts")
+            .select("id,slug,title,excerpt,category,read_time,cover_image,published_at,content")
+            .eq("is_published", true)
+            .neq("id", current.id)
+            .order("published_at", { ascending: false })
+            .limit(6);
+          const cat = (current.category ?? "").trim().toLowerCase();
+          const list = (rel as Post[]) ?? [];
+          const sameCat = list.filter((r) => (r.category ?? "").trim().toLowerCase() === cat);
+          const others = list.filter((r) => (r.category ?? "").trim().toLowerCase() !== cat);
+          setRelated([...sameCat, ...others].slice(0, 3));
+        } else {
+          setRelated([]);
+        }
       } else {
         const [postsRes, catsRes] = await Promise.all([
           supabase.from("blog_posts").select("*").eq("is_published", true).order("published_at", { ascending: false }),
@@ -98,27 +117,72 @@ const Blog = () => {
           />
         )}
         <article className="container-x py-12">
-          <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">← Volver a todos los artículos</Link>
           {loading ? (
-            <p className="mt-10 text-muted-foreground">Cargando…</p>
+            <p className="mt-10 text-center text-muted-foreground">Cargando…</p>
           ) : !post ? (
-            <p className="mt-10 text-muted-foreground">Artículo no encontrado.</p>
+            <p className="mt-10 text-center text-muted-foreground">Artículo no encontrado.</p>
           ) : (
             <>
-              <div className="mt-6 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
-                {post.category && <span className="font-bold text-accent">{post.category}</span>}
-                {post.read_time && <span>· {post.read_time} de lectura</span>}
-                <span>· {new Date(post.published_at).toLocaleDateString()}</span>
-              </div>
-              <h1 className="mt-3 font-display text-4xl uppercase sm:text-5xl">{post.title}</h1>
-              {post.excerpt && <p className="mt-4 max-w-2xl text-lg text-muted-foreground">{post.excerpt}</p>}
+              {/* Header tipo revista, centrado */}
+              <header className="mx-auto max-w-3xl text-center">
+                <Link to="/blog" className="text-xs font-bold uppercase tracking-wider text-accent">
+                  ← Volver a todos los artículos
+                </Link>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  {post.category && <span className="font-bold text-accent">{post.category}</span>}
+                  {post.read_time && <span>· {post.read_time} de lectura</span>}
+                  <span>· {new Date(post.published_at).toLocaleDateString()}</span>
+                </div>
+                <h1 className="mt-4 font-display text-4xl uppercase leading-[1.05] sm:text-5xl">{post.title}</h1>
+                {post.excerpt && (
+                  <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">{post.excerpt}</p>
+                )}
+              </header>
+
               {post.cover_image && (
-                <img src={post.cover_image} alt={post.title} className="mt-8 aspect-[16/9] w-full rounded-lg object-cover" />
+                <figure className="mx-auto mt-10 max-w-4xl">
+                  <img
+                    src={post.cover_image}
+                    alt={post.title}
+                    className="aspect-[16/9] w-full rounded-2xl object-cover shadow-sm ring-1 ring-border/50"
+                  />
+                </figure>
               )}
+
               {post.content && (
-                <div className="prose prose-neutral mt-8 max-w-2xl whitespace-pre-wrap text-base leading-relaxed">
+                <div className="prose prose-neutral prose-lg mx-auto mt-12 max-w-2xl whitespace-pre-wrap leading-relaxed">
                   {post.content}
                 </div>
+              )}
+
+              {/* Artículos relacionados */}
+              {related.length > 0 && (
+                <section className="mx-auto mt-20 max-w-5xl border-t pt-10">
+                  <h2 className="font-display text-2xl uppercase tracking-tight">Sigue leyendo</h2>
+                  <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                    {related.map((r) => (
+                      <Link key={r.id} to={`/blog/${r.slug}`} className="group flex flex-col gap-3">
+                        <div className="aspect-[4/3] overflow-hidden rounded-lg bg-gradient-hero">
+                          {r.cover_image ? (
+                            <img
+                              src={r.cover_image}
+                              alt={r.title}
+                              className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+                            />
+                          ) : (
+                            <div className="grid h-full place-items-center text-6xl opacity-30">📝</div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                          {r.category && <span className="font-bold text-accent">{r.category}</span>}
+                          {r.read_time && <span>· {r.read_time}</span>}
+                        </div>
+                        <h3 className="font-display text-lg leading-snug transition-smooth group-hover:text-accent">{r.title}</h3>
+                        {r.excerpt && <p className="line-clamp-2 text-sm text-muted-foreground">{r.excerpt}</p>}
+                      </Link>
+                    ))}
+                  </div>
+                </section>
               )}
             </>
           )}
