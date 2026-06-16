@@ -29,8 +29,13 @@ function pickTextProvider(): AIProvider | null {
 }
 
 function slugify(s: string): string {
-  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 80);
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, 80);
 }
 
 /** Genera una imagen (texto→imagen) y devuelve un data-URL base64, o null. */
@@ -57,7 +62,9 @@ async function generateImage(prompt: string): Promise<string | null> {
       } else {
         console.error("[blog-ai-generate] lovable image", r.status, (await r.text()).slice(0, 200));
       }
-    } catch (e) { console.error("[blog-ai-generate] lovable image error", e); }
+    } catch (e) {
+      console.error("[blog-ai-generate] lovable image error", e);
+    }
   }
 
   if (OPENAI) {
@@ -74,7 +81,9 @@ async function generateImage(prompt: string): Promise<string | null> {
       } else {
         console.error("[blog-ai-generate] openai image", r.status, (await r.text()).slice(0, 200));
       }
-    } catch (e) { console.error("[blog-ai-generate] openai image error", e); }
+    } catch (e) {
+      console.error("[blog-ai-generate] openai image error", e);
+    }
   }
   return null;
 }
@@ -89,7 +98,10 @@ async function uploadDataUrl(service: SupabaseClient, dataUrl: string): Promise<
   const ext = (contentType.split("/")[1] || "png").split(";")[0].replace("jpeg", "jpg");
   const path = `blog-ai-${crypto.randomUUID()}.${ext}`;
   const { error } = await service.storage.from(IMAGE_BUCKET).upload(path, bytes, { contentType, upsert: false });
-  if (error) { console.error("[blog-ai-generate] storage", error.message); return null; }
+  if (error) {
+    console.error("[blog-ai-generate] storage", error.message);
+    return null;
+  }
   return service.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
@@ -114,16 +126,22 @@ Deno.serve(async (req) => {
     if (!product_id && !product_name) return json({ error: "Indica product_id o product_name." }, 400);
 
     // Resolver producto.
-    let q = supabase.from("products")
+    let q = supabase
+      .from("products")
       .select("id, name, slug, short_description, description, ingredients, main_ingredient, goal, category, price")
       .limit(1);
     q = product_id ? q.eq("id", product_id) : q.ilike("name", `%${product_name}%`);
     const { data: product, error: prodErr } = await q.maybeSingle();
     if (prodErr) return json({ error: prodErr.message }, 500);
-    if (!product) return json({ error: `No encontré un producto que coincida con "${product_name ?? product_id}".` }, 404);
+    if (!product)
+      return json({ error: `No encontré un producto que coincida con "${product_name ?? product_id}".` }, 404);
 
     const textProvider = pickTextProvider();
-    if (!textProvider) return json({ error: "No hay clave de IA para texto (OPENAI_API_KEY / DEEPSEEK_API_KEY / LOVABLE_API_KEY)." }, 400);
+    if (!textProvider)
+      return json(
+        { error: "No hay clave de IA para texto (OPENAI_API_KEY / DEEPSEEK_API_KEY / LOVABLE_API_KEY)." },
+        400,
+      );
 
     const toneGuide = TONE_GUIDE[tone] ?? TONE_GUIDE.equilibrado;
     const system = `Eres un redactor de blog SEO para Nutribatidos (tienda peruana de suplementos naturales).
@@ -149,14 +167,18 @@ Genera un artículo de blog. Responde ÚNICAMENTE con un JSON con este schema ex
 
     const ai = await callAI({
       provider: textProvider,
-      messages: [{ role: "system", content: system }, { role: "user", content: userPrompt }],
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: userPrompt },
+      ],
       temperature: 0.6,
       maxTokens: 2200,
       jsonMode: true,
     });
 
     const draft = safeJsonParse<any>(ai.content);
-    if (!draft || !draft.title) return json({ error: "La IA no devolvió un artículo válido.", raw: ai.content?.slice(0, 300) }, 502);
+    if (!draft || !draft.title)
+      return json({ error: "La IA no devolvió un artículo válido.", raw: ai.content?.slice(0, 300) }, 502);
 
     // Imagen de portada (texto→imagen) → persistir en Storage.
     let cover_image: string | null = null;
@@ -189,5 +211,8 @@ Genera un artículo de blog. Responde ÚNICAMENTE con un JSON con este schema ex
 });
 
 function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 }
