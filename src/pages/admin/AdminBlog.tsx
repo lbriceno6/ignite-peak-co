@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Pencil, Trash2, Plus, Star, ArrowUp, ArrowDown, ImageOff } from "lucide-react";
+import { Pencil, Trash2, Plus, Star, ArrowUp, ArrowDown, ImageOff, Eye } from "lucide-react";
 import { BlogAiGenerateDialog } from "@/components/admin/BlogAiGenerateDialog";
 
 type Post = {
@@ -173,8 +173,11 @@ export default function AdminBlog() {
                     </div>
                   </td>
                   <td className="p-3 text-right">
-                    <Button asChild variant="ghost" size="icon"><Link to={`/admin/blog/${p.id}/edit`}><Pencil size={16} /></Link></Button>
-                    <Button variant="ghost" size="icon" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
+                    <Button asChild variant="ghost" size="icon" title="Visualizar">
+                      <a href={`/blog/${p.slug}`} target="_blank" rel="noreferrer"><Eye size={16} /></a>
+                    </Button>
+                    <Button asChild variant="ghost" size="icon" title="Editar"><Link to={`/admin/blog/${p.id}/edit`}><Pencil size={16} /></Link></Button>
+                    <Button variant="ghost" size="icon" title="Eliminar" onClick={() => remove(p.id)}><Trash2 size={16} /></Button>
                   </td>
                 </tr>
               );
