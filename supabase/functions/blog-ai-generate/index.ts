@@ -150,6 +150,7 @@ Escribe SIEMPRE en español, con un tono cercano, humano y conversacional (como 
 Estilo del artículo:
 - Natural y fluido: habla de "tú", haz preguntas al lector, usa ejemplos cotidianos con los que la gente se identifique (ej. "ese bajón de las 3pm", "después de entrenar").
 - ATRACTIVO y escaneable con EMOJIS, pero con moderación (1 emoji por título de sección y, ocasionalmente, al inicio de un punto de lista). Nunca pongas filas de emojis ni más de uno seguido.
+- USA SOLO emojis comunes y universales que se ven en cualquier dispositivo. Permitidos (elige de aquí): 💪 ✨ ✅ ⭐ ❤️ 🔥 🌿 💧 ☀️ 🍃 🥗 🍎 🍋 🥑 🏃 🧠 😊 👍 💡 🎯 ⚡ 🌱 🥤. EVITA emojis raros, nuevos o de fuente especial (p. ej. 🫒 🫛 🍽️ 🦴 🥬 y similares) porque a veces salen como un cuadrito.
 - Referencias divulgativas: apóyate en ideas conocidas de nutrición/bienestar ("muchos nutricionistas suelen recomendar…", "suele asociarse con…"), SIN inventar estudios concretos ni citar fuentes falsas.
 
 FORMATO DEL CONTENIDO (MUY IMPORTANTE — el blog NO renderiza Markdown, es texto plano):
