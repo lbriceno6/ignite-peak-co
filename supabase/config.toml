@@ -3,6 +3,9 @@ project_id = "mphrhcuqzkbbnovmdbpc"
 [functions.admin-agent]
 verify_jwt = false
 
+[functions.blog-ai-generate]
+verify_jwt = false
+
 [functions.process-email-queue]
 verify_jwt = true
 
