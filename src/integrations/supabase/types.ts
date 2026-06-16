@@ -16,31 +16,73 @@ export type Database = {
     Tables: {
       admin_agent_log: {
         Row: {
-          action: string
+          action: string | null
+          after_value: Json | null
+          before_value: Json | null
+          content: string | null
           created_at: string
           id: string
+          latency_ms: number | null
+          model: string | null
           payload: Json | null
+          product_id: string | null
+          provider: string | null
+          role: string | null
+          session_id: string | null
           target_id: string | null
           target_table: string | null
-          user_id: string
+          tokens_in: number | null
+          tokens_out: number | null
+          tool_args: Json | null
+          tool_name: string | null
+          tool_result: Json | null
+          user_id: string | null
         }
         Insert: {
-          action: string
+          action?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          content?: string | null
           created_at?: string
           id?: string
+          latency_ms?: number | null
+          model?: string | null
           payload?: Json | null
+          product_id?: string | null
+          provider?: string | null
+          role?: string | null
+          session_id?: string | null
           target_id?: string | null
           target_table?: string | null
-          user_id: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+          tool_args?: Json | null
+          tool_name?: string | null
+          tool_result?: Json | null
+          user_id?: string | null
         }
         Update: {
-          action?: string
+          action?: string | null
+          after_value?: Json | null
+          before_value?: Json | null
+          content?: string | null
           created_at?: string
           id?: string
+          latency_ms?: number | null
+          model?: string | null
           payload?: Json | null
+          product_id?: string | null
+          provider?: string | null
+          role?: string | null
+          session_id?: string | null
           target_id?: string | null
           target_table?: string | null
-          user_id?: string
+          tokens_in?: number | null
+          tokens_out?: number | null
+          tool_args?: Json | null
+          tool_name?: string | null
+          tool_result?: Json | null
+          user_id?: string | null
         }
         Relationships: []
       }
