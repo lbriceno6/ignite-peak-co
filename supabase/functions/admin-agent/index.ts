@@ -24,13 +24,18 @@ Puedes usar herramientas para:
 - Crear productos (create_product).
 - Editar campos de un producto (update_product): precio, oferta, stock, descripción, etc.
 - Activar o desactivar un producto (set_active).
+- Gestionar imágenes:
+  - set_main_image: asigna la imagen principal de un producto.
+  - add_gallery_images / remove_gallery_image: gestiona la galería.
+  - enhance_main_image: mejora con IA la foto principal (fondo blanco ecommerce, look premium, encuadre).
 
 Reglas:
 - SIEMPRE responde en español, claro y conciso.
 - Antes de crear o editar, asegúrate de tener los datos necesarios; si falta algo importante, pregunta.
-- Para editar o activar/desactivar un producto necesitas su id; si el usuario lo nombra, primero búscalo con search_products.
+- Para editar, asignar imagen o activar/desactivar un producto necesitas su id; si el usuario lo nombra, primero búscalo con search_products.
+- Si el usuario adjuntó una imagen en el chat (te lo indicará el contexto como "IMAGEN_ADJUNTA"), úsala como image_url cuando asigne imagen principal o de galería: deja vacío el image_url y la herramienta tomará la imagen adjunta automáticamente.
 - Moneda en Soles (S/). Los precios son números (ej. 79.90).
-- Nunca inventes ids ni productos: usa solo lo que devuelven las herramientas.
+- Nunca inventes ids, productos ni URLs de imagen: usa solo lo que devuelven las herramientas o la imagen adjunta.
 - Sin afirmaciones médicas. Evita prometer curaciones.
 - Tras ejecutar una acción, confirma en lenguaje natural qué hiciste (nombre del producto y el cambio).`;
 
@@ -130,6 +135,7 @@ const TOOLS = [
           stock: { type: "integer" },
           is_active: { type: "boolean", description: "Por defecto false (borrador) hasta que el admin confirme." },
           slug: { type: "string", description: "Opcional; si no se da, se genera del nombre." },
+          main_image: { type: "string", description: "URL de imagen principal. Opcional; si hay imagen adjunta en el chat se usa esa." },
         },
         required: ["name", "price"],
       },
@@ -168,6 +174,71 @@ const TOOLS = [
       },
     },
   },
+  {
+    type: "function",
+    function: {
+      name: "set_main_image",
+      description: "Asigna la imagen principal (main_image) de un producto. Si el usuario adjuntó una imagen en el chat, deja image_url vacío y se usará la adjunta.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "UUID del producto." },
+          image_url: { type: "string", description: "URL de la imagen. Opcional si hay imagen adjunta en el chat." },
+        },
+        required: ["id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "add_gallery_images",
+      description: "Agrega una o más imágenes a la galería (gallery_images) de un producto. Si el usuario adjuntó una imagen y no pasas urls, se agrega la adjunta.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          image_urls: { type: "array", items: { type: "string" }, description: "URLs a agregar. Opcional si hay imagen adjunta." },
+        },
+        required: ["id"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "remove_gallery_image",
+      description: "Quita una imagen de la galería de un producto por su URL exacta.",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          image_url: { type: "string" },
+        },
+        required: ["id", "image_url"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "enhance_main_image",
+      description: "Mejora con IA la imagen principal del producto (recorte/encuadre, iluminación y fondo de catálogo). No genera una imagen desde cero: parte de la foto actual del producto (o la adjunta).",
+      parameters: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          background: {
+            type: "string",
+            enum: ["white_ecommerce", "transparent", "premium_jar", "premium_box"],
+            description: "Estilo de fondo. Por defecto white_ecommerce (fondo blanco para ecommerce).",
+          },
+          extra_instructions: { type: "string", description: "Instrucciones extra opcionales para el retoque." },
+        },
+        required: ["id"],
+      },
+    },
+  },
 ];
 
 function slugify(s: string): string {
@@ -181,9 +252,45 @@ function slugify(s: string): string {
 
 type ToolContext = {
   supabase: SupabaseClient;
-  actions: any[]; // acciones efectivas (mutaciones) para devolver al cliente
+  service: SupabaseClient;        // service-role: subir imágenes a Storage
+  authHeader: string;             // para invocar otras edge functions (product-image-edit)
+  supabaseUrl: string;
+  anonKey: string;
+  attachedImageUrl: string | null; // imagen adjuntada en el chat (si la hay)
+  actions: any[];                  // acciones efectivas (mutaciones) para devolver al cliente
   audit: (entry: Record<string, unknown>) => Promise<void>;
 };
+
+const IMAGE_BUCKET = "blog-images"; // mismo bucket que usa ProductForm
+
+/** Normaliza gallery_images (jsonb) a un arreglo de URLs string. */
+function normalizeGallery(value: unknown): string[] {
+  if (Array.isArray(value)) return value.filter((u) => typeof u === "string");
+  if (typeof value === "string" && value.trim()) {
+    try { const p = JSON.parse(value); if (Array.isArray(p)) return p.filter((u) => typeof u === "string"); } catch {}
+    return value.split("\n").map((s) => s.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+/** Sube un data-URL (base64) a Storage y devuelve la URL pública. */
+async function uploadDataUrl(service: SupabaseClient, dataUrl: string): Promise<string> {
+  const m = dataUrl.match(/^data:(.*?);base64,(.*)$/s);
+  if (!m) {
+    // Si ya es una URL http(s), no hay nada que subir.
+    if (/^https?:\/\//.test(dataUrl)) return dataUrl;
+    throw new Error("Formato de imagen no reconocido (se esperaba data-URL base64).");
+  }
+  const contentType = m[1] || "image/png";
+  const bin = atob(m[2]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ext = (contentType.split("/")[1] || "png").split(";")[0].replace("jpeg", "jpg");
+  const path = `product-ai-${crypto.randomUUID()}.${ext}`;
+  const { error } = await service.storage.from(IMAGE_BUCKET).upload(path, bytes, { contentType, upsert: false });
+  if (error) throw new Error(`Storage: ${error.message}`);
+  return service.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
+}
 
 async function runTool(name: string, args: any, ctx: ToolContext): Promise<unknown> {
   const { supabase } = ctx;
@@ -220,6 +327,8 @@ async function runTool(name: string, args: any, ctx: ToolContext): Promise<unkno
       price: Number(args.price),
       is_active: args.is_active ?? false,
     };
+    const mainImg = args.main_image || ctx.attachedImageUrl;
+    if (mainImg) payload.main_image = mainImg;
     for (const f of ["sale_price", "short_description", "description", "category", "stock"]) {
       if (args[f] != null) payload[f] = f === "sale_price" ? Number(args[f]) : f === "stock" ? Math.trunc(Number(args[f])) : args[f];
     }
@@ -272,6 +381,102 @@ async function runTool(name: string, args: any, ctx: ToolContext): Promise<unkno
     return { ok: true, product: data };
   }
 
+  if (name === "set_main_image") {
+    if (!args?.id) return { error: "Indica id." };
+    const url = args.image_url || ctx.attachedImageUrl;
+    if (!url) return { error: "No hay image_url ni imagen adjunta en el chat." };
+    const { data: before } = await supabase.from("products").select("id, name, main_image").eq("id", args.id).maybeSingle();
+    if (!before) return { error: "Producto no encontrado." };
+    const { data, error } = await supabase
+      .from("products")
+      .update({ main_image: url, updated_at: new Date().toISOString() })
+      .eq("id", args.id).select(PRODUCT_SELECT + ", main_image").single();
+    if (error) return { error: error.message };
+    ctx.actions.push({ action: "set_main_image", product_id: data.id, name: data.name, image_url: url });
+    await ctx.audit({ role: "tool", tool_name: name, tool_args: { id: args.id }, action: "update", product_id: data.id, before_value: { main_image: (before as any).main_image }, after_value: { main_image: url } });
+    return { ok: true, product: data };
+  }
+
+  if (name === "add_gallery_images") {
+    if (!args?.id) return { error: "Indica id." };
+    let urls: string[] = Array.isArray(args.image_urls) ? args.image_urls.filter((u: unknown) => typeof u === "string") : [];
+    if (urls.length === 0 && ctx.attachedImageUrl) urls = [ctx.attachedImageUrl];
+    if (urls.length === 0) return { error: "No hay urls ni imagen adjunta para agregar." };
+    const { data: before } = await supabase.from("products").select("id, name, gallery_images").eq("id", args.id).maybeSingle();
+    if (!before) return { error: "Producto no encontrado." };
+    const current = normalizeGallery((before as any).gallery_images);
+    const next = [...current, ...urls.filter((u) => !current.includes(u))];
+    const { data, error } = await supabase
+      .from("products")
+      .update({ gallery_images: next, updated_at: new Date().toISOString() })
+      .eq("id", args.id).select("id, name, gallery_images").single();
+    if (error) return { error: error.message };
+    ctx.actions.push({ action: "add_gallery", product_id: data.id, name: data.name, added: urls.length });
+    await ctx.audit({ role: "tool", tool_name: name, tool_args: { id: args.id, count: urls.length }, action: "update", product_id: data.id, before_value: { gallery_images: current }, after_value: { gallery_images: next } });
+    return { ok: true, product: data, gallery_count: next.length };
+  }
+
+  if (name === "remove_gallery_image") {
+    if (!args?.id || !args?.image_url) return { error: "Indica id e image_url." };
+    const { data: before } = await supabase.from("products").select("id, name, gallery_images").eq("id", args.id).maybeSingle();
+    if (!before) return { error: "Producto no encontrado." };
+    const current = normalizeGallery((before as any).gallery_images);
+    const next = current.filter((u) => u !== args.image_url);
+    if (next.length === current.length) return { error: "Esa URL no estaba en la galería." };
+    const { data, error } = await supabase
+      .from("products")
+      .update({ gallery_images: next, updated_at: new Date().toISOString() })
+      .eq("id", args.id).select("id, name, gallery_images").single();
+    if (error) return { error: error.message };
+    ctx.actions.push({ action: "remove_gallery", product_id: data.id, name: data.name });
+    await ctx.audit({ role: "tool", tool_name: name, tool_args: args, action: "update", product_id: data.id, before_value: { gallery_images: current }, after_value: { gallery_images: next } });
+    return { ok: true, product: data, gallery_count: next.length };
+  }
+
+  if (name === "enhance_main_image") {
+    if (!args?.id) return { error: "Indica id." };
+    const { data: prod } = await supabase.from("products").select("id, name, main_image").eq("id", args.id).maybeSingle();
+    if (!prod) return { error: "Producto no encontrado." };
+    const sourceImage = ctx.attachedImageUrl || (prod as any).main_image;
+    if (!sourceImage) return { error: "El producto no tiene imagen principal y no hay imagen adjunta para mejorar." };
+
+    // Elige proveedor de imagen según las claves disponibles.
+    const hasLovable = !!Deno.env.get("LOVABLE_API_KEY");
+    const hasOpenAI = !!Deno.env.get("OPENAI_API_KEY");
+    if (!hasLovable && !hasOpenAI) return { error: "Falta LOVABLE_API_KEY u OPENAI_API_KEY para editar imágenes." };
+    const provider = hasLovable ? "lovable" : "openai";
+    const fallback = hasLovable && hasOpenAI ? "openai" : undefined;
+
+    const r = await fetch(`${ctx.supabaseUrl}/functions/v1/product-image-edit`, {
+      method: "POST",
+      headers: { Authorization: ctx.authHeader, apikey: ctx.anonKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image_url: sourceImage,
+        background: args.background || "white_ecommerce",
+        extra_instructions: args.extra_instructions || "",
+        provider,
+        fallback,
+      }),
+    });
+    const edit = await r.json().catch(() => ({}));
+    if (!r.ok || !edit?.success || !edit?.image) {
+      return { error: `No se pudo mejorar la imagen: ${edit?.error || `HTTP ${r.status}`}` };
+    }
+
+    let publicUrl: string;
+    try { publicUrl = await uploadDataUrl(ctx.service, edit.image); }
+    catch (e: any) { return { error: `Imagen generada pero no se pudo guardar: ${e?.message || e}` }; }
+
+    const { data, error } = await supabase
+      .from("products")
+      .update({ main_image: publicUrl, updated_at: new Date().toISOString() })
+      .eq("id", args.id).select(PRODUCT_SELECT + ", main_image").single();
+    if (error) return { error: error.message };
+    ctx.actions.push({ action: "enhance_main_image", product_id: data.id, name: data.name, image_url: publicUrl, background: args.background || "white_ecommerce" });
+    await ctx.audit({ role: "tool", tool_name: name, tool_args: { id: args.id, background: args.background }, action: "update", product_id: data.id, before_value: { main_image: (prod as any).main_image }, after_value: { main_image: publicUrl } });
+    return { ok: true, product: data, image_url: publicUrl };
+  }
+
   return { error: `Herramienta desconocida: ${name}` };
 }
 
@@ -299,8 +504,13 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "admin required" }, 403);
 
     const body = await req.json().catch(() => ({}));
-    const { message, history, session_id, provider: reqProvider } = body || {};
+    const { message, history, session_id, provider: reqProvider, image_url } = body || {};
     if (!message || typeof message !== "string") return json({ error: "message required" }, 400);
+    const attachedImageUrl: string | null = typeof image_url === "string" && image_url ? image_url : null;
+
+    // Cliente service-role para subir imágenes a Storage (RLS bypass controlado).
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const service = createClient(supabaseUrl, serviceKey);
 
     const provider = pickProvider(reqProvider);
     if (!provider) {
@@ -325,11 +535,23 @@ Deno.serve(async (req) => {
         messages.push({ role: m.role, content: m.content });
       }
     }
-    messages.push({ role: "user", content: message });
+    const userContent = attachedImageUrl
+      ? `${message}\n\n[IMAGEN_ADJUNTA disponible: el usuario adjuntó una imagen. Para asignarla, llama set_main_image / add_gallery_images dejando image_url vacío.]`
+      : message;
+    messages.push({ role: "user", content: userContent });
     await audit({ role: "user", content: message });
 
     const actions: any[] = [];
-    const ctx: ToolContext = { supabase, actions, audit };
+    const ctx: ToolContext = {
+      supabase,
+      service,
+      authHeader,
+      supabaseUrl,
+      anonKey: anon,
+      attachedImageUrl,
+      actions,
+      audit,
+    };
 
     let tokensIn = 0;
     let tokensOut = 0;
