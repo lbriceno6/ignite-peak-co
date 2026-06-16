@@ -27,6 +27,17 @@ type AgentAction = {
 
 const SESSION_ID = "admin-agent-" + Math.random().toString(36).slice(2, 10);
 
+/** Extrae el mensaje real del cuerpo de un error de edge function (non-2xx). */
+async function edgeErrorMessage(e: any): Promise<string> {
+  try {
+    if (e?.context && typeof e.context.json === "function") {
+      const body = await e.context.json();
+      if (body?.error) return body.error;
+    }
+  } catch { /* ignore */ }
+  return e?.message ?? String(e);
+}
+
 const SUGGESTIONS = [
   "Lista los 5 productos con menos stock",
   "Sube el precio de la proteína whey a S/ 129.90",
@@ -114,10 +125,11 @@ const AdminAgent = () => {
         },
       ]);
     } catch (e: any) {
-      toast({ title: "Error", description: e.message ?? String(e), variant: "destructive" });
+      const detail = await edgeErrorMessage(e);
+      toast({ title: "Error", description: detail, variant: "destructive" });
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "⚠️ No pude procesar eso: " + (e.message ?? String(e)) },
+        { role: "assistant", content: "⚠️ No pude procesar eso: " + detail },
       ]);
     } finally {
       setSending(false);
