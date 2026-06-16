@@ -167,6 +167,7 @@ const defaultSections = [
     key: "ai",
     label: "Asistente IA",
     items: [
+      { key: "agente-catalogo", to: "/admin/agente-catalogo", label: "Agente IA · Catálogo", icon: Sparkles },
       { key: "ia-control", to: "/admin/ia-control", label: "Panel de Control IA", icon: Sparkles },
       { key: "ia-insights", to: "/admin/ia-insights", label: "Analítica IA conversacional", icon: Sparkles },
       { key: "search-optimizer", to: "/admin/search-optimizer", label: "Optimizador de búsqueda", icon: Sparkles },
@@ -224,6 +225,7 @@ const titleFromPath = (p: string, labels: Record<string, string>) => {
   if (p.startsWith("/admin/theme")) return get("theme", "Paleta y tipografía");
   if (p.startsWith("/admin/product-card-typography")) return get("product-card-typography", "Tipografía tarjetas Home");
   if (p.startsWith("/admin/benefits")) return get("benefits", "Beneficios de compra");
+  if (p.startsWith("/admin/agente-catalogo")) return get("agente-catalogo", "Agente IA · Catálogo");
   if (p.startsWith("/admin/ia-recomendaciones")) return get("ia-recomendaciones", "Home Inteligente · IA");
   if (p.startsWith("/admin/ia-intenciones")) return get("ia-intenciones", "Intenciones de compra");
   if (p.startsWith("/admin/importador-web")) return get("importador-web", "Importador Web Inteligente");

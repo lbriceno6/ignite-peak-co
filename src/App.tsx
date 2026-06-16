@@ -74,6 +74,7 @@ import AdminEmail from "./pages/admin/AdminEmail.tsx";
 import AdminTheme from "./pages/admin/AdminTheme.tsx";
 import AdminSeo from "./pages/admin/AdminSeo.tsx";
 import AdminChatAI from "./pages/admin/AdminChatAI.tsx";
+import AdminAgent from "./pages/admin/AdminAgent.tsx";
 import AdminAiConfig from "./pages/admin/AdminAiConfig.tsx";
 import AdminSearchAi from "./pages/admin/AdminSearchAi.tsx";
 import AdminAIRecommendations from "./pages/admin/AdminAIRecommendations.tsx";
@@ -279,6 +280,7 @@ const App = () => (
               <Route path="ia-landings" element={<AdminSeoLandingsAi />} />
               <Route path="ia-fichas" element={<AdminProductSeoAi />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
+              <Route path="agente-catalogo" element={<AdminAgent />} />
               <Route path="ai-config" element={<AdminAiConfig />} />
               <Route path="buscador-ia" element={<AdminSearchAi />} />
               <Route path="ia-recomendaciones" element={<AdminAIRecommendations />} />
