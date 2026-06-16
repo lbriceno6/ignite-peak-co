@@ -1,8 +1,10 @@
-// Edge Function: blog-ai-generate
-// Generates a blog post (title, slug, excerpt, markdown content, category, read_time)
-// using the shared AI provider helper. Admin-only. Optionally persists to blog_posts.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
-import { callAI, safeJsonParse } from "../_shared/ai-provider.ts";
+// Edge function: blog-ai-generate — genera un artículo de blog con IA a partir
+// de un producto (solo admin). Devuelve título, extracto, contenido markdown,
+// categoría, tiempo de lectura y una imagen de portada generada (texto→imagen)
+// que se persiste en Storage. El frontend lo guarda como borrador para revisar.
+
+import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { callAI, getProviderConfig, safeJsonParse, type AIProvider } from "../_shared/ai-provider.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,131 +12,182 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+const IMAGE_BUCKET = "blog-images";
+
+const TONE_GUIDE: Record<string, string> = {
+  basico: "Claro y directo, conciso.",
+  equilibrado: "Profesional con un toque comercial moderado, natural.",
+  vendedor: "Emocional y persuasivo, con beneficios claros y llamados a la acción suaves.",
+  premium: "Sofisticado, aspiracional, con storytelling breve.",
+};
+
+function pickTextProvider(): AIProvider | null {
+  for (const p of ["openai", "deepseek", "lovable"] as AIProvider[]) {
+    if (getProviderConfig(p).hasKey) return p;
+  }
+  return null;
 }
 
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "")
-    .slice(0, 80);
+function slugify(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 80);
+}
+
+/** Genera una imagen (texto→imagen) y devuelve un data-URL base64, o null. */
+async function generateImage(prompt: string): Promise<string | null> {
+  const LOVABLE = Deno.env.get("LOVABLE_API_KEY");
+  const OPENAI = Deno.env.get("OPENAI_API_KEY");
+  const fullPrompt = `${prompt}\nEditorial blog cover, photorealistic or clean illustration, no text, no watermark, no logos. Square 1:1, high quality.`;
+
+  if (LOVABLE) {
+    try {
+      const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${LOVABLE}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: [{ role: "user", content: fullPrompt }],
+          modalities: ["image", "text"],
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const url = d?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        if (url) return url;
+      } else {
+        console.error("[blog-ai-generate] lovable image", r.status, (await r.text()).slice(0, 200));
+      }
+    } catch (e) { console.error("[blog-ai-generate] lovable image error", e); }
+  }
+
+  if (OPENAI) {
+    try {
+      const r = await fetch("https://api.openai.com/v1/images/generations", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${OPENAI}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ model: "gpt-image-1", prompt: fullPrompt, size: "1024x1024", n: 1 }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        const b64 = d?.data?.[0]?.b64_json;
+        if (b64) return `data:image/png;base64,${b64}`;
+      } else {
+        console.error("[blog-ai-generate] openai image", r.status, (await r.text()).slice(0, 200));
+      }
+    } catch (e) { console.error("[blog-ai-generate] openai image error", e); }
+  }
+  return null;
+}
+
+async function uploadDataUrl(service: SupabaseClient, dataUrl: string): Promise<string | null> {
+  const m = dataUrl.match(/^data:(.*?);base64,(.*)$/s);
+  if (!m) return /^https?:\/\//.test(dataUrl) ? dataUrl : null;
+  const contentType = m[1] || "image/png";
+  const bin = atob(m[2]);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const ext = (contentType.split("/")[1] || "png").split(";")[0].replace("jpeg", "jpg");
+  const path = `blog-ai-${crypto.randomUUID()}.${ext}`;
+  const { error } = await service.storage.from(IMAGE_BUCKET).upload(path, bytes, { contentType, upsert: false });
+  if (error) { console.error("[blog-ai-generate] storage", error.message); return null; }
+  return service.storage.from(IMAGE_BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const authHeader = req.headers.get("Authorization") || "";
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    if (!token) return json({ error: "no auth" }, 401);
 
-    // Auth: require admin
-    const authHeader = req.headers.get("Authorization") ?? "";
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await userClient.auth.getUser();
-    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
-    const { data: isAdmin } = await userClient.rpc("has_role", {
-      _user_id: userData.user.id,
-      _role: "admin",
-    });
-    if (!isAdmin) return json({ error: "Forbidden" }, 403);
+    const supabase = createClient(supabaseUrl, anon, { global: { headers: { Authorization: authHeader } } });
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData?.user) return json({ error: "invalid token" }, 401);
+    const { data: isAdmin } = await supabase.rpc("has_role", { _user_id: userData.user.id, _role: "admin" });
+    if (!isAdmin) return json({ error: "admin required" }, 403);
 
     const body = await req.json().catch(() => ({}));
-    const topic: string = (body?.topic ?? "").toString().trim();
-    const category: string | undefined = body?.category?.toString();
-    const keywords: string[] = Array.isArray(body?.keywords) ? body.keywords : [];
-    const tone: string = body?.tone?.toString() ?? "informativo y cercano";
-    const language: string = body?.language?.toString() ?? "es";
-    const publish: boolean = Boolean(body?.publish);
-    const provider = (body?.provider ?? "lovable") as
-      | "lovable" | "openai" | "deepseek" | "gemini" | "anthropic";
-    const model: string | undefined = body?.model;
+    const { product_id, product_name, tone = "equilibrado", generate_image = true } = body || {};
+    if (!product_id && !product_name) return json({ error: "Indica product_id o product_name." }, 400);
 
-    if (!topic) return json({ error: "topic is required" }, 400);
+    // Resolver producto.
+    let q = supabase.from("products")
+      .select("id, name, slug, short_description, description, ingredients, main_ingredient, goal, category, price")
+      .limit(1);
+    q = product_id ? q.eq("id", product_id) : q.ilike("name", `%${product_name}%`);
+    const { data: product, error: prodErr } = await q.maybeSingle();
+    if (prodErr) return json({ error: prodErr.message }, 500);
+    if (!product) return json({ error: `No encontré un producto que coincida con "${product_name ?? product_id}".` }, 404);
 
-    const sys = `Eres un editor SEO experto. Devuelve SOLO JSON válido (sin texto extra) con este esquema:
+    const textProvider = pickTextProvider();
+    if (!textProvider) return json({ error: "No hay clave de IA para texto (OPENAI_API_KEY / DEEPSEEK_API_KEY / LOVABLE_API_KEY)." }, 400);
+
+    const toneGuide = TONE_GUIDE[tone] ?? TONE_GUIDE.equilibrado;
+    const system = `Eres un redactor de blog SEO para Nutribatidos (tienda peruana de suplementos naturales).
+Escribe SIEMPRE en español, tono: ${toneGuide}
+Reglas:
+- Artículo útil y atractivo construido en torno al producto indicado, mencionándolo de forma natural.
+- SIN afirmaciones médicas ni promesas de curación; usa lenguaje suave ("puede ayudar a complementar").
+- Moneda S/ (PEN) si mencionas precio.
+- Devuelve SIEMPRE un JSON válido, sin markdown alrededor ni texto extra.`;
+
+    const userPrompt = `Producto: ${JSON.stringify(product)}
+
+Genera un artículo de blog. Responde ÚNICAMENTE con un JSON con este schema exacto:
 {
-  "title": string,            // <= 70 chars, atractivo, con keyword principal
-  "slug": string,             // kebab-case, sin acentos, <= 70 chars
-  "excerpt": string,          // <= 160 chars
-  "category": string,         // 1-3 palabras
-  "read_time": string,        // ej "5 min"
-  "content_markdown": string  // Markdown completo: H2/H3, listas, 600-1200 palabras, sin H1
-}
-Idioma: ${language}. Tono: ${tone}.`;
-
-    const user = `Tema: ${topic}
-${category ? `Categoría sugerida: ${category}` : ""}
-${keywords.length ? `Palabras clave: ${keywords.join(", ")}` : ""}
-Reglas: incluye intro, 3-6 secciones con H2, conclusión con CTA. Sin promesas falsas.`;
+  "title": "string, atractivo, máx 70 caracteres",
+  "slug": "string en kebab-case",
+  "excerpt": "string, máx 160 caracteres",
+  "category": "string (ej. Nutrición, Suplementos, Bienestar)",
+  "read_time": "string (ej. '5 min')",
+  "content": "string en Markdown, 600-900 palabras, con subtítulos ## y párrafos; menciona el producto con naturalidad",
+  "image_prompt": "string EN INGLÉS describiendo una imagen de portada editorial para este artículo (sin texto ni logos)"
+}`;
 
     const ai = await callAI({
-      provider,
-      model,
-      jsonMode: true,
+      provider: textProvider,
+      messages: [{ role: "system", content: system }, { role: "user", content: userPrompt }],
       temperature: 0.6,
-      maxTokens: 2400,
-      messages: [
-        { role: "system", content: sys },
-        { role: "user", content: user },
-      ],
+      maxTokens: 2200,
+      jsonMode: true,
     });
 
-    const parsed = safeJsonParse<{
-      title: string; slug?: string; excerpt: string; category?: string;
-      read_time?: string; content_markdown: string;
-    }>(ai.content);
-    if (!parsed?.title || !parsed?.content_markdown) {
-      return json({ error: "AI returned invalid JSON", raw: ai.content?.slice(0, 400) }, 502);
-    }
+    const draft = safeJsonParse<any>(ai.content);
+    if (!draft || !draft.title) return json({ error: "La IA no devolvió un artículo válido.", raw: ai.content?.slice(0, 300) }, 502);
 
-    const slug = slugify(parsed.slug || parsed.title);
-    const post = {
-      title: parsed.title,
-      slug,
-      excerpt: parsed.excerpt ?? "",
-      content: parsed.content_markdown,
-      category: parsed.category ?? category ?? null,
-      read_time: parsed.read_time ?? null,
-    };
-
-    let saved: unknown = null;
-    if (publish) {
-      const admin = createClient(SUPABASE_URL, SERVICE_KEY);
-      const { data, error } = await admin
-        .from("blog_posts")
-        .upsert(
-          { ...post, is_published: true, published_at: new Date().toISOString() },
-          { onConflict: "slug" },
-        )
-        .select()
-        .single();
-      if (error) return json({ error: error.message, post }, 500);
-      saved = data;
+    // Imagen de portada (texto→imagen) → persistir en Storage.
+    let cover_image: string | null = null;
+    if (generate_image && draft.image_prompt) {
+      const service = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const generated = await generateImage(String(draft.image_prompt));
+      if (generated) cover_image = await uploadDataUrl(service, generated);
     }
 
     return json({
       ok: true,
-      post,
-      saved,
-      meta: {
-        provider: ai.provider,
-        model: ai.model,
-        tokens_in: ai.tokens_in,
-        tokens_out: ai.tokens_out,
-        latency_ms: ai.latency_ms,
+      provider: textProvider,
+      model: ai.model,
+      product: { id: product.id, name: product.name },
+      post: {
+        title: String(draft.title).slice(0, 200),
+        slug: slugify(draft.slug || draft.title),
+        excerpt: draft.excerpt ?? "",
+        category: draft.category ?? "Nutrición",
+        read_time: draft.read_time ?? "5 min",
+        content: draft.content ?? "",
+        cover_image,
+        image_prompt: draft.image_prompt ?? "",
       },
     });
-  } catch (e) {
-    return json({ error: (e as Error).message ?? "Unknown error" }, 500);
+  } catch (e: any) {
+    console.error("[blog-ai-generate] fatal:", e);
+    return json({ error: String(e?.message || e) }, 500);
   }
 });
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}

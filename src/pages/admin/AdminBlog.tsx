@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Pencil, Trash2, Plus, Star, ArrowUp, ArrowDown, ImageOff } from "lucide-react";
+import { BlogAiGenerateDialog } from "@/components/admin/BlogAiGenerateDialog";
 
 type Post = {
   id: string;
@@ -98,7 +99,10 @@ export default function AdminBlog() {
           <h1 className="font-display text-3xl">Blog posts</h1>
           <p className="text-muted-foreground">{items.length} total · {featuredCount} featured ({Math.min(3, featuredCount)} shown on home)</p>
         </div>
-        <Button asChild variant="dark"><Link to="/admin/blog/new"><Plus size={16} /> New post</Link></Button>
+        <div className="flex items-center gap-2">
+          <BlogAiGenerateDialog onCreated={load} />
+          <Button asChild variant="dark"><Link to="/admin/blog/new"><Plus size={16} /> New post</Link></Button>
+        </div>
       </div>
 
       <div className="rounded-md border border-dashed bg-muted/40 p-3 text-sm text-muted-foreground">
