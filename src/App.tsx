@@ -35,6 +35,7 @@ import Wishlist from "./pages/Wishlist.tsx";
 import Search from "./pages/Search.tsx";
 import Auth from "./pages/Auth.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
+import Connect from "./pages/Connect.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import MyProfile from "./pages/MyProfile.tsx";
 import MyOrders from "./pages/MyOrders.tsx";
@@ -181,6 +182,8 @@ const App = () => (
             <Route path="/contacto" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
+            <Route path="/connect" element={<Connect />} />
+            <Route path="/conectar" element={<Connect />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/my-profile" element={<ProtectedRoute><MyProfile /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrders /></ProtectedRoute>} />

@@ -157,6 +157,7 @@ export const Footer = () => {
           <div className="flex flex-wrap items-center gap-3">
             <p>{copyright}</p>
             <Link to="/politica-de-cookies" className="hover:text-accent">Política de cookies</Link>
+            <Link to="/connect" className="hover:text-accent">Conectar con IA</Link>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new CustomEvent("consent:open"))}
