@@ -35,6 +35,7 @@ import Wishlist from "./pages/Wishlist.tsx";
 import Search from "./pages/Search.tsx";
 import Auth from "./pages/Auth.tsx";
 import OAuthConsent from "./pages/OAuthConsent.tsx";
+import Connect from "./pages/Connect.tsx";
 import ResetPassword from "./pages/ResetPassword.tsx";
 import MyProfile from "./pages/MyProfile.tsx";
 import MyOrders from "./pages/MyOrders.tsx";
