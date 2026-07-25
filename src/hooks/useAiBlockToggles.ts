@@ -27,9 +27,7 @@ async function loadToggles(): Promise<Record<string, boolean>> {
   if (cache) return cache;
   if (cachePromise) return cachePromise;
   cachePromise = (async () => {
-    const { data } = await (supabase as any)
-      .from("ai_block_toggles")
-      .select("block_key,enabled");
+    const { data } = await (supabase as any).rpc("get_ai_block_toggles_public");
     const map: Record<string, boolean> = {};
     (data ?? []).forEach((r: any) => {
       map[r.block_key] = r.enabled !== false;

@@ -5556,6 +5556,28 @@ export type Database = {
           variant_label: string
         }[]
       }
+      get_ai_block_toggles_public: {
+        Args: never
+        Returns: {
+          block_key: string
+          enabled: boolean
+        }[]
+      }
+      get_combo_config_public: {
+        Args: never
+        Returns: {
+          ai_enabled: boolean
+          id: string
+          max_recommendations: number
+          show_in_cart: boolean
+          show_in_category: boolean
+          show_in_checkout: boolean
+          show_in_home: boolean
+          show_in_product: boolean
+          show_in_search: boolean
+          updated_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
