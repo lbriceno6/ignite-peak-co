@@ -98,8 +98,9 @@ function sanitizeCopy(s: string, fallback: string) {
 const PRIORITY_SCORE: Record<Combo["priority"], number> = { high: 30, medium: 20, low: 10 };
 
 export async function loadComboConfig(): Promise<ComboConfig | null> {
-  const { data } = await sb.from("combo_config").select("*").limit(1).maybeSingle();
-  return data ?? null;
+  const { data } = await sb.rpc("get_combo_config_public");
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as ComboConfig) ?? null;
 }
 
 export async function smartComboRecommendation(
