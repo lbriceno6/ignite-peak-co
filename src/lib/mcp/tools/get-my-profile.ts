@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
 
 function supa(ctx: ToolContext) {
-  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
+  return createClient((globalThis as any).Deno.env.get("SUPABASE_URL"), (globalThis as any).Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
