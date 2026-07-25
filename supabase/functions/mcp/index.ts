@@ -55,7 +55,7 @@ var list_my_orders_default = defineTool2({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const { data, error } = await supa2(ctx).from("orders").select("id, order_number, status, total, currency, created_at").order("created_at", { ascending: false }).limit(limit);
+    const { data, error } = await supa2(ctx).from("orders").select("id, order_code, status, total, created_at").order("created_at", { ascending: false }).limit(limit);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data ?? []) }],
