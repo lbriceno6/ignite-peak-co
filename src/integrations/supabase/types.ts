@@ -5365,6 +5365,60 @@ export type Database = {
       }
     }
     Views: {
+      ai_block_toggles_public: {
+        Row: {
+          block_key: string | null
+          enabled: boolean | null
+        }
+        Insert: {
+          block_key?: string | null
+          enabled?: boolean | null
+        }
+        Update: {
+          block_key?: string | null
+          enabled?: boolean | null
+        }
+        Relationships: []
+      }
+      combo_config_public: {
+        Row: {
+          ai_enabled: boolean | null
+          id: string | null
+          max_recommendations: number | null
+          show_in_cart: boolean | null
+          show_in_category: boolean | null
+          show_in_checkout: boolean | null
+          show_in_home: boolean | null
+          show_in_product: boolean | null
+          show_in_search: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_enabled?: boolean | null
+          id?: string | null
+          max_recommendations?: number | null
+          show_in_cart?: boolean | null
+          show_in_category?: boolean | null
+          show_in_checkout?: boolean | null
+          show_in_home?: boolean | null
+          show_in_product?: boolean | null
+          show_in_search?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_enabled?: boolean | null
+          id?: string | null
+          max_recommendations?: number | null
+          show_in_cart?: boolean | null
+          show_in_category?: boolean | null
+          show_in_checkout?: boolean | null
+          show_in_home?: boolean | null
+          show_in_product?: boolean | null
+          show_in_search?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       crm_abandoned_carts_v: {
         Row: {
           contacted_at: string | null
