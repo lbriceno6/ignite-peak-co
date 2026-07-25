@@ -3,7 +3,7 @@ import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
 function supa(ctx: ToolContext) {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+  return createClient((globalThis as any).Deno.env.get("SUPABASE_URL"), (globalThis as any).Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -21,7 +21,7 @@ export default defineTool({
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     const { data, error } = await supa(ctx)
       .from("orders")
-      .select("id, order_number, status, total, currency, created_at")
+      .select("id, order_code, status, total, created_at")
       .order("created_at", { ascending: false })
       .limit(limit);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };

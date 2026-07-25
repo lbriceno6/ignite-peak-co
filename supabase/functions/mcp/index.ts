@@ -10,7 +10,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.105.3";
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z } from "npm:zod@^3.25.76";
 function supa(ctx) {
-  return createClient(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+  return createClient(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -40,7 +40,7 @@ import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.105.
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z as z2 } from "npm:zod@^3.25.76";
 function supa2(ctx) {
-  return createClient2(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+  return createClient2(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -55,7 +55,7 @@ var list_my_orders_default = defineTool2({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async ({ limit }, ctx) => {
     if (!ctx.isAuthenticated()) return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
-    const { data, error } = await supa2(ctx).from("orders").select("id, order_number, status, total, currency, created_at").order("created_at", { ascending: false }).limit(limit);
+    const { data, error } = await supa2(ctx).from("orders").select("id, order_code, status, total, created_at").order("created_at", { ascending: false }).limit(limit);
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data ?? []) }],
@@ -69,7 +69,7 @@ import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.105.
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z as z3 } from "npm:zod@^3.25.76";
 function supa3(ctx) {
-  return createClient3(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+  return createClient3(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -101,7 +101,7 @@ var get_my_order_default = defineTool3({
 import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.105.3";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.24.0";
 function supa4(ctx) {
-  return createClient4(process.env.SUPABASE_URL, process.env.SUPABASE_PUBLISHABLE_KEY, {
+  return createClient4(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
