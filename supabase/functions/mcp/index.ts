@@ -10,7 +10,7 @@ import { createClient } from "npm:@supabase/supabase-js@^2.105.3";
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z } from "npm:zod@^3.25.76";
 function supa(ctx) {
-  return createClient(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
+  return createClient(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_ANON_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -40,7 +40,7 @@ import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.105.
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z as z2 } from "npm:zod@^3.25.76";
 function supa2(ctx) {
-  return createClient2(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
+  return createClient2(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_ANON_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -69,7 +69,7 @@ import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.105.
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.24.0";
 import { z as z3 } from "npm:zod@^3.25.76";
 function supa3(ctx) {
-  return createClient3(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
+  return createClient3(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_ANON_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });
@@ -101,7 +101,7 @@ var get_my_order_default = defineTool3({
 import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.105.3";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.24.0";
 function supa4(ctx) {
-  return createClient4(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
+  return createClient4(globalThis.Deno.env.get("SUPABASE_URL"), globalThis.Deno.env.get("SUPABASE_ANON_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false }
   });

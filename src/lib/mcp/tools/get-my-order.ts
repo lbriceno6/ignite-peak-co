@@ -3,7 +3,7 @@ import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 
 function supa(ctx: ToolContext) {
-  return createClient((globalThis as any).Deno.env.get("SUPABASE_URL"), (globalThis as any).Deno.env.get("SUPABASE_PUBLISHABLE_KEY"), {
+  return createClient((globalThis as any).Deno.env.get("SUPABASE_URL"), (globalThis as any).Deno.env.get("SUPABASE_ANON_KEY"), {
     global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
