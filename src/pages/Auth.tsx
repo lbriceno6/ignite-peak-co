@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
@@ -20,10 +20,20 @@ const signInSchema = z.object({
   password: z.string().min(1, "Contraseña obligatoria"),
 });
 
+// Only allow same-origin relative paths for the post-auth redirect.
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation() as { state?: { from?: string } };
-  const redirectTo = location.state?.from ?? "/my-profile";
+  const [params] = useSearchParams();
+  const nextParam = safeNext(params.get("next"));
+  const redirectTo = nextParam ?? location.state?.from ?? "/my-profile";
+  const postAuthUrl = nextParam ? `${window.location.origin}${nextParam}` : `${window.location.origin}/`;
   const [loading, setLoading] = useState(false);
 
   const [signUp, setSignUp] = useState({ fullName: "", email: "", phone: "", password: "" });
@@ -39,7 +49,7 @@ const Auth = () => {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: postAuthUrl,
         data: { full_name: parsed.data.fullName, phone: parsed.data.phone },
       },
     });
@@ -48,6 +58,7 @@ const Auth = () => {
     toast.success("¡Cuenta creada! Revisa tu correo para confirmar.");
     navigate(redirectTo);
   };
+
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
