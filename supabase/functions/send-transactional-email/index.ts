@@ -310,6 +310,7 @@ Deno.serve(async (req) => {
       to: effectiveRecipient,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
+      reply_to: REPLY_TO,
       subject: resolvedSubject,
       html,
       text: plainText,

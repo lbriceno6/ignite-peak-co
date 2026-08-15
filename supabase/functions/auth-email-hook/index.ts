@@ -40,6 +40,7 @@ const SITE_NAME = "ignite-peak-co"
 const SENDER_DOMAIN = "notify.nutribatidos.com"
 const ROOT_DOMAIN = "nutribatidos.com"
 const FROM_DOMAIN = "notify.nutribatidos.com" // Domain shown in From address (may be root or sender subdomain)
+const REPLY_TO = "info@nutribatidos.com" // Buzón real donde llegan las respuestas
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -260,6 +261,7 @@ async function handleWebhook(req: Request): Promise<Response> {
       to: payload.data.email,
       from: `${SITE_NAME} <noreply@${FROM_DOMAIN}>`,
       sender_domain: SENDER_DOMAIN,
+      reply_to: REPLY_TO,
       subject: EMAIL_SUBJECTS[emailType] || 'Notification',
       html,
       text,
