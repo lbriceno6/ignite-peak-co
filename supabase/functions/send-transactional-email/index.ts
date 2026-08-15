@@ -15,6 +15,7 @@ const SENDER_DOMAIN = "notify.nutribatidos.com"
 // When display_from_root is enabled, this can be the root domain for cleaner branding,
 // even though actual sending uses the subdomain above.
 const FROM_DOMAIN = "notify.nutribatidos.com"
+const REPLY_TO = "info@nutribatidos.com" // Buzón real donde llegan las respuestas
 
 // Generate a cryptographically random 32-byte hex token
 function generateToken(): string {
