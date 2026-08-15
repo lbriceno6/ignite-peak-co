@@ -7,6 +7,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Preview,
   Text,
@@ -17,17 +18,19 @@ interface ReauthenticationEmailProps {
 }
 
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Your verification code</Preview>
+    <Preview>Tu código de verificación de Nutribatidos</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm reauthentication</Heading>
-        <Text style={text}>Use the code below to confirm your identity:</Text>
+        <Text style={brand}>NUTRIBATIDOS</Text>
+        <Heading style={h1}>Confirma tu identidad</Heading>
+        <Text style={text}>Usa este código para continuar:</Text>
         <Text style={codeStyle}>{token}</Text>
+        <Hr style={hr} />
         <Text style={footer}>
-          This code will expire shortly. If you didn't request this, you can
-          safely ignore this email.
+          El código caduca en unos minutos. Si no lo solicitaste, ignora este
+          mensaje.
         </Text>
       </Container>
     </Body>
@@ -36,25 +39,46 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
+const main = {
+  backgroundColor: '#ffffff',
+  fontFamily: 'Inter, Helvetica, Arial, sans-serif',
+}
+const container = {
+  padding: '32px',
+  maxWidth: '560px',
+  border: '1px solid #e6e6e6',
+  borderRadius: '8px',
+}
+const brand = {
+  fontSize: '12px',
+  letterSpacing: '2px',
   fontWeight: 'bold' as const,
-  color: '#000000',
+  color: '#b8860b',
+  margin: '0 0 20px',
+}
+const h1 = {
+  fontFamily: 'Georgia, "Times New Roman", serif',
+  fontSize: '24px',
+  fontWeight: 'bold' as const,
+  color: '#141414',
   margin: '0 0 20px',
 }
 const text = {
   fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  color: '#666666',
+  lineHeight: '1.6',
+  margin: '0 0 16px',
 }
 const codeStyle = {
   fontFamily: 'Courier, monospace',
-  fontSize: '22px',
+  fontSize: '28px',
+  letterSpacing: '6px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 30px',
+  color: '#141414',
+  backgroundColor: '#f5f5f5',
+  borderRadius: '8px',
+  padding: '14px 18px',
+  margin: '0 0 8px',
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const hr = { borderColor: '#e6e6e6', margin: '32px 0 16px' }
+const footer = { fontSize: '12px', color: '#999999', margin: '0' }
