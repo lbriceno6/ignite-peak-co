@@ -156,7 +156,7 @@ Deno.serve(async (req) => {
     if (action === 'validate') {
       // Lightweight check: send to remitente
       const to = recipient || cfg.from_email;
-      await send(cfg, to, '✅ Validación de credenciales', html('Credenciales válidas'));
+      await send(cfg, to, '✅ Validación de credenciales', html('Credenciales válidas'), supabase);
       return new Response(JSON.stringify({ ok: true, message: `Credenciales OK. Email enviado a ${to}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -165,7 +165,7 @@ Deno.serve(async (req) => {
     if (action === 'test') {
       const to = recipient || cfg.notify_admin_email || cfg.from_email;
       if (!to) throw new Error('Indica un destinatario');
-      await send(cfg, to, '✉️ Email de prueba', html(`Email de prueba desde ${cfg.from_name || cfg.from_email}`));
+      await send(cfg, to, '✉️ Email de prueba', html(`Email de prueba desde ${cfg.from_name || cfg.from_email}`), supabase);
       return new Response(JSON.stringify({ ok: true, message: `Email de prueba enviado a ${to}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
