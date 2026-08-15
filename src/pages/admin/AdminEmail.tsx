@@ -58,13 +58,25 @@ export default function AdminEmail() {
       const { data, error } = await supabase.functions.invoke("email-test", {
         body: { action, recipient: testTo || undefined },
       });
-      if (error) throw error;
+      if (error) {
+        // La función devuelve 400 con { error } — extraer el mensaje real
+        let detail = "";
+        try {
+          const ctx: any = (error as any).context;
+          if (ctx && typeof ctx.json === "function") {
+            const body = await ctx.json();
+            detail = body?.error || "";
+          }
+        } catch { /* ignore */ }
+        throw new Error(detail || error.message);
+      }
       if (data?.ok) toast.success(data.message || "OK");
       else throw new Error(data?.error || "Error");
     } catch (e: any) {
       toast.error(e.message || String(e));
     } finally { setTesting(null); }
   };
+
 
   useEffect(() => {
     (async () => {
