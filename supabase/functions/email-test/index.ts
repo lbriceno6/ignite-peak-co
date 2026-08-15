@@ -90,8 +90,35 @@ async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string, sup
       if (!r.ok) throw new Error(j.Message || JSON.stringify(j));
       return j;
     }
-    case 'lovable':
-      throw new Error('Para Lovable Cloud, el envío de pruebas se gestiona desde Cloud → Emails. Configura primero el dominio y los templates.');
+    case 'lovable': {
+      if (!supabase) throw new Error('Cliente no disponible');
+      const senderDomain = (cfg as any).sender_domain || cfg.from_email.split('@')[1];
+      const messageId = crypto.randomUUID();
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: 'admin-email-test',
+        recipient_email: to,
+        status: 'pending',
+      });
+      const { error } = await supabase.rpc('enqueue_email', {
+        queue_name: 'transactional_emails',
+        payload: {
+          message_id: messageId,
+          to,
+          from,
+          sender_domain: senderDomain,
+          subject,
+          html: bodyHtml,
+          text: bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+          purpose: 'transactional',
+          label: 'admin-email-test',
+          idempotency_key: `email-test-${messageId}`,
+          queued_at: new Date().toISOString(),
+        },
+      });
+      if (error) throw new Error(`No se pudo encolar el email: ${error.message}`);
+      return { ok: true, queued: true };
+    }
     case 'smtp':
       throw new Error('SMTP personalizado aún no soportado para pruebas. Usa Resend/Brevo/Mailgun/SendGrid/Postmark o configura Lovable Cloud.');
     default:
