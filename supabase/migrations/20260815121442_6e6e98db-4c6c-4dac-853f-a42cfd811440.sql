@@ -1,0 +1,1 @@
+INSERT INTO public.site_content (key, value) VALUES ('email.reply_to','info@nutribatidos.com') ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;

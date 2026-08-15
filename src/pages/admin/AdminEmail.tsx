@@ -31,7 +31,7 @@ const defaults: Record<string, string> = {
   "email.provider": "lovable",
   "email.from_name": "Nutribatidos",
   "email.from_email": "notify@nutribatidos.com",
-  "email.reply_to": "",
+  "email.reply_to": "info@nutribatidos.com",
   "email.sender_domain": "notify.nutribatidos.com",
   "email.notify_admin_email": "",
   "email.notify_on_order": "true",
