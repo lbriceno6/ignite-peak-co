@@ -17,7 +17,7 @@ interface Cfg {
 const html = (msg: string) =>
   `<div style="font-family:Arial,sans-serif;padding:24px;color:#111"><h2>${msg}</h2><p>Si recibes este correo, tu configuración de email funciona correctamente.</p><p style="color:#888;font-size:12px;margin-top:24px">Enviado desde el panel de administración.</p></div>`;
 
-async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string) {
+async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string, supabase?: any) {
   const from = cfg.from_name ? `${cfg.from_name} <${cfg.from_email}>` : cfg.from_email;
   const replyTo = cfg.reply_to || undefined;
 
@@ -90,8 +90,35 @@ async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string) {
       if (!r.ok) throw new Error(j.Message || JSON.stringify(j));
       return j;
     }
-    case 'lovable':
-      throw new Error('Para Lovable Cloud, el envío de pruebas se gestiona desde Cloud → Emails. Configura primero el dominio y los templates.');
+    case 'lovable': {
+      if (!supabase) throw new Error('Cliente no disponible');
+      const senderDomain = (cfg as any).sender_domain || cfg.from_email.split('@')[1];
+      const messageId = crypto.randomUUID();
+      await supabase.from('email_send_log').insert({
+        message_id: messageId,
+        template_name: 'admin-email-test',
+        recipient_email: to,
+        status: 'pending',
+      });
+      const { error } = await supabase.rpc('enqueue_email', {
+        queue_name: 'transactional_emails',
+        payload: {
+          message_id: messageId,
+          to,
+          from,
+          sender_domain: senderDomain,
+          subject,
+          html: bodyHtml,
+          text: bodyHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+          purpose: 'transactional',
+          label: 'admin-email-test',
+          idempotency_key: `email-test-${messageId}`,
+          queued_at: new Date().toISOString(),
+        },
+      });
+      if (error) throw new Error(`No se pudo encolar el email: ${error.message}`);
+      return { ok: true, queued: true };
+    }
     case 'smtp':
       throw new Error('SMTP personalizado aún no soportado para pruebas. Usa Resend/Brevo/Mailgun/SendGrid/Postmark o configura Lovable Cloud.');
     default:
@@ -129,7 +156,7 @@ Deno.serve(async (req) => {
     if (action === 'validate') {
       // Lightweight check: send to remitente
       const to = recipient || cfg.from_email;
-      await send(cfg, to, '✅ Validación de credenciales', html('Credenciales válidas'));
+      await send(cfg, to, '✅ Validación de credenciales', html('Credenciales válidas'), supabase);
       return new Response(JSON.stringify({ ok: true, message: `Credenciales OK. Email enviado a ${to}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -138,7 +165,7 @@ Deno.serve(async (req) => {
     if (action === 'test') {
       const to = recipient || cfg.notify_admin_email || cfg.from_email;
       if (!to) throw new Error('Indica un destinatario');
-      await send(cfg, to, '✉️ Email de prueba', html(`Email de prueba desde ${cfg.from_name || cfg.from_email}`));
+      await send(cfg, to, '✉️ Email de prueba', html(`Email de prueba desde ${cfg.from_name || cfg.from_email}`), supabase);
       return new Response(JSON.stringify({ ok: true, message: `Email de prueba enviado a ${to}` }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
