@@ -17,7 +17,7 @@ interface Cfg {
 const html = (msg: string) =>
   `<div style="font-family:Arial,sans-serif;padding:24px;color:#111"><h2>${msg}</h2><p>Si recibes este correo, tu configuración de email funciona correctamente.</p><p style="color:#888;font-size:12px;margin-top:24px">Enviado desde el panel de administración.</p></div>`;
 
-async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string) {
+async function send(cfg: Cfg, to: string, subject: string, bodyHtml: string, supabase?: any) {
   const from = cfg.from_name ? `${cfg.from_name} <${cfg.from_email}>` : cfg.from_email;
   const replyTo = cfg.reply_to || undefined;
 
