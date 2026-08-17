@@ -12,6 +12,8 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
   analyzeRedirects,
+  type Cobertura,
+  contarCobertura,
   type EntityFamily,
   EXAMPLES,
   type Finding,
@@ -19,6 +21,8 @@ import {
   foldIssues,
   norm,
   type ScoredEntity,
+  sinCobertura,
+  tieneTexto,
 } from "./checks.ts";
 import {
   type CategorySeoInput,
@@ -35,12 +39,20 @@ export type { EntityFamily, Finding, ScoredEntity };
 /** Tope de filas por consulta, para no traer el catálogo entero sin querer. */
 const ROW_LIMIT = 2000;
 
+/** Cuántas búsquedas sin resultados se leen. Si se llena, el informe lo dice. */
+const ZERO_SEARCH_LIMIT = 500;
+
 export type FamilySummary = {
   family: EntityFamily;
   total: number;
-  /** Con algún dato de SEO cargado. */
-  conSeo: number;
-  sinSeo: number;
+  /**
+   * Cuántas páginas tienen SEO cargado, según `criterio`. `null` cuando la
+   * familia no tiene campos de SEO propios y el número no significaría nada.
+   */
+  conSeo: number | null;
+  sinSeo: number | null;
+  /** Qué se midió para llegar a esos dos números. */
+  criterio: string;
   scorePromedio: number;
   bien: number;      // >= 80
   regular: number;   // 50-79
@@ -62,14 +74,19 @@ export type SeoAuditReport = {
   limitaciones: string[];
 };
 
-function summarize(family: EntityFamily, scored: ScoredEntity[], sinSeo: number): FamilySummary {
+function summarize(
+  family: EntityFamily,
+  scored: ScoredEntity[],
+  cobertura: Cobertura,
+): FamilySummary {
   const total = scored.length;
   const suma = scored.reduce((a, s) => a + s.score, 0);
   return {
     family,
     total,
-    conSeo: total - sinSeo,
-    sinSeo,
+    conSeo: cobertura.conSeo,
+    sinSeo: cobertura.sinSeo,
+    criterio: cobertura.criterio,
     scorePromedio: total ? Math.round(suma / total) : 0,
     bien: scored.filter((s) => s.score >= 80).length,
     regular: scored.filter((s) => s.score >= 50 && s.score < 80).length,
@@ -121,7 +138,7 @@ export async function runSeoAudit(
       .select("id, title, slug, excerpt, cover_image, is_published").eq("is_published", true).limit(ROW_LIMIT),
     supabase.from("seo_redirects").select("from_path, to_path, active, status_code").limit(ROW_LIMIT),
     supabase.from("search_logs").select("query").eq("results_count", 0)
-      .order("created_at", { ascending: false }).limit(500),
+      .order("created_at", { ascending: false }).limit(ZERO_SEARCH_LIMIT),
   ]);
 
   const products = (productsRes.data ?? []) as any[];
@@ -152,13 +169,15 @@ export async function runSeoAudit(
   }
 
   const productRows: { entity: ScoredEntity; score: SeoScore }[] = [];
-  let productosSinSeo = 0;
+  // Para la cobertura se miran los campos, no si existe la fila en `seo_meta`:
+  // una fila creada y vacía no es un producto con SEO.
+  const metaProductos: { metaTitle?: string | null; metaDescription?: string | null }[] = [];
   let noindexActivos = 0;
   const noindexEjemplos: string[] = [];
 
   for (const p of products) {
     const m = metaByProduct.get(p.id);
-    if (!m) productosSinSeo++;
+    metaProductos.push({ metaTitle: m?.seo_title, metaDescription: m?.seo_description });
     if (m?.noindex) {
       noindexActivos++;
       if (noindexEjemplos.length < EXAMPLES) noindexEjemplos.push(p.name);
@@ -193,9 +212,7 @@ export async function runSeoAudit(
 
   // -------------------------------------------------------------- categorías
   const categoryRows: { entity: ScoredEntity; score: SeoScore }[] = [];
-  let categoriasSinSeo = 0;
   for (const c of categories) {
-    if (!c.meta_title && !c.meta_description) categoriasSinSeo++;
     const input: CategorySeoInput = {
       name: c.name, metaTitle: c.meta_title, metaDescription: c.meta_description,
       slug: c.slug, canonicalUrl: c.canonical_url, shortDescription: c.short_description,
@@ -213,9 +230,7 @@ export async function runSeoAudit(
 
   // ---------------------------------------------------------------- landings
   const landingRows: { entity: ScoredEntity; score: SeoScore }[] = [];
-  let landingsSinSeo = 0;
   for (const l of landings) {
-    if (!l.meta_title && !l.meta_description) landingsSinSeo++;
     const input: LandingSeoInput = {
       title: l.title, metaTitle: l.meta_title, metaDescription: l.meta_description,
       slug: l.slug, keyword: l.keyword, intro: l.intro, bodyHtml: l.body_html,
@@ -312,7 +327,12 @@ export async function runSeoAudit(
     });
   }
 
-  const sinAprobar = products.filter((p) => p.approval_status && p.approval_status !== "approved");
+  // Se separan los dos casos: rechazado/pendiente es una decisión tomada, y
+  // vacío es que nadie decidió. Antes el `p.approval_status &&` dejaba fuera
+  // los vacíos, justo los que nadie está mirando.
+  const sinAprobar = products.filter(
+    (p) => tieneTexto(p.approval_status) && p.approval_status !== "approved",
+  );
   if (sinAprobar.length) {
     problemas_tecnicos.push({
       key: "producto:sin_aprobar",
@@ -320,6 +340,19 @@ export async function runSeoAudit(
       afectados: sinAprobar.length,
       arreglo: "Están activos pero su estado de aprobación no es 'approved'; revisa si deberían ser públicos.",
       ejemplos: sinAprobar.slice(0, EXAMPLES).map((p) => String(p.name)),
+    });
+  }
+
+  const sinEstado = products.filter((p) => !tieneTexto(p.approval_status));
+  if (sinEstado.length) {
+    problemas_tecnicos.push({
+      key: "producto:estado_sin_definir",
+      titulo: `${sinEstado.length} producto(s) activo(s) sin estado de aprobación definido`,
+      afectados: sinEstado.length,
+      arreglo: sinEstado.length === products.length
+        ? "Ningún producto tiene estado de aprobación: la columna no se está usando. Si no la necesitas, ignóralo; si sí, defínela antes de fiarte de este control."
+        : "Están a la venta sin que nadie los haya revisado. Márcalos como aprobados o desactívalos.",
+      ejemplos: sinEstado.slice(0, EXAMPLES).map((p) => String(p.name)),
     });
   }
 
@@ -352,12 +385,16 @@ export async function runSeoAudit(
   }
   const topQueries = [...queryCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, EXAMPLES);
   if (topQueries.length) {
+    // `afectados` cuenta lo mismo que el título —búsquedas distintas—. Antes
+    // traía el total de eventos, así que el hallazgo mostraba dos magnitudes
+    // distintas y quien lo leía las tomaba por la misma.
     oportunidades.push({
       key: "busqueda:sin_resultados",
       titulo: `${queryCount.size} búsqueda(s) distintas en tu web no devolvieron nada`,
-      afectados: zeroSearches.length,
+      afectados: queryCount.size,
       arreglo:
-        "Es demanda que ya tienes y no estás atendiendo. Cada una es un producto que falta, un sinónimo por mapear o una landing por crear.",
+        `Es demanda que ya tienes y no estás atendiendo (${zeroSearches.length} búsquedas en total). ` +
+        "Cada una es un producto que falta, un sinónimo por mapear o una landing por crear.",
       ejemplos: topQueries.map(([q, n]) => `"${q}" (${n} ${n === 1 ? "vez" : "veces"})`),
     });
   }
@@ -396,8 +433,16 @@ export async function runSeoAudit(
   limitaciones.push(
     "La auditoría lee la base de datos, no rastrea el sitio publicado: no comprueba velocidad de carga, enlaces rotos externos ni qué tiene Google indexado de verdad.",
   );
+  limitaciones.push(
+    "Solo se revisan productos y categorías activos y artículos publicados: lo inactivo no entra en los totales.",
+  );
   if (products.length >= ROW_LIMIT) {
     limitaciones.push(`Se revisaron los primeros ${ROW_LIMIT} productos; hay más.`);
+  }
+  if (zeroSearches.length >= ZERO_SEARCH_LIMIT) {
+    limitaciones.push(
+      `Las búsquedas sin resultados son las últimas ${ZERO_SEARCH_LIMIT}; hay más atrás, así que ese recuento es un mínimo.`,
+    );
   }
 
   // ------------------------------------------------------------------ armado
@@ -410,12 +455,33 @@ export async function runSeoAudit(
   return {
     generado_en: new Date().toISOString(),
     resumen: [
-      summarize("producto", productRows.map((r) => r.entity), productosSinSeo),
-      summarize("categoria", categoryRows.map((r) => r.entity), categoriasSinSeo),
-      summarize("landing", landingRows.map((r) => r.entity), landingsSinSeo),
+      summarize("producto", productRows.map((r) => r.entity), contarCobertura(metaProductos)),
+      summarize(
+        "categoria",
+        categoryRows.map((r) => r.entity),
+        contarCobertura(categories.map((c) => ({
+          metaTitle: c.meta_title,
+          metaDescription: c.meta_description,
+        }))),
+      ),
+      summarize(
+        "landing",
+        landingRows.map((r) => r.entity),
+        contarCobertura(landings.map((l) => ({
+          metaTitle: l.meta_title,
+          metaDescription: l.meta_description,
+        }))),
+      ),
       {
-        family: "blog", total: blog.length, conSeo: blog.length - blogSinExtracto.length,
-        sinSeo: blogSinExtracto.length, scorePromedio: 0, bien: 0, regular: 0, mal: 0,
+        family: "blog",
+        total: blog.length,
+        // El blog no tiene meta título ni meta descripción, así que no hay
+        // cobertura que medir. Antes se rellenaba con "tiene extracto", y el
+        // informe lo leía como "el 83% del blog tiene SEO".
+        ...sinCobertura(
+          "no aplica: los artículos no tienen campos de SEO propios; lo que falte sale en los problemas técnicos",
+        ),
+        scorePromedio: 0, bien: 0, regular: 0, mal: 0,
       },
     ],
     problemas_de_contenido: [
