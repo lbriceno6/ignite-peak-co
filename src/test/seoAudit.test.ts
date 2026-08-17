@@ -8,9 +8,66 @@
 import { describe, expect, it } from "vitest";
 import {
   analyzeRedirects,
+  contarCobertura,
   findDuplicates,
   foldIssues,
+  sinCobertura,
 } from "../../supabase/functions/_shared/seo/checks";
+
+describe("contarCobertura", () => {
+  it("cuenta cubierta la página que tiene título o descripción", () => {
+    const r = contarCobertura([
+      { metaTitle: "Creatina monohidrato", metaDescription: null },
+      { metaTitle: null, metaDescription: "La mejor creatina del Perú" },
+      { metaTitle: "Proteína whey", metaDescription: "Proteína aislada" },
+    ]);
+    expect(r.conSeo).toBe(3);
+    expect(r.sinSeo).toBe(0);
+  });
+
+  it("una fila existente pero vacía no cuenta como cubierta", () => {
+    // El fallo que inflaba el informe: la fila de seo_meta existía y se daba
+    // el producto por cubierto aunque no tuviera nada escrito.
+    const r = contarCobertura([
+      { metaTitle: "", metaDescription: "" },
+      { metaTitle: "   ", metaDescription: null },
+      { metaTitle: undefined, metaDescription: undefined },
+    ]);
+    expect(r.conSeo).toBe(0);
+    expect(r.sinSeo).toBe(3);
+  });
+
+  it("los dos números siempre suman el total", () => {
+    const filas = [
+      { metaTitle: "uno", metaDescription: null },
+      { metaTitle: null, metaDescription: null },
+      { metaTitle: null, metaDescription: "tres" },
+    ];
+    const r = contarCobertura(filas);
+    expect(r.conSeo! + r.sinSeo!).toBe(filas.length);
+  });
+
+  it("sin filas no divide entre cero", () => {
+    expect(contarCobertura([])).toMatchObject({ conSeo: 0, sinSeo: 0 });
+  });
+
+  it("mide lo mismo para cualquier familia: el criterio es único", () => {
+    const misma = [{ metaTitle: "x", metaDescription: null }];
+    expect(contarCobertura(misma).criterio).toBe(contarCobertura(misma).criterio);
+    expect(contarCobertura(misma).criterio).toMatch(/meta título o meta descripción/);
+  });
+});
+
+describe("sinCobertura", () => {
+  it("no responde con un número cuando la pregunta no aplica", () => {
+    // El blog no tiene campos de SEO: antes se rellenaba con "tiene extracto"
+    // y el informe lo presentaba como "el 83% del blog tiene SEO".
+    const r = sinCobertura("no aplica: los artículos no tienen campos de SEO propios");
+    expect(r.conSeo).toBeNull();
+    expect(r.sinSeo).toBeNull();
+    expect(r.criterio).toContain("no aplica");
+  });
+});
 
 describe("findDuplicates", () => {
   it("no reporta nada cuando todo es único", () => {

@@ -37,6 +37,46 @@ export type Finding = {
 export const norm = (s?: string | null) =>
   (s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
 
+/** Un campo cuenta como cargado solo si tiene texto: `""` y `"   "` no valen. */
+export const tieneTexto = (s?: string | null) => String(s ?? "").trim().length > 0;
+
+/**
+ * Cobertura de una familia: cuántas páginas tienen SEO cargado de verdad.
+ *
+ * La regla es la misma para productos, categorías y landings —al menos meta
+ * título o meta descripción con texto— para que los porcentajes del informe se
+ * puedan comparar entre sí. Antes cada familia usaba su propio criterio y el
+ * de productos era "existe la fila en seo_meta", que daba por cubierto un
+ * producto con todos los campos vacíos e inflaba la cobertura.
+ *
+ * `null` significa que la pregunta no aplica: la familia no tiene esos campos,
+ * y responderla con un número obliga al informe a inventar un significado.
+ */
+export type Cobertura = {
+  conSeo: number | null;
+  sinSeo: number | null;
+  /** Qué se midió exactamente. El informe lo cita en vez de reinterpretarlo. */
+  criterio: string;
+};
+
+export const CRITERIO_META = "tiene meta título o meta descripción con texto";
+
+export function contarCobertura(
+  filas: { metaTitle?: string | null; metaDescription?: string | null }[],
+): Cobertura {
+  const conSeo = filas.filter(
+    (f) => tieneTexto(f.metaTitle) || tieneTexto(f.metaDescription),
+  ).length;
+  return { conSeo, sinSeo: filas.length - conSeo, criterio: CRITERIO_META };
+}
+
+/** Para familias sin campos de SEO propios: no se responde con un número. */
+export const sinCobertura = (motivo: string): Cobertura => ({
+  conSeo: null,
+  sinSeo: null,
+  criterio: motivo,
+});
+
 const NOMBRE_FAMILIA: Record<EntityFamily, string> = {
   producto: "producto(s)",
   categoria: "categoría(s)",
