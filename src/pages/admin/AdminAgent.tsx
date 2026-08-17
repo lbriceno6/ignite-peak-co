@@ -16,13 +16,21 @@ type ChatMessage = {
 };
 
 type AgentAction = {
-  action: "create" | "update" | "set_active" | "set_main_image" | "add_gallery" | "remove_gallery" | "enhance_main_image";
-  product_id: string;
+  action:
+    | "create" | "update" | "set_active" | "set_main_image" | "add_gallery"
+    | "remove_gallery" | "enhance_main_image"
+    | "seo_fix_product" | "seo_proposal" | "seo_landing_draft";
+  /** Presente en las acciones de catálogo y en el arreglo de SEO de producto. */
+  product_id?: string;
   name?: string;
   changed?: string[];
   is_active?: boolean;
   added?: number;
   background?: string;
+  entity_type?: string;
+  entity_id?: string;
+  keyword?: string;
+  kind?: string;
 };
 
 const SESSION_ID = "admin-agent-" + Math.random().toString(36).slice(2, 10);
@@ -39,10 +47,10 @@ async function edgeErrorMessage(e: any): Promise<string> {
 }
 
 const SUGGESTIONS = [
+  "¿Cómo está el SEO de la web?",
+  "¿Qué páginas tienen el SEO más flojo?",
   "Lista los 5 productos con menos stock",
   "Sube el precio de la proteína whey a S/ 129.90",
-  "Crea un borrador de producto: Creatina 300g a S/ 89.90",
-  "Mejora con IA la foto de la creatina (fondo blanco ecommerce)",
 ];
 
 const actionLabel = (a: AgentAction): string => {
@@ -54,6 +62,9 @@ const actionLabel = (a: AgentAction): string => {
   if (a.action === "add_gallery") return `Agregó ${a.added ?? 1} imagen(es) a la galería de ${name}`;
   if (a.action === "remove_gallery") return `Quitó una imagen de la galería de ${name}`;
   if (a.action === "enhance_main_image") return `Mejoró con IA la imagen de ${name}`;
+  if (a.action === "seo_fix_product") return `Arregló el SEO de ${name} (solo los campos que fallaban)`;
+  if (a.action === "seo_proposal") return `Dejó una propuesta de SEO pendiente para ${name}`;
+  if (a.action === "seo_landing_draft") return `Creó un borrador de landing para “${a.keyword ?? ""}”`;
   return `Acción sobre ${name}`;
 };
 
@@ -62,8 +73,10 @@ const AdminAgent = () => {
     {
       role: "assistant",
       content:
-        "¡Hola! Soy tu agente de catálogo. Puedo buscar, crear, editar y activar/desactivar productos. " +
-        "Dime qué necesitas, por ejemplo: «sube el precio de la creatina a S/ 89.90».",
+        "¡Hola! Soy tu agente de administración. Puedo gestionar el catálogo " +
+        "(buscar, crear y editar productos, precios, stock e imágenes) y revisar el SEO " +
+        "de toda la web. Dime qué necesitas, por ejemplo: «¿cómo está el SEO?» o " +
+        "«sube el precio de la creatina a S/ 89.90».",
     },
   ]);
   const [input, setInput] = useState("");
@@ -147,10 +160,10 @@ const AdminAgent = () => {
     <div className="space-y-4">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold">
-          <Sparkles className="h-6 w-6 text-accent" /> Agente IA · Catálogo
+          <Sparkles className="h-6 w-6 text-accent" /> Agente IA · Administración
         </h1>
         <p className="text-sm text-muted-foreground">
-          Gestiona el catálogo conversando. El agente busca, crea y edita productos (incluidas imágenes) por ti. Adjunta una foto con el clip 📎. Cada acción queda registrada.
+          Gestiona la tienda conversando. Trabaja el catálogo (productos, precios, stock e imágenes) y revisa el SEO de toda la web. Adjunta una foto con el clip 📎. Cada acción queda registrada.
         </p>
       </div>
 
