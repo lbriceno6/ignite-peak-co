@@ -8,9 +8,11 @@ import { type AIProvider } from "../ai-provider.ts";
 import { runToolLoop } from "./runner.ts";
 import type { AgentContext, AgentDomain, AgentTool } from "./types.ts";
 import { catalogDomain } from "./domains/catalog.ts";
+import { seoDomain } from "./domains/seo.ts";
 
 export const DOMAINS: AgentDomain[] = [
   catalogDomain,
+  seoDomain,
 ];
 
 export const SYSTEM_COORDINATOR = `Eres el agente de administración de Nutribatidos (tienda peruana de suplementos).
