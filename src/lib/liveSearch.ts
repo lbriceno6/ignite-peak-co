@@ -162,15 +162,15 @@ async function loadCache() {
   return cache;
 }
 
-const SEARCH_FIELDS = [
-  "name",
-  "short_description",
-  "description",
-  "category",
-  "subcategory",
-  "brand",
-  "main_ingredient",
-];
+// Se busca contra `products.search_text`, una columna generada que la base
+// mantiene con todo el texto buscable en minúsculas y sin tildes (name, slug,
+// descripciones, category, subcategory, brand, main_ingredient).
+//
+// Antes se recorría campo por campo con ILIKE contra el texto original. Como
+// `norm()` le quita las tildes a la consulta y ILIKE no las ignora, "colágeno"
+// se convertía en '%colageno%' y no encontraba "Colágeno" — escribieras la
+// tilde o no. Los dos lados tienen que estar normalizados, no solo uno.
+const SEARCH_COLUMN = "search_text";
 
 export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchResult> {
   const q = norm(query);
@@ -239,12 +239,9 @@ export async function runLiveSearch(query: string, max = 4): Promise<LiveSearchR
     }
   }
 
-  // Build OR across all terms × all fields
-  const orClauses: string[] = [];
-  for (const t of terms) {
-    const like = `%${t}%`;
-    for (const f of SEARCH_FIELDS) orClauses.push(`${f}.ilike.${like}`);
-  }
+  // Un OR por término contra la columna normalizada. Los términos ya vienen
+  // sin tildes de `norm()`, que es exactamente el formato de `search_text`.
+  const orClauses = terms.map((t) => `${SEARCH_COLUMN}.ilike.%${t}%`);
 
   const productsQuery = supabase
     .from("products")
