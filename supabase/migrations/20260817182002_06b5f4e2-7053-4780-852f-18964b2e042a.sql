@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS order_items_set_commission ON public.order_items;
