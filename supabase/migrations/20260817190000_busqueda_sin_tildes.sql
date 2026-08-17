@@ -53,5 +53,8 @@ comment on column public.products.search_text is
 -- ILIKE '%algo%' no puede usar un índice normal porque el patrón empieza con
 -- comodín. El índice de trigramas sí, y es lo que evita que la búsqueda haga
 -- un recorrido completo de la tabla cuando crezca el catálogo.
+-- `gin_trgm_ops` va sin esquema a propósito: pg_trgm no está en el mismo sitio
+-- en todas las bases (aquí quedó en `public`, en otras está en `extensions`) y
+-- sin calificar se resuelve por search_path en cualquiera de los dos casos.
 create index if not exists products_search_text_trgm
-  on public.products using gin (search_text extensions.gin_trgm_ops);
+  on public.products using gin (search_text gin_trgm_ops);
