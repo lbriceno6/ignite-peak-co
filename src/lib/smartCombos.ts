@@ -292,12 +292,22 @@ export async function trackComboEvent(
   opts?: { sourceLocation?: string; amount?: number; orderId?: string; userId?: string },
 ) {
   try {
+    if (eventType === "purchase") {
+      // Purchases are recorded server-side: the RPC verifies the order belongs
+      // to the signed-in user and derives the amount from the order itself.
+      if (!opts?.orderId) return;
+      await (sb as any).rpc("track_combo_purchase", {
+        _combo_id: comboId,
+        _order_id: opts.orderId,
+        _source_location: opts?.sourceLocation ?? "checkout",
+      });
+      return;
+    }
     await sb.from("combo_events").insert({
       combo_id: comboId,
       event_type: eventType,
       source_location: opts?.sourceLocation,
       amount: opts?.amount,
-      order_id: opts?.orderId,
       user_id: opts?.userId,
     });
   } catch {
