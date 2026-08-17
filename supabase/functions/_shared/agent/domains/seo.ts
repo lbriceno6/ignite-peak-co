@@ -386,6 +386,32 @@ const crearLandingBorrador: AgentTool = {
   },
 };
 
+const guardarPuntajes: AgentTool = {
+  name: "guardar_puntajes",
+  description:
+    "Recalcula el puntaje de SEO de todos los productos y lo guarda en la base de datos. Úsala cuando el usuario quiera que el panel y sus exportaciones muestren los puntajes reales, o después de arreglar varios productos.",
+  risk: "write",
+  parameters: { type: "object", properties: {} },
+  async run(_args, ctx: AgentContext) {
+    const report = await runSeoAudit(ctx.supabase, { persistScores: true });
+    const productos = report.resumen.find((r) => r.family === "producto");
+
+    await ctx.audit({
+      role: "tool", tool_name: this.name, action: "update",
+      target_table: "seo_meta", after_value: { resumen: productos },
+    });
+
+    return {
+      ok: true,
+      productos_evaluados: productos?.total ?? 0,
+      score_promedio: productos?.scorePromedio ?? 0,
+      detalle: report.limitaciones.filter((l) => l.includes("puntaje")),
+      nota:
+        "Solo se actualizaron los productos que ya tenían ficha de SEO. Los que no la tienen siguen contando como 'sin SEO' y no se les inventó una.",
+    };
+  },
+};
+
 const listarPropuestas: AgentTool = {
   name: "listar_propuestas",
   description:
@@ -452,5 +478,6 @@ Cómo respondes:
     arreglarProducto,
     proponerSeo,
     crearLandingBorrador,
+    guardarPuntajes,
   ],
 };

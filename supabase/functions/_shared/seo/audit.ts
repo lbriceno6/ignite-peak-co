@@ -11,6 +11,16 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
+  analyzeRedirects,
+  type EntityFamily,
+  EXAMPLES,
+  type Finding,
+  findDuplicates,
+  foldIssues,
+  norm,
+  type ScoredEntity,
+} from "./checks.ts";
+import {
   type CategorySeoInput,
   type LandingSeoInput,
   type ProductSeoInput,
@@ -20,22 +30,10 @@ import {
   type SeoScore,
 } from "./rubric.ts";
 
-/** Cuántos ejemplos se adjuntan por hallazgo. */
-const EXAMPLES = 8;
+export type { EntityFamily, Finding, ScoredEntity };
+
 /** Tope de filas por consulta, para no traer el catálogo entero sin querer. */
 const ROW_LIMIT = 2000;
-
-export type EntityFamily = "producto" | "categoria" | "landing" | "blog";
-
-export type ScoredEntity = {
-  family: EntityFamily;
-  id: string;
-  name: string;
-  slug: string | null;
-  score: number;
-  /** Campos que fallan, por etiqueta. */
-  failing: string[];
-};
 
 export type FamilySummary = {
   family: EntityFamily;
@@ -47,18 +45,6 @@ export type FamilySummary = {
   bien: number;      // >= 80
   regular: number;   // 50-79
   mal: number;       // < 50
-};
-
-export type Finding = {
-  /** Clave estable del hallazgo. */
-  key: string;
-  /** Qué pasa, en lenguaje de negocio. */
-  titulo: string;
-  /** Cuántas entidades lo sufren. */
-  afectados: number;
-  /** Cómo se arregla. */
-  arreglo: string;
-  ejemplos: string[];
 };
 
 export type SeoAuditReport = {
@@ -76,9 +62,6 @@ export type SeoAuditReport = {
   limitaciones: string[];
 };
 
-const norm = (s?: string | null) =>
-  (s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim();
-
 function summarize(family: EntityFamily, scored: ScoredEntity[], sinSeo: number): FamilySummary {
   const total = scored.length;
   const suma = scored.reduce((a, s) => a + s.score, 0);
@@ -94,65 +77,22 @@ function summarize(family: EntityFamily, scored: ScoredEntity[], sinSeo: number)
   };
 }
 
-/** Agrupa los campos que fallan de una familia en hallazgos con ejemplos. */
-function foldIssues(
-  family: EntityFamily,
-  rows: { entity: ScoredEntity; score: SeoScore }[],
-): Finding[] {
-  const buckets = new Map<string, { titulo: string; arreglo: string; ejemplos: string[] }>();
+export type AuditOptions = {
+  /**
+   * Guarda el puntaje calculado en `seo_meta.score` y `last_analyzed_at`.
+   *
+   * Solo actualiza filas que ya existen: nunca crea una fila de SEO para un
+   * producto que no la tiene, porque eso haría que el producto pareciera
+   * tener SEO cuando no lo tiene, y rompería los recuentos de cobertura del
+   * panel.
+   */
+  persistScores?: boolean;
+};
 
-  for (const { entity, score } of rows) {
-    for (const issue of score.failing) {
-      const key = `${family}:${issue.field}`;
-      let b = buckets.get(key);
-      if (!b) {
-        b = { titulo: `${issue.label} — ${issue.message}`, arreglo: issue.fix, ejemplos: [] };
-        buckets.set(key, b);
-      }
-      if (b.ejemplos.length < EXAMPLES) b.ejemplos.push(entity.name);
-    }
-  }
-
-  return [...buckets.entries()]
-    .map(([key, b]) => ({
-      key,
-      titulo: b.titulo,
-      afectados: rows.filter((r) => r.score.failing.some((f) => `${family}:${f.field}` === key)).length,
-      arreglo: b.arreglo,
-      ejemplos: b.ejemplos,
-    }))
-    .sort((a, b) => b.afectados - a.afectados);
-}
-
-/** Detecta valores repetidos entre entidades: Google los trata como duplicados. */
-function findDuplicates(
-  label: string,
-  entries: { value: string | null | undefined; who: string }[],
-): Finding | null {
-  const map = new Map<string, string[]>();
-  for (const e of entries) {
-    const v = norm(e.value);
-    if (!v) continue;
-    const arr = map.get(v) ?? [];
-    arr.push(e.who);
-    map.set(v, arr);
-  }
-  const dups = [...map.entries()].filter(([, who]) => who.length > 1);
-  if (dups.length === 0) return null;
-
-  return {
-    key: `duplicado:${label}`,
-    titulo: `${dups.length} ${label} repetidos en más de una página`,
-    afectados: dups.reduce((a, [, who]) => a + who.length, 0),
-    arreglo:
-      "Cada página necesita un texto único. Google elige una y esconde el resto, así que las páginas repetidas compiten entre ellas.",
-    ejemplos: dups.slice(0, EXAMPLES).map(([v, who]) =>
-      `"${v.slice(0, 60)}" en: ${who.slice(0, 3).join(", ")}${who.length > 3 ? ` (+${who.length - 3})` : ""}`
-    ),
-  };
-}
-
-export async function runSeoAudit(supabase: SupabaseClient): Promise<SeoAuditReport> {
+export async function runSeoAudit(
+  supabase: SupabaseClient,
+  options: AuditOptions = {},
+): Promise<SeoAuditReport> {
   const limitaciones: string[] = [];
 
   // ---------------------------------------------------------------- consultas
@@ -330,16 +270,7 @@ export async function runSeoAudit(supabase: SupabaseClient): Promise<SeoAuditRep
   if (dupSlugs) problemas_tecnicos.push(dupSlugs);
 
   // -------------------------------------------------- técnico: redirecciones
-  const activeRedirects = redirects.filter((r) => r.active !== false);
-  const fromSet = new Set(activeRedirects.map((r) => String(r.from_path)));
-  const loops: string[] = [];
-  const chains: string[] = [];
-  for (const r of activeRedirects) {
-    const from = String(r.from_path);
-    const to = String(r.to_path);
-    if (from === to) loops.push(`${from} apunta a sí misma`);
-    else if (fromSet.has(to)) chains.push(`${from} → ${to} → ...`);
-  }
+  const { loops, chains } = analyzeRedirects(redirects);
   if (loops.length) {
     problemas_tecnicos.push({
       key: "redireccion:bucle",
@@ -429,6 +360,33 @@ export async function runSeoAudit(supabase: SupabaseClient): Promise<SeoAuditRep
         "Es demanda que ya tienes y no estás atendiendo. Cada una es un producto que falta, un sinónimo por mapear o una landing por crear.",
       ejemplos: topQueries.map(([q, n]) => `"${q}" (${n} ${n === 1 ? "vez" : "veces"})`),
     });
+  }
+
+  // ------------------------------------------------- persistir los puntajes
+  // La columna `seo_meta.score` existía sin que nadie la escribiera: el panel
+  // calculaba el puntaje en el navegador y lo descartaba, así que su export
+  // CSV leía siempre 0 y marcaba "score bajo" en todo el catálogo.
+  if (options.persistScores) {
+    const filas = productRows
+      .map((r) => {
+        const m = metaByProduct.get(r.entity.id);
+        return m
+          ? {
+            entity_type: "product",
+            entity_id: r.entity.id,
+            score: r.entity.score,
+            last_analyzed_at: new Date().toISOString(),
+          }
+          : null;
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+
+    if (filas.length) {
+      const { error } = await supabase.from("seo_meta")
+        .upsert(filas, { onConflict: "entity_type,entity_id" });
+      if (error) limitaciones.push(`No se pudieron guardar los puntajes: ${error.message}`);
+      else limitaciones.push(`Se guardó el puntaje de ${filas.length} producto(s).`);
+    }
   }
 
   // ---------------------------------------------------------------- limitaciones
