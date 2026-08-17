@@ -5659,6 +5659,14 @@ export type Database = {
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       supplier_owns_order: { Args: { _order_id: string }; Returns: boolean }
+      track_combo_purchase: {
+        Args: {
+          _combo_id: string
+          _order_id: string
+          _source_location?: string
+        }
+        Returns: undefined
+      }
       user_has_confirmed_purchase: {
         Args: { _product_id: string; _user_id: string }
         Returns: boolean
