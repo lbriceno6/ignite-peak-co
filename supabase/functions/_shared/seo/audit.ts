@@ -126,13 +126,13 @@ export async function runSeoAudit(
   ] = await Promise.all([
     supabase.from("products")
       .select(
-        "id, name, slug, short_description, description, main_image, gallery_images, approval_status, category",
+        "id, name, slug, short_description, description, main_image, gallery_images, approval_status, category, subcategory",
       )
       .eq("is_active", true).limit(ROW_LIMIT),
     supabase.from("seo_meta").select("*").eq("entity_type", "product").limit(ROW_LIMIT),
     supabase.from("seo_image_alts").select("entity_id, alt_text").eq("entity_type", "product").limit(ROW_LIMIT * 4),
     supabase.from("categories")
-      .select("id, name, slug, parent_id, meta_title, meta_description, canonical_url, short_description, long_description, image_url, show_in_sitemap")
+      .select("id, name, slug, parent_id, type, related_product_ids, meta_title, meta_description, canonical_url, short_description, long_description, image_url, show_in_sitemap")
       .eq("is_active", true).limit(ROW_LIMIT),
     supabase.from("seo_landing_pages")
       .select("id, title, slug, kind, keyword, meta_title, meta_description, intro, body_html, hero_image, schema_jsonld, is_published")
