@@ -8,11 +8,90 @@
 import { describe, expect, it } from "vitest";
 import {
   analyzeRedirects,
+  analyzeTaxonomy,
   contarCobertura,
   findDuplicates,
   foldIssues,
   sinCobertura,
 } from "../../supabase/functions/_shared/seo/checks";
+
+describe("analyzeTaxonomy", () => {
+  const cat = (id: string, name: string, slug: string, parent_id: string | null = null) =>
+    ({ id, name, slug, parent_id });
+
+  it("una categoría sin productos sale como vacía", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas"), cat("2", "Wellness", "wellness")],
+      [{ name: "Whey", category: "proteinas" }],
+    );
+    expect(r.vacias).toEqual([{ name: "Wellness", slug: "wellness" }]);
+  });
+
+  it("una categoría padre sin productos propios NO es vacía", () => {
+    // Agrupa a sus hijas; no tener productos directos es lo normal.
+    const r = analyzeTaxonomy(
+      [cat("padre", "Nutrition", "nutrition"), cat("hija", "Proteínas", "proteinas", "padre")],
+      [{ name: "Whey", category: "proteinas" }],
+    );
+    expect(r.vacias).toEqual([]);
+  });
+
+  it("reconoce la categoría tanto por slug como por nombre", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas"), cat("2", "Creatina", "creatina")],
+      [{ name: "Whey", category: "Proteínas" }, { name: "Mono", category: "creatina" }],
+    );
+    expect(r.vacias).toEqual([]);
+    expect(r.huerfanos).toEqual([]);
+  });
+
+  it("ignora mayúsculas, tildes y espacios al emparejar", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas")],
+      [{ name: "Whey", category: "  PROTEINAS  " }],
+    );
+    expect(r.vacias).toEqual([]);
+  });
+
+  it("agrupa los productos que apuntan a una categoría inexistente", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas")],
+      [
+        { name: "Whey", category: "proteinas" },
+        { name: "BCAA", category: "aminoacidos" },
+        { name: "EAA", category: "aminoacidos" },
+      ],
+    );
+    expect(r.huerfanos).toEqual([{ valor: "aminoacidos", productos: 2 }]);
+  });
+
+  it("ordena los huérfanos por cuántos productos arrastran", () => {
+    const r = analyzeTaxonomy(
+      [],
+      [
+        { name: "A", category: "uno" },
+        { name: "B", category: "dos" },
+        { name: "C", category: "dos" },
+      ],
+    );
+    expect(r.huerfanos.map((h) => h.valor)).toEqual(["dos", "uno"]);
+  });
+
+  it("cuenta aparte los productos sin categoría, y no los toma por huérfanos", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas")],
+      [{ name: "A", category: null }, { name: "B", category: "   " }, { name: "C" }],
+    );
+    expect(r.sinCategoria).toBe(3);
+    expect(r.huerfanos).toEqual([]);
+  });
+
+  it("sin productos, toda categoría hoja está vacía", () => {
+    const r = analyzeTaxonomy([cat("1", "Proteínas", "proteinas")], []);
+    expect(r.vacias).toHaveLength(1);
+    expect(r.sinCategoria).toBe(0);
+  });
+});
 
 describe("contarCobertura", () => {
   it("cuenta cubierta la página que tiene título o descripción", () => {

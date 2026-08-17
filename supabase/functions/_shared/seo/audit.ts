@@ -12,6 +12,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import {
   analyzeRedirects,
+  analyzeTaxonomy,
   type Cobertura,
   contarCobertura,
   type EntityFamily,
@@ -124,12 +125,14 @@ export async function runSeoAudit(
     zeroSearchRes,
   ] = await Promise.all([
     supabase.from("products")
-      .select("id, name, slug, short_description, description, main_image, gallery_images, approval_status")
+      .select(
+        "id, name, slug, short_description, description, main_image, gallery_images, approval_status, category",
+      )
       .eq("is_active", true).limit(ROW_LIMIT),
     supabase.from("seo_meta").select("*").eq("entity_type", "product").limit(ROW_LIMIT),
     supabase.from("seo_image_alts").select("entity_id, alt_text").eq("entity_type", "product").limit(ROW_LIMIT * 4),
     supabase.from("categories")
-      .select("id, name, slug, meta_title, meta_description, canonical_url, short_description, long_description, image_url, show_in_sitemap")
+      .select("id, name, slug, parent_id, meta_title, meta_description, canonical_url, short_description, long_description, image_url, show_in_sitemap")
       .eq("is_active", true).limit(ROW_LIMIT),
     supabase.from("seo_landing_pages")
       .select("id, title, slug, kind, keyword, meta_title, meta_description, intro, body_html, hero_image, schema_jsonld, is_published")
@@ -340,6 +343,51 @@ export async function runSeoAudit(
       afectados: sinAprobar.length,
       arreglo: "Están activos pero su estado de aprobación no es 'approved'; revisa si deberían ser públicos.",
       ejemplos: sinAprobar.slice(0, EXAMPLES).map((p) => String(p.name)),
+    });
+  }
+
+  // ------------------------------------------------- técnico: taxonomía
+  // `products.category` es texto libre, así que la relación puede estar rota
+  // sin que nada lo avise: categorías activas donde no cae ningún producto, y
+  // productos apuntando a categorías que no existen.
+  const taxonomia = analyzeTaxonomy(categories as any[], products as any[]);
+
+  if (taxonomia.vacias.length) {
+    problemas_tecnicos.push({
+      key: "categoria:sin_productos",
+      titulo: `${taxonomia.vacias.length} categoría(s) activas sin ningún producto`,
+      afectados: taxonomia.vacias.length,
+      arreglo:
+        "Son páginas indexables vacías: Google las lee como contenido pobre y arrastran al resto del sitio. " +
+        "Desactiva las que sobren y deja solo las que agrupen productos de verdad. Escribirles SEO antes de decidir eso es trabajo perdido.",
+      ejemplos: taxonomia.vacias.slice(0, EXAMPLES).map((c) => `${c.name} (/${c.slug ?? "?"})`),
+    });
+  }
+
+  if (taxonomia.huerfanos.length) {
+    problemas_tecnicos.push({
+      key: "producto:categoria_inexistente",
+      titulo: `${taxonomia.huerfanos.length} categoría(s) escritas en productos que no existen en el catálogo`,
+      afectados: taxonomia.huerfanos.reduce((a, h) => a + h.productos, 0),
+      arreglo:
+        "El campo de categoría del producto es texto libre y no coincide con ninguna categoría real, así que esos productos no aparecen donde deberían. " +
+        "Corrige el texto o crea la categoría que falta.",
+      ejemplos: taxonomia.huerfanos.slice(0, EXAMPLES).map((h) =>
+        `"${h.valor}" (${h.productos} producto${h.productos === 1 ? "" : "s"})`
+      ),
+    });
+  }
+
+  if (taxonomia.sinCategoria) {
+    problemas_tecnicos.push({
+      key: "producto:sin_categoria",
+      titulo: `${taxonomia.sinCategoria} producto(s) activo(s) sin categoría`,
+      afectados: taxonomia.sinCategoria,
+      arreglo:
+        "No se llega a ellos navegando: solo por búsqueda o enlace directo. Asígnales una categoría.",
+      ejemplos: products.filter((p) => !tieneTexto(p.category)).slice(0, EXAMPLES).map((p) =>
+        String(p.name)
+      ),
     });
   }
 
