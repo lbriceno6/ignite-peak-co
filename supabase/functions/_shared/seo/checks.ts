@@ -77,6 +77,79 @@ export const sinCobertura = (motivo: string): Cobertura => ({
   criterio: motivo,
 });
 
+/**
+ * Salud de la taxonomía: si las categorías y los productos se encuentran.
+ *
+ * `products.category` es texto libre, no una llave hacia `categories`, así que
+ * nada impide que un producto apunte a una categoría que no existe ni que
+ * queden categorías activas sin un solo producto dentro. Las dos cosas son
+ * invisibles desde el panel y las dos hacen daño en Google: la categoría vacía
+ * es una página indexable sin contenido, y el producto mal apuntado no
+ * aparece donde debería.
+ *
+ * Las categorías padre quedan fuera del recuento de vacías: agrupan a sus
+ * hijas y es normal que no tengan productos propios.
+ */
+export type CategoriaTaxonomia = {
+  name: string;
+  slug: string | null;
+  parent_id?: string | null;
+  id: string;
+};
+
+export type Taxonomia = {
+  /** Categorías hoja, activas y sin ningún producto. */
+  vacias: { name: string; slug: string | null }[];
+  /** Valores de `products.category` que no corresponden a ninguna categoría. */
+  huerfanos: { valor: string; productos: number }[];
+  /** Productos sin categoría asignada. */
+  sinCategoria: number;
+};
+
+export function analyzeTaxonomy(
+  categories: CategoriaTaxonomia[],
+  products: { name: string; category?: string | null }[],
+): Taxonomia {
+  const conHijas = new Set(
+    categories.map((c) => c.parent_id).filter((p): p is string => Boolean(p)),
+  );
+
+  // Una categoría se reconoce por su slug o por su nombre: el texto libre del
+  // producto puede venir de cualquiera de los dos.
+  const porClave = new Map<string, CategoriaTaxonomia>();
+  for (const c of categories) {
+    for (const clave of [c.slug, c.name]) {
+      const k = norm(clave);
+      if (k) porClave.set(k, c);
+    }
+  }
+
+  const usadas = new Set<string>();
+  const huerfanoCount = new Map<string, number>();
+  let sinCategoria = 0;
+
+  for (const p of products) {
+    const clave = norm(p.category);
+    if (!clave) {
+      sinCategoria++;
+      continue;
+    }
+    const cat = porClave.get(clave);
+    if (cat) usadas.add(cat.id);
+    else huerfanoCount.set(clave, (huerfanoCount.get(clave) ?? 0) + 1);
+  }
+
+  return {
+    vacias: categories
+      .filter((c) => !usadas.has(c.id) && !conHijas.has(c.id))
+      .map((c) => ({ name: c.name, slug: c.slug })),
+    huerfanos: [...huerfanoCount.entries()]
+      .map(([valor, productos]) => ({ valor, productos }))
+      .sort((a, b) => b.productos - a.productos),
+    sinCategoria,
+  };
+}
+
 const NOMBRE_FAMILIA: Record<EntityFamily, string> = {
   producto: "producto(s)",
   categoria: "categoría(s)",
