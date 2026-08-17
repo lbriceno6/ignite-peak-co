@@ -91,6 +91,48 @@ describe("analyzeTaxonomy", () => {
     expect(r.vacias).toHaveLength(1);
     expect(r.sinCategoria).toBe(0);
   });
+
+  it("la subcategoría del producto también cuenta como uso", () => {
+    // Un producto se clasifica por category Y subcategory. Mirando solo la
+    // primera, media taxonomía salía vacía sin estarlo.
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas"), cat("2", "Whey aislada", "whey-aislada", "1")],
+      [{ name: "Iso 100", category: "proteinas", subcategory: "whey-aislada" }],
+    );
+    expect(r.vacias).toEqual([]);
+    expect(r.huerfanos).toEqual([]);
+  });
+
+  it("una categoría del blog no se juzga por no tener productos", () => {
+    const blog = { ...cat("2", "Nutrición deportiva", "nutricion-deportiva"), type: "blog" };
+    const r = analyzeTaxonomy([cat("1", "Proteínas", "proteinas"), blog], [
+      { name: "Whey", category: "proteinas" },
+    ]);
+    expect(r.vacias).toEqual([]);
+  });
+
+  it("una categoría que enumera productos por id está en uso", () => {
+    const conIds = { ...cat("2", "Destacados", "destacados"), related_product_ids: ["p1"] };
+    const r = analyzeTaxonomy([conIds], []);
+    expect(r.vacias).toEqual([]);
+  });
+
+  it("una subcategoría que no existe también sale como huérfana", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Proteínas", "proteinas")],
+      [{ name: "Iso", category: "proteinas", subcategory: "veganas" }],
+    );
+    expect(r.huerfanos).toEqual([{ valor: "veganas", productos: 1 }]);
+  });
+
+  it("un producto con subcategoría pero sin categoría no cuenta como sin clasificar", () => {
+    const r = analyzeTaxonomy(
+      [cat("1", "Whey", "whey")],
+      [{ name: "Iso", category: null, subcategory: "whey" }],
+    );
+    expect(r.sinCategoria).toBe(0);
+    expect(r.vacias).toEqual([]);
+  });
 });
 
 describe("contarCobertura", () => {

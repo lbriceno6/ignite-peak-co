@@ -95,6 +95,17 @@ export type CategoriaTaxonomia = {
   slug: string | null;
   parent_id?: string | null;
   id: string;
+  /** "product" | "blog". Las del blog nunca tienen productos: no se juzgan. */
+  type?: string | null;
+  /** Vínculo explícito a productos, aparte del texto libre del producto. */
+  related_product_ids?: string[] | null;
+};
+
+export type ProductoTaxonomia = {
+  name: string;
+  category?: string | null;
+  /** Un producto se clasifica por las dos: category y subcategory. */
+  subcategory?: string | null;
 };
 
 export type Taxonomia = {
@@ -108,7 +119,7 @@ export type Taxonomia = {
 
 export function analyzeTaxonomy(
   categories: CategoriaTaxonomia[],
-  products: { name: string; category?: string | null }[],
+  products: ProductoTaxonomia[],
 ): Taxonomia {
   const conHijas = new Set(
     categories.map((c) => c.parent_id).filter((p): p is string => Boolean(p)),
@@ -128,19 +139,30 @@ export function analyzeTaxonomy(
   const huerfanoCount = new Map<string, number>();
   let sinCategoria = 0;
 
+  // Una categoría que enumera productos por id ya está en uso, aunque ningún
+  // producto la nombre en su texto.
+  for (const c of categories) {
+    if (c.related_product_ids?.length) usadas.add(c.id);
+  }
+
   for (const p of products) {
-    const clave = norm(p.category);
-    if (!clave) {
+    const claves = [norm(p.category), norm(p.subcategory)].filter(Boolean);
+    if (!claves.length) {
       sinCategoria++;
       continue;
     }
-    const cat = porClave.get(clave);
-    if (cat) usadas.add(cat.id);
-    else huerfanoCount.set(clave, (huerfanoCount.get(clave) ?? 0) + 1);
+    for (const clave of claves) {
+      const cat = porClave.get(clave);
+      if (cat) usadas.add(cat.id);
+      else huerfanoCount.set(clave, (huerfanoCount.get(clave) ?? 0) + 1);
+    }
   }
 
   return {
     vacias: categories
+      // Las del blog no clasifican productos: preguntarles por productos no
+      // tiene sentido y las marcaría a todas como vacías.
+      .filter((c) => (c.type ?? "product") === "product")
       .filter((c) => !usadas.has(c.id) && !conHijas.has(c.id))
       .map((c) => ({ name: c.name, slug: c.slug })),
     huerfanos: [...huerfanoCount.entries()]
