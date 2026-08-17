@@ -486,7 +486,10 @@ const Category = () => {
           [
             `name.ilike.%${safe}%`,
             `short_description.ilike.%${safe}%`,
-            `long_description.ilike.%${safe}%`,
+            // `products` tiene `description`, no `long_description`. Con el
+            // nombre equivocado PostgREST rechaza la consulta entera, así que
+            // buscar dentro de una categoría no devolvía nada.
+            `description.ilike.%${safe}%`,
             `ingredients.ilike.%${safe}%`,
             `main_ingredient.ilike.%${safe}%`,
             `category.ilike.%${safe}%`,
