@@ -3226,6 +3226,7 @@ export type Database = {
           rating: number
           rejection_reason: string | null
           sale_price: number | null
+          search_text: string | null
           short_description: string | null
           size: string | null
           size_variants: Json
@@ -3265,6 +3266,7 @@ export type Database = {
           rating?: number
           rejection_reason?: string | null
           sale_price?: number | null
+          search_text?: string | null
           short_description?: string | null
           size?: string | null
           size_variants?: Json
@@ -3304,6 +3306,7 @@ export type Database = {
           rating?: number
           rejection_reason?: string | null
           sale_price?: number | null
+          search_text?: string | null
           short_description?: string | null
           size?: string | null
           size_variants?: Json
@@ -5585,6 +5588,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      immutable_unaccent: { Args: { "": string }; Returns: string }
       is_supplier_approved: { Args: { _supplier_id: string }; Returns: boolean }
       log_seo_change: {
         Args: {
