@@ -1,13 +1,39 @@
-// Dominio: revisión de SEO.
+// Dominio: revisión y arreglo de SEO.
 //
-// Solo lectura, a propósito. Este especialista audita y explica; no escribe.
-// Las funciones que generan SEO (seo-generate, product-seo-generate,
-// seo-home-generate, ai-seo-landing-generate) siguen viviendo en el panel y
-// pueden conectarse aquí más adelante, cuando exista una barrera de aprobación.
+// Las herramientas de escritura no reimplementan nada: invocan las funciones
+// que ya usa el panel. Lo importante es CÓMO las invocan, porque ahí está la
+// barrera de seguridad y es deliberada:
+//
+//   - Productos: siempre en modo `fix_to_100` con `overwrite_existing` en
+//     false. Eso regenera únicamente los campos que incumplen las reglas y no
+//     toca el contenido del producto. El agente arregla lo roto; nunca pisa lo
+//     que ya estaba bien.
+//   - Blog y categorías: generan una PROPUESTA en `seo_suggestions` con estado
+//     pendiente. No tocan el SEO en vivo; tú apruebas desde el panel.
+//   - Landings: se crean siempre como borrador (`publish: false`).
+//
+// Lo que se dejó fuera a propósito: sobrescribir campos correctos y publicar
+// landings. Son las dos acciones de las que cuesta volver, y ninguna es
+// urgente para "revisar y arreglar el SEO".
 
+import { type AIProvider, getProviderConfig } from "../../ai-provider.ts";
 import { runSeoAudit } from "../../seo/audit.ts";
 import { scoreCategory, scoreLanding, scoreProduct } from "../../seo/rubric.ts";
+import { invokeError, invokeFunction } from "../invoke.ts";
 import type { AgentContext, AgentDomain, AgentTool } from "../types.ts";
+
+/**
+ * Proveedor de IA para las funciones de generación.
+ *
+ * En el panel lo elige el usuario en un desplegable; aquí no hay desplegable,
+ * así que se toma el primero que tenga clave. `product-seo-generate` responde
+ * 400 si la clave del proveedor que recibe no está configurada, y su valor por
+ * defecto es openai — que no todas las instalaciones usan.
+ */
+function generationProvider(): AIProvider {
+  const order: AIProvider[] = ["openai", "lovable", "deepseek", "gemini", "anthropic"];
+  return order.find((p) => getProviderConfig(p).hasKey) ?? "openai";
+}
 
 const auditarSitio: AgentTool = {
   name: "auditar_sitio",
@@ -187,16 +213,223 @@ const revisarPagina: AgentTool = {
   },
 };
 
+// --------------------------------------------------------------------------
+// Escritura acotada
+// --------------------------------------------------------------------------
+
+/** Busca un producto activo por nombre o slug. */
+async function findProduct(ctx: AgentContext, q: string): Promise<any | null> {
+  const { data } = await ctx.supabase.from("products")
+    .select("id, name, slug")
+    .or(`name.ilike.%${q}%,slug.ilike.%${q}%`)
+    .eq("is_active", true).limit(1);
+  return (data as any[])?.[0] ?? null;
+}
+
+const arreglarProducto: AgentTool = {
+  name: "arreglar_producto",
+  description:
+    "Arregla el SEO de un producto: regenera SOLO los campos que incumplen las reglas (título, meta descripción, palabras clave, textos, alt de imágenes) y no toca el contenido del producto ni los campos que ya estaban correctos. Úsala cuando el usuario pida corregir o completar el SEO de un producto concreto.",
+  risk: "write",
+  parameters: {
+    type: "object",
+    properties: {
+      producto: {
+        type: "string",
+        description: "Nombre o slug del producto. También se acepta su UUID.",
+      },
+    },
+    required: ["producto"],
+  },
+  async run(args, ctx: AgentContext) {
+    const q = String(args?.producto ?? "").trim();
+    if (!q) return { error: "Indica qué producto arreglar." };
+
+    const esUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q);
+    const producto = esUuid ? { id: q, name: q } : await findProduct(ctx, q);
+    if (!producto) return { error: `No encontré ningún producto activo que coincida con "${q}".` };
+
+    // fix_to_100 regenera únicamente lo que falla; overwrite_existing queda en
+    // false para no pisar campos que ya estaban bien.
+    const res = await invokeFunction(ctx, "product-seo-generate", {
+      product_id: producto.id,
+      provider: generationProvider(),
+      fix_to_100: true,
+      overwrite_existing: false,
+    });
+    if (!res.ok) return { error: invokeError("product-seo-generate", res) };
+
+    ctx.actions.push({
+      action: "seo_fix_product",
+      product_id: producto.id,
+      name: producto.name,
+    });
+    await ctx.audit({
+      role: "tool", tool_name: this.name, tool_args: args, action: "update",
+      target_table: "seo_meta", target_id: producto.id, product_id: producto.id,
+      after_value: res.body,
+    });
+
+    return {
+      ok: true,
+      producto: producto.name,
+      detalle: res.body,
+      nota: "Solo se regeneraron los campos que incumplían las reglas. Los que ya estaban correctos quedaron intactos.",
+    };
+  },
+};
+
+const proponerSeo: AgentTool = {
+  name: "proponer_seo",
+  description:
+    "Genera una PROPUESTA de SEO para un artículo del blog o una categoría y la deja pendiente de aprobación; no cambia nada en vivo. Úsala para blog y categorías. Para productos usa arreglar_producto, que sí aplica directamente.",
+  risk: "write",
+  parameters: {
+    type: "object",
+    properties: {
+      tipo: {
+        type: "string",
+        enum: ["blog", "category"],
+        description: "Tipo de entidad.",
+      },
+      busqueda: {
+        type: "string",
+        description: "Título o slug del artículo, o nombre de la categoría.",
+      },
+    },
+    required: ["tipo", "busqueda"],
+  },
+  async run(args, ctx: AgentContext) {
+    const tipo = String(args?.tipo ?? "").trim();
+    const q = String(args?.busqueda ?? "").trim();
+    if (!["blog", "category"].includes(tipo)) return { error: "tipo debe ser blog o category." };
+    if (!q) return { error: "Indica qué entidad." };
+
+    const tabla = tipo === "blog" ? "blog_posts" : "categories";
+    const campo = tipo === "blog" ? "title" : "name";
+    const { data } = await ctx.supabase.from(tabla)
+      .select(`id, ${campo}, slug`)
+      .or(`${campo}.ilike.%${q}%,slug.ilike.%${q}%`).limit(1);
+    const row = (data as any[])?.[0];
+    if (!row) return { error: `No encontré ninguna entidad de tipo ${tipo} que coincida con "${q}".` };
+
+    const res = await invokeFunction(ctx, "seo-generate", {
+      entity_type: tipo,
+      entity_id: row.id,
+    });
+    if (!res.ok) return { error: invokeError("seo-generate", res) };
+
+    ctx.actions.push({ action: "seo_proposal", entity_type: tipo, entity_id: row.id, name: row[campo] });
+    await ctx.audit({
+      role: "tool", tool_name: this.name, tool_args: args, action: "create",
+      target_table: "seo_suggestions", target_id: row.id, after_value: res.body,
+    });
+
+    return {
+      ok: true,
+      tipo,
+      nombre: row[campo],
+      propuesta: res.body,
+      nota: "Queda como propuesta pendiente. No cambia nada del sitio hasta que la apruebes en el panel.",
+    };
+  },
+};
+
+const crearLandingBorrador: AgentTool = {
+  name: "crear_landing_borrador",
+  description:
+    "Crea una landing de SEO en BORRADOR para una palabra clave concreta, sin publicarla. Úsala cuando una búsqueda sin resultados o una oportunidad detectada merezca su propia página.",
+  risk: "write",
+  parameters: {
+    type: "object",
+    properties: {
+      keyword: {
+        type: "string",
+        description: "Palabra clave objetivo, tal como la buscaría una persona.",
+      },
+      tipo: {
+        type: "string",
+        enum: ["objetivo", "ingrediente", "beneficio"],
+        description: "Qué clase de landing. Por defecto objetivo.",
+      },
+    },
+    required: ["keyword"],
+  },
+  async run(args, ctx: AgentContext) {
+    const keyword = String(args?.keyword ?? "").trim();
+    if (!keyword) return { error: "Indica la palabra clave objetivo." };
+    const kind = ["objetivo", "ingrediente", "beneficio"].includes(args?.tipo)
+      ? args.tipo
+      : "objetivo";
+
+    // publish en false siempre: el agente prepara, el humano publica.
+    const res = await invokeFunction(ctx, "ai-seo-landing-generate", {
+      keyword,
+      kind,
+      publish: false,
+    });
+    if (!res.ok) return { error: invokeError("ai-seo-landing-generate", res) };
+
+    ctx.actions.push({ action: "seo_landing_draft", keyword, kind });
+    await ctx.audit({
+      role: "tool", tool_name: this.name, tool_args: args, action: "create",
+      target_table: "seo_landing_pages", after_value: res.body,
+    });
+
+    return {
+      ok: true,
+      keyword,
+      tipo: kind,
+      detalle: res.body,
+      nota: "Se creó como borrador. Revísala y publícala desde el panel cuando esté a tu gusto.",
+    };
+  },
+};
+
+const listarPropuestas: AgentTool = {
+  name: "listar_propuestas",
+  description:
+    "Lista las propuestas de SEO pendientes de aprobación. Úsala para saber qué hay esperando revisión.",
+  risk: "read",
+  parameters: {
+    type: "object",
+    properties: {
+      limite: { type: "integer", description: "Cuántas devolver (1-50). Por defecto 20." },
+    },
+  },
+  async run(args, ctx: AgentContext) {
+    const limite = Math.min(Math.max(Number(args?.limite) || 20, 1), 50);
+    const { data, error } = await ctx.supabase.from("seo_suggestions")
+      .select("id, entity_type, entity_id, status, seo_title, created_at")
+      .eq("status", "pending").order("created_at", { ascending: false }).limit(limite);
+    if (error) return { error: error.message };
+
+    await ctx.audit({
+      role: "tool", tool_name: this.name, tool_args: args, action: "search",
+      target_table: "seo_suggestions", tool_result: { count: data?.length ?? 0 },
+    });
+    return { count: data?.length ?? 0, propuestas: data ?? [] };
+  },
+};
+
 export const seoDomain: AgentDomain = {
   key: "seo",
   title: "SEO",
   description:
-    "Revisión del SEO del sitio: auditar todo (productos, categorías, landings, blog), listar las páginas peor posicionadas, y revisar a fondo una página concreta. Solo consulta: no modifica nada. Úsalo para cualquier pregunta sobre posicionamiento, títulos, meta descripciones, duplicados, redirecciones o indexación.",
+    "SEO del sitio: auditar todo (productos, categorías, landings, blog), listar las páginas peor posicionadas, revisar una página a fondo, arreglar el SEO de un producto, proponer SEO para blog y categorías, y crear landings en borrador. Úsalo para cualquier pregunta o encargo sobre posicionamiento, títulos, meta descripciones, duplicados, redirecciones o indexación.",
   system: `Eres el especialista de SEO de Nutribatidos (tienda peruana de suplementos).
-Auditas y explicas; no modificas nada, y no debes prometer que lo harás.
+Auditas, explicas y arreglas.
+
+Qué puedes cambiar y qué no:
+- arreglar_producto aplica de inmediato, pero solo regenera los campos que incumplen las reglas: nunca pisa un campo que ya estaba correcto ni toca el contenido del producto.
+- proponer_seo (blog y categorías) deja una propuesta pendiente. No cambia nada en vivo.
+- crear_landing_borrador crea la página sin publicar.
+- No puedes sobrescribir campos correctos ni publicar landings. Si el usuario lo pide, dile que eso se hace desde el panel y por qué está fuera de tu alcance.
 
 Cómo trabajas:
 - Para cualquier pregunta general, empieza por auditar_sitio: trae el estado completo ya calculado.
+- Antes de arreglar varios productos, di cuáles vas a tocar y espera el visto bueno. Uno suelto que el usuario ya nombró no necesita confirmación.
+- Después de arreglar, di en una frase qué campos se regeneraron.
 - Nunca inventes cifras. Todos los números salen de las herramientas.
 - No estimes tráfico, posiciones ni volumen de búsqueda: no tienes esos datos.
 
@@ -211,5 +444,13 @@ Cómo respondes:
 - Agrupa: no listes 40 productos, di "40 productos sin descripción larga" y nombra dos o tres de ejemplo.
 - Cada recomendación dice qué hacer y por qué importa, en lenguaje de negocio. Nada de jerga sin explicar.
 - Menciona las limitaciones cuando sean relevantes: esta auditoría lee la base de datos, no rastrea el sitio publicado ni consulta Google.`,
-  tools: [auditarSitio, listarPeores, revisarPagina],
+  tools: [
+    auditarSitio,
+    listarPeores,
+    revisarPagina,
+    listarPropuestas,
+    arreglarProducto,
+    proponerSeo,
+    crearLandingBorrador,
+  ],
 };
