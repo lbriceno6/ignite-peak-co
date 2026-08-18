@@ -59,6 +59,28 @@ const emptyFilters: FilterState = {
   rating: 0, price: [0, 100], inStock: false,
 };
 
+/**
+ * Filtro de productos para una categoría cuando solo se conoce su slug.
+ *
+ * Mira `category` y `subcategory`, no solo la primera: un producto puede estar
+ * clasificado por cualquiera de las dos, y mirando únicamente `category` las
+ * páginas de subcategoría salían vacías — /categoria/nutribatidos mostraba
+ * cero productos teniendo dos, y lo mismo las ocho subcategorías de "Para tu
+ * salud", donde vive la mitad del catálogo.
+ *
+ * Se prueba la palabra tal cual y sin tildes porque ILIKE no las ignora: la
+ * categoría puede estar escrita "Proteínas" y el producto decir "Proteinas".
+ */
+const sinTildes = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+const categoryMatchClause = (word: string): string => {
+  const safe = (s: string) => s.replace(/[%,()]/g, " ").trim();
+  const variantes = Array.from(new Set([safe(word), safe(sinTildes(word))])).filter(Boolean);
+  return variantes
+    .flatMap((v) => [`category.ilike.%${v}%`, `subcategory.ilike.%${v}%`])
+    .join(",");
+};
+
 type DynamicGroup = { key: "type" | "goal" | "flavor" | "size"; title: string; options: { label: string; value: string }[] };
 
 const GROUP_TITLES: Record<"type" | "goal" | "flavor" | "size", string> = {
@@ -468,15 +490,8 @@ const Category = () => {
         query = query.in("goal", candidates);
       } else {
         const c = categories.find((x) => x.slug === slug);
-        if (c) {
-          const word = c.name.split(" ")[0];
-          query = query.ilike("category", `%${word}%`);
-        } else if (slug) {
-          // DB-backed category slug from mega menu: match by category name (best effort)
-          // Look up by direct slug-to-name isn't available client-side, so try ilike on the raw slug words.
-          const word = slug.replace(/-/g, " ");
-          query = query.ilike("category", `%${word}%`);
-        }
+        const word = c ? c.name.split(" ")[0] : slug ? slug.replace(/-/g, " ") : "";
+        if (word) query = query.or(categoryMatchClause(word));
       }
 
       // Search (name, descripciones, ingredientes, categoría, sub, marca, objetivo)
