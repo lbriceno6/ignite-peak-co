@@ -52,9 +52,9 @@
 
 ## Productos
 
-- [Omega 3](https://nutribatidos.com/producto/Omega 3)
 - [Proteína Fem-Fit con Colágeno](https://nutribatidos.com/producto/proteina-fem-fit-colageno-vainilla-30-sachets)
 - [Ignite Pre-Workout](https://nutribatidos.com/producto/ignite-pre-workout)
+- [Omega 3](https://nutribatidos.com/producto/omega-3-fitocenter-250ml)
 - [Probiótico Acidophilus & Bifidus (30 COMP MAST)](https://nutribatidos.com/producto/probiotico-acidophilus-bifidus-30-comp-mast)
 - [BCAA Recovery+](https://nutribatidos.com/producto/bcaa-recovery-plus)
 - [Multivitamínico Daily](https://nutribatidos.com/producto/multivitaminico-daily)
@@ -85,6 +85,7 @@
 - [Luteína 6 MG](https://nutribatidos.com/producto/luteina-6-mg)
 - [Vitamina B6 100 mg](https://nutribatidos.com/producto/b6-100-mg)
 - [Omega 3 Ultra](https://nutribatidos.com/producto/omega-3-ultra)
+- [Colágeno Hidrolizado Fisiomedic](https://nutribatidos.com/producto/colageno-hidrolizado-fisiomedic)
 
 
 ## Blog
