@@ -74,12 +74,17 @@ describe("la rúbrica del agente coincide con la del panel", () => {
     expect(scoreProduct(perfecto).score).toBe(100);
   });
 
-  // Peculiaridad heredada de la rúbrica del panel: el criterio de alt text es
-  // "ninguna imagen se quedó sin alt", así que un producto sin imágenes lo
-  // cumple por vacuidad y se lleva sus 7 puntos. No es un error de la copia
-  // — se comporta igual en los dos lados — pero conviene tenerlo anotado.
-  it("un producto vacío arrastra los 7 puntos de alt text", () => {
-    expect(scoreProduct(vacio).score).toBe(7);
-    expect(computeProductSeoScore(vacio).score).toBe(7);
+  // Dos comprobaciones que un producto vacío cumple sin haber hecho nada:
+  //
+  // - alt text (7): el criterio es "ninguna imagen se quedó sin alt", y sin
+  //   imágenes se cumple por vacuidad. Peculiaridad heredada del panel.
+  // - canónica (7): vacía está bien, porque la ficha emite la suya desde la
+  //   ruta. Solo penaliza una canónica escrita mal.
+  //
+  // Ninguna de las dos es un error de la copia: se comportan igual en los dos
+  // lados, que es lo que esta prueba vigila.
+  it("un producto vacío arrastra los 14 puntos que se cumplen solos", () => {
+    expect(scoreProduct(vacio).score).toBe(14);
+    expect(computeProductSeoScore(vacio).score).toBe(14);
   });
 });

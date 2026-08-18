@@ -5,7 +5,7 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'Nutribatidos'
-const APP_URL = 'https://ignite-peak-co.lovable.app'
+const APP_URL = 'https://nutribatidos.com'
 
 interface Props {
   businessName?: string

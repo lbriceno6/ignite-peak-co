@@ -1,6 +1,7 @@
 import { Helmet } from "react-helmet-async";
+import { useLocation } from "react-router-dom";
 
-const SITE_URL = "https://ignite-peak-co.lovable.app";
+const SITE_URL = "https://nutribatidos.com";
 const SITE_NAME = "Nutribatidos";
 const DEFAULT_OG_IMAGE =
   "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/ab92b0f7-8a4a-4391-9bed-0931f1af1340/id-preview-91df73ee--ace85f94-64f0-4daa-a974-2aa900bc3a79.lovable.app-1778858363091.png";
@@ -31,12 +32,17 @@ type Props = {
 };
 
 export const SEO = ({
-  title, description, path = "", image, type = "website", publishedTime, jsonLd, robots,
+  title, description, path, image, type = "website", publishedTime, jsonLd, robots,
   canonical, siteName, ogTitle, ogDescription, twitterTitle, twitterDescription, twitterImage,
 }: Props) => {
+  const { pathname } = useLocation();
+  // Sin `path` ni `canonical`, esto valía `SITE_URL + ""` — la portada. Cada
+  // página que no los pasaba se declaraba duplicada de la home, y una canónica
+  // equivocada saca la página del índice (una ausente solo la deja en paz).
+  // El valor por defecto correcto es la ruta que se está viendo.
   const url = canonical && /^https?:\/\//i.test(canonical)
     ? canonical
-    : `${SITE_URL}${canonical ?? path}`;
+    : `${SITE_URL}${canonical ?? path ?? pathname}`;
   const fullTitle = title.length > 60 ? title.slice(0, 57) + "…" : title;
   const desc = description ? (description.length > 160 ? description.slice(0, 157) + "…" : description) : undefined;
   const ogImage = toAbsolute(image) ?? DEFAULT_OG_IMAGE;

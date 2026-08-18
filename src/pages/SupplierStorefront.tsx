@@ -84,7 +84,7 @@ export default function SupplierStorefront() {
           name: supplier.business_name,
           description: supplier.description ?? undefined,
           image: supplier.logo_url ?? undefined,
-          url: `https://ignite-peak-co.lovable.app/proveedor/${supplier.slug}`,
+          url: `https://nutribatidos.com/proveedor/${supplier.slug}`,
         }}
       />
       <section className="bg-gradient-to-b from-secondary/50 to-background">

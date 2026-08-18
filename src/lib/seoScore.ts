@@ -159,11 +159,14 @@ export const computeProductSeoScore = (
     "Usa minúsculas, sin tildes, separa con guiones y máx 75 caracteres.");
 
   // 4. Canonical (7)
+  // Vacío no es un defecto: la ficha emite su propia canónica desde la ruta
+  // (`SeoFromMeta` pasa `path` al componente SEO). Solo cuenta como fallo una
+  // canónica escrita mal, que sí pisa la automática.
   const canonical = (input.canonical ?? "").trim();
-  const canonOk = !!canonical && (canonical.startsWith("/") || /^https?:\/\//.test(canonical));
+  const canonOk = !canonical || canonical.startsWith("/") || /^https?:\/\//.test(canonical);
   push("canonical", "Canonical URL", 7, canonOk,
-    !canonical ? "Falta la URL canónica" : !canonOk ? "Canonical inválida" : "OK",
-    "Apunta a la URL real del producto, p.ej. /producto/<slug>.");
+    canonOk ? "OK" : "Canonical inválida: no empieza por / ni por http",
+    "Déjala vacía y la página usa su propia URL; si la escribes, apunta a /producto/<slug>.");
 
   // 5. OG image (7)
   const og = (input.ogImage ?? "").trim();

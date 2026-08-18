@@ -4,7 +4,7 @@ import { Layout } from "@/components/Layout";
 import { SEO } from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
-const SITE_URL = "https://ignite-peak-co.lovable.app";
+const SITE_URL = "https://nutribatidos.com";
 const sb: any = supabase;
 
 type GoalCard = {
