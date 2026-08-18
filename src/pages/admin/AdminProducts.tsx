@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { sinColumnasGeneradas } from "@/lib/productColumns";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -218,7 +219,10 @@ export default function AdminProducts() {
     const { data: maxRow } = await supabase
       .from("products").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
     const maxSort = (maxRow as any)?.sort_order ?? 0;
-    const payload = { ...rest, slug: newSlug, name: `${src.name} (copy)`, is_active: false, sort_order: maxSort + 1 };
+    const payload = {
+      ...sinColumnasGeneradas(rest),
+      slug: newSlug, name: `${src.name} (copy)`, is_active: false, sort_order: maxSort + 1,
+    };
     const { error } = await supabase.from("products").insert(payload as any);
     if (error) return toast.error(error.message);
     toast.success("Producto duplicado");

@@ -15,6 +15,7 @@ import { ProductImageAiEditor } from "@/components/admin/ProductImageAiEditor";
 import { mainCategories as staticMains, getSubcategories as getStaticSubs } from "@/lib/productCategories";
 import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { BrandSelect } from "@/components/admin/BrandSelect";
+import { sinColumnasGeneradas } from "@/lib/productColumns";
 
 const BADGE_OPTIONS = [
   { value: "", label: "Ninguno" },
@@ -149,7 +150,9 @@ export default function ProductForm() {
     setSaving(true);
     try {
       const payload: any = {
-        ...f,
+        // El formulario se carga con select *, así que arrastra las columnas
+        // generadas; la base las rechaza al guardar.
+        ...sinColumnasGeneradas(f),
         slug: f.slug || slugify(f.name),
         price: Number(f.price) || 0,
         sale_price: f.sale_price ? Number(f.sale_price) : null,
