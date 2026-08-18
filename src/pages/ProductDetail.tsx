@@ -215,7 +215,7 @@ const ProductDetail = () => {
     aggregateRating: product.rating > 0 ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: 1 } : undefined,
     offers: {
       "@type": "Offer",
-      url: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}`,
+      url: `https://nutribatidos.com/producto/${dbp.slug}`,
       priceCurrency: "PEN",
       price: basePrice,
       availability: (dbp as any).stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
@@ -225,9 +225,9 @@ const ProductDetail = () => {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://ignite-peak-co.lovable.app/" },
-      ...(product.category ? [{ "@type": "ListItem", position: 2, name: product.category, item: `https://ignite-peak-co.lovable.app/categoria/${product.category.toLowerCase()}` }] : []),
-      { "@type": "ListItem", position: product.category ? 3 : 2, name: product.name, item: `https://ignite-peak-co.lovable.app/producto/${dbp.slug}` },
+      { "@type": "ListItem", position: 1, name: "Inicio", item: "https://nutribatidos.com/" },
+      ...(product.category ? [{ "@type": "ListItem", position: 2, name: product.category, item: `https://nutribatidos.com/categoria/${product.category.toLowerCase()}` }] : []),
+      { "@type": "ListItem", position: product.category ? 3 : 2, name: product.name, item: `https://nutribatidos.com/producto/${dbp.slug}` },
     ],
   };
   const faqJsonLd = faqs.length > 0 ? {

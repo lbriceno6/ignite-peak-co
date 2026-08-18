@@ -7,7 +7,7 @@ import { CheckCircle2, AlertTriangle, XCircle, Loader2, RefreshCw } from "lucide
 type Status = "ok" | "warn" | "fail";
 type Check = { key: string; label: string; status: Status; detail?: string };
 
-const SITE = typeof window !== "undefined" ? window.location.origin : "https://ignite-peak-co.lovable.app";
+const SITE = typeof window !== "undefined" ? window.location.origin : "https://nutribatidos.com";
 const FEED_EDGE = "https://mphrhcuqzkbbnovmdbpc.supabase.co/functions/v1/merchant-feed";
 
 async function fetchWithTimeout(url: string, ms = 8000) {

@@ -579,7 +579,7 @@ const Category = () => {
   ];
 
   const leafCat = ancestors[ancestors.length - 1];
-  const SITE_URL = "https://ignite-peak-co.lovable.app";
+  const SITE_URL = "https://nutribatidos.com";
   const seoTitle = leafCat?.meta_title || `${title} | Nutribatidos`;
   const seoDesc = leafCat?.meta_description || leafCat?.short_description || `Compra ${title} en Nutribatidos. Suplementos naturales seleccionados, envíos a todo el Perú.`;
   const canonicalPath = leafCat ? `/categoria/${leafCat.slug}` : `/categoria/${slug}`;

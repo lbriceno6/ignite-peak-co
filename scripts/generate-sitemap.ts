@@ -8,7 +8,7 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
-const BASE_URL = "https://ignite-peak-co.lovable.app";
+const BASE_URL = "https://nutribatidos.com";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://mphrhcuqzkbbnovmdbpc.supabase.co";
 const SUPABASE_ANON = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1waHJoY3VxemtiYm5vdm1kYnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNTM1ODMsImV4cCI6MjA5MzYyOTU4M30.2ID3yuUo0K5oBRg7uX6-VkeZzC_74VEgm5WlcOWynsg";
 

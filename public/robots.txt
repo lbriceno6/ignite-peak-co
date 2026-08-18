@@ -49,4 +49,4 @@ Disallow: /my-orders
 Disallow: /my-subscriptions
 Disallow: /my-store-credit
 
-Sitemap: https://ignite-peak-co.lovable.app/sitemap.xml
+Sitemap: https://nutribatidos.com/sitemap.xml

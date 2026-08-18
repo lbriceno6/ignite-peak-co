@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type Status = "ok" | "warn" | "fail" | "pending";
 type Check = { key: string; label: string; status: Status; detail?: string };
 
-const SITE_BASE = (typeof window !== "undefined" ? window.location.origin : "https://ignite-peak-co.lovable.app");
+const SITE_BASE = (typeof window !== "undefined" ? window.location.origin : "https://nutribatidos.com");
 const FEED_URL = "https://mphrhcuqzkbbnovmdbpc.supabase.co/functions/v1/merchant-feed";
 
 async function head(url: string): Promise<{ ok: boolean; ct?: string; status: number }> {

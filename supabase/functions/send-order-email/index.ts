@@ -214,7 +214,7 @@ Devuelve un JSON: {"thank_you":"...","picks":[{"slug":"...","reason":"..."}],"re
     }
 
     const customerName = (profile?.full_name || order.shipping_name || "").split(" ")[0] || "";
-    const orderUrl = `https://ignite-peak-co.lovable.app/my-orders/${order.id}`;
+    const orderUrl = `https://nutribatidos.com/my-orders/${order.id}`;
 
     const templateData = {
       customerName,

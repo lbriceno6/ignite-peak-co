@@ -332,7 +332,7 @@ export const SeoEditor = ({ entityType, entityId, fallbackTitle, fallbackDescrip
           {/* Google snippet preview */}
           <div className="rounded-md border bg-secondary/30 p-3">
             <div className="truncate text-[13px] text-emerald-700 dark:text-emerald-400">
-              https://ignite-peak-co.lovable.app/{slug || "…"}
+              https://nutribatidos.com/{slug || "…"}
             </div>
             <div className="truncate text-base text-blue-700 dark:text-blue-400">{title || "Título SEO…"}</div>
             <div className="line-clamp-2 text-sm text-muted-foreground">{desc || "Meta descripción…"}</div>

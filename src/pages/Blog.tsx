@@ -99,7 +99,7 @@ const Blog = () => {
           image: toAbsoluteUrl(post.cover_image) ?? DEFAULT_OG_IMAGE,
           datePublished: post.published_at,
           articleSection: post.category ?? undefined,
-          mainEntityOfPage: `https://ignite-peak-co.lovable.app/blog/${post.slug}`,
+          mainEntityOfPage: `https://nutribatidos.com/blog/${post.slug}`,
           publisher: { "@type": "Organization", name: "Nutribatidos" },
         }
       : undefined;
@@ -196,11 +196,11 @@ const Blog = () => {
     "@context": "https://schema.org",
     "@type": "Blog",
     name: "Nutribatidos — Guías y consejos",
-    url: "https://ignite-peak-co.lovable.app/blog",
+    url: "https://nutribatidos.com/blog",
     blogPost: posts.slice(0, 20).map((p) => ({
       "@type": "BlogPosting",
       headline: p.title,
-      url: `https://ignite-peak-co.lovable.app/blog/${p.slug}`,
+      url: `https://nutribatidos.com/blog/${p.slug}`,
       datePublished: p.published_at,
       image: toAbsoluteUrl(p.cover_image) ?? DEFAULT_OG_IMAGE,
     })),

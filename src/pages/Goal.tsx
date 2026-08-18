@@ -9,7 +9,7 @@ import { CatalogFiltersPanel, applyCatalogFilters } from "@/components/catalog/C
 import { useCatalogFilters } from "@/hooks/useCatalogFilters";
 import type { SelectedFilters } from "@/lib/catalogFilterEngine";
 
-const SITE_URL = "https://ignite-peak-co.lovable.app";
+const SITE_URL = "https://nutribatidos.com";
 const sb: any = supabase;
 
 type Goal = {

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 type Settings = { id: number; site_property: string | null; verification_token: string | null; verified_at: string | null; last_synced_at: string | null; notes: string | null };
 type Url = { id: string; url: string; coverage_state: string | null; is_indexable: boolean; last_crawl_at: string | null };
 
-const SITEMAP = "https://ignite-peak-co.lovable.app/sitemap.xml";
+const SITEMAP = "https://nutribatidos.com/sitemap.xml";
 
 export function GscTab() {
   const [settings, setSettings] = useState<Settings | null>(null);
@@ -41,7 +41,7 @@ export function GscTab() {
     <div className="space-y-4">
       <div className="grid gap-4 rounded-lg border bg-background p-6 max-w-3xl">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Propiedad (URL del sitio)"><Input value={settings.site_property ?? ""} onChange={(e) => setSettings({ ...settings, site_property: e.target.value })} placeholder="https://ignite-peak-co.lovable.app/" /></Field>
+          <Field label="Propiedad (URL del sitio)"><Input value={settings.site_property ?? ""} onChange={(e) => setSettings({ ...settings, site_property: e.target.value })} placeholder="https://nutribatidos.com/" /></Field>
           <Field label="Token de verificación (meta)"><Input value={settings.verification_token ?? ""} onChange={(e) => setSettings({ ...settings, verification_token: e.target.value })} placeholder="google-site-verification=..." /></Field>
         </div>
         <div className="flex flex-wrap items-center gap-2">
