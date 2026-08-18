@@ -45,7 +45,11 @@ export default function Shipping() {
   const times = (content.shipping_policy_times ?? "").split("\n").filter(Boolean);
 
   return (
-    <PolicyPage title="Política de envío">
+    <PolicyPage
+      title="Política de envío"
+      description="Envíos a todo el Perú. Plazos, costos y seguimiento de tu pedido de superalimentos Nutribatidos."
+      canonical="/politica-de-envios"
+    >
       <p>{content.shipping_policy_intro}</p>
 
       <h2>{content.shipping_policy_times_title}</h2>

@@ -2,7 +2,11 @@ import { PolicyPage } from "./PolicyPage";
 
 export default function Terms() {
   return (
-    <PolicyPage title="Términos y condiciones">
+    <PolicyPage
+      title="Términos y condiciones"
+      description="Términos y condiciones de uso de la tienda Nutribatidos: compras, pagos, envíos y responsabilidades."
+      canonical="/terminos-y-condiciones"
+    >
       <p>Al usar el sitio de Nutribatidos aceptas estos términos. Léelos con atención.</p>
       <h2>Uso del sitio</h2>
       <p>El contenido se proporciona con fines informativos y comerciales. Las descripciones, precios y disponibilidad pueden cambiar sin previo aviso.</p>

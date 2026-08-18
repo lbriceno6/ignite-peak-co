@@ -1,7 +1,19 @@
 import { Layout } from "@/components/Layout";
+import { SEO } from "@/components/SEO";
 
-export const PolicyPage = ({ title, children }: { title: string; children: React.ReactNode }) => (
+/**
+ * Cada política vive en dos rutas: la histórica en inglés y el alias en
+ * español. `canonical` dice cuál de las dos es la buena, para que Google no
+ * las trate como dos páginas distintas con el mismo texto.
+ */
+export const PolicyPage = ({ title, description, canonical, children }: {
+  title: string;
+  description?: string;
+  canonical?: string;
+  children: React.ReactNode;
+}) => (
   <Layout>
+    <SEO title={`${title} | Nutribatidos`} description={description} canonical={canonical} />
     <div className="container-x py-16">
       <div className="mx-auto max-w-3xl">
         <h1 className="font-display text-4xl md:text-5xl">{title}</h1>

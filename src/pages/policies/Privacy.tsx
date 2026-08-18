@@ -2,7 +2,11 @@ import { PolicyPage } from "./PolicyPage";
 
 export default function Privacy() {
   return (
-    <PolicyPage title="Política de privacidad">
+    <PolicyPage
+      title="Política de privacidad"
+      description="Cómo Nutribatidos recoge, usa y protege tus datos personales al comprar en la tienda."
+      canonical="/politica-de-privacidad"
+    >
       <p>Respetamos tu privacidad y nos comprometemos a proteger tus datos personales de forma transparente y segura.</p>
 
       <h2>Qué recopilamos</h2>
