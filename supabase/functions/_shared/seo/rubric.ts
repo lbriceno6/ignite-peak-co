@@ -107,11 +107,16 @@ export function scoreProduct(input: ProductSeoInput): SeoScore {
       : "OK",
     "Usa minúsculas, sin tildes, separa con guiones y máx 75 caracteres.");
 
+  // Vacío no es un defecto: la ficha de producto emite su propia canónica a
+  // partir de la ruta (`SeoFromMeta` pasa `path` al componente SEO). Marcar
+  // como rotos los productos sin este campo señalaba casi todo el catálogo y
+  // mandaba a rellenar a mano algo que ya se resuelve solo. Solo cuenta como
+  // fallo una canónica escrita mal, que sí pisa la automática.
   const canonical = (input.canonical ?? "").trim();
-  const canonOk = !!canonical && (canonical.startsWith("/") || /^https?:\/\//.test(canonical));
+  const canonOk = !canonical || canonical.startsWith("/") || /^https?:\/\//.test(canonical);
   push("canonical", "Canonical URL", 7, canonOk,
-    !canonical ? "Falta la URL canónica" : !canonOk ? "Canonical inválida" : "OK",
-    "Apunta a la URL real del producto, p.ej. /producto/<slug>.");
+    canonOk ? "OK" : "Canonical inválida: no empieza por / ni por http",
+    "Déjala vacía y la página usa su propia URL; si la escribes, apunta a /producto/<slug>.");
 
   const og = (input.ogImage ?? "").trim();
   push("og_image", "Imagen OG", 7, !!og,
@@ -222,11 +227,16 @@ export function scoreCategory(input: CategorySeoInput): SeoScore {
     !slug ? "Falta el slug" : "El slug tiene tildes o caracteres especiales",
     "Usa minúsculas, sin tildes y separadas con guiones.");
 
+  // Igual que en productos: la página de categoría ya calcula su canónica
+  // apuntando a /categoria/<slug>, entre por la ruta que entre. El campo vacío
+  // no rompe nada; una canónica mal escrita sí.
   const canonical = (input.canonicalUrl ?? "").trim();
   push("canonical_url", "Canonical URL", 10,
-    !!canonical && (canonical.startsWith("/") || /^https?:\/\//.test(canonical)),
-    !canonical ? "Falta la URL canónica" : "Canonical inválida",
-    "Apunta a la URL real de la categoría.");
+    !canonical || canonical.startsWith("/") || /^https?:\/\//.test(canonical),
+    !canonical || canonical.startsWith("/") || /^https?:\/\//.test(canonical)
+      ? "OK"
+      : "Canonical inválida: no empieza por / ni por http",
+    "Déjala vacía y la página usa /categoria/<slug>; si la escribes, que sea una URL real.");
 
   const long = (input.longDescription ?? "").trim();
   push("long_description", "Texto de categoría", 20, long.length >= 200,
