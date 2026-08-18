@@ -25,6 +25,12 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://nutribatidos.com/categoria/vitaminas</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://nutribatidos.com/categoria/superfoods-andinos</loc>
     <lastmod>2026-05-27</lastmod>
     <changefreq>weekly</changefreq>
@@ -115,8 +121,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/categoria/pre-workout</loc>
-    <lastmod>2026-05-29</lastmod>
+    <loc>https://nutribatidos.com/categoria/accesorios</loc>
+    <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -133,8 +139,8 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/categoria/vitamins</loc>
-    <lastmod>2026-05-29</lastmod>
+    <loc>https://nutribatidos.com/categoria/amino-acidos</loc>
+    <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -177,24 +183,6 @@
   <url>
     <loc>https://nutribatidos.com/categoria/piel-cabello-y-unas</loc>
     <lastmod>2026-05-27</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/categoria/snacks</loc>
-    <lastmod>2026-05-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/categoria/amino-acids</loc>
-    <lastmod>2026-05-29</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/categoria/accessories</loc>
-    <lastmod>2026-05-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
