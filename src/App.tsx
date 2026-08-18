@@ -191,9 +191,15 @@ const App = () => (
             <Route path="/my-subscriptions" element={<ProtectedRoute><MySubscriptions /></ProtectedRoute>} />
             <Route path="/my-store-credit" element={<ProtectedRoute><MyStoreCredit /></ProtectedRoute>} />
 
+            {/* Rutas históricas en inglés, y sus alias en español, que es como
+                se enlazan desde el pie de página. Las dos sirven la misma
+                página; la canónica de cada una apunta a la versión española. */}
             <Route path="/shipping-policies" element={<Shipping />} />
+            <Route path="/politica-de-envios" element={<Shipping />} />
             <Route path="/returns-policies" element={<Returns />} />
+            <Route path="/politica-de-devoluciones" element={<Returns />} />
             <Route path="/terms-and-conditions" element={<Terms />} />
+            <Route path="/terminos-y-condiciones" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/politica-de-privacidad" element={<Privacy />} />
             <Route path="/politica-de-cookies" element={<Cookies />} />

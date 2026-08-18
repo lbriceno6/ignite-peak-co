@@ -2,7 +2,11 @@ import { PolicyPage } from "./PolicyPage";
 
 export default function Returns() {
   return (
-    <PolicyPage title="Política de devoluciones">
+    <PolicyPage
+      title="Política de devoluciones"
+      description="Devoluciones solo por producto dañado, incompleto o incorrecto. Repórtalo en 48 horas y te reembolsamos en 5–10 días hábiles."
+      canonical="/politica-de-devoluciones"
+    >
       <p>Tu satisfacción importa. Aceptamos devoluciones solo cuando el producto llega dañado, incompleto o incorrecto.</p>
       <h2>Cómo reportar</h2>
       <ul>
