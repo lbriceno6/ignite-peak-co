@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Upload, Loader2, X } from "lucide-react";
 import { BrandSelect } from "@/components/admin/BrandSelect";
+import { sinColumnasGeneradas } from "@/lib/productColumns";
 
 const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -105,7 +106,9 @@ export default function SupplierProductForm() {
     setSaving(true);
     try {
       const payload: any = {
-        ...f,
+        // Igual que el formulario del admin: se carga con select *, así que
+        // arrastra las columnas generadas y la base las rechaza al guardar.
+        ...sinColumnasGeneradas(f),
         supplier_id: supplierId,
         slug: f.slug || slugify(f.name),
         price: Number(f.price) || 0,
