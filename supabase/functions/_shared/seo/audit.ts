@@ -43,6 +43,16 @@ const ROW_LIMIT = 2000;
 /** Cuántas búsquedas sin resultados se leen. Si se llena, el informe lo dice. */
 const ZERO_SEARCH_LIMIT = 500;
 
+/**
+ * Ventana de las búsquedas sin resultados.
+ *
+ * Sin límite de fecha el informe mezcla fallos ya resueltos con demanda real:
+ * una búsqueda que falló hace meses porque el buscador estaba roto sigue
+ * apareciendo como "oportunidad" mucho después de arreglarlo, e invita a crear
+ * páginas para una demanda que ya está atendida.
+ */
+const ZERO_SEARCH_DAYS = 90;
+
 export type FamilySummary = {
   family: EntityFamily;
   total: number;
@@ -140,7 +150,11 @@ export async function runSeoAudit(
     supabase.from("blog_posts")
       .select("id, title, slug, excerpt, cover_image, is_published").eq("is_published", true).limit(ROW_LIMIT),
     supabase.from("seo_redirects").select("from_path, to_path, active, status_code").limit(ROW_LIMIT),
-    supabase.from("search_logs").select("query").eq("results_count", 0)
+    supabase.from("search_logs").select("query, created_at").eq("results_count", 0)
+      .gte(
+        "created_at",
+        new Date(Date.now() - ZERO_SEARCH_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      )
       .order("created_at", { ascending: false }).limit(ZERO_SEARCH_LIMIT),
   ]);
 
@@ -438,11 +452,13 @@ export async function runSeoAudit(
     // distintas y quien lo leía las tomaba por la misma.
     oportunidades.push({
       key: "busqueda:sin_resultados",
-      titulo: `${queryCount.size} búsqueda(s) distintas en tu web no devolvieron nada`,
+      titulo:
+        `${queryCount.size} búsqueda(s) distintas no devolvieron nada en los últimos ${ZERO_SEARCH_DAYS} días`,
       afectados: queryCount.size,
       arreglo:
         `Es demanda que ya tienes y no estás atendiendo (${zeroSearches.length} búsquedas en total). ` +
-        "Cada una es un producto que falta, un sinónimo por mapear o una landing por crear.",
+        "Cada una es un producto que falta, un sinónimo por mapear o una landing por crear. " +
+        "Antes de crear nada, comprueba que la búsqueda las siga fallando hoy: si el buscador se arregló, estas ya están atendidas.",
       ejemplos: topQueries.map(([q, n]) => `"${q}" (${n} ${n === 1 ? "vez" : "veces"})`),
     });
   }
@@ -487,9 +503,12 @@ export async function runSeoAudit(
   if (products.length >= ROW_LIMIT) {
     limitaciones.push(`Se revisaron los primeros ${ROW_LIMIT} productos; hay más.`);
   }
+  limitaciones.push(
+    `Las búsquedas sin resultados son solo las de los últimos ${ZERO_SEARCH_DAYS} días: las anteriores suelen ser fallos ya corregidos, no demanda pendiente.`,
+  );
   if (zeroSearches.length >= ZERO_SEARCH_LIMIT) {
     limitaciones.push(
-      `Las búsquedas sin resultados son las últimas ${ZERO_SEARCH_LIMIT}; hay más atrás, así que ese recuento es un mínimo.`,
+      `Dentro de esa ventana se leyeron las últimas ${ZERO_SEARCH_LIMIT}; hay más, así que ese recuento es un mínimo.`,
     );
   }
 
