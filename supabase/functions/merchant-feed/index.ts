@@ -9,6 +9,14 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://nutribatidos.com";
+
+/**
+ * Los precios de `products` están guardados en soles — PEN es la moneda base
+ * de la tienda. El feed los venía declarando en USD, así que un producto de
+ * S/ 89.90 se publicaba como 89.90 dólares: Google compara ese precio con el
+ * de la ficha, no coincide, y desaprueba el producto.
+ */
+const MONEDA = "PEN";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -49,7 +57,13 @@ Deno.serve(async (req) => {
       const title = m.shopping_title ?? p.name;
       const desc = m.shopping_description ?? m.seo_description ?? p.short_description ?? p.description;
       const link = `${SITE_URL}/producto/${p.slug}`;
-      const priceNum = Number(p.sale_price ?? p.price ?? 0);
+      // Precio de lista y precio de oferta van por separado: Google compara
+      // `g:price` con el precio de la ficha y `g:sale_price` es el rebajado.
+      // Publicando solo el rebajado se pierde la anotación de oferta.
+      const listaNum = Number(p.price ?? 0);
+      const ofertaNum = Number(p.sale_price ?? 0);
+      const hayOferta = ofertaNum > 0 && ofertaNum < listaNum;
+      const priceNum = listaNum || ofertaNum;
       const img = p.main_image || "";
       const availability = (p.stock ?? 0) > 0 ? "in stock" : "out of stock";
       const brand = p.brand || brandDefault;
@@ -75,7 +89,8 @@ Deno.serve(async (req) => {
       <link>${esc(link)}</link>
       <g:image_link>${esc(img)}</g:image_link>
       <g:availability>${availability}</g:availability>
-      <g:price>${priceNum.toFixed(2)} USD</g:price>
+      <g:price>${priceNum.toFixed(2)} ${MONEDA}</g:price>
+      ${hayOferta ? `<g:sale_price>${ofertaNum.toFixed(2)} ${MONEDA}</g:sale_price>` : ""}
       <g:brand>${esc(brand)}</g:brand>
       <g:condition>new</g:condition>
       <g:identifier_exists>false</g:identifier_exists>

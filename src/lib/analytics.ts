@@ -71,7 +71,9 @@ export function track(event: TrackEvent, payload: Record<string, any> = {}) {
         window.gtag("event", "conversion", {
           send_to: `${cfg.google_ads_conversion_id}/${cfg.google_ads_conversion_label}`,
           value: payload.value,
-          currency: payload.currency ?? "USD",
+          // La tienda cobra en soles: sin este valor por defecto correcto, una
+          // conversión sin moneda explícita se reporta a Google Ads en dólares.
+          currency: payload.currency ?? "PEN",
           transaction_id: payload.transaction_id,
         });
       } catch {}

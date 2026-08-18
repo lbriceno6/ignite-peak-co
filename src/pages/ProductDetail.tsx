@@ -255,7 +255,9 @@ const ProductDetail = () => {
       <Helmet>
         <meta property="og:type" content="product" />
         <meta property="product:price:amount" content={String(Number(dbp.sale_price ?? dbp.price ?? 0).toFixed(2))} />
-        <meta property="product:price:currency" content="USD" />
+        {/* Los precios de la base están en soles; declararlos en USD hacía que
+            el catálogo de Meta multiplicara por tres el precio real. */}
+        <meta property="product:price:currency" content="PEN" />
         <meta property="product:availability" content={(dbp as any).stock > 0 ? "in stock" : "out of stock"} />
       </Helmet>
       <div className="container-x py-6">
