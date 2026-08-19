@@ -4288,6 +4288,10 @@ export type Database = {
           hero_cta_label: string | null
           hero_image: string | null
           hero_image_alt: string | null
+          hero_image_generated_at: string | null
+          hero_image_prompt: string | null
+          hero_image_source: string | null
+          hero_image_status: string | null
           id: string
           intro: string | null
           is_published: boolean
@@ -4325,6 +4329,10 @@ export type Database = {
           hero_cta_label?: string | null
           hero_image?: string | null
           hero_image_alt?: string | null
+          hero_image_generated_at?: string | null
+          hero_image_prompt?: string | null
+          hero_image_source?: string | null
+          hero_image_status?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
@@ -4362,6 +4370,10 @@ export type Database = {
           hero_cta_label?: string | null
           hero_image?: string | null
           hero_image_alt?: string | null
+          hero_image_generated_at?: string | null
+          hero_image_prompt?: string | null
+          hero_image_source?: string | null
+          hero_image_status?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean

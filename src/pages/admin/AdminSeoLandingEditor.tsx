@@ -14,6 +14,7 @@ import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
 import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
+import LandingHeroImageCard from "@/components/admin/LandingHeroImageCard";
 
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
@@ -69,6 +70,8 @@ export default function AdminSeoLandingEditor() {
     const payload = {
       title: row.title, slug: row.slug, kind: row.kind, keyword: row.keyword,
       category_name: row.category_name, hero_image: row.hero_image, hero_image_alt: row.hero_image_alt,
+      hero_image_source: row.hero_image_source, hero_image_status: row.hero_image_status,
+      hero_image_prompt: row.hero_image_prompt, hero_image_generated_at: row.hero_image_generated_at,
       hero_cta_label: row.hero_cta_label, hero_cta_href: row.hero_cta_href,
       meta_title: row.meta_title, meta_description: row.meta_description,
       canonical: row.canonical, noindex: !!row.noindex,
@@ -181,21 +184,11 @@ export default function AdminSeoLandingEditor() {
           <div><Label>Categoría relacionada</Label><Input value={row.category_name ?? ""} onChange={(e) => set({ category_name: e.target.value })} /></div>
           <div><Label>Nombre (H1)</Label><Input value={row.title ?? ""} onChange={(e) => set({ title: e.target.value })} /></div>
           <div><Label>Slug</Label><Input value={row.slug ?? ""} onChange={(e) => set({ slug: e.target.value })} /></div>
-          <div><Label>Imagen principal (URL)</Label><Input value={row.hero_image ?? ""} onChange={(e) => set({ hero_image: e.target.value })} /></div>
-          <div><Label>ALT de la imagen principal</Label><Input value={row.hero_image_alt ?? ""} placeholder="Alimentación saludable y vitaminas" onChange={(e) => set({ hero_image_alt: e.target.value })} /></div>
-          {row.hero_image && (
-            <div className="sm:col-span-2 flex items-center gap-3 rounded-lg border border-border p-3">
-              <img src={row.hero_image} alt={row.hero_image_alt || row.title || ""} className="h-24 w-24 rounded-xl object-cover" />
-              <div className="text-sm text-muted-foreground">
-                <p className="text-foreground">{row.category_name || "Categoría"}</p>
-                <p className="font-display text-base text-foreground">{row.title}</p>
-                <p className="line-clamp-2">{row.intro}</p>
-              </div>
-            </div>
-          )}
-
         </CardContent>
       </Card>
+
+      <LandingHeroImageCard row={row} set={set} />
+
 
       <Card>
         <CardHeader><CardTitle className="text-base">SEO</CardTitle></CardHeader>

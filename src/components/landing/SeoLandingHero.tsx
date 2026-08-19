@@ -1,4 +1,5 @@
 // Hero editorial reutilizable para las landings SEO (fondo pastel + onda inferior).
+import { useState } from "react";
 import { Clock, Leaf } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSiteContent } from "@/hooks/useSiteContent";
@@ -45,6 +46,8 @@ function BrandBadge() {
 export function SeoLandingHero({
   breadcrumb, category, title, shortDescription, heroImage, imageAlt, readingTime, cta,
 }: Props) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImage = !!heroImage && !imgFailed;
   return (
     <header className="relative overflow-hidden bg-[hsl(var(--landing-hero))]">
       <div
@@ -70,7 +73,7 @@ export function SeoLandingHero({
 
         <div className="mt-6 grid items-center gap-8 md:mt-8 md:grid-cols-[45fr,55fr] md:gap-12">
           <div className="order-2 md:order-1">
-            {heroImage ? (
+            {showImage ? (
               <img
                 src={heroImage}
                 alt={imageAlt || title}
@@ -78,6 +81,8 @@ export function SeoLandingHero({
                 height={880}
                 fetchPriority="high"
                 decoding="async"
+                loading="eager"
+                onError={() => setImgFailed(true)}
                 className="aspect-[4/5] w-full rounded-3xl object-cover shadow-lg sm:aspect-[5/4] md:aspect-[4/5]"
               />
             ) : (
