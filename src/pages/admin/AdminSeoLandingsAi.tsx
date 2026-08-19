@@ -9,10 +9,24 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Sparkles, ExternalLink, Trash2, Pencil, Copy } from "lucide-react";
+import { Loader2, Sparkles, ExternalLink, Trash2, Pencil, Copy, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { KIND_LABEL, LANDING_KINDS, landingPath, type LandingKind } from "@/lib/seoLanding";
+import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
+
+const landingScore = (p: any) =>
+  computeSeoScore({
+    title: p.meta_title ?? p.title,
+    description: p.meta_description,
+    slug: p.slug,
+    keywords: Array.isArray(p.keywords) ? p.keywords : [],
+    ogImage: p.og_image ?? p.hero_image,
+    hasJsonLd: !!p.schema_jsonld || (Array.isArray(p.faqs) && p.faqs.length > 0),
+    hasShortDescription: !!p.intro,
+    hasLongDescription: !!(p.body_html || p.long_description),
+  }).score;
+
 
 type Filter = "all" | "draft" | "published";
 
