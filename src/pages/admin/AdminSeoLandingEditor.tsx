@@ -13,8 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
 import LandingHeroImageCard from "@/components/admin/LandingHeroImageCard";
+import LandingKeywordsCard from "@/components/admin/LandingKeywordsCard";
+import LandingContentQualityCard from "@/components/admin/LandingContentQualityCard";
+import LandingHumanizeCard from "@/components/admin/LandingHumanizeCard";
+import LandingEditorialReviewCard, { editorialLabel, editorialVariant } from "@/components/admin/LandingEditorialReviewCard";
+import RegenerateSectionButton from "@/components/admin/RegenerateSectionButton";
+import { computeContentQuality } from "@/lib/contentQuality";
+
 
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
