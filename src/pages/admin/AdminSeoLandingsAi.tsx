@@ -221,6 +221,12 @@ export default function AdminSeoLandingsAi() {
                       <Badge variant={p.source === "ai" ? "default" : "secondary"}>{p.source ?? "manual"}</Badge>
                     </TableCell>
                     <TableCell>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreBadgeClass(landingScore(p))}`}>
+                        {landingScore(p)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+
                       <div className="flex items-center gap-2">
                         <Switch checked={!!p.is_published} onCheckedChange={(v) => togglePublish(p.id, v)} />
                         <span className="text-xs text-muted-foreground">{p.is_published ? "Publicado" : "Borrador"}</span>
