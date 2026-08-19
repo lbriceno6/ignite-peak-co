@@ -90,6 +90,45 @@ export default function AdminSeoLandingsAi() {
     if (error) toast.error(error.message); else { toast.success("Eliminada"); load(); }
   };
 
+  const optimizeOne = async (id: string) => {
+    setOptimizingId(id);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+        body: { action: "optimize_seo", landing_id: id, apply: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("SEO optimizado con IA");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Error al optimizar");
+    } finally { setOptimizingId(null); }
+  };
+
+  const optimizeAllLow = async () => {
+    const targets = pages.filter((p) => landingScore(p) < 80).slice(0, 10);
+    if (targets.length === 0) { toast.info("No hay landings con score bajo"); return; }
+    setBulk(true);
+    let ok = 0;
+    for (const p of targets) {
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+          body: { action: "optimize_seo", landing_id: p.id, apply: true },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        ok++;
+      } catch (e: any) {
+        toast.error(`${p.title}: ${e?.message ?? "error"}`);
+      }
+    }
+    setBulk(false);
+    toast.success(`Optimizadas ${ok}/${targets.length} landings`);
+    await load();
+  };
+
+
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
