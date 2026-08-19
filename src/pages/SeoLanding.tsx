@@ -464,12 +464,14 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {isHealth && <ProfessionalHelp text={sections.professional_help} />}
 
-        {landing?.long_description && (
-          <article className="prose prose-neutral max-w-3xl dark:prose-invert">
-            <h2>Más sobre {title}</h2>
-            <div className="whitespace-pre-line">{landing.long_description}</div>
-          </article>
-        )}
+        <FinalCta
+          title={`Elige ${(landing?.category_name || landing?.filter_value || title).toString().toLowerCase()} para acompañar tu bienestar diario`}
+          text={ctaText}
+          image={landing?.cta_image || null}
+          testimonial={testimonial}
+          onAskLucia={askLucia}
+        />
+
       </div>
     </Layout>
   );
