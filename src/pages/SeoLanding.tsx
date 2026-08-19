@@ -90,6 +90,40 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
     track("landing_page_view", { landing_slug: `${kind}/${slug}`, kind, results: products.length });
   }, [kind, slug, loading, products.length]);
 
+  // Recomendación IA: máximo 4 productos del conjunto de la landing.
+  const [aiPicks, setAiPicks] = useState<Array<{ slug: string; reason: string }> | null>(null);
+  useEffect(() => {
+    setAiPicks(null);
+    if (loading || products.length === 0) return;
+    let alive = true;
+    (async () => {
+      try {
+        const { data } = await (supabase as any).functions.invoke("ai-product-related", {
+          body: {
+            product: { slug: `landing-${kind}-${slug}`, name: landing?.title || slug, category: landing?.category_name ?? null },
+            catalog: products.map((p) => ({ slug: p.slug, name: p.name, category: p.category ?? null, price: p.price })),
+            max: 4,
+          },
+        });
+        if (alive) setAiPicks(Array.isArray(data?.picks) ? data.picks : []);
+      } catch {
+        if (alive) setAiPicks([]);
+      }
+    })();
+    return () => { alive = false; };
+  }, [loading, products, kind, slug, landing]);
+
+  const recommended = useMemo(() => {
+    if (!products.length) return [];
+    const bySlug = new Map(products.map((p) => [p.slug, p]));
+    const picked = (aiPicks ?? [])
+      .map((pk) => ({ product: bySlug.get(pk.slug), reason: pk.reason }))
+      .filter((x) => !!x.product) as { product: any; reason: string }[];
+    const rest = products.filter((p) => !picked.some((x) => x.product.slug === p.slug));
+    return [...picked, ...rest.map((product) => ({ product, reason: "" }))].slice(0, 4);
+  }, [products, aiPicks]);
+
+
   const sections = useMemo(() => normalizeSections(landing?.sections), [landing]);
 
   const title = useMemo(() => {
