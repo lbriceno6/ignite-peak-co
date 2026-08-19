@@ -244,7 +244,11 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
           ...(landing?.category_name ? [{ label: landing.category_name as string }] : []),
           { label: title },
         ]}
-        category={landing?.category_name || (isHealth ? "Para tu salud" : KIND_LABEL[kind] ?? null)}
+        category={
+          landing?.category_name ||
+          landing?.filter_value ||
+          (isHealth ? "Para tu salud" : KIND_LABEL[kind] ?? null)
+        }
         title={title}
         shortDescription={description}
         heroImage={landing?.hero_image ?? null}

@@ -1,0 +1,1 @@
+update public.seo_landing_pages set is_published = false where kind='beneficio' and slug='vitaminas';
