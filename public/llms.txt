@@ -14,11 +14,6 @@
 
 ## Categorías
 
-- [Suplementos](https://nutribatidos.com/categoria/suplementos)
-- [Creatina](https://nutribatidos.com/categoria/creatine)
-- [colagenos](https://nutribatidos.com/categoria/colagenos)
-- [Colágenos Funcionales](https://nutribatidos.com/categoria/colagenos-funcionales)
-- [Vitaminas](https://nutribatidos.com/categoria/vitaminas)
 - [Superfoods Andinos](https://nutribatidos.com/categoria/superfoods-andinos)
 - [Proteínas y Colágeno](https://nutribatidos.com/categoria/proteinas-y-colageno)
 - [Energía y Vitalidad](https://nutribatidos.com/categoria/energia-y-vitalidad)
@@ -29,24 +24,16 @@
 - [Más vendidos](https://nutribatidos.com/categoria/mas-vendidos)
 - [Nuevos productos](https://nutribatidos.com/categoria/nuevos-productos)
 - [Nutribatidos](https://nutribatidos.com/categoria/nutribatidos)
-- [Proteinas](https://nutribatidos.com/categoria/proteinas)
 - [Aceites Naturales](https://nutribatidos.com/categoria/aceites-naturales)
-- [Plantas Naturales](https://nutribatidos.com/categoria/plantas-naturales)
-- [Semillas y Cereales](https://nutribatidos.com/categoria/semillas-y-cereales)
 - [Productos](https://nutribatidos.com/categoria/productos)
-- [Accesorios](https://nutribatidos.com/categoria/accesorios)
 - [Promociones](https://nutribatidos.com/categoria/promociones)
 - [Para tu salud](https://nutribatidos.com/categoria/para-tu-salud)
-- [Amino Acidos](https://nutribatidos.com/categoria/amino-acidos)
 - [Digestión y Colon](https://nutribatidos.com/categoria/digestion-y-colon)
 - [Articulaciones y Huesos](https://nutribatidos.com/categoria/articulaciones-y-huesos)
 - [Control de Peso](https://nutribatidos.com/categoria/control-de-peso)
 - [Defensas e Inmunidad](https://nutribatidos.com/categoria/defensas-e-inmunidad)
 - [Corazón y Circulación](https://nutribatidos.com/categoria/corazon-y-circulacion)
-- [Riñones y Vías Urinarias](https://nutribatidos.com/categoria/rinones-y-vias-urinarias)
 - [Piel, Cabello y Uñas](https://nutribatidos.com/categoria/piel-cabello-y-unas)
-- [Colágeno Bovino](https://nutribatidos.com/categoria/colageno-bovino)
-- [Colágeno Marino](https://nutribatidos.com/categoria/colageno-marino)
 
 
 
