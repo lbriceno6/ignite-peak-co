@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
