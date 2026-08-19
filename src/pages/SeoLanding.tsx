@@ -19,14 +19,41 @@ import { SeoLandingHero, readingTimeFromText } from "@/components/landing/SeoLan
 
 
 const PRODUCT_FIELDS =
-  "id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge";
+  "id, slug, name, short_description, price, sale_price, main_image, category, subcategory, main_ingredient, rating, brand, gallery_images, size_variants, stock, badge";
 
 const mapProduct = (p: any) => ({
   ...p,
   image: p.main_image ?? (Array.isArray(p.gallery_images) ? p.gallery_images[0] : null) ?? null,
+  shortBenefit: p.short_description ?? "",
   oldPrice: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.price : undefined,
   price: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.sale_price : p.price,
 });
+
+/** Divide el HTML editorial en bloques por encabezados (h2/h3) para la maquetación en 2 columnas. */
+function splitHtmlBlocks(html?: string | null): { title: string; content: string }[] {
+  if (!html) return [];
+  const parts = String(html).split(/<h[23][^>]*>/i).slice(1);
+  const out: { title: string; content: string }[] = [];
+  for (const part of parts) {
+    const m = part.match(/^([\s\S]*?)<\/h[23]>([\s\S]*)$/i);
+    if (!m) continue;
+    const title = m[1].replace(/<[^>]+>/g, "").trim();
+    const content = m[2].trim();
+    if (title) out.push({ title, content });
+  }
+  return out;
+}
+
+const stripHtml = (html?: string | null) =>
+  (html ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+const summarize = (text: string, max = 320) => {
+  const clean = stripHtml(text);
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  return cut.slice(0, cut.lastIndexOf(" ") > 0 ? cut.lastIndexOf(" ") : max) + "…";
+};
+
 
 export default function SeoLanding({ kind }: { kind: LandingKind }) {
   const { slug } = useParams<{ slug: string }>();
