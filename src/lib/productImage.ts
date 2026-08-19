@@ -16,11 +16,39 @@ const bundled: Record<string, string> = {
   "product-preworkout.jpg": productPreworkout,
 };
 
-export const resolveProductImage = (src?: string | null, fallback?: string): string => {
+type ProductLike = {
+  image?: string | null;
+  image_url?: string | null;
+  main_image?: string | null;
+  gallery_images?: Array<string | { url?: string | null }> | null;
+};
+
+const firstString = (arr?: any): string | null => {
+  if (!Array.isArray(arr)) return null;
+  for (const item of arr) {
+    if (typeof item === "string" && item.trim()) return item.trim();
+    if (item && typeof item === "object" && typeof item.url === "string" && item.url.trim()) return item.url.trim();
+  }
+  return null;
+};
+
+export const resolveProductImage = (
+  src?: string | null | ProductLike,
+  fallback?: string,
+): string => {
   const fb = fallback || productProtein;
+  if (src && typeof src === "object") {
+    const candidate =
+      (typeof src.main_image === "string" && src.main_image.trim() ? src.main_image.trim() : null) ||
+      (typeof src.image_url === "string" && src.image_url.trim() ? src.image_url.trim() : null) ||
+      (typeof src.image === "string" && src.image.trim() ? src.image.trim() : null) ||
+      firstString(src.gallery_images);
+    return resolveProductImage(candidate, fallback);
+  }
   if (!src || typeof src !== "string" || !src.trim()) return fb;
   const clean = src.trim();
   if (clean === "null" || clean === "undefined") return fb;
+
 
   // Map legacy /src/assets/foo.jpg paths to bundled URLs (Vite-hashed)
   const match = clean.match(/([^/\\]+\.(jpg|jpeg|png|webp|gif|svg|avif))$/i);
