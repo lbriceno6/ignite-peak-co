@@ -36,29 +36,23 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/politica-de-envios</loc>
+    <loc>https://nutribatidos.com/shipping-policies</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/politica-de-devoluciones</loc>
+    <loc>https://nutribatidos.com/returns-policies</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/terminos-y-condiciones</loc>
+    <loc>https://nutribatidos.com/terms-and-conditions</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/politica-de-privacidad</loc>
+    <loc>https://nutribatidos.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
-  <url>
-    <loc>https://nutribatidos.com/politica-de-cookies</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
-  </url>
-
 </urlset>
