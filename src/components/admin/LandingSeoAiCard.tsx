@@ -7,33 +7,36 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, Check, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { computeSeoScore, scoreColorClass } from "@/lib/seoScore";
+import { scoreColorClass } from "@/lib/seoScore";
+import { computeLandingSeoScore } from "@/lib/landingSeoRules";
 
 type Props = {
   landingId: string;
   row: any;
   faqs: { q: string; a: string }[];
+  sectionsRelatedCount?: number;
   onApply: (patch: Record<string, any>) => void;
   onApplyFaqs: (faqs: { q: string; a: string }[]) => void;
 };
 
-export default function LandingSeoAiCard({ landingId, row, faqs, onApply, onApplyFaqs }: Props) {
+export default function LandingSeoAiCard({ landingId, row, faqs, sectionsRelatedCount = 0, onApply, onApplyFaqs }: Props) {
   const [loading, setLoading] = useState(false);
   const [sug, setSug] = useState<any>(null);
 
-  const { score, issues } = useMemo(
+  const { score, checks } = useMemo(
     () =>
-      computeSeoScore({
-        title: row?.meta_title ?? row?.title,
-        description: row?.meta_description,
-        slug: row?.slug,
-        keywords: Array.isArray(row?.keywords) ? row.keywords : [],
-        ogImage: row?.og_image ?? row?.hero_image,
-        hasJsonLd: faqs.length > 0 || !!row?.schema_jsonld,
-        hasShortDescription: !!row?.intro,
-        hasLongDescription: !!(row?.body_html || row?.long_description),
+      computeLandingSeoScore({
+        metaTitle: row?.meta_title,
+        metaDescription: row?.meta_description,
+        keyword: row?.keyword,
+        secondaryKeywords: Array.isArray(row?.keyword_secondary) ? row.keyword_secondary : [],
+        h1: row?.title,
+        heroImage: row?.hero_image ?? row?.og_image,
+        heroImageAlt: row?.hero_image_alt,
+        faqsCount: faqs.length,
+        relatedTopicsCount: sectionsRelatedCount,
       }),
-    [row, faqs],
+    [row, faqs, sectionsRelatedCount],
   );
 
   const optimize = async () => {
@@ -62,6 +65,10 @@ export default function LandingSeoAiCard({ landingId, row, faqs, onApply, onAppl
     if (sug.og_description) patch.og_description = sug.og_description;
     if (sug.h1) patch.title = sug.h1;
     if (sug.intro) patch.intro = sug.intro;
+    if (sug.keyword) patch.keyword = sug.keyword;
+    if (Array.isArray(sug.keyword_secondary) && sug.keyword_secondary.length) {
+      patch.keyword_secondary = sug.keyword_secondary;
+    }
     onApply(patch);
     if (Array.isArray(sug.faqs) && sug.faqs.length) onApplyFaqs(sug.faqs.filter((f: any) => f?.q && f?.a));
     toast.success("Sugerencias aplicadas (recuerda guardar)");
