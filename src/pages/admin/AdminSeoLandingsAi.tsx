@@ -236,9 +236,13 @@ export default function AdminSeoLandingsAi() {
                       {new Date(p.updated_at).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap">
+                      <Button size="sm" variant="ghost" title="Optimizar SEO con IA" onClick={() => optimizeOne(p.id)} disabled={optimizingId === p.id || bulk}>
+                        {optimizingId === p.id ? <Loader2 className="animate-spin" size={14} /> : <Wand2 size={14} />}
+                      </Button>
                       <Button asChild size="sm" variant="ghost" title="Editar">
                         <Link to={`/admin/ia-landings/${p.id}`}><Pencil size={14} /></Link>
                       </Button>
+
                       <Button asChild size="sm" variant="ghost" title="Ver">
                         <Link to={landingPath(p.kind, p.slug)} target="_blank"><ExternalLink size={14} /></Link>
                       </Button>
