@@ -449,18 +449,9 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
 
         {Array.isArray(landing?.faqs) && landing.faqs.length > 0 && (
-          <section id="faq" className="max-w-3xl scroll-mt-24">
-            <h2 className="font-display text-2xl uppercase">Preguntas frecuentes</h2>
-            <div className="mt-4 space-y-4">
-              {landing.faqs.map((f: any, i: number) => (
-                <details key={i} className="rounded-lg border border-border p-4">
-                  <summary className="cursor-pointer font-medium">{f.q}</summary>
-                  <p className="mt-2 text-muted-foreground">{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </section>
+          <FaqAccordion faqs={landing.faqs} />
         )}
+
 
         {isHealth && <ProfessionalHelp text={sections.professional_help} />}
 
