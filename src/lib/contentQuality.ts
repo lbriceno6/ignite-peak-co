@@ -10,6 +10,7 @@ export type QualityResult = {
   genericPhrases: string[];
   repeatedSentences: string[];
   claims: string[];
+  keywordStats: { keyword: string; count: number; words: number; density: number; max: number; excess: number; high: boolean };
 };
 
 export const GENERIC_PHRASES = [
@@ -119,7 +120,7 @@ export function computeContentQuality(input: QualityInput): QualityResult {
   if (!genericPhrases.length) score += 10; else score += Math.max(0, 10 - genericPhrases.length * 4);
   add(genericPhrases.length === 0, "warn", `Se detectaron ${genericPhrases.length} frase(s) genérica(s)`, "Sin frases genéricas de IA");
 
-  // Repeticiones (10)
+  // Repeticiones de frases (6)
   const seen = new Map<string, number>();
   for (const s of sentences(all)) {
     const k = norm(s).replace(/[^a-z0-9 ]/g, "");
@@ -127,18 +128,39 @@ export function computeContentQuality(input: QualityInput): QualityResult {
   }
   const repeatedSentences = [...seen.entries()].filter(([, n]) => n > 1).map(([k]) => k.slice(0, 90));
   const brandCount = (nAll.match(/nutribatidos/g) ?? []).length;
-  const kw = norm(input.keyword ?? "");
-  const kwCount = kw ? (nAll.match(new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g")) ?? []).length : 0;
-  const kwDensityHigh = words > 0 && kwCount / Math.max(words, 1) > 0.025;
-  const repOk = repeatedSentences.length === 0 && brandCount <= 4 && !kwDensityHigh;
-  if (repOk) score += 10; else score += 4;
+  const repOk = repeatedSentences.length === 0 && brandCount <= 4;
+  if (repOk) score += 6; else score += 2;
   add(
     repOk, "warn",
     repeatedSentences.length
       ? `${repeatedSentences.length} frase(s) repetida(s)`
-      : brandCount > 4 ? `"Nutribatidos" aparece ${brandCount} veces` : "Uso excesivo de la palabra clave",
+      : `"Nutribatidos" aparece ${brandCount} veces (máx. 4)`,
     "Sin repeticiones relevantes",
   );
+
+  // Densidad de la palabra clave (4)
+  const kw = norm(input.keyword ?? "").trim();
+  const kwRegex = kw ? new RegExp(`(^|[^a-z0-9])${kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`, "g") : null;
+  const kwCount = kwRegex ? (nAll.match(kwRegex) ?? []).length : 0;
+  const kwDensity = words > 0 ? kwCount / words : 0;
+  const kwMax = Math.max(3, Math.floor(words * 0.02));
+  const kwDensityHigh = !!kw && words > 0 && kwDensity > 0.025;
+  const keywordStats = {
+    keyword: input.keyword ?? "",
+    count: kwCount,
+    words,
+    density: kwDensity,
+    max: kwMax,
+    excess: Math.max(0, kwCount - kwMax),
+    high: kwDensityHigh,
+  };
+  if (!kwDensityHigh) score += 4;
+  add(
+    !kwDensityHigh, "warn",
+    `La palabra clave "${input.keyword ?? ""}" aparece ${kwCount} veces en ${words} palabras (${(kwDensity * 100).toFixed(1)}%). Reduce a ${kwMax} o menos usando sinónimos y pronombres.`,
+    "Densidad de palabra clave correcta",
+  );
+
 
   // Claims de salud (-riesgo, 5)
   const hits = scanSensitiveClaims(all);
@@ -152,5 +174,6 @@ export function computeContentQuality(input: QualityInput): QualityResult {
     genericPhrases,
     repeatedSentences,
     claims,
+    keywordStats,
   };
 }

@@ -479,7 +479,13 @@ export default function AdminSeoLandingEditor() {
         </TabsContent>
 
         <TabsContent value="revision" className="space-y-6 pt-4">
-          <LandingContentQualityCard input={qualityInput} />
+          <LandingContentQualityCard
+            input={qualityInput}
+            landingId={id}
+            onApply={(patch) => set(patch)}
+            onApplySections={(patch) => setSections((s) => ({ ...s, ...patch }))}
+            onApplyFaqs={(f) => setFaqs(f)}
+          />
           <LandingHumanizeCard
             landingId={id!}
             row={row}
