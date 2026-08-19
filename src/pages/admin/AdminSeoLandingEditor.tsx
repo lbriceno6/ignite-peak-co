@@ -196,6 +196,16 @@ export default function AdminSeoLandingEditor() {
         </CardContent>
       </Card>
 
+      <LandingSeoAiCard
+        landingId={id!}
+        row={row}
+        faqs={faqs}
+        onApply={(patch) => set(patch)}
+        onApplyFaqs={(f) => setFaqs(f)}
+      />
+
+
+
       <Card>
         <CardHeader><CardTitle className="text-base">Hero e introducción</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
