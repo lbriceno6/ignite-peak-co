@@ -62,6 +62,7 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [existingLandings, setExistingLandings] = useState<Record<string, string>>({});
+  const [testimonial, setTestimonial] = useState<{ caption: string; author: string } | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -78,21 +79,54 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
       const p: any = page ?? null;
       let prods: any[] = [];
 
+      const base = () =>
+        supabase.from("products").select(PRODUCT_FIELDS)
+          .eq("is_active", true).eq("approval_status", "approved");
+
       const manualIds: string[] = Array.isArray(p?.product_ids) ? p.product_ids.filter((x: any) => typeof x === "string") : [];
       if (p?.products_mode === "manual" && manualIds.length) {
-        const { data } = await supabase
-          .from("products").select(PRODUCT_FIELDS)
-          .in("id", manualIds)
-          .eq("is_active", true).eq("approval_status", "approved");
+        const { data } = await base().in("id", manualIds);
         prods = manualIds.map((id) => (data ?? []).find((d: any) => d.id === id)).filter(Boolean);
-      } else {
+      }
+
+      // 2) Filtro configurado (categoría / ingrediente / objetivo).
+      if (!prods.length) {
         const field = p?.filter_field ?? KIND_TO_FIELD[kind];
         const value = p?.filter_value ?? slug.replace(/-/g, " ");
-        const { data } = await supabase
-          .from("products").select(PRODUCT_FIELDS)
-          .eq("is_active", true).eq("approval_status", "approved")
-          .ilike(field as any, `%${value}%`)
-          .limit(60);
+        const { data } = await base().ilike(field as any, `%${value}%`).limit(60);
+        prods = data ?? [];
+      }
+
+      // 3) Fallback por nutrientes / ingredientes de la landing (nombre, ingrediente o descripción).
+      if (!prods.length) {
+        const secs = normalizeSections(p?.sections);
+        const terms = [...(secs.nutrients ?? []), ...(secs.ingredients ?? [])]
+          .map((n) => itemLabel(n).split(":")[0].trim())
+          .filter((t) => t.length > 2)
+          .slice(0, 8);
+        if (terms.length) {
+          const or = terms
+            .flatMap((t) => [`name.ilike.%${t}%`, `main_ingredient.ilike.%${t}%`, `short_description.ilike.%${t}%`])
+            .join(",");
+          const { data } = await base().or(or).limit(24);
+          prods = data ?? [];
+        }
+      }
+
+      // 4) Fallback por palabra clave del título / slug en categoría o subcategoría.
+      if (!prods.length) {
+        const word = (p?.filter_value || slug.replace(/-/g, " ")).split(/[\s:]+/)[0];
+        if (word && word.length > 2) {
+          const { data } = await base()
+            .or(`category.ilike.%${word}%,subcategory.ilike.%${word}%,name.ilike.%${word}%`)
+            .limit(24);
+          prods = data ?? [];
+        }
+      }
+
+      // 5) Último recurso: productos mejor valorados del catálogo.
+      if (!prods.length) {
+        const { data } = await base().order("rating", { ascending: false }).limit(8);
         prods = data ?? [];
       }
 
@@ -104,15 +138,27 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
       const map: Record<string, string> = {};
       (pubs ?? []).forEach((l: any) => { map[`${l.kind}/${l.slug}`] = l.title; });
 
+      // Testimonio real (nunca generado por IA); si no existe, la card se oculta.
+      const { data: tst } = await supabase
+        .from("testimonials")
+        .select("caption, author_name")
+        .eq("is_active", true)
+        .not("caption", "is", null)
+        .order("sort_order", { ascending: true })
+        .limit(1);
+      const t0: any = (tst ?? [])[0];
+
       if (!alive) return;
       setLanding(p);
       setProducts(prods.map(mapProduct));
       setExistingLandings(map);
+      setTestimonial(t0?.caption && t0?.author_name ? { caption: t0.caption, author: t0.author_name } : null);
       setNotFound(!p && prods.length === 0);
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [kind, slug]);
+
 
   useEffect(() => {
     if (!slug || loading) return;
