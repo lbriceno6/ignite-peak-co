@@ -92,8 +92,37 @@ Devuelve JSON EXACTO:
       const optJson = await optRes.json();
       let sug: any = {};
       try { sug = JSON.parse(optJson?.choices?.[0]?.message?.content ?? "{}"); } catch { sug = {}; }
+
+      // Aplicar automáticamente (usado por la optimización masiva del admin)
+      if (body.apply) {
+        const s = (v: any) => (typeof v === "string" && v.trim() ? v.trim() : null);
+        const newFaqs = Array.isArray(sug.faqs) ? sug.faqs.filter((f: any) => f?.q && f?.a) : [];
+        const patch: Record<string, unknown> = {
+          meta_title: s(sug.meta_title) ?? landing.meta_title,
+          meta_description: s(sug.meta_description) ?? landing.meta_description,
+          og_title: s(sug.og_title) ?? landing.og_title,
+          og_description: s(sug.og_description) ?? landing.og_description,
+          intro: s(sug.intro) ?? landing.intro,
+          updated_at: new Date().toISOString(),
+        };
+        if (newFaqs.length) {
+          patch.faqs = newFaqs;
+          patch.schema_jsonld = {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: newFaqs.map((f: any) => ({
+              "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a },
+            })),
+          };
+        }
+        const { error: upErr } = await admin.from("seo_landing_pages").update(patch).eq("id", landingId);
+        if (upErr) return json({ error: upErr.message }, 500);
+        return json({ ok: true, applied: true, suggestion: sug });
+      }
+
       return json({ ok: true, suggestion: sug });
     }
+
 
     const keyword: string = String(body.keyword ?? "").trim();
 
