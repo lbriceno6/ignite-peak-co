@@ -14,6 +14,7 @@ import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
 import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
+import LandingHeroImageCard from "@/components/admin/LandingHeroImageCard";
 
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
@@ -69,6 +70,8 @@ export default function AdminSeoLandingEditor() {
     const payload = {
       title: row.title, slug: row.slug, kind: row.kind, keyword: row.keyword,
       category_name: row.category_name, hero_image: row.hero_image, hero_image_alt: row.hero_image_alt,
+      hero_image_source: row.hero_image_source, hero_image_status: row.hero_image_status,
+      hero_image_prompt: row.hero_image_prompt, hero_image_generated_at: row.hero_image_generated_at,
       hero_cta_label: row.hero_cta_label, hero_cta_href: row.hero_cta_href,
       meta_title: row.meta_title, meta_description: row.meta_description,
       canonical: row.canonical, noindex: !!row.noindex,
