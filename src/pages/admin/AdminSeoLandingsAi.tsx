@@ -204,7 +204,9 @@ export default function AdminSeoLandingsAi() {
                   <TableHead>Ruta</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Origen</TableHead>
+                  <TableHead>SEO</TableHead>
                   <TableHead>Estado</TableHead>
+
                   <TableHead>Actualizada</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
