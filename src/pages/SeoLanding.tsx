@@ -222,38 +222,29 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
         jsonLd={landing?.schema_jsonld && !isHealth ? landing.schema_jsonld : (jsonLd as any)}
       />
 
-      {/* HERO */}
-      <div className="bg-secondary/40 py-10">
-        <div className="container-x">
-          <nav className="text-xs uppercase tracking-wider text-muted-foreground">
-            <Link to="/" className="hover:text-accent">Inicio</Link> /{" "}
-            <span className="text-foreground">{isHealth ? "Salud" : kind}</span>
-            {landing?.category_name && <> / <span className="text-foreground">{landing.category_name}</span></>} /{" "}
-            <span className="text-foreground">{slug}</span>
-          </nav>
-          <div className="mt-3 gap-8 md:flex md:items-center">
-            <div className="flex-1">
-              <h1 className="font-display text-4xl uppercase sm:text-5xl">{title}</h1>
-              {description && <p className="mt-3 max-w-3xl text-muted-foreground">{description}</p>}
-              {isHealth && products.length > 0 && (
-                <Button asChild className="mt-5">
-                  <a href="#productos">{landing?.hero_cta_label || "Ver productos relacionados"}</a>
-                </Button>
-              )}
-            </div>
-            {landing?.hero_image && (
-              <img
-                src={landing.hero_image}
-                alt={title}
-                loading="lazy"
-                className="mt-6 w-full rounded-xl object-cover md:mt-0 md:w-80"
-              />
-            )}
-          </div>
-        </div>
-      </div>
+      {/* HERO editorial */}
+      <SeoLandingHero
+        breadcrumb={[
+          { label: "Inicio", href: "/" },
+          { label: isHealth ? "Salud" : KIND_LABEL[kind] ?? kind, href: isHealth ? "/salud" : undefined },
+          ...(landing?.category_name ? [{ label: landing.category_name as string }] : []),
+          { label: title },
+        ]}
+        category={landing?.category_name || (isHealth ? "Para tu salud" : KIND_LABEL[kind] ?? null)}
+        title={title}
+        shortDescription={description}
+        heroImage={landing?.hero_image ?? null}
+        imageAlt={landing?.hero_image_alt ?? null}
+        readingTime={readingTime}
+        cta={
+          products.length > 0
+            ? { label: landing?.hero_cta_label || "Ver productos relacionados", href: landing?.hero_cta_href || "#productos" }
+            : null
+        }
+      />
 
-      <div className="container-x space-y-12 py-10">
+      <div className="container-x space-y-12 pb-10 pt-16 md:pt-20">
+
         {isHealth && <InPageNav items={navItems} />}
 
         {/* Introducción / contenido general */}
