@@ -381,19 +381,19 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {!!sections.nutrients?.length && (
           <SectionShell id="nutrientes" title="Nutrientes relacionados">
-            <LinkCards
+            <IconCards
               items={sections.nutrients}
               hrefFor={(n) => linkFor(n, "ingrediente") ?? linkFor(n, "beneficio")}
-              ctaLabel={(n) => `Ver productos con ${itemLabel(n).toLowerCase()} →`}
             />
           </SectionShell>
         )}
 
         {!!sections.ingredients?.length && (
           <SectionShell id="ingredientes" title="Ingredientes que puedes encontrar en Nutribatidos">
-            <LinkCards items={sections.ingredients} hrefFor={(n) => linkFor(n, "ingrediente")} />
+            <IconCards items={sections.ingredients} hrefFor={(n) => linkFor(n, "ingrediente")} compact />
           </SectionShell>
         )}
+
 
         {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) — se oculta si no hay productos */}
         {(loading || recommended.length > 0) && (
