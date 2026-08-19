@@ -47,8 +47,18 @@ export default function LandingSeoAiCard({ landingId, row, faqs, sectionsRelated
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      setSug((data as any).suggestion ?? {});
+      const s = (data as any).suggestion ?? {};
+      setSug(s);
+      // Las keywords nunca deben quedar vacías: se aplican solas si faltan.
+      const patch: Record<string, any> = {};
+      if (!String(row?.keyword ?? "").trim() && s.keyword) patch.keyword = s.keyword;
+      const current: string[] = Array.isArray(row?.keyword_secondary) ? row.keyword_secondary.map(String) : [];
+      const incoming: string[] = Array.isArray(s.keyword_secondary) ? s.keyword_secondary.map((k: any) => String(k).trim().toLowerCase()).filter(Boolean) : [];
+      const merged = [...new Set([...current, ...incoming])].slice(0, 6);
+      if (merged.length > current.length) patch.keyword_secondary = merged;
+      if (Object.keys(patch).length) onApply(patch);
       toast.success("Sugerencias SEO generadas");
+
     } catch (e: any) {
       toast.error(e?.message ?? "Error al optimizar");
     } finally {
