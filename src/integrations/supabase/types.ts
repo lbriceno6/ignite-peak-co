@@ -4281,6 +4281,7 @@ export type Database = {
           canonical: string | null
           category_name: string | null
           created_at: string
+          cta_image: string | null
           faqs: Json
           filter_field: string | null
           filter_value: string | null
@@ -4322,6 +4323,7 @@ export type Database = {
           canonical?: string | null
           category_name?: string | null
           created_at?: string
+          cta_image?: string | null
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
@@ -4363,6 +4365,7 @@ export type Database = {
           canonical?: string | null
           category_name?: string | null
           created_at?: string
+          cta_image?: string | null
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null

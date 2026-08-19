@@ -15,18 +15,49 @@ import {
 import {
   CausesGrid, ChipList, InPageNav, LinkCards, LuciaBlock, ProfessionalHelp, RichText, SectionShell,
 } from "@/components/landing/LandingSections";
+import {
+  EditorialIntro, FaqAccordion, FinalCta, IconCards, TrustStrip,
+} from "@/components/landing/LandingBlocks";
 import { SeoLandingHero, readingTimeFromText } from "@/components/landing/SeoLandingHero";
 
 
+
 const PRODUCT_FIELDS =
-  "id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge";
+  "id, slug, name, short_description, price, sale_price, main_image, category, subcategory, main_ingredient, rating, brand, gallery_images, size_variants, stock, badge";
 
 const mapProduct = (p: any) => ({
   ...p,
   image: p.main_image ?? (Array.isArray(p.gallery_images) ? p.gallery_images[0] : null) ?? null,
+  shortBenefit: p.short_description ?? "",
   oldPrice: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.price : undefined,
   price: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.sale_price : p.price,
 });
+
+/** Divide el HTML editorial en bloques por encabezados (h2/h3) para la maquetación en 2 columnas. */
+function splitHtmlBlocks(html?: string | null): { title: string; content: string }[] {
+  if (!html) return [];
+  const parts = String(html).split(/<h[23][^>]*>/i).slice(1);
+  const out: { title: string; content: string }[] = [];
+  for (const part of parts) {
+    const m = part.match(/^([\s\S]*?)<\/h[23]>([\s\S]*)$/i);
+    if (!m) continue;
+    const title = m[1].replace(/<[^>]+>/g, "").trim();
+    const content = m[2].trim();
+    if (title) out.push({ title, content });
+  }
+  return out;
+}
+
+const stripHtml = (html?: string | null) =>
+  (html ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+const summarize = (text: string, max = 320) => {
+  const clean = stripHtml(text);
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  return cut.slice(0, cut.lastIndexOf(" ") > 0 ? cut.lastIndexOf(" ") : max) + "…";
+};
+
 
 export default function SeoLanding({ kind }: { kind: LandingKind }) {
   const { slug } = useParams<{ slug: string }>();
@@ -35,6 +66,7 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [existingLandings, setExistingLandings] = useState<Record<string, string>>({});
+  const [testimonial, setTestimonial] = useState<{ caption: string; author: string } | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -51,21 +83,54 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
       const p: any = page ?? null;
       let prods: any[] = [];
 
+      const base = () =>
+        supabase.from("products").select(PRODUCT_FIELDS)
+          .eq("is_active", true).eq("approval_status", "approved");
+
       const manualIds: string[] = Array.isArray(p?.product_ids) ? p.product_ids.filter((x: any) => typeof x === "string") : [];
       if (p?.products_mode === "manual" && manualIds.length) {
-        const { data } = await supabase
-          .from("products").select(PRODUCT_FIELDS)
-          .in("id", manualIds)
-          .eq("is_active", true).eq("approval_status", "approved");
+        const { data } = await base().in("id", manualIds);
         prods = manualIds.map((id) => (data ?? []).find((d: any) => d.id === id)).filter(Boolean);
-      } else {
+      }
+
+      // 2) Filtro configurado (categoría / ingrediente / objetivo).
+      if (!prods.length) {
         const field = p?.filter_field ?? KIND_TO_FIELD[kind];
         const value = p?.filter_value ?? slug.replace(/-/g, " ");
-        const { data } = await supabase
-          .from("products").select(PRODUCT_FIELDS)
-          .eq("is_active", true).eq("approval_status", "approved")
-          .ilike(field as any, `%${value}%`)
-          .limit(60);
+        const { data } = await base().ilike(field as any, `%${value}%`).limit(60);
+        prods = data ?? [];
+      }
+
+      // 3) Fallback por nutrientes / ingredientes de la landing (nombre, ingrediente o descripción).
+      if (!prods.length) {
+        const secs = normalizeSections(p?.sections);
+        const terms = [...(secs.nutrients ?? []), ...(secs.ingredients ?? [])]
+          .map((n) => itemLabel(n).split(":")[0].trim())
+          .filter((t) => t.length > 2)
+          .slice(0, 8);
+        if (terms.length) {
+          const or = terms
+            .flatMap((t) => [`name.ilike.%${t}%`, `main_ingredient.ilike.%${t}%`, `short_description.ilike.%${t}%`])
+            .join(",");
+          const { data } = await base().or(or).limit(24);
+          prods = data ?? [];
+        }
+      }
+
+      // 4) Fallback por palabra clave del título / slug en categoría o subcategoría.
+      if (!prods.length) {
+        const word = (p?.filter_value || slug.replace(/-/g, " ")).split(/[\s:]+/)[0];
+        if (word && word.length > 2) {
+          const { data } = await base()
+            .or(`category.ilike.%${word}%,subcategory.ilike.%${word}%,name.ilike.%${word}%`)
+            .limit(24);
+          prods = data ?? [];
+        }
+      }
+
+      // 5) Último recurso: productos mejor valorados del catálogo.
+      if (!prods.length) {
+        const { data } = await base().order("rating", { ascending: false }).limit(8);
         prods = data ?? [];
       }
 
@@ -77,15 +142,27 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
       const map: Record<string, string> = {};
       (pubs ?? []).forEach((l: any) => { map[`${l.kind}/${l.slug}`] = l.title; });
 
+      // Testimonio real (nunca generado por IA); si no existe, la card se oculta.
+      const { data: tst } = await supabase
+        .from("testimonials")
+        .select("caption, author_name")
+        .eq("is_active", true)
+        .not("caption", "is", null)
+        .order("sort_order", { ascending: true })
+        .limit(1);
+      const t0: any = (tst ?? [])[0];
+
       if (!alive) return;
       setLanding(p);
       setProducts(prods.map(mapProduct));
       setExistingLandings(map);
+      setTestimonial(t0?.caption && t0?.author_name ? { caption: t0.caption, author: t0.author_name } : null);
       setNotFound(!p && prods.length === 0);
       setLoading(false);
     })();
     return () => { alive = false; };
   }, [kind, slug]);
+
 
   useEffect(() => {
     if (!slug || loading) return;
@@ -124,6 +201,18 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
     const rest = products.filter((p) => !picked.some((x) => x.product.slug === p.slug));
     return [...picked, ...rest.map((product) => ({ product, reason: "" }))].slice(0, 4);
   }, [products, aiPicks]);
+
+  // Contenido editorial (bloques por encabezado + resumen destacado).
+  const editorial = useMemo(() => {
+    const blocks = splitHtmlBlocks(landing?.body_html);
+    const intro = landing?.intro ? String(landing.intro) : stripHtml(String(landing?.body_html ?? "").split(/<h[23]/i)[0]);
+    return { blocks, highlight: summarize(intro, 340) };
+  }, [landing]);
+
+  const ctaText = useMemo(
+    () => summarize(landing?.long_description || landing?.intro || stripHtml(landing?.body_html), 220),
+    [landing],
+  );
 
 
   const sections = useMemo(() => normalizeSections(landing?.sections), [landing]);
@@ -265,10 +354,19 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {isHealth && <InPageNav items={navItems} />}
 
-        {/* Introducción / contenido general */}
-        {landing?.body_html && !isHealth && (
+        {/* Introducción / contenido general en 2 columnas */}
+        {!isHealth && (editorial.blocks.length > 0 || editorial.highlight) && (
+          <EditorialIntro
+            highlightTitle={`¿Por qué son importantes ${(landing?.category_name || landing?.filter_value || "estos nutrientes").toString().toLowerCase()}?`}
+            highlightText={editorial.highlight}
+            perks={[{ label: "Energía" }, { label: "Defensas" }, { label: "Bienestar diario" }]}
+            blocks={editorial.blocks}
+          />
+        )}
+        {!isHealth && editorial.blocks.length === 0 && landing?.body_html && (
           <RichText html={landing.body_html} />
         )}
+
 
         {isHealth && (
           <>
@@ -308,50 +406,54 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {!!sections.nutrients?.length && (
           <SectionShell id="nutrientes" title="Nutrientes relacionados">
-            <LinkCards
+            <IconCards
               items={sections.nutrients}
               hrefFor={(n) => linkFor(n, "ingrediente") ?? linkFor(n, "beneficio")}
-              ctaLabel={(n) => `Ver productos con ${itemLabel(n).toLowerCase()} →`}
             />
           </SectionShell>
         )}
 
         {!!sections.ingredients?.length && (
           <SectionShell id="ingredientes" title="Ingredientes que puedes encontrar en Nutribatidos">
-            <LinkCards items={sections.ingredients} hrefFor={(n) => linkFor(n, "ingrediente")} />
+            <IconCards items={sections.ingredients} hrefFor={(n) => linkFor(n, "ingrediente")} compact />
           </SectionShell>
         )}
 
-        {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) */}
-        <section id="productos" className="scroll-mt-24">
-          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
-            <Sparkles size={12} /> Recomendado por IA
-          </p>
-          <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
-          <div className="mt-4">
-            {loading ? (
-              <p className="text-muted-foreground">Cargando…</p>
-            ) : recommended.length === 0 ? (
-              <div className="rounded-lg border border-border p-10 text-center text-muted-foreground">
-                Sin productos para esta selección por ahora.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {recommended.map(({ product, reason }) => (
-                  <div key={product.id} className="flex flex-col gap-2">
-                    <ProductCard product={product as any} />
-                    {reason && (
-                      <p className="px-1 text-xs text-muted-foreground">
-                        <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
-                        {reason}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+
+        {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) — se oculta si no hay productos */}
+        {(loading || recommended.length > 0) && (
+          <section id="productos" className="scroll-mt-24">
+            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+              <Sparkles size={12} /> Recomendado por IA
+            </p>
+            <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Productos seleccionados para acompañar tu bienestar diario.
+            </p>
+            <div className="mt-5">
+              {loading ? (
+                <p className="text-muted-foreground">Cargando…</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {recommended.map(({ product, reason }) => (
+                    <div key={product.id} className="flex flex-col gap-2">
+                      <ProductCard product={product as any} />
+                      {reason && (
+                        <p className="px-1 text-xs text-muted-foreground">
+                          <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
+                          {reason}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {recommended.length > 0 && !loading && <TrustStrip />}
+
 
 
         {isHealth && <LuciaBlock onAsk={askLucia} />}
@@ -376,27 +478,20 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
 
         {Array.isArray(landing?.faqs) && landing.faqs.length > 0 && (
-          <section id="faq" className="max-w-3xl scroll-mt-24">
-            <h2 className="font-display text-2xl uppercase">Preguntas frecuentes</h2>
-            <div className="mt-4 space-y-4">
-              {landing.faqs.map((f: any, i: number) => (
-                <details key={i} className="rounded-lg border border-border p-4">
-                  <summary className="cursor-pointer font-medium">{f.q}</summary>
-                  <p className="mt-2 text-muted-foreground">{f.a}</p>
-                </details>
-              ))}
-            </div>
-          </section>
+          <FaqAccordion faqs={landing.faqs} />
         )}
+
 
         {isHealth && <ProfessionalHelp text={sections.professional_help} />}
 
-        {landing?.long_description && (
-          <article className="prose prose-neutral max-w-3xl dark:prose-invert">
-            <h2>Más sobre {title}</h2>
-            <div className="whitespace-pre-line">{landing.long_description}</div>
-          </article>
-        )}
+        <FinalCta
+          title={`Elige ${(landing?.category_name || landing?.filter_value || title).toString().toLowerCase()} para acompañar tu bienestar diario`}
+          text={ctaText}
+          image={landing?.cta_image || null}
+          testimonial={testimonial}
+          onAskLucia={askLucia}
+        />
+
       </div>
     </Layout>
   );
