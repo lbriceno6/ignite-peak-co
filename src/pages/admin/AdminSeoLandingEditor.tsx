@@ -149,12 +149,35 @@ export default function AdminSeoLandingEditor() {
 
   const isHealth = row.kind === "problema";
 
+  const suggestRelatedTopics = async () => {
+    const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+      body: { action: "suggest_related_topics", landing_id: id },
+    });
+    if (error || (data as any)?.error) { toast.error(error?.message ?? (data as any).error); return; }
+    const items = (data as any).suggestion?.related_topics ?? [];
+    if (!items.length) { toast.info("No hay otras landings publicadas para enlazar"); return; }
+    setList("related_topics", items);
+    toast.success("Temas relacionados sugeridos");
+  };
+
   const ListEditor = ({ title, k, withIcon }: { title: string; k: ListKey; withIcon?: boolean }) => (
     <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{title}</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => addItem(k)}><Plus size={14} /> Agregar</Button>
+        <div className="flex gap-2">
+          {k === "related_topics" && <Button size="sm" variant="outline" onClick={suggestRelatedTopics}>Sugerir con IA</Button>}
+          {(k === "nutrients" || k === "ingredients") && (
+            <RegenerateSectionButton
+              landingId={id}
+              section={k}
+              label="Regenerar"
+              onResult={(s) => Array.isArray(s[k]) && setList(k, s[k])}
+            />
+          )}
+          <Button size="sm" variant="outline" onClick={() => addItem(k)}><Plus size={14} /> Agregar</Button>
+        </div>
       </CardHeader>
+
       <CardContent className="space-y-3">
         {(sections[k] ?? []).length === 0 && <p className="text-sm text-muted-foreground">Sin elementos.</p>}
         {(sections[k] ?? []).map((it, i) => (
