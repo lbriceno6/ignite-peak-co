@@ -37,10 +37,33 @@ export default function LandingKeywordsCard({ landingId, keyword, secondary, onC
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
-      setSug((data as any).suggestion ?? {});
-      toast.success("Sugerencias listas");
+      const raw = (data as any).suggestion ?? {};
+      // Normaliza posibles nombres de campos devueltos por la IA.
+      const primary = String(raw.primary ?? raw.keyword ?? raw.main ?? "").trim();
+      const secondaryList: string[] = [
+        ...new Set(
+          (Array.isArray(raw.secondary) ? raw.secondary : Array.isArray(raw.keyword_secondary) ? raw.keyword_secondary : [])
+            .map((k: any) => String(k ?? "").trim().toLowerCase())
+            .filter((k: string) => k && k !== primary.toLowerCase()),
+        ),
+      ] as string[];
+
+      setSug({ ...raw, primary, secondary: secondaryList });
+
+      // Auto-aplica lo que falte para que no quede vacío.
+      const patch: { keyword?: string; keyword_secondary?: string[] } = {};
+      if (!keyword.trim() && primary) patch.keyword = primary;
+      const merged = [...new Set([...secondary, ...secondaryList])].slice(0, 6);
+      if (merged.length > secondary.length) patch.keyword_secondary = merged;
+      if (Object.keys(patch).length) {
+        onChange(patch);
+        toast.success("Palabras clave aplicadas (recuerda guardar)");
+      } else {
+        toast.success("Sugerencias listas");
+      }
     } catch (e: any) { toast.error(e?.message ?? "Error"); } finally { setLoading(false); }
   };
+
 
   return (
     <Card>
