@@ -202,6 +202,18 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
     return [...picked, ...rest.map((product) => ({ product, reason: "" }))].slice(0, 4);
   }, [products, aiPicks]);
 
+  // Contenido editorial (bloques por encabezado + resumen destacado).
+  const editorial = useMemo(() => {
+    const blocks = splitHtmlBlocks(landing?.body_html);
+    const intro = landing?.intro ? String(landing.intro) : stripHtml(String(landing?.body_html ?? "").split(/<h[23]/i)[0]);
+    return { blocks, highlight: summarize(intro, 340) };
+  }, [landing]);
+
+  const ctaText = useMemo(
+    () => summarize(landing?.long_description || landing?.intro || stripHtml(landing?.body_html), 220),
+    [landing],
+  );
+
 
   const sections = useMemo(() => normalizeSections(landing?.sections), [landing]);
 
