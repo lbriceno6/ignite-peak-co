@@ -73,10 +73,30 @@ export default function AdminSeoLandingEditor() {
     [row],
   );
 
+  const secondaryKeywords: string[] = useMemo(
+    () => (Array.isArray(row?.keyword_secondary) ? row.keyword_secondary.map(String) : []),
+    [row],
+  );
+
+  const qualityInput = useMemo(
+    () => ({
+      title: row?.title, intro: row?.intro, bodyHtml: row?.body_html,
+      longDescription: row?.long_description, keyword: row?.keyword,
+      metaTitle: row?.meta_title, metaDescription: row?.meta_description,
+      faqs, nutrients: sections.nutrients, ingredients: sections.ingredients,
+      relatedTopics: sections.related_topics,
+      sectionsText: [sections.what_is?.content, sections.what_to_do, sections.nutrition, sections.professional_help].filter(Boolean) as string[],
+    }),
+    [row, faqs, sections],
+  );
+
+  const quality = useMemo(() => computeContentQuality(qualityInput), [qualityInput]);
+
   const save = async (extra: Record<string, any> = {}) => {
     setSaving(true);
     const payload = {
       title: row.title, slug: row.slug, kind: row.kind, keyword: row.keyword,
+      keyword_secondary: secondaryKeywords,
       category_name: row.category_name, hero_image: row.hero_image, hero_image_alt: row.hero_image_alt,
       hero_image_source: row.hero_image_source, hero_image_status: row.hero_image_status,
       hero_image_prompt: row.hero_image_prompt, hero_image_generated_at: row.hero_image_generated_at,
@@ -87,6 +107,12 @@ export default function AdminSeoLandingEditor() {
       intro: row.intro, body_html: row.body_html, long_description: row.long_description,
       filter_field: row.filter_field, filter_value: row.filter_value,
       products_mode: row.products_mode ?? "auto", product_ids: manualIds,
+      editorial_status: row.editorial_status ?? "unreviewed",
+      reviewed_by: row.reviewed_by ?? null, reviewed_at: row.reviewed_at ?? null,
+      review_notes: row.review_notes ?? null, show_review_info: !!row.show_review_info,
+      previous_version: row.previous_version ?? null, humanized_at: row.humanized_at ?? null,
+      content_score: quality.score,
+      content_report: { checks: quality.checks, generic_phrases: quality.genericPhrases, claims: quality.claims },
       sections, faqs,
       schema_jsonld: faqs.length
         ? {
@@ -106,8 +132,17 @@ export default function AdminSeoLandingEditor() {
 
   const togglePublish = async () => {
     const next = !row.is_published;
+    // Publicación con revisión humana: la IA asiste, no publica sola.
+    if (next) {
+      const blockers: string[] = [];
+      if ((row.editorial_status ?? "unreviewed") === "unreviewed") blockers.push("la landing aún no ha sido revisada por una persona");
+      if (quality.score < 70) blockers.push(`la calidad del contenido es ${quality.score}/100`);
+      if (quality.claims.length) blockers.push(`hay ${quality.claims.length} afirmación(es) de salud por revisar`);
+      if (blockers.length && !window.confirm(`Antes de publicar: ${blockers.join("; ")}.\n\n¿Publicar de todos modos?`)) return;
+    }
     await save({ is_published: next, status: next ? "published" : "draft" });
   };
+
 
   if (loading) return <div className="p-8 text-muted-foreground">Cargando…</div>;
   if (!row) return <div className="p-8">Landing no encontrada. <Link className="text-accent" to="/admin/ia-landings">Volver</Link></div>;
