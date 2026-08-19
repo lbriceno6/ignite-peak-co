@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { track } from "@/lib/analytics";
 import {
-  KIND_TO_FIELD, landingPath, normalizeSections, itemLabel, slugify,
+  KIND_TO_FIELD, KIND_LABEL, landingPath, normalizeSections, itemLabel, slugify,
   type LandingKind, type NamedItem,
 } from "@/lib/seoLanding";
 import {
   CausesGrid, ChipList, InPageNav, LinkCards, LuciaBlock, ProfessionalHelp, RichText, SectionShell,
 } from "@/components/landing/LandingSections";
+import { SeoLandingHero, readingTimeFromText } from "@/components/landing/SeoLandingHero";
+
 
 const PRODUCT_FIELDS =
   "id, slug, name, short_description, price, sale_price, main_image, category, rating, brand, gallery_images, size_variants, stock, badge";
