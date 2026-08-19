@@ -381,7 +381,8 @@ Devuelve JSON EXACTO: {"claims":[{"text":"frase textual detectada","where":"secc
 ${safety}`;
 
     const healthShape = `{
-  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "seo": {"meta_title":"50-60 caracteres, orientado a búsqueda, distinto del H1","meta_description":"148-170 caracteres (ideal 155-160)","og_title":"","og_description":""},
+  "keyword_secondary": ["3-5 palabras clave secundarias reales de búsqueda"],
   "hero": {"title":"H1 tipo '<Tema>: causas, cuidados y nutrientes relacionados'","short_description":"2-3 líneas","cta_label":"Ver productos relacionados"},
   "introduction": "párrafo introductorio",
   "what_is": {"title":"¿Qué es ...?","content":"2-4 párrafos educativos separados por saltos de línea"},
@@ -398,7 +399,8 @@ ${safety}`;
 }`;
 
     const genericShape = `{
-  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "seo": {"meta_title":"50-60 caracteres, orientado a búsqueda, distinto del H1","meta_description":"148-170 caracteres (ideal 155-160)","og_title":"","og_description":""},
+  "keyword_secondary": ["3-5 palabras clave secundarias reales de búsqueda"],
   "hero": {"title":"H1 atractivo (~60c)","short_description":"2-3 líneas"},
   "introduction": "párrafo intro",
   "body_html": "<p>3-5 párrafos HTML válidos con <h2> para subsecciones. Sin <html>/<body>.</p>",
