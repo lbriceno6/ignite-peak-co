@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
 import LandingHeroImageCard from "@/components/admin/LandingHeroImageCard";
 import LandingKeywordsCard from "@/components/admin/LandingKeywordsCard";
+import SeoLengthCounter from "@/components/admin/SeoLengthCounter";
 import LandingContentQualityCard from "@/components/admin/LandingContentQualityCard";
 import LandingHumanizeCard from "@/components/admin/LandingHumanizeCard";
 import LandingEditorialReviewCard, { editorialLabel, editorialVariant } from "@/components/admin/LandingEditorialReviewCard";
@@ -272,6 +273,7 @@ export default function AdminSeoLandingEditor() {
         landingId={id!}
         row={row}
         faqs={faqs}
+        sectionsRelatedCount={(sections.related_topics ?? []).length}
         onApply={(patch) => set(patch)}
         onApplyFaqs={(f) => setFaqs(f)}
       />
@@ -433,13 +435,21 @@ export default function AdminSeoLandingEditor() {
           <Card>
             <CardHeader><CardTitle className="text-base">SEO técnico</CardTitle></CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
-              <div><Label>SEO title</Label><Input value={row.meta_title ?? ""} onChange={(e) => set({ meta_title: e.target.value })} /></div>
+              <div>
+                <Label>SEO title</Label>
+                <Input value={row.meta_title ?? ""} onChange={(e) => set({ meta_title: e.target.value })} />
+                <SeoLengthCounter value={row.meta_title} kind="title" />
+              </div>
               <div>
                 <Label>Canonical</Label>
                 <Input value={row.canonical ?? ""} placeholder={landingPath(row.kind, row.slug)} onChange={(e) => set({ canonical: e.target.value })} />
                 <p className="mt-1 text-xs text-muted-foreground">Si lo dejas vacío se usa la URL de la propia landing.</p>
               </div>
-              <div className="sm:col-span-2"><Label>Meta description</Label><Textarea value={row.meta_description ?? ""} onChange={(e) => set({ meta_description: e.target.value })} /></div>
+              <div className="sm:col-span-2">
+                <Label>Meta description</Label>
+                <Textarea value={row.meta_description ?? ""} onChange={(e) => set({ meta_description: e.target.value })} />
+                <SeoLengthCounter value={row.meta_description} kind="description" />
+              </div>
               <div><Label>OG title</Label><Input value={row.og_title ?? ""} placeholder={row.meta_title ?? row.title} onChange={(e) => set({ og_title: e.target.value })} /></div>
               <div><Label>OG image</Label><Input value={row.og_image ?? ""} placeholder={row.hero_image ?? ""} onChange={(e) => set({ og_image: e.target.value })} /></div>
               <div className="sm:col-span-2"><Label>OG description</Label><Textarea value={row.og_description ?? ""} placeholder={row.meta_description ?? ""} onChange={(e) => set({ og_description: e.target.value })} /></div>
@@ -451,6 +461,7 @@ export default function AdminSeoLandingEditor() {
             landingId={id!}
             row={row}
             faqs={faqs}
+            sectionsRelatedCount={(sections.related_topics ?? []).length}
             onApply={(patch) => set(patch)}
             onApplyFaqs={(f) => setFaqs(f)}
           />

@@ -5,6 +5,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { generateLandingHeroImage } from "../_shared/landing-hero-image.ts";
+import {
+  ensureSeoFields, normalizeSecondary,
+  TITLE_MIN, TITLE_MAX, DESC_MIN, DESC_MAX,
+} from "../_shared/seo/landing-seo-fields.ts";
 
 const MODEL = "google/gemini-2.5-flash";
 const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
@@ -32,6 +36,29 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}));
 
+    // Helper genérico para pedir JSON a la IA (usado por la validación SEO automática).
+    const askSeo = async (prompt: string) => {
+      const r = await fetch(LOVABLE_AI, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+        body: JSON.stringify({
+          model: MODEL,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: `Eres experto SEO e-commerce de nutrición (Nutribatidos, Perú). Español natural de Perú. JSON estricto sin markdown.
+Cuenta los caracteres exactamente, incluyendo espacios y signos. Nunca afirmes que un producto cura, trata o previene enfermedades.`,
+            },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+      if (!r.ok) return {};
+      const j = await r.json();
+      try { return JSON.parse(j?.choices?.[0]?.message?.content ?? "{}"); } catch { return {}; }
+    };
+
     // ---- Acción: optimizar SEO de una landing existente (no guarda, devuelve sugerencia) ----
     if (String(body.action ?? "") === "optimize_seo") {
       const landingId = String(body.landing_id ?? "");
@@ -52,7 +79,7 @@ Deno.serve(async (req) => {
 
       const optRes = await fetch(LOVABLE_AI, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}` },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
         body: JSON.stringify({
           model: MODEL,
           response_format: { type: "json_object" },
@@ -70,15 +97,16 @@ ${ctx}
 
 Devuelve JSON EXACTO:
 {
- "meta_title":"50-60 caracteres con la palabra clave al inicio",
- "meta_description":"150-160 caracteres, con llamada a la acción",
+ "meta_title":"${TITLE_MIN}-${TITLE_MAX} caracteres, orientado a búsqueda, distinto del H1",
+ "meta_description":"${DESC_MIN}-${DESC_MAX} caracteres (ideal 155-160), explica qué encontrará el usuario",
  "og_title":"",
  "og_description":"",
+ "keyword":"palabra clave principal",
+ "keyword_secondary":["3-5 palabras clave secundarias"],
  "keywords":["6-10 palabras clave"],
- "h1":"H1 mejorado (~60c)",
+ "h1":"H1 editorial mejorado",
  "intro":"introducción de 2-3 líneas optimizada",
  "faqs":[{"q":"","a":""}],
- "score":0-100,
  "issues":["problemas detectados"],
  "recommendations":["acciones concretas para mejorar el posicionamiento"]
 }`,
@@ -94,13 +122,32 @@ Devuelve JSON EXACTO:
       let sug: any = {};
       try { sug = JSON.parse(optJson?.choices?.[0]?.message?.content ?? "{}"); } catch { sug = {}; }
 
+      // Validación programática + auto-corrección (máx. 2 intentos por campo)
+      const fixed = await ensureSeoFields(askSeo, {
+        keyword: String(landing.keyword ?? landing.title ?? ""),
+        h1: sug.h1 ?? landing.title,
+        context: ctx,
+        current: {
+          meta_title: sug.meta_title ?? landing.meta_title,
+          meta_description: sug.meta_description ?? landing.meta_description,
+          keyword: sug.keyword ?? landing.keyword,
+          keyword_secondary: sug.keyword_secondary ?? landing.keyword_secondary,
+        },
+      });
+      sug.meta_title = fixed.meta_title;
+      sug.meta_description = fixed.meta_description;
+      sug.keyword = fixed.keyword;
+      sug.keyword_secondary = fixed.keyword_secondary;
+
       // Aplicar automáticamente (usado por la optimización masiva del admin)
       if (body.apply) {
         const s = (v: any) => (typeof v === "string" && v.trim() ? v.trim() : null);
         const newFaqs = Array.isArray(sug.faqs) ? sug.faqs.filter((f: any) => f?.q && f?.a) : [];
         const patch: Record<string, unknown> = {
-          meta_title: s(sug.meta_title) ?? landing.meta_title,
-          meta_description: s(sug.meta_description) ?? landing.meta_description,
+          meta_title: fixed.meta_title ?? landing.meta_title,
+          meta_description: fixed.meta_description ?? landing.meta_description,
+          keyword: fixed.keyword ?? landing.keyword,
+          keyword_secondary: fixed.keyword_secondary.length ? fixed.keyword_secondary : landing.keyword_secondary,
           og_title: s(sug.og_title) ?? landing.og_title,
           og_description: s(sug.og_description) ?? landing.og_description,
           intro: s(sug.intro) ?? landing.intro,
@@ -334,7 +381,8 @@ Devuelve JSON EXACTO: {"claims":[{"text":"frase textual detectada","where":"secc
 ${safety}`;
 
     const healthShape = `{
-  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "seo": {"meta_title":"50-60 caracteres, orientado a búsqueda, distinto del H1","meta_description":"148-170 caracteres (ideal 155-160)","og_title":"","og_description":""},
+  "keyword_secondary": ["3-5 palabras clave secundarias reales de búsqueda"],
   "hero": {"title":"H1 tipo '<Tema>: causas, cuidados y nutrientes relacionados'","short_description":"2-3 líneas","cta_label":"Ver productos relacionados"},
   "introduction": "párrafo introductorio",
   "what_is": {"title":"¿Qué es ...?","content":"2-4 párrafos educativos separados por saltos de línea"},
@@ -351,7 +399,8 @@ ${safety}`;
 }`;
 
     const genericShape = `{
-  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "seo": {"meta_title":"50-60 caracteres, orientado a búsqueda, distinto del H1","meta_description":"148-170 caracteres (ideal 155-160)","og_title":"","og_description":""},
+  "keyword_secondary": ["3-5 palabras clave secundarias reales de búsqueda"],
   "hero": {"title":"H1 atractivo (~60c)","short_description":"2-3 líneas"},
   "introduction": "párrafo intro",
   "body_html": "<p>3-5 párrafos HTML válidos con <h2> para subsecciones. Sin <html>/<body>.</p>",
@@ -420,16 +469,36 @@ ${isHealth ? healthShape : genericShape}`;
       professional_help: str(parsed.professional_help) ?? undefined,
     };
 
+    const h1 = str(hero.title) ?? str(parsed.title) ?? keyword;
+
+    // Validación programática de los campos SEO + auto-corrección con IA (máx. 2 intentos).
+    const seoFields = await ensureSeoFields(askSeo, {
+      keyword,
+      h1,
+      context: [
+        `Tipo: ${kind}`,
+        `Intro: ${str(hero.short_description) ?? str(parsed.introduction) ?? ""}`,
+        `Contenido: ${String(parsed.body_html ?? parsed.what_is?.content ?? "").replace(/<[^>]+>/g, " ").slice(0, 900)}`,
+      ].join("\n"),
+      current: {
+        meta_title: str(seo.meta_title) ?? str(parsed.meta_title),
+        meta_description: str(seo.meta_description) ?? str(parsed.meta_description),
+        keyword,
+        keyword_secondary: normalizeSecondary(parsed.keyword_secondary ?? seo.keyword_secondary, keyword),
+      },
+    });
+
     const row = {
       kind, slug,
-      keyword,
+      keyword: seoFields.keyword ?? keyword,
+      keyword_secondary: seoFields.keyword_secondary,
       category_name: categoryName,
-      title: str(hero.title) ?? str(parsed.title) ?? keyword,
+      title: h1,
       intro: str(hero.short_description) ?? str(parsed.introduction),
       long_description: str(parsed.long_description),
       body_html: str(parsed.body_html),
-      meta_title: str(seo.meta_title) ?? str(parsed.meta_title),
-      meta_description: str(seo.meta_description) ?? str(parsed.meta_description),
+      meta_title: seoFields.meta_title,
+      meta_description: seoFields.meta_description,
       og_title: str(seo.og_title),
       og_description: str(seo.og_description),
       hero_cta_label: str(hero.cta_label),
