@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { Link, Navigate, useParams } from "react-router-dom";
+
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";

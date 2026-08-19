@@ -7,25 +7,19 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://nutribatidos.com/producto/omega-3-fitocenter-250ml</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/probiotico-acidophilus-bifidus-30-comp-mast</loc>
-    <lastmod>2026-08-18</lastmod>
+    <loc>https://nutribatidos.com/producto/bcaa-recovery-plus</loc>
+    <lastmod>2026-08-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/bcaa-recovery-plus</loc>
+    <loc>https://nutribatidos.com/producto/probiotico-acidophilus-bifidus-30-comp-mast</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -37,19 +31,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/glicinato-de-magnesio-fitocenter</loc>
-    <lastmod>2026-08-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://nutribatidos.com/producto/k2-d3-60-tab</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/producto/magnesium-complex-fito-center</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -57,6 +39,24 @@
   <url>
     <loc>https://nutribatidos.com/producto/flora-fit-equilibrio-digestivo</loc>
     <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/magnesium-complex-fito-center</loc>
+    <lastmod>2026-08-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
+    <lastmod>2026-08-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/glicinato-de-magnesio-fitocenter</loc>
+    <lastmod>2026-08-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
