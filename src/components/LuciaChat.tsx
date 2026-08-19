@@ -40,12 +40,24 @@ export const LuciaChat = () => {
   const { settings, loading } = useLuciaSettings();
   const ctx = useLuciaContext();
   const [open, setOpen] = useState(false);
+  const [landingCtx, setLandingCtx] = useState<Record<string, any> | null>(null);
   const [showBubble, setShowBubble] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const sessionId = useMemo(() => getOrCreateSessionId(), []);
+
+  // Apertura programática desde una landing (envía contexto sin mostrarlo al usuario).
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setLandingCtx(((e as CustomEvent).detail as Record<string, any>) ?? null);
+      setOpen(true);
+    };
+    window.addEventListener("lucia:open", handler);
+    return () => window.removeEventListener("lucia:open", handler);
+  }, []);
+
 
   const visible = !loading && settings.enabled && pageShowsLucia(ctx.page, settings);
 
@@ -109,6 +121,8 @@ export const LuciaChat = () => {
             productId: ctx.productId,
             category: ctx.category,
             landing: ctx.landing,
+            landing_context: landingCtx,
+
             user_id: userId,
           },
           tracking: {

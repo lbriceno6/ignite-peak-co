@@ -32,12 +32,14 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const keyword: string = String(body.keyword ?? "").trim();
     const kind: string = String(body.kind ?? "objetivo");
+    const categoryName: string | null = body.category ? String(body.category) : null;
     const customSlug: string | undefined = body.slug ? slugify(String(body.slug)) : undefined;
     const publish: boolean = Boolean(body.publish ?? false);
     if (!keyword) return json({ error: "keyword required" }, 400);
-    if (!["objetivo", "ingrediente", "beneficio"].includes(kind)) return json({ error: "invalid kind" }, 400);
+    if (!["objetivo", "ingrediente", "beneficio", "problema"].includes(kind)) return json({ error: "invalid kind" }, 400);
 
     const slug = customSlug ?? slugify(keyword);
+    const isHealth = kind === "problema";
 
     // Job log
     const { data: job } = await admin.from("ai_seo_landing_jobs").insert({
@@ -51,28 +53,65 @@ Deno.serve(async (req) => {
       .from("products")
       .select("name, short_description, brand, price, slug, category, goal, main_ingredient")
       .eq("is_active", true).eq("approval_status", "approved")
-      .ilike(field, `%${keyword}%`)
+      .ilike(field, `%${isHealth ? (categoryName ?? keyword) : keyword}%`)
       .limit(12);
+
+    const { data: cats } = await admin.from("categories").select("name, slug").eq("is_active", true).limit(60);
+    const { data: ings } = await admin
+      .from("products").select("main_ingredient")
+      .eq("is_active", true).not("main_ingredient", "is", null).limit(200);
+    const ingredientList = [...new Set((ings ?? []).map((i: any) => String(i.main_ingredient).trim()).filter(Boolean))].slice(0, 40);
 
     const productLines = (matches ?? []).map((p: any) =>
       `- ${p.name} (${p.brand ?? "—"}) · ${p.short_description ?? ""} · S/${p.price}`
     ).join("\n");
 
-    const sys = `Eres un experto en SEO e-commerce de nutrición y suplementos. Generas landings optimizadas para Google con español natural de Perú. Devuelves JSON estricto.`;
-    const prompt = `Genera una landing SEO para la palabra clave "${keyword}" (tipo: ${kind}).
-Contexto — productos del catálogo que coinciden:
-${productLines || "(sin productos coincidentes; usar conocimiento general de suplementos)"}
+    const safety = `REGLAS OBLIGATORIAS DE SALUD:
+- Nunca afirmes que un producto cura, trata, elimina o previene enfermedades.
+- Prohibido: "cura la artritis", "elimina el dolor", "trata la hernia", "reduce la diabetes", "reemplaza medicamentos".
+- Usa lenguaje educativo y nutricional: "contribuye al mantenimiento normal de...", "forma parte de una alimentación equilibrada...", "es un nutriente relacionado con...", "puede encontrarse en...".
+- No diagnostiques ni indiques dosis médicas. Recomienda consultar a un profesional de la salud.`;
+
+    const sys = `Eres un experto en SEO e-commerce de nutrición y suplementos de la marca Nutribatidos (Perú). Escribes en español natural de Perú. Devuelves JSON estricto, sin markdown.
+${safety}`;
+
+    const healthShape = `{
+  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "hero": {"title":"H1 tipo '<Tema>: causas, cuidados y nutrientes relacionados'","short_description":"2-3 líneas","cta_label":"Ver productos relacionados"},
+  "introduction": "párrafo introductorio",
+  "what_is": {"title":"¿Qué es ...?","content":"2-4 párrafos educativos separados por saltos de línea"},
+  "causes": [{"title":"","description":""}],           // 4-6
+  "symptoms": [{"name":"","description":""}],           // 4-8
+  "what_to_do": "contenido educativo prudente",
+  "nutrition": "alimentación y cuidado, conectando con nutrición equilibrada",
+  "nutrients": [{"name":"Magnesio","description":"","slug":"magnesio"}],   // 3-6
+  "ingredients": [{"name":"Chía","description":"","slug":"chia"}],          // 3-6 de la lista del catálogo
+  "related_topics": [{"name":"Dolor cervical","slug":"dolor-cervical","description":""}], // 3-6
+  "faqs": [{"q":"","a":""}],                            // 4-6
+  "professional_help": "texto prudente sobre cuándo consultar a un profesional",
+  "long_description": "~80 palabras de cierre"
+}`;
+
+    const genericShape = `{
+  "seo": {"meta_title":"<60c","meta_description":"150-160c","og_title":"","og_description":""},
+  "hero": {"title":"H1 atractivo (~60c)","short_description":"2-3 líneas"},
+  "introduction": "párrafo intro",
+  "body_html": "<p>3-5 párrafos HTML válidos con <h2> para subsecciones. Sin <html>/<body>.</p>",
+  "nutrients": [{"name":"","description":""}],
+  "ingredients": [{"name":"","description":""}],
+  "faqs": [{"q":"","a":""}],
+  "long_description": "~80 palabras de cierre"
+}`;
+
+    const prompt = `Genera una landing SEO para la palabra clave "${keyword}" (tipo: ${kind}${categoryName ? `, categoría: ${categoryName}` : ""}).
+Marca: Nutribatidos. País: Perú.
+Categorías existentes: ${(cats ?? []).map((c: any) => c.name).join(", ") || "(sin datos)"}
+Ingredientes del catálogo: ${ingredientList.join(", ") || "(sin datos)"}
+Productos del catálogo que coinciden:
+${productLines || "(sin productos coincidentes; usar conocimiento general de nutrición)"}
 
 Devuelve JSON EXACTO con este shape (sin markdown, sin texto extra):
-{
-  "title": "H1 atractivo (~60c)",
-  "meta_title": "Title tag <60c con keyword",
-  "meta_description": "Meta description 150-160c persuasiva con keyword y beneficio",
-  "intro": "Párrafo intro 2-3 frases conectando intención con beneficio",
-  "body_html": "<p>3-5 párrafos HTML válidos. Usa <h2> para subsecciones (beneficios, cómo elegir, recomendaciones). Sin <html>/<body>.</p>",
-  "faqs": [{"q":"...","a":"..."}, ...] // 4-6 preguntas reales que un comprador peruano se haría,
-  "long_description": "Texto resumen 1 párrafo para bloque inferior (~80 palabras)"
-}`;
+${isHealth ? healthShape : genericShape}`;
 
     const aiRes = await fetch(LOVABLE_AI, {
       method: "POST",
@@ -93,30 +132,57 @@ Devuelve JSON EXACTO con este shape (sin markdown, sin texto extra):
     let parsed: any = {};
     try { parsed = JSON.parse(raw); } catch { parsed = {}; }
 
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: (parsed.faqs ?? []).map((f: any) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
+    const arr = (v: any) => (Array.isArray(v) ? v.filter((x) => x && typeof x === "object") : []);
+    const str = (v: any) => (typeof v === "string" && v.trim() ? v : null);
+    const seo = parsed.seo && typeof parsed.seo === "object" ? parsed.seo : {};
+    const hero = parsed.hero && typeof parsed.hero === "object" ? parsed.hero : {};
+    const faqs = arr(parsed.faqs);
+
+    const schema = faqs.length
+      ? {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f: any) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }
+      : null;
+
+    const sections = {
+      what_is: parsed.what_is && typeof parsed.what_is === "object" ? parsed.what_is : undefined,
+      causes: arr(parsed.causes),
+      symptoms: arr(parsed.symptoms),
+      what_to_do: str(parsed.what_to_do) ?? undefined,
+      nutrition: str(parsed.nutrition) ?? undefined,
+      nutrients: arr(parsed.nutrients),
+      ingredients: arr(parsed.ingredients),
+      related_topics: arr(parsed.related_topics),
+      professional_help: str(parsed.professional_help) ?? undefined,
     };
 
     const row = {
       kind, slug,
       keyword,
-      title: parsed.title ?? keyword,
-      intro: parsed.intro ?? null,
-      long_description: parsed.long_description ?? null,
-      body_html: parsed.body_html ?? null,
-      meta_title: parsed.meta_title ?? null,
-      meta_description: parsed.meta_description ?? null,
-      faqs: parsed.faqs ?? [],
+      category_name: categoryName,
+      title: str(hero.title) ?? str(parsed.title) ?? keyword,
+      intro: str(hero.short_description) ?? str(parsed.introduction),
+      long_description: str(parsed.long_description),
+      body_html: str(parsed.body_html),
+      meta_title: str(seo.meta_title) ?? str(parsed.meta_title),
+      meta_description: str(seo.meta_description) ?? str(parsed.meta_description),
+      og_title: str(seo.og_title),
+      og_description: str(seo.og_description),
+      hero_cta_label: str(hero.cta_label),
+      faqs,
+      sections,
       schema_jsonld: schema,
-      filter_field: field,
-      filter_value: keyword,
+      filter_field: isHealth && categoryName ? "category" : field,
+      filter_value: isHealth ? (categoryName ?? keyword) : keyword,
+      products_mode: "auto",
       is_published: publish,
+      status: publish ? "published" : "draft",
       ai_generated_at: new Date().toISOString(),
       ai_model: MODEL,
       source: "ai",
@@ -135,6 +201,7 @@ Devuelve JSON EXACTO con este shape (sin markdown, sin texto extra):
     await admin.from("ai_seo_landing_jobs").update({
       status: "done", landing_id: upserted!.id, payload: parsed,
     }).eq("id", jobId);
+
 
     return json({ ok: true, landing: upserted, job_id: jobId });
   } catch (e: any) {

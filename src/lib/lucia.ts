@@ -40,14 +40,16 @@ export function pageShowsLucia(
   if (pathname === "/") return !!s.show_on_home;
   if (/^\/(producto|product|productos)\//.test(pathname)) return !!s.show_on_product;
   if (/^\/(categoria|category|categorias)\//.test(pathname)) return !!s.show_on_category;
-  if (/^\/(beneficio|ingrediente|objetivo)\//.test(pathname)) return !!s.show_on_landing;
+  if (/^\/(beneficio|ingrediente|objetivo|salud)\//.test(pathname)) return !!s.show_on_landing;
   return false;
 }
 
-export function detectLandingKind(pathname: string): "beneficio" | "ingrediente" | "objetivo" | null {
-  const m = pathname.match(/^\/(beneficio|ingrediente|objetivo)\//);
-  return (m?.[1] as any) ?? null;
+export function detectLandingKind(pathname: string): "beneficio" | "ingrediente" | "objetivo" | "problema" | null {
+  const m = pathname.match(/^\/(beneficio|ingrediente|objetivo|salud)\//);
+  if (!m) return null;
+  return m[1] === "salud" ? "problema" : (m[1] as any);
 }
+
 
 export const PROVIDER_MODELS: Record<string, { value: string; label: string }[]> = {
   gemini: [

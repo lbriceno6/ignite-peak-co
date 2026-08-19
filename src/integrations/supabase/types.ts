@@ -4278,10 +4278,14 @@ export type Database = {
           ai_generated_at: string | null
           ai_model: string | null
           body_html: string | null
+          canonical: string | null
+          category_name: string | null
           created_at: string
           faqs: Json
           filter_field: string | null
           filter_value: string | null
+          hero_cta_href: string | null
+          hero_cta_label: string | null
           hero_image: string | null
           id: string
           intro: string | null
@@ -4291,10 +4295,18 @@ export type Database = {
           long_description: string | null
           meta_description: string | null
           meta_title: string | null
+          noindex: boolean
+          og_description: string | null
+          og_image: string | null
+          og_title: string | null
+          product_ids: Json
+          products_mode: string
           schema_jsonld: Json | null
           search_volume: number | null
+          sections: Json
           slug: string
           source: string
+          status: string
           title: string
           updated_at: string
         }
@@ -4302,10 +4314,14 @@ export type Database = {
           ai_generated_at?: string | null
           ai_model?: string | null
           body_html?: string | null
+          canonical?: string | null
+          category_name?: string | null
           created_at?: string
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
+          hero_cta_href?: string | null
+          hero_cta_label?: string | null
           hero_image?: string | null
           id?: string
           intro?: string | null
@@ -4315,10 +4331,18 @@ export type Database = {
           long_description?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          noindex?: boolean
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          product_ids?: Json
+          products_mode?: string
           schema_jsonld?: Json | null
           search_volume?: number | null
+          sections?: Json
           slug: string
           source?: string
+          status?: string
           title: string
           updated_at?: string
         }
@@ -4326,10 +4350,14 @@ export type Database = {
           ai_generated_at?: string | null
           ai_model?: string | null
           body_html?: string | null
+          canonical?: string | null
+          category_name?: string | null
           created_at?: string
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
+          hero_cta_href?: string | null
+          hero_cta_label?: string | null
           hero_image?: string | null
           id?: string
           intro?: string | null
@@ -4339,10 +4367,18 @@ export type Database = {
           long_description?: string | null
           meta_description?: string | null
           meta_title?: string | null
+          noindex?: boolean
+          og_description?: string | null
+          og_image?: string | null
+          og_title?: string | null
+          product_ids?: Json
+          products_mode?: string
           schema_jsonld?: Json | null
           search_volume?: number | null
+          sections?: Json
           slug?: string
           source?: string
+          status?: string
           title?: string
           updated_at?: string
         }

@@ -87,6 +87,8 @@ import AdminSearchOptimizer from "./pages/admin/AdminSearchOptimizer.tsx";
 
 import AdminInventoryAi from "./pages/admin/AdminInventoryAi.tsx";
 import AdminSeoLandingsAi from "./pages/admin/AdminSeoLandingsAi.tsx";
+import AdminSeoLandingEditor from "./pages/admin/AdminSeoLandingEditor.tsx";
+
 import AdminProductSeoAi from "./pages/admin/AdminProductSeoAi.tsx";
 import AdminPurchaseIntents from "./pages/admin/AdminPurchaseIntents.tsx";
 import AdminBenefits from "./pages/admin/AdminBenefits.tsx";
@@ -215,6 +217,8 @@ const App = () => (
             <Route path="/promotions/buy-one-get-one" element={<PromotionParticipants />} />
             <Route path="/ingrediente/:slug" element={<SeoLanding kind="ingrediente" />} />
             <Route path="/beneficio/:slug" element={<SeoLanding kind="beneficio" />} />
+            <Route path="/salud/:slug" element={<SeoLanding kind="problema" />} />
+
             <Route path="/marca/:slug" element={<BrandPage />} />
             <Route path="/brand/:slug" element={<BrandPage />} />
 
@@ -289,6 +293,8 @@ const App = () => (
 
               <Route path="ia-inventario" element={<AdminInventoryAi />} />
               <Route path="ia-landings" element={<AdminSeoLandingsAi />} />
+              <Route path="ia-landings/:id" element={<AdminSeoLandingEditor />} />
+
               <Route path="ia-fichas" element={<AdminProductSeoAi />} />
               <Route path="chat-ia" element={<AdminChatAI />} />
               <Route path="agente-catalogo" element={<AdminAgent />} />
