@@ -1,4 +1,6 @@
 // Tipos y utilidades compartidas para las landings SEO (públicas + admin).
+import { computeSeoScore } from "@/lib/seoScore";
+
 export type LandingKind = "objetivo" | "ingrediente" | "beneficio" | "problema";
 
 export const LANDING_KINDS: { value: LandingKind; label: string }[] = [
@@ -61,6 +63,47 @@ export function normalizeSections(raw: any): LandingSections {
 }
 
 export const itemLabel = (i: NamedItem) => i.title || i.name || "";
+
+/**
+ * Palabras clave de una landing: la principal más las secundarias.
+ *
+ * El panel leía `p.keywords`, una columna que no existe en
+ * `seo_landing_pages` — los campos reales son `keyword` (texto) y
+ * `keyword_secondary` (array). Al llegar siempre `undefined`, los 10 puntos
+ * de este criterio no se podían ganar nunca.
+ */
+export const landingKeywords = (p: any): string[] => {
+  const secundarias = Array.isArray(p?.keyword_secondary) ? p.keyword_secondary.map(String) : [];
+  return [String(p?.keyword ?? ""), ...secundarias].map((k) => k.trim()).filter(Boolean);
+};
+
+/**
+ * Puntuación SEO de una landing tal como la muestra la lista del admin.
+ *
+ * La landing tiene una sola imagen propia (la de portada), así que el criterio
+ * de alt text se mide sobre ella. Antes no se pasaba ningún dato de imágenes y
+ * la rúbrica trata "0 imágenes" como 0 puntos, así que esos 15 tampoco se
+ * podían ganar.
+ *
+ * Entre los dos huecos el techo real era 75: ninguna landing, por completa que
+ * estuviera, llegaba al umbral de 80 del botón "Optimizar SEO con IA", que por
+ * tanto las señalaba todas para siempre.
+ */
+export const landingSeoScore = (p: any): number => {
+  const imagen = p?.hero_image ?? p?.og_image;
+  return computeSeoScore({
+    title: p?.meta_title ?? p?.title,
+    description: p?.meta_description,
+    slug: p?.slug,
+    keywords: landingKeywords(p),
+    ogImage: p?.og_image ?? p?.hero_image,
+    imagesTotal: imagen ? 1 : 0,
+    imagesWithAlt: imagen && String(p?.hero_image_alt ?? "").trim() ? 1 : 0,
+    hasJsonLd: !!p?.schema_jsonld || (Array.isArray(p?.faqs) && p.faqs.length > 0),
+    hasShortDescription: !!p?.intro,
+    hasLongDescription: !!(p?.body_html || p?.long_description),
+  }).score;
+};
 
 export function slugify(s: string) {
   return (s || "")

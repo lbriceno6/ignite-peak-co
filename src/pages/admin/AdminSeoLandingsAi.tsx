@@ -12,20 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, Sparkles, ExternalLink, Trash2, Pencil, Copy, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { KIND_LABEL, LANDING_KINDS, landingPath, type LandingKind } from "@/lib/seoLanding";
-import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
+import { KIND_LABEL, LANDING_KINDS, landingPath, landingSeoScore, type LandingKind } from "@/lib/seoLanding";
+import { scoreBadgeClass } from "@/lib/seoScore";
 
-const landingScore = (p: any) =>
-  computeSeoScore({
-    title: p.meta_title ?? p.title,
-    description: p.meta_description,
-    slug: p.slug,
-    keywords: Array.isArray(p.keywords) ? p.keywords : [],
-    ogImage: p.og_image ?? p.hero_image,
-    hasJsonLd: !!p.schema_jsonld || (Array.isArray(p.faqs) && p.faqs.length > 0),
-    hasShortDescription: !!p.intro,
-    hasLongDescription: !!(p.body_html || p.long_description),
-  }).score;
+const landingScore = landingSeoScore;
 
 
 type Filter = "all" | "draft" | "published";

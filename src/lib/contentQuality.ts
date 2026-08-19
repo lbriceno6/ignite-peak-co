@@ -38,6 +38,31 @@ const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u
 const sentences = (t: string) =>
   t.split(/(?<=[.!?])\s+/).map((s) => s.trim()).filter((s) => s.length > 40);
 
+/**
+ * Peso de cada chequeo. La suma tiene que dar exactamente 100.
+ *
+ * Antes sumaban 110 y el total se recortaba con `Math.min(100, ...)`: una
+ * landing podía fallar un chequeo, verlo marcado en rojo en la lista, y aun
+ * así mostrar "100/100" porque el exceso absorbía la penalización. El test
+ * `contentQuality.test.ts` vigila que la suma no vuelva a desviarse.
+ */
+export const PESOS = {
+  intencion: 18,
+  h1: 9,
+  meta: 9,
+  profundidad: 14,
+  estructura: 9,
+  faq: 9,
+  temas: 4,
+  nutrientes: 4,
+  generico: 9,
+  repeticiones: 6,
+  densidad: 4,
+  claims: 5,
+} as const;
+
+export const PESO_TOTAL = Object.values(PESOS).reduce((a, b) => a + b, 0);
+
 export type QualityInput = {
   title?: string | null;
   intro?: string | null;
@@ -69,58 +94,60 @@ export function computeContentQuality(input: QualityInput): QualityResult {
 
   let score = 0;
 
-  // Intención de búsqueda respondida (20): intro útil y sin arranque comercial.
+  // Intención de búsqueda respondida: intro útil y sin arranque comercial.
   const introOk = intro.length >= 120 && !GENERIC_PHRASES.some((p) => norm(intro).startsWith(norm(p)));
-  if (introOk) score += 20; else score += intro.length >= 60 ? 10 : 0;
+  if (introOk) score += PESOS.intencion; else score += intro.length >= 60 ? Math.round(PESOS.intencion / 2) : 0;
   add(introOk, "warn", "La introducción no responde de inmediato la intención de búsqueda", "Intención de búsqueda respondida");
 
-  // H1 (10)
+  // H1
   const t = (input.title ?? "").trim();
   const h1Ok = t.length >= 15 && t.length <= 70;
-  if (h1Ok) score += 10;
+  if (h1Ok) score += PESOS.h1;
   add(h1Ok, "warn", "H1 demasiado corto o demasiado largo", "H1 correcto");
 
-  // Meta (10)
+  // Meta
   const md = (input.metaDescription ?? "").trim();
   const metaOk = md.length >= 140 && md.length <= 160 && !!(input.metaTitle ?? "").trim();
-  if (metaOk) score += 10; else if (md) score += 5;
+  if (metaOk) score += PESOS.meta; else if (md) score += Math.round(PESOS.meta / 2);
   add(metaOk, "warn", md ? `Meta description de ${md.length} caracteres (ideal 140-160)` : "Falta la meta description", "Meta correcta");
 
-  // Profundidad (15)
+  // Profundidad
   const depthOk = words >= 450;
-  if (depthOk) score += 15; else score += Math.round(Math.min(words, 450) / 450 * 15);
+  if (depthOk) score += PESOS.profundidad;
+  else score += Math.round(Math.min(words, 450) / 450 * PESOS.profundidad);
   add(depthOk, "warn", `Contenido corto (${words} palabras, ideal 450+)`, "Profundidad suficiente");
 
-  // Estructura (10): subtítulos o secciones
+  // Estructura: subtítulos o secciones
   const headings = (String(input.bodyHtml ?? "").match(/<h[23][\s>]/gi) ?? []).length + (input.sectionsText?.filter(Boolean).length ?? 0);
   const structOk = headings >= 2;
-  if (structOk) score += 10;
+  if (structOk) score += PESOS.estructura;
   add(structOk, "warn", "Faltan subtítulos que organicen el contenido", "Estructura clara con subtítulos");
 
-  // FAQ (10)
+  // FAQ
   const faqOk = faqs.filter((f) => f.q && f.a).length >= 3;
-  if (faqOk) score += 10; else score += faqs.length ? 5 : 0;
+  if (faqOk) score += PESOS.faq; else score += faqs.length ? Math.round(PESOS.faq / 2) : 0;
   add(faqOk, "warn", "Añade al menos 3 preguntas frecuentes útiles", "FAQ con preguntas reales");
 
-  // Temas relacionados (5)
+  // Temas relacionados
   const topicsOk = (input.relatedTopics ?? []).filter((x) => x?.slug).length >= 1;
-  if (topicsOk) score += 5;
+  if (topicsOk) score += PESOS.temas;
   add(topicsOk, "warn", "Falta al menos un tema relacionado", "Temas relacionados enlazados");
 
-  // Nutrientes vs ingredientes diferenciados (5)
+  // Nutrientes vs ingredientes diferenciados
   const nut = new Set((input.nutrients ?? []).map((x) => norm(x.title || x.name || "")).filter(Boolean));
   const ing = (input.ingredients ?? []).map((x) => norm(x.title || x.name || "")).filter(Boolean);
   const dup = ing.filter((x) => nut.has(x));
   const diffOk = dup.length === 0;
-  if (diffOk) score += 5;
+  if (diffOk) score += PESOS.nutrientes;
   add(diffOk, "warn", `Ingredientes duplicados desde nutrientes (${dup.length})`, "Nutrientes e ingredientes diferenciados");
 
-  // Lenguaje genérico (10)
+  // Lenguaje genérico
   const genericPhrases = GENERIC_PHRASES.filter((p) => nAll.includes(norm(p)));
-  if (!genericPhrases.length) score += 10; else score += Math.max(0, 10 - genericPhrases.length * 4);
+  if (!genericPhrases.length) score += PESOS.generico;
+  else score += Math.max(0, PESOS.generico - genericPhrases.length * 4);
   add(genericPhrases.length === 0, "warn", `Se detectaron ${genericPhrases.length} frase(s) genérica(s)`, "Sin frases genéricas de IA");
 
-  // Repeticiones de frases (6)
+  // Repeticiones de frases
   const seen = new Map<string, number>();
   for (const s of sentences(all)) {
     const k = norm(s).replace(/[^a-z0-9 ]/g, "");
@@ -129,7 +156,7 @@ export function computeContentQuality(input: QualityInput): QualityResult {
   const repeatedSentences = [...seen.entries()].filter(([, n]) => n > 1).map(([k]) => k.slice(0, 90));
   const brandCount = (nAll.match(/nutribatidos/g) ?? []).length;
   const repOk = repeatedSentences.length === 0 && brandCount <= 4;
-  if (repOk) score += 6; else score += 2;
+  if (repOk) score += PESOS.repeticiones; else score += 2;
   add(
     repOk, "warn",
     repeatedSentences.length
@@ -138,7 +165,7 @@ export function computeContentQuality(input: QualityInput): QualityResult {
     "Sin repeticiones relevantes",
   );
 
-  // Densidad de la palabra clave (4)
+  // Densidad de la palabra clave
   const kw = norm(input.keyword ?? "").trim();
   const kwRegex = kw ? new RegExp(`(^|[^a-z0-9])${kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`, "g") : null;
   const kwCount = kwRegex ? (nAll.match(kwRegex) ?? []).length : 0;
@@ -162,14 +189,16 @@ export function computeContentQuality(input: QualityInput): QualityResult {
   );
 
 
-  // Claims de salud (-riesgo, 5)
+  // Claims de salud (riesgo)
   const hits = scanSensitiveClaims(all);
   const claims = [...new Set(hits.map((h) => h.match))];
-  if (!claims.length) score += 5;
+  if (!claims.length) score += PESOS.claims;
   add(claims.length === 0, "error", `Revisar ${claims.length} afirmación(es) de salud`, "Sin afirmaciones de salud arriesgadas");
 
+  // El recorte es una red de seguridad, no parte del cálculo: con PESOS
+  // sumando 100 nunca debería activarse.
   return {
-    score: Math.max(0, Math.min(100, Math.round(score))),
+    score: Math.max(0, Math.min(PESO_TOTAL, Math.round(score))),
     checks,
     genericPhrases,
     repeatedSentences,
