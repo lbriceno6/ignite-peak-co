@@ -4287,6 +4287,7 @@ export type Database = {
           hero_cta_href: string | null
           hero_cta_label: string | null
           hero_image: string | null
+          hero_image_alt: string | null
           id: string
           intro: string | null
           is_published: boolean
@@ -4323,6 +4324,7 @@ export type Database = {
           hero_cta_href?: string | null
           hero_cta_label?: string | null
           hero_image?: string | null
+          hero_image_alt?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
@@ -4359,6 +4361,7 @@ export type Database = {
           hero_cta_href?: string | null
           hero_cta_label?: string | null
           hero_image?: string | null
+          hero_image_alt?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
