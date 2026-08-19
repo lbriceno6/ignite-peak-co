@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://nutribatidos.com/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
+    <loc>https://nutribatidos.com/producto/flexacil-ultra-plus-600gr</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/ignite-pre-workout</loc>
+    <loc>https://nutribatidos.com/producto/proteina-fem-fit-colageno-vainilla-30-sachets</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -37,32 +37,26 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/k2-d3-60-tab</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://nutribatidos.com/producto/flexacil-ultra</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/flexacil-ultra-plus-600gr</loc>
+    <loc>https://nutribatidos.com/producto/k2-d3-60-tab</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/magnesium-complex-fito-center</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://nutribatidos.com/producto/flora-fit-equilibrio-digestivo</loc>
-    <lastmod>2026-06-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/producto/mass-gainer-extreme</loc>
-    <lastmod>2026-06-06</lastmod>
+    <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -109,12 +103,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://nutribatidos.com/producto/extracto-natural-de-cafe-andino</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://nutribatidos.com/producto/miel-de-abeja</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
@@ -127,7 +115,19 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://nutribatidos.com/producto/extracto-natural-de-cafe-andino</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://nutribatidos.com/producto/kion-ginger-500-mg-impulso-digestivo-natural-60-capsulas</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/vitamina-e-400-ui-30-capsulas-blandas</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -140,12 +140,6 @@
   </url>
   <url>
     <loc>https://nutribatidos.com/producto/neuro-complex-con-acido-alfa-lipoico-60-tab</loc>
-    <lastmod>2026-08-18</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://nutribatidos.com/producto/vitamina-e-400-ui-30-capsulas-blandas</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
@@ -199,7 +193,31 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://nutribatidos.com/producto/colageno-hidrolizado-sascha-fitness-con-vitamina-c-e</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://nutribatidos.com/producto/colageno-hidrolizado-fisiomedic</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/creatine-hcl</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/colageno-hidrolizado-con-glucosamina-lima-naturals</loc>
+    <lastmod>2026-08-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://nutribatidos.com/producto/lecitina-kelp-b6</loc>
     <lastmod>2026-08-18</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
