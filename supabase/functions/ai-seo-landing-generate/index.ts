@@ -173,7 +173,7 @@ Devuelve JSON EXACTO:
 
     // ================= Acciones de asistente editorial =================
     const action = String(body.action ?? "");
-    if (["humanize", "regenerate_section", "suggest_keywords", "suggest_related_topics", "review_claims"].includes(action)) {
+    if (["humanize", "reduce_keywords", "regenerate_section", "suggest_keywords", "suggest_related_topics", "review_claims"].includes(action)) {
       const landingId = String(body.landing_id ?? "");
       if (!landingId) return json({ error: "landing_id required" }, 400);
       const { data: landing } = await admin.from("seo_landing_pages").select("*").eq("id", landingId).maybeSingle();
@@ -264,6 +264,34 @@ Devuelve JSON EXACTO:
  "content_score":0-100
 }
 Deja vacío ("" o []) lo que no aplique a este tipo de landing.`);
+          return json({ ok: true, suggestion: out });
+        }
+
+        if (action === "reduce_keywords") {
+          const out = await ask(`Reduce el uso excesivo de la palabra clave y de la marca en esta landing SIN cambiar el significado, los datos ni la estructura.
+Palabra clave: "${landing.keyword ?? landing.title}"
+
+REGLAS:
+- Mantén la palabra clave exacta solo donde aporta (H1 no se toca, 1 vez en la introducción y como máximo 1 vez cada 2 párrafos).
+- Sustituye el resto por sinónimos naturales, categorías equivalentes, pronombres o reformulaciones ("estos nutrientes", "este grupo", "el complemento").
+- No repitas "Nutribatidos" más de 3 veces en todo el texto.
+- No añadas contenido nuevo ni elimines información útil. Español natural de Perú.
+
+CONTENIDO ACTUAL:
+${ctxFull}
+
+Devuelve JSON EXACTO:
+{
+ "intro":"",
+ "body_html":"",
+ "what_is":{"title":"","content":""},
+ "what_to_do":"",
+ "nutrition":"",
+ "faqs":[{"q":"","a":""}],
+ "long_description":"",
+ "changes":["resumen de las sustituciones"]
+}
+Deja vacío ("" o []) lo que no cambie.`);
           return json({ ok: true, suggestion: out });
         }
 
