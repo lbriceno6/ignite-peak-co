@@ -144,6 +144,18 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
   const isHealth = kind === "problema";
   const path = landingPath(kind, slug ?? "");
 
+  const readingTime = useMemo(
+    () => readingTimeFromText(
+      landing?.intro, landing?.body_html, landing?.long_description,
+      sections.what_is?.content, sections.what_to_do, sections.nutrition,
+      ...(sections.causes ?? []).map((c) => `${itemLabel(c)} ${c.description ?? ""}`),
+      ...(sections.nutrients ?? []).map((c) => `${itemLabel(c)} ${c.description ?? ""}`),
+      ...(Array.isArray(landing?.faqs) ? landing.faqs.map((f: any) => `${f.q} ${f.a}`) : []),
+    ),
+    [landing, sections],
+  );
+
+
   const linkFor = (i: NamedItem, targetKind: string) => {
     const s = i.slug || slugify(itemLabel(i));
     return existingLandings[`${targetKind}/${s}`] ? landingPath(targetKind, s) : null;
