@@ -467,16 +467,36 @@ ${isHealth ? healthShape : genericShape}`;
       professional_help: str(parsed.professional_help) ?? undefined,
     };
 
+    const h1 = str(hero.title) ?? str(parsed.title) ?? keyword;
+
+    // Validación programática de los campos SEO + auto-corrección con IA (máx. 2 intentos).
+    const seoFields = await ensureSeoFields(askSeo, {
+      keyword,
+      h1,
+      context: [
+        `Tipo: ${kind}`,
+        `Intro: ${str(hero.short_description) ?? str(parsed.introduction) ?? ""}`,
+        `Contenido: ${String(parsed.body_html ?? parsed.what_is?.content ?? "").replace(/<[^>]+>/g, " ").slice(0, 900)}`,
+      ].join("\n"),
+      current: {
+        meta_title: str(seo.meta_title) ?? str(parsed.meta_title),
+        meta_description: str(seo.meta_description) ?? str(parsed.meta_description),
+        keyword,
+        keyword_secondary: normalizeSecondary(parsed.keyword_secondary ?? seo.keyword_secondary, keyword),
+      },
+    });
+
     const row = {
       kind, slug,
-      keyword,
+      keyword: seoFields.keyword ?? keyword,
+      keyword_secondary: seoFields.keyword_secondary,
       category_name: categoryName,
-      title: str(hero.title) ?? str(parsed.title) ?? keyword,
+      title: h1,
       intro: str(hero.short_description) ?? str(parsed.introduction),
       long_description: str(parsed.long_description),
       body_html: str(parsed.body_html),
-      meta_title: str(seo.meta_title) ?? str(parsed.meta_title),
-      meta_description: str(seo.meta_description) ?? str(parsed.meta_description),
+      meta_title: seoFields.meta_title,
+      meta_description: seoFields.meta_description,
       og_title: str(seo.og_title),
       og_description: str(seo.og_description),
       hero_cta_label: str(hero.cta_label),
