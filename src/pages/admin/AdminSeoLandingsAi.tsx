@@ -182,11 +182,15 @@ export default function AdminSeoLandingsAi() {
         <CardHeader>
           <CardTitle>Landings</CardTitle>
           <CardDescription>{pages.length} páginas publicadas o en borrador.</CardDescription>
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap items-center gap-2 pt-2">
             {([["all", "Todos"], ["draft", "Borradores"], ["published", "Publicados"]] as [Filter, string][]).map(([v, l]) => (
               <Button key={v} size="sm" variant={filter === v ? "default" : "outline"} onClick={() => setFilter(v)}>{l}</Button>
             ))}
+            <Button size="sm" variant="secondary" className="ml-auto" onClick={optimizeAllLow} disabled={bulk}>
+              {bulk ? <Loader2 className="animate-spin" size={14} /> : <Wand2 size={14} />} Optimizar SEO con IA (score &lt; 80)
+            </Button>
           </div>
+
         </CardHeader>
         <CardContent>
           {visiblePages.length === 0 ? (
