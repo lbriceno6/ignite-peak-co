@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
+import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
+
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
 
@@ -195,6 +197,16 @@ export default function AdminSeoLandingEditor() {
           <div className="flex items-center gap-3"><Switch checked={!!row.noindex} onCheckedChange={(v) => set({ noindex: v })} /><Label>No indexar (noindex)</Label></div>
         </CardContent>
       </Card>
+
+      <LandingSeoAiCard
+        landingId={id!}
+        row={row}
+        faqs={faqs}
+        onApply={(patch) => set(patch)}
+        onApplyFaqs={(f) => setFaqs(f)}
+      />
+
+
 
       <Card>
         <CardHeader><CardTitle className="text-base">Hero e introducción</CardTitle></CardHeader>

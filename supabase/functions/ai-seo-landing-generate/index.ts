@@ -30,7 +30,73 @@ Deno.serve(async (req) => {
     if (!isAdmin) return json({ error: "forbidden" }, 403);
 
     const body = await req.json().catch(() => ({}));
+
+    // ---- Acción: optimizar SEO de una landing existente (no guarda, devuelve sugerencia) ----
+    if (String(body.action ?? "") === "optimize_seo") {
+      const landingId = String(body.landing_id ?? "");
+      if (!landingId) return json({ error: "landing_id required" }, 400);
+      const { data: landing } = await admin.from("seo_landing_pages").select("*").eq("id", landingId).maybeSingle();
+      if (!landing) return json({ error: "landing not found" }, 404);
+
+      const ctx = [
+        `Palabra clave: ${landing.keyword ?? landing.title}`,
+        `Tipo: ${landing.kind}`,
+        `H1 actual: ${landing.title ?? ""}`,
+        `Meta title actual: ${landing.meta_title ?? "(vacío)"}`,
+        `Meta description actual: ${landing.meta_description ?? "(vacío)"}`,
+        `Intro: ${(landing.intro ?? "").slice(0, 400)}`,
+        `Contenido: ${String(landing.body_html ?? "").replace(/<[^>]+>/g, " ").slice(0, 1200)}`,
+        `FAQs actuales: ${(Array.isArray(landing.faqs) ? landing.faqs : []).map((f: any) => f.q).join(" | ") || "(ninguna)"}`,
+      ].join("\n");
+
+      const optRes = await fetch(LOVABLE_AI, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}` },
+        body: JSON.stringify({
+          model: MODEL,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content:
+                `Eres experto SEO e-commerce de nutrición (Nutribatidos, Perú). Español natural de Perú. JSON estricto sin markdown.
+Nunca afirmes que un producto cura, trata o previene enfermedades.`,
+            },
+            {
+              role: "user",
+              content: `Optimiza el SEO de esta landing:
+${ctx}
+
+Devuelve JSON EXACTO:
+{
+ "meta_title":"50-60 caracteres con la palabra clave al inicio",
+ "meta_description":"150-160 caracteres, con llamada a la acción",
+ "og_title":"",
+ "og_description":"",
+ "keywords":["6-10 palabras clave"],
+ "h1":"H1 mejorado (~60c)",
+ "intro":"introducción de 2-3 líneas optimizada",
+ "faqs":[{"q":"","a":""}],
+ "score":0-100,
+ "issues":["problemas detectados"],
+ "recommendations":["acciones concretas para mejorar el posicionamiento"]
+}`,
+            },
+          ],
+        }),
+      });
+      if (!optRes.ok) {
+        const t = await optRes.text();
+        return json({ error: "ai_error", detail: t }, optRes.status === 402 ? 402 : 502);
+      }
+      const optJson = await optRes.json();
+      let sug: any = {};
+      try { sug = JSON.parse(optJson?.choices?.[0]?.message?.content ?? "{}"); } catch { sug = {}; }
+      return json({ ok: true, suggestion: sug });
+    }
+
     const keyword: string = String(body.keyword ?? "").trim();
+
     const kind: string = String(body.kind ?? "objetivo");
     const categoryName: string | null = body.category ? String(body.category) : null;
     const customSlug: string | undefined = body.slug ? slugify(String(body.slug)) : undefined;
