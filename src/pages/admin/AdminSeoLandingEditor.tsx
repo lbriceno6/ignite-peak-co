@@ -39,6 +39,7 @@ export default function AdminSeoLandingEditor() {
   const [productOptions, setProductOptions] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [suggestingTopics, setSuggestingTopics] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -151,14 +152,19 @@ export default function AdminSeoLandingEditor() {
   const isHealth = row.kind === "problema";
 
   const suggestRelatedTopics = async () => {
-    const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
-      body: { action: "suggest_related_topics", landing_id: id },
-    });
-    if (error || (data as any)?.error) { toast.error(error?.message ?? (data as any).error); return; }
-    const items = (data as any).suggestion?.related_topics ?? [];
-    if (!items.length) { toast.info("No hay otras landings publicadas para enlazar"); return; }
-    setList("related_topics", items);
-    toast.success("Temas relacionados sugeridos");
+    setSuggestingTopics(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+        body: { action: "suggest_related_topics", landing_id: id },
+      });
+      if (error || (data as any)?.error) { toast.error((data as any)?.detail ?? error?.message ?? (data as any).error); return; }
+      const items = (data as any).suggestion?.related_topics ?? [];
+      if (!items.length) { toast.info("No hay otras landings disponibles para enlazar"); return; }
+      setList("related_topics", items);
+      toast.success("Temas relacionados sugeridos; recuerda guardar");
+    } finally {
+      setSuggestingTopics(false);
+    }
   };
 
   const ListEditor = ({ title, k, withIcon }: { title: string; k: ListKey; withIcon?: boolean }) => (
@@ -166,7 +172,12 @@ export default function AdminSeoLandingEditor() {
       <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{title}</CardTitle>
         <div className="flex gap-2">
-          {k === "related_topics" && <Button size="sm" variant="outline" onClick={suggestRelatedTopics}>Sugerir con IA</Button>}
+          {k === "related_topics" && (
+            <Button size="sm" variant="outline" onClick={suggestRelatedTopics} disabled={suggestingTopics}>
+              {suggestingTopics ? <Loader2 className="animate-spin" size={14} /> : <Sparkles size={14} />}
+              Sugerir con IA
+            </Button>
+          )}
           {(k === "nutrients" || k === "ingredients") && (
             <RegenerateSectionButton
               landingId={id}

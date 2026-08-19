@@ -300,9 +300,11 @@ Devuelve JSON EXACTO: {"primary":"palabra clave principal","secondary":["4-6 pal
         if (action === "suggest_related_topics") {
           const { data: others } = await admin
             .from("seo_landing_pages")
-            .select("title, slug, kind, keyword, intro")
-            .eq("is_published", true).neq("id", landingId).limit(80);
-          const list = (others ?? []);
+            .select("title, slug, kind, keyword, intro, is_published")
+            .neq("id", landingId)
+            .not("slug", "is", null)
+            .limit(100);
+          const list = (others ?? []).filter((item: any) => item.slug && item.title);
           if (!list.length) return json({ ok: true, suggestion: { related_topics: [] } });
           const out = await ask(`Elige las landings más relacionadas con este tema. SOLO puedes usar slugs de la lista; no inventes ninguno.
 
@@ -311,12 +313,44 @@ LANDINGS DISPONIBLES:
 ${list.map((l: any) => `- slug=${l.slug} | kind=${l.kind} | ${l.title}`).join("\n")}
 
 Devuelve JSON EXACTO: {"related_topics":[{"title":"","slug":"","description":"una línea de por qué se relaciona"}]} (máx 6)`);
-          const valid = (Array.isArray(out?.related_topics) ? out.related_topics : [])
+          const normalizeSuggestedSlug = (value: unknown) => {
+            const raw = String(value ?? "").trim().replace(/^https?:\/\/[^/]+/i, "");
+            return raw.split(/[?#]/)[0].split("/").filter(Boolean).pop() ?? "";
+          };
+          let valid = (Array.isArray(out?.related_topics) ? out.related_topics : [])
             .map((t: any) => {
-              const match = list.find((l: any) => l.slug === String(t?.slug ?? "").trim());
+              const suggestedSlug = normalizeSuggestedSlug(t?.slug ?? t?.href);
+              const match = list.find((l: any) => l.slug === suggestedSlug);
               return match ? { title: t.title || match.title, name: t.title || match.title, slug: match.slug, kind: match.kind, description: t.description ?? "" } : null;
             })
-            .filter(Boolean);
+            .filter(Boolean)
+            .slice(0, 6);
+
+          // Si el modelo devuelve una forma inválida, conserva el resultado útil
+          // seleccionando las landings con mayor afinidad léxica.
+          if (!valid.length) {
+            const stop = new Set(["para", "como", "con", "que", "una", "del", "los", "las", "por", "nutribatidos"]);
+            const tokens = (value: unknown) => new Set(
+              String(value ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .split(/[^a-z0-9]+/).filter((word) => word.length > 2 && !stop.has(word)),
+            );
+            const sourceTokens = tokens(`${landing.keyword ?? ""} ${landing.title ?? ""} ${landing.intro ?? ""}`);
+            valid = list
+              .map((candidate: any) => {
+                const candidateTokens = tokens(`${candidate.keyword ?? ""} ${candidate.title ?? ""} ${candidate.intro ?? ""}`);
+                const score = [...sourceTokens].filter((word) => candidateTokens.has(word)).length;
+                return { candidate, score };
+              })
+              .sort((a: any, b: any) => b.score - a.score)
+              .slice(0, 6)
+              .map(({ candidate }: any) => ({
+                title: candidate.title,
+                name: candidate.title,
+                slug: candidate.slug,
+                kind: candidate.kind,
+                description: "Contenido relacionado que complementa este tema.",
+              }));
+          }
           return json({ ok: true, suggestion: { related_topics: valid } });
         }
 
