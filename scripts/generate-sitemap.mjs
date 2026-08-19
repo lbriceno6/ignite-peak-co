@@ -12,9 +12,7 @@ const BASE_URL = "https://nutribatidos.com";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://mphrhcuqzkbbnovmdbpc.supabase.co";
 const SUPABASE_ANON = process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1waHJoY3VxemtiYm5vdm1kYnBjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNTM1ODMsImV4cCI6MjA5MzYyOTU4M30.2ID3yuUo0K5oBRg7uX6-VkeZzC_74VEgm5WlcOWynsg";
 
-interface Entry { path: string; lastmod?: string; changefreq?: string; priority?: string; title?: string }
-
-const staticEntries: Entry[] = [
+const staticEntries = [
   { path: "/", changefreq: "weekly", priority: "1.0", title: "Inicio" },
   { path: "/productos", changefreq: "daily", priority: "0.9", title: "Productos" },
   { path: "/blog", changefreq: "weekly", priority: "0.7", title: "Blog" },
@@ -28,10 +26,8 @@ const staticEntries: Entry[] = [
   { path: "/privacy", changefreq: "yearly", priority: "0.3" },
 ];
 
-interface Dyn { products: Entry[]; posts: Entry[]; cats: Entry[]; landings: Entry[] }
-
-async function fetchDynamic(): Promise<Dyn> {
-  const out: Dyn = { products: [], posts: [], cats: [], landings: [] };
+async function fetchDynamic() {
+  const out = { products: [], posts: [], cats: [], landings: [] };
   try {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
     const [{ data: products }, { data: posts }, { data: cats }, { data: landings }, { data: goals }, { data: redirects }] = await Promise.all([
@@ -39,26 +35,26 @@ async function fetchDynamic(): Promise<Dyn> {
       sb.from("blog_posts").select("slug, title, published_at, updated_at").eq("is_published", true),
       sb.from("categories").select("slug, name, type, updated_at, show_in_sitemap, is_active"),
       sb.from("seo_landing_pages").select("kind, slug, title, updated_at").eq("is_published", true),
-      (sb.from as any)("goals").select("slug, name, updated_at, show_in_sitemap, is_active"),
-      (sb.from as any)("seo_redirects").select("from_path").eq("active", true),
+      sb.from("goals").select("slug, name, updated_at, show_in_sitemap, is_active"),
+      sb.from("seo_redirects").select("from_path").eq("active", true),
     ]);
-    const blocked = new Set<string>(((redirects as any[]) ?? []).map((r) => r.from_path));
-    (products ?? []).forEach((p: any) => { const path = `/producto/${p.slug}`; if (!blocked.has(path)) out.products.push({ path, title: p.name, lastmod: (p.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.8" }); });
-    (posts ?? []).forEach((p: any) => { const path = `/blog/${p.slug}`; if (!blocked.has(path)) out.posts.push({ path, title: p.title, lastmod: ((p.updated_at || p.published_at) || "").slice(0, 10) || undefined, changefreq: "monthly", priority: "0.6" }); });
+    const blocked = new Set((redirects ?? []).map((r) => r.from_path));
+    (products ?? []).forEach((p) => { const path = `/producto/${p.slug}`; if (!blocked.has(path)) out.products.push({ path, title: p.name, lastmod: (p.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.8" }); });
+    (posts ?? []).forEach((p) => { const path = `/blog/${p.slug}`; if (!blocked.has(path)) out.posts.push({ path, title: p.title, lastmod: ((p.updated_at || p.published_at) || "").slice(0, 10) || undefined, changefreq: "monthly", priority: "0.6" }); });
     (cats ?? [])
-      .filter((c: any) => c.type === "product" && c.is_active !== false && c.show_in_sitemap !== false)
-      .forEach((c: any) => { const path = `/categoria/${c.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: c.name, lastmod: (c.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.7" }); });
-    ((goals as any[]) ?? [])
-      .filter((g: any) => g.is_active !== false && g.show_in_sitemap !== false)
-      .forEach((g: any) => { const path = `/objetivo/${g.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: g.name, lastmod: (g.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
-    (landings ?? []).forEach((l: any) => { const path = `/${l.kind}/${l.slug}`; if (!blocked.has(path)) out.landings.push({ path, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
+      .filter((c) => c.type === "product" && c.is_active !== false && c.show_in_sitemap !== false)
+      .forEach((c) => { const path = `/categoria/${c.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: c.name, lastmod: (c.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.7" }); });
+    (goals ?? [])
+      .filter((g) => g.is_active !== false && g.show_in_sitemap !== false)
+      .forEach((g) => { const path = `/objetivo/${g.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: g.name, lastmod: (g.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
+    (landings ?? []).forEach((l) => { const path = `/${l.kind}/${l.slug}`; if (!blocked.has(path)) out.landings.push({ path, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
   } catch (e) {
-    console.warn("sitemap: dynamic fetch failed, using static only:", (e as Error).message);
+    console.warn("sitemap: dynamic fetch failed, using static only:", e instanceof Error ? e.message : String(e));
   }
   return out;
 }
 
-function buildUrlset(entries: Entry[]) {
+function buildUrlset(entries) {
   const urls = entries.map((e) => [
     `  <url>`,
     `    <loc>${BASE_URL}${e.path}</loc>`,
@@ -70,7 +66,7 @@ function buildUrlset(entries: Entry[]) {
   return [`<?xml version="1.0" encoding="UTF-8"?>`, `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`, ...urls, `</urlset>`].join("\n");
 }
 
-function buildIndex(files: { loc: string; lastmod?: string }[]) {
+function buildIndex(files) {
   const items = files.map((f) => [
     `  <sitemap>`,
     `    <loc>${f.loc}</loc>`,
@@ -80,8 +76,8 @@ function buildIndex(files: { loc: string; lastmod?: string }[]) {
   return [`<?xml version="1.0" encoding="UTF-8"?>`, `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`, ...items, `</sitemapindex>`].join("\n");
 }
 
-function buildLlms(dyn: Dyn) {
-  const section = (title: string, items: Entry[]) =>
+function buildLlms(dyn) {
+  const section = (title, items) =>
     items.length ? `\n## ${title}\n\n${items.map((e) => `- [${e.title ?? e.path}](${BASE_URL}${e.path})`).join("\n")}\n` : "";
   return [
     `# Nutribatidos`, ``,
@@ -95,7 +91,7 @@ function buildLlms(dyn: Dyn) {
   ].join("\n");
 }
 
-function maxLastmod(entries: Entry[]): string | undefined {
+function maxLastmod(entries) {
   const sorted = entries.map((e) => e.lastmod).filter(Boolean).sort();
   return sorted.length ? sorted[sorted.length - 1] : undefined;
 }
