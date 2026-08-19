@@ -9,10 +9,24 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, Sparkles, ExternalLink, Trash2, Pencil, Copy } from "lucide-react";
+import { Loader2, Sparkles, ExternalLink, Trash2, Pencil, Copy, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { KIND_LABEL, LANDING_KINDS, landingPath, type LandingKind } from "@/lib/seoLanding";
+import { computeSeoScore, scoreBadgeClass } from "@/lib/seoScore";
+
+const landingScore = (p: any) =>
+  computeSeoScore({
+    title: p.meta_title ?? p.title,
+    description: p.meta_description,
+    slug: p.slug,
+    keywords: Array.isArray(p.keywords) ? p.keywords : [],
+    ogImage: p.og_image ?? p.hero_image,
+    hasJsonLd: !!p.schema_jsonld || (Array.isArray(p.faqs) && p.faqs.length > 0),
+    hasShortDescription: !!p.intro,
+    hasLongDescription: !!(p.body_html || p.long_description),
+  }).score;
+
 
 type Filter = "all" | "draft" | "published";
 
@@ -25,6 +39,9 @@ export default function AdminSeoLandingsAi() {
   const [pages, setPages] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+  const [optimizingId, setOptimizingId] = useState<string | null>(null);
+  const [bulk, setBulk] = useState(false);
+
 
   const load = async () => {
     const [{ data: lp }, { data: js }] = await Promise.all([
@@ -76,6 +93,45 @@ export default function AdminSeoLandingsAi() {
     if (error) toast.error(error.message); else { toast.success("Eliminada"); load(); }
   };
 
+  const optimizeOne = async (id: string) => {
+    setOptimizingId(id);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+        body: { action: "optimize_seo", landing_id: id, apply: true },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      toast.success("SEO optimizado con IA");
+      await load();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Error al optimizar");
+    } finally { setOptimizingId(null); }
+  };
+
+  const optimizeAllLow = async () => {
+    const targets = pages.filter((p) => landingScore(p) < 80).slice(0, 10);
+    if (targets.length === 0) { toast.info("No hay landings con score bajo"); return; }
+    setBulk(true);
+    let ok = 0;
+    for (const p of targets) {
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+          body: { action: "optimize_seo", landing_id: p.id, apply: true },
+        });
+        if (error) throw error;
+        if ((data as any)?.error) throw new Error((data as any).error);
+        ok++;
+      } catch (e: any) {
+        toast.error(`${p.title}: ${e?.message ?? "error"}`);
+      }
+    }
+    setBulk(false);
+    toast.success(`Optimizadas ${ok}/${targets.length} landings`);
+    await load();
+  };
+
+
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -126,11 +182,15 @@ export default function AdminSeoLandingsAi() {
         <CardHeader>
           <CardTitle>Landings</CardTitle>
           <CardDescription>{pages.length} páginas publicadas o en borrador.</CardDescription>
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-wrap items-center gap-2 pt-2">
             {([["all", "Todos"], ["draft", "Borradores"], ["published", "Publicados"]] as [Filter, string][]).map(([v, l]) => (
               <Button key={v} size="sm" variant={filter === v ? "default" : "outline"} onClick={() => setFilter(v)}>{l}</Button>
             ))}
+            <Button size="sm" variant="secondary" className="ml-auto" onClick={optimizeAllLow} disabled={bulk}>
+              {bulk ? <Loader2 className="animate-spin" size={14} /> : <Wand2 size={14} />} Optimizar SEO con IA (score &lt; 80)
+            </Button>
           </div>
+
         </CardHeader>
         <CardContent>
           {visiblePages.length === 0 ? (
@@ -144,7 +204,9 @@ export default function AdminSeoLandingsAi() {
                   <TableHead>Ruta</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Origen</TableHead>
+                  <TableHead>SEO</TableHead>
                   <TableHead>Estado</TableHead>
+
                   <TableHead>Actualizada</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -159,6 +221,12 @@ export default function AdminSeoLandingsAi() {
                       <Badge variant={p.source === "ai" ? "default" : "secondary"}>{p.source ?? "manual"}</Badge>
                     </TableCell>
                     <TableCell>
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${scoreBadgeClass(landingScore(p))}`}>
+                        {landingScore(p)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+
                       <div className="flex items-center gap-2">
                         <Switch checked={!!p.is_published} onCheckedChange={(v) => togglePublish(p.id, v)} />
                         <span className="text-xs text-muted-foreground">{p.is_published ? "Publicado" : "Borrador"}</span>
@@ -168,9 +236,13 @@ export default function AdminSeoLandingsAi() {
                       {new Date(p.updated_at).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-right whitespace-nowrap">
+                      <Button size="sm" variant="ghost" title="Optimizar SEO con IA" onClick={() => optimizeOne(p.id)} disabled={optimizingId === p.id || bulk}>
+                        {optimizingId === p.id ? <Loader2 className="animate-spin" size={14} /> : <Wand2 size={14} />}
+                      </Button>
                       <Button asChild size="sm" variant="ghost" title="Editar">
                         <Link to={`/admin/ia-landings/${p.id}`}><Pencil size={14} /></Link>
                       </Button>
+
                       <Button asChild size="sm" variant="ghost" title="Ver">
                         <Link to={landingPath(p.kind, p.slug)} target="_blank"><ExternalLink size={14} /></Link>
                       </Button>

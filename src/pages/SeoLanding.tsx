@@ -347,11 +347,24 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {isHealth && <LuciaBlock onAsk={askLucia} />}
 
-        {!!sections.related_topics?.length && (
+        {!!sections.related_topics?.length ? (
           <SectionShell title="También podría interesarte">
             <LinkCards items={sections.related_topics} hrefFor={(t) => linkFor(t, "problema")} ctaLabel={() => "Ver más →"} />
           </SectionShell>
+        ) : (
+          (() => {
+            const others = Object.entries(existingLandings)
+              .filter(([key]) => key !== `${kind}/${slug}`)
+              .slice(0, 6)
+              .map(([key, t]) => ({ name: t, href: `/${key.split("/")[0] === "problema" ? "salud" : key.split("/")[0]}/${key.split("/")[1]}` }));
+            return others.length > 0 ? (
+              <SectionShell title="También podría interesarte">
+                <LinkCards items={others as NamedItem[]} hrefFor={(t) => (t as any).href} ctaLabel={() => "Ver más →"} />
+              </SectionShell>
+            ) : null;
+          })()
         )}
+
 
         {Array.isArray(landing?.faqs) && landing.faqs.length > 0 && (
           <section id="faq" className="max-w-3xl scroll-mt-24">
