@@ -39,6 +39,9 @@ export default function AdminSeoLandingsAi() {
   const [pages, setPages] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+  const [optimizingId, setOptimizingId] = useState<string | null>(null);
+  const [bulk, setBulk] = useState(false);
+
 
   const load = async () => {
     const [{ data: lp }, { data: js }] = await Promise.all([
