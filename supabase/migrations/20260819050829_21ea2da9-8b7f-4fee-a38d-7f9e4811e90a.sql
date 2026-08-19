@@ -1,0 +1,10 @@
+insert into public.seo_landing_pages (kind, slug, title, intro, keyword, meta_title, meta_description, filter_field, filter_value, is_published, source, body_html, faqs)
+select 'beneficio','vitaminas','Vitaminas',
+ 'Vitaminas esenciales para reforzar tus defensas, tu energía y la salud de tu piel. Selección del catálogo Nutribatidos con envío a todo el Perú.',
+ 'vitaminas',
+ 'Vitaminas | Defensas, energía y bienestar | Nutribatidos',
+ 'Compra vitaminas para defensas, energía y piel: Vitamina D3, B6, E y colágeno con vitamina C. Productos seleccionados con envío rápido en Perú.',
+ 'name','vitamina', false, 'manual',
+ '<h2>¿Para qué sirven las vitaminas?</h2><p>Las vitaminas son micronutrientes que tu cuerpo necesita en pequeñas cantidades para funcionar bien: sostienen el sistema inmune, ayudan a convertir los alimentos en energía y participan en la salud de la piel, el cabello y las uñas.</p><h2>¿Cuál elegir?</h2><ul><li><strong>Defensas e inmunidad:</strong> Vitamina D3 y vitamina C.</li><li><strong>Energía y vitalidad:</strong> Vitaminas del complejo B, como la B6.</li><li><strong>Piel, cabello y uñas:</strong> Vitamina E y colágeno con vitamina C.</li></ul><p>Si tienes dudas sobre dosis o combinaciones, consulta con un profesional de la salud.</p>',
+ '[{"q":"¿Cuál es la mejor vitamina para las defensas?","a":"La vitamina D3 y la vitamina C son las más asociadas al soporte del sistema inmune. Puedes combinarlas según la recomendación de tu profesional de salud."},{"q":"¿Puedo tomar varias vitaminas a la vez?","a":"En general sí, siempre respetando las dosis indicadas en cada producto. Consulta con un profesional si tomas medicamentos."},{"q":"¿Hacen envíos a todo el Perú?","a":"Sí, enviamos a todo el país con los transportistas disponibles al momento de tu compra."}]'::jsonb
+where not exists (select 1 from public.seo_landing_pages where kind='beneficio' and slug='vitaminas');
