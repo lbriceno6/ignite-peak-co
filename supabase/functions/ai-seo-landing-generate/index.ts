@@ -4,6 +4,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { generateLandingHeroImage } from "../_shared/landing-hero-image.ts";
 
 const MODEL = "google/gemini-2.5-flash";
 const LOVABLE_AI = "https://ai.gateway.lovable.dev/v1/chat/completions";
