@@ -7,6 +7,7 @@
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { landingPath } from "./routes.mjs";
 
 const BASE_URL = "https://nutribatidos.com";
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://mphrhcuqzkbbnovmdbpc.supabase.co";
@@ -47,7 +48,10 @@ async function fetchDynamic() {
     (goals ?? [])
       .filter((g) => g.is_active !== false && g.show_in_sitemap !== false)
       .forEach((g) => { const path = `/objetivo/${g.slug}`; if (!blocked.has(path)) out.cats.push({ path, title: g.name, lastmod: (g.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
-    (landings ?? []).forEach((l) => { const path = `/${l.kind}/${l.slug}`; if (!blocked.has(path)) out.landings.push({ path, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
+    // `landingPath` y no `/${l.kind}/...`: las landings de tipo "problema"
+    // viven en /salud/<slug>, así que el sitemap anunciaba /problema/<slug>,
+    // una ruta que no existe.
+    (landings ?? []).forEach((l) => { const path = landingPath(l.kind, l.slug); if (!blocked.has(path)) out.landings.push({ path, title: l.title, lastmod: (l.updated_at || "").slice(0, 10) || undefined, changefreq: "weekly", priority: "0.6" }); });
   } catch (e) {
     console.warn("sitemap: dynamic fetch failed, using static only:", e instanceof Error ? e.message : String(e));
   }
