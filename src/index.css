@@ -78,7 +78,12 @@
     --border: 0 0% 18%;
     --input: 0 0% 18%;
     --ring: 42 65% 52%;
+
+    --landing-hero: 197 30% 12%;
+    --landing-hero-2: 197 30% 10%;
+    --landing-hero-pill: 190 55% 65%;
   }
+
 }
 
 @layer base {
