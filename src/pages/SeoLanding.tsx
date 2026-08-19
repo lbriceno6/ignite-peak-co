@@ -338,10 +338,19 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
         {isHealth && <InPageNav items={navItems} />}
 
-        {/* Introducción / contenido general */}
-        {landing?.body_html && !isHealth && (
+        {/* Introducción / contenido general en 2 columnas */}
+        {!isHealth && (editorial.blocks.length > 0 || editorial.highlight) && (
+          <EditorialIntro
+            highlightTitle={`¿Por qué son importantes ${(landing?.category_name || landing?.filter_value || "estos nutrientes").toString().toLowerCase()}?`}
+            highlightText={editorial.highlight}
+            perks={[{ label: "Energía" }, { label: "Defensas" }, { label: "Bienestar diario" }]}
+            blocks={editorial.blocks}
+          />
+        )}
+        {!isHealth && editorial.blocks.length === 0 && landing?.body_html && (
           <RichText html={landing.body_html} />
         )}
+
 
         {isHealth && (
           <>
