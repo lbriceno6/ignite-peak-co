@@ -46,7 +46,14 @@ export default function SeoLanding({ kind }: { kind: Kind }) {
 
       if (!alive) return;
       setLanding(page);
-      setProducts(prods ?? []);
+      setProducts(
+        (prods ?? []).map((p: any) => ({
+          ...p,
+          image: p.main_image ?? (Array.isArray(p.gallery_images) ? p.gallery_images[0] : null) ?? null,
+          oldPrice: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.price : undefined,
+          price: p.sale_price && p.sale_price > 0 && p.sale_price < p.price ? p.sale_price : p.price,
+        })),
+      );
       setNotFound(!page && (prods ?? []).length === 0);
       setLoading(false);
     })();
