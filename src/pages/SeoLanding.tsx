@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { Sparkles } from "lucide-react";
 import { Link, Navigate, useParams } from "react-router-dom";
+
 import { Layout } from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { SEO } from "@/components/SEO";
@@ -87,6 +89,40 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
     if (!slug || loading) return;
     track("landing_page_view", { landing_slug: `${kind}/${slug}`, kind, results: products.length });
   }, [kind, slug, loading, products.length]);
+
+  // Recomendación IA: máximo 4 productos del conjunto de la landing.
+  const [aiPicks, setAiPicks] = useState<Array<{ slug: string; reason: string }> | null>(null);
+  useEffect(() => {
+    setAiPicks(null);
+    if (loading || products.length === 0) return;
+    let alive = true;
+    (async () => {
+      try {
+        const { data } = await (supabase as any).functions.invoke("ai-product-related", {
+          body: {
+            product: { slug: `landing-${kind}-${slug}`, name: landing?.title || slug, category: landing?.category_name ?? null },
+            catalog: products.map((p) => ({ slug: p.slug, name: p.name, category: p.category ?? null, price: p.price })),
+            max: 4,
+          },
+        });
+        if (alive) setAiPicks(Array.isArray(data?.picks) ? data.picks : []);
+      } catch {
+        if (alive) setAiPicks([]);
+      }
+    })();
+    return () => { alive = false; };
+  }, [loading, products, kind, slug, landing]);
+
+  const recommended = useMemo(() => {
+    if (!products.length) return [];
+    const bySlug = new Map(products.map((p) => [p.slug, p]));
+    const picked = (aiPicks ?? [])
+      .map((pk) => ({ product: bySlug.get(pk.slug), reason: pk.reason }))
+      .filter((x) => !!x.product) as { product: any; reason: string }[];
+    const rest = products.filter((p) => !picked.some((x) => x.product.slug === p.slug));
+    return [...picked, ...rest.map((product) => ({ product, reason: "" }))].slice(0, 4);
+  }, [products, aiPicks]);
+
 
   const sections = useMemo(() => normalizeSections(landing?.sections), [landing]);
 
@@ -277,23 +313,37 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
           </SectionShell>
         )}
 
-        {/* PRODUCTOS */}
+        {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) */}
         <section id="productos" className="scroll-mt-24">
-          <h2 className="font-display text-2xl uppercase sm:text-3xl">Productos relacionados</h2>
+          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+            <Sparkles size={12} /> Recomendado por IA
+          </p>
+          <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
           <div className="mt-4">
             {loading ? (
               <p className="text-muted-foreground">Cargando…</p>
-            ) : products.length === 0 ? (
+            ) : recommended.length === 0 ? (
               <div className="rounded-lg border border-border p-10 text-center text-muted-foreground">
                 Sin productos para esta selección por ahora.
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-                {products.map((p) => <ProductCard key={p.id} product={p as any} />)}
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                {recommended.map(({ product, reason }) => (
+                  <div key={product.id} className="flex flex-col gap-2">
+                    <ProductCard product={product as any} />
+                    {reason && (
+                      <p className="px-1 text-xs text-muted-foreground">
+                        <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
+                        {reason}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </section>
+
 
         {isHealth && <LuciaBlock onAsk={askLucia} />}
 
