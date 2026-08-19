@@ -124,6 +124,168 @@ Devuelve JSON EXACTO:
       return json({ ok: true, suggestion: sug });
     }
 
+    // ================= Acciones de asistente editorial =================
+    const action = String(body.action ?? "");
+    if (["humanize", "regenerate_section", "suggest_keywords", "suggest_related_topics", "review_claims"].includes(action)) {
+      const landingId = String(body.landing_id ?? "");
+      if (!landingId) return json({ error: "landing_id required" }, 400);
+      const { data: landing } = await admin.from("seo_landing_pages").select("*").eq("id", landingId).maybeSingle();
+      if (!landing) return json({ error: "landing not found" }, 404);
+
+      const plain = (v: unknown) => String(v ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const sec: any = landing.sections && typeof landing.sections === "object" ? landing.sections : {};
+      const faqList = Array.isArray(landing.faqs) ? landing.faqs : [];
+      const named = (a: any) => (Array.isArray(a) ? a : []).map((i: any) => `${i?.title ?? i?.name ?? ""}: ${i?.description ?? ""}`).join(" | ");
+
+      const editorialRules = `ESTILO OBLIGATORIO:
+- Redacción humana, clara, educativa y específica del tema. Nada de relleno.
+- Responde primero la intención de búsqueda con información útil, no con texto comercial.
+- Prohibidas las frases genéricas de IA: "En Nutribatidos apoyamos tu camino", "Descubre el poder de", "Tu bienestar es nuestra prioridad", "Transforma tu vida", "Una solución ideal para", "En el mundo actual".
+- Sin exceso de adjetivos ni conclusiones genéricas; sin repetir la keyword ni "Nutribatidos" innecesariamente.
+- Varía subtítulos y estructura según el tema (no uses siempre el mismo patrón).
+- Nunca afirmes que algo cura, elimina, sana, trata, previene o garantiza resultados de salud. Usa "contribuye al funcionamiento normal de...", "forma parte de una alimentación equilibrada...".
+- Español natural de Perú. JSON estricto sin markdown.`;
+
+      const ctxFull = [
+        `Palabra clave: ${landing.keyword ?? landing.title}`,
+        `Tipo: ${landing.kind}`,
+        `H1: ${landing.title ?? ""}`,
+        `Meta title: ${landing.meta_title ?? ""}`,
+        `Meta description: ${landing.meta_description ?? ""}`,
+        `Intro: ${plain(landing.intro)}`,
+        `Contenido: ${plain(landing.body_html).slice(0, 4000)}`,
+        `Qué es: ${plain(sec.what_is?.content)}`,
+        `Qué hacer: ${plain(sec.what_to_do)}`,
+        `Alimentación: ${plain(sec.nutrition)}`,
+        `Nutrientes: ${named(sec.nutrients)}`,
+        `Ingredientes: ${named(sec.ingredients)}`,
+        `FAQs: ${faqList.map((f: any) => `${f.q} -> ${f.a}`).join(" || ")}`,
+        `Cierre: ${plain(landing.long_description)}`,
+      ].join("\n");
+
+      const ask = async (userPrompt: string) => {
+        const r = await fetch(LOVABLE_AI, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${LOVABLE_API_KEY}` },
+          body: JSON.stringify({
+            model: MODEL,
+            response_format: { type: "json_object" },
+            messages: [
+              { role: "system", content: `Eres editor senior de contenido de nutrición para Nutribatidos (Perú).\n${editorialRules}` },
+              { role: "user", content: userPrompt },
+            ],
+          }),
+        });
+        if (!r.ok) {
+          const t = await r.text();
+          throw new Response(JSON.stringify({ error: "ai_error", detail: t }), {
+            status: r.status === 402 ? 402 : 502,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const j = await r.json();
+        try { return JSON.parse(j?.choices?.[0]?.message?.content ?? "{}"); } catch { return {}; }
+      };
+
+      try {
+        if (action === "humanize") {
+          const out = await ask(`Reescribe y humaniza el contenido de esta landing SIN inventar datos nuevos ni cambiar el tema.
+Trabaja sobre el contenido actual: mejora naturalidad, claridad, utilidad, originalidad, estructura y legibilidad; elimina lenguaje comercial vacío, repeticiones y frases genéricas de IA.
+Empieza respondiendo la intención de búsqueda con información concreta.
+Las FAQs deben responder dudas reales y ser breves.
+Diferencia claramente NUTRIENTES (vitaminas, minerales, macronutrientes) de INGREDIENTES (alimentos/composiciones reales del catálogo). Si no hay ingredientes reales, devuelve la lista vacía; nunca copies nutrientes en ingredientes.
+
+CONTENIDO ACTUAL:
+${ctxFull}
+
+Devuelve JSON EXACTO:
+{
+ "title":"H1 editorial mejorado",
+ "intro":"2-3 líneas útiles",
+ "body_html":"HTML con <h2>/<p> variando subtítulos según el tema",
+ "what_is":{"title":"","content":""},
+ "what_to_do":"",
+ "nutrition":"",
+ "nutrients":[{"title":"","description":""}],
+ "ingredients":[{"title":"","description":""}],
+ "faqs":[{"q":"","a":""}],
+ "long_description":"cierre breve y concreto",
+ "generic_phrases":["frases genéricas detectadas en el texto original"],
+ "repetitions":["repeticiones detectadas"],
+ "health_claims":[{"text":"afirmación arriesgada","suggestion":"versión prudente"}],
+ "changes":["resumen de los cambios realizados"],
+ "content_score":0-100
+}
+Deja vacío ("" o []) lo que no aplique a este tipo de landing.`);
+          return json({ ok: true, suggestion: out });
+        }
+
+        if (action === "regenerate_section") {
+          const section = String(body.section ?? "");
+          const shapes: Record<string, string> = {
+            hero: `{"title":"H1 editorial","intro":"2-3 líneas útiles"}`,
+            body: `{"body_html":"HTML con <h2>/<p>, subtítulos adaptados al tema"}`,
+            nutrients: `{"nutrients":[{"title":"","description":""}]}`,
+            ingredients: `{"ingredients":[{"title":"","description":""}]}`,
+            faq: `{"faqs":[{"q":"","a":""}]}`,
+            closing: `{"long_description":"cierre breve, concreto y sin frases genéricas"}`,
+          };
+          if (!shapes[section]) return json({ error: "invalid section" }, 400);
+          const out = await ask(`Regenera ÚNICAMENTE la sección "${section}" de esta landing, coherente con el resto y sin repetir lo ya dicho.
+${section === "ingredients" ? "Los ingredientes deben ser alimentos o composiciones reales (chía, maca, quinua, colágeno...). Si no hay información suficiente, devuelve lista vacía." : ""}
+
+CONTENIDO ACTUAL:
+${ctxFull}
+
+Devuelve JSON EXACTO: ${shapes[section]}`);
+          return json({ ok: true, suggestion: out });
+        }
+
+        if (action === "suggest_keywords") {
+          const out = await ask(`Propón palabras clave reales de búsqueda en Google Perú para esta landing, sin keyword stuffing.
+
+${ctxFull}
+
+Devuelve JSON EXACTO: {"primary":"palabra clave principal","secondary":["4-6 palabras clave secundarias"],"meta_title":"SEO title orientado a búsqueda, distinto del H1, ~60c con | Nutribatidos","meta_description":"140-160 caracteres, explica qué encontrará el usuario, sin frases promocionales"}`);
+          return json({ ok: true, suggestion: out });
+        }
+
+        if (action === "suggest_related_topics") {
+          const { data: others } = await admin
+            .from("seo_landing_pages")
+            .select("title, slug, kind, keyword, intro")
+            .eq("is_published", true).neq("id", landingId).limit(80);
+          const list = (others ?? []);
+          if (!list.length) return json({ ok: true, suggestion: { related_topics: [] } });
+          const out = await ask(`Elige las landings más relacionadas con este tema. SOLO puedes usar slugs de la lista; no inventes ninguno.
+
+TEMA: ${landing.keyword ?? landing.title} (${landing.kind})
+LANDINGS DISPONIBLES:
+${list.map((l: any) => `- slug=${l.slug} | kind=${l.kind} | ${l.title}`).join("\n")}
+
+Devuelve JSON EXACTO: {"related_topics":[{"title":"","slug":"","description":"una línea de por qué se relaciona"}]} (máx 6)`);
+          const valid = (Array.isArray(out?.related_topics) ? out.related_topics : [])
+            .map((t: any) => {
+              const match = list.find((l: any) => l.slug === String(t?.slug ?? "").trim());
+              return match ? { title: t.title || match.title, name: t.title || match.title, slug: match.slug, kind: match.kind, description: t.description ?? "" } : null;
+            })
+            .filter(Boolean);
+          return json({ ok: true, suggestion: { related_topics: valid } });
+        }
+
+        // review_claims
+        const out = await ask(`Revisa el contenido y detecta afirmaciones de salud arriesgadas (cura, elimina, sana, trata, previene, garantiza, reemplaza medicamentos, elimina dolor, reduce una enfermedad).
+
+${ctxFull}
+
+Devuelve JSON EXACTO: {"claims":[{"text":"frase textual detectada","where":"sección","severity":"alta|media|baja","suggestion":"versión prudente"}],"ok":true|false}`);
+        return json({ ok: true, suggestion: out });
+      } catch (err) {
+        if (err instanceof Response) return err;
+        throw err;
+      }
+    }
+
 
     const keyword: string = String(body.keyword ?? "").trim();
 

@@ -5,11 +5,18 @@ export type ClaimHit = { rule: ClaimRule; index: number; match: string };
 const DEFAULTS: ClaimRule[] = [
   { pattern: "cura", severity: "high", suggestion: "ayuda a complementar" },
   { pattern: "curar", severity: "high", suggestion: "ayuda a complementar" },
+  { pattern: "sana ", severity: "high", suggestion: "apoya una rutina saludable" },
+  { pattern: "elimina el dolor", severity: "high", suggestion: "puede acompañar el cuidado diario" },
   { pattern: "elimina enfermedades", severity: "high", suggestion: "contribuye al bienestar" },
+  { pattern: "previene enfermedades", severity: "high", suggestion: "contribuye al funcionamiento normal del organismo" },
+  { pattern: "previene la", severity: "medium", suggestion: "contribuye al funcionamiento normal de" },
   { pattern: "trata diabetes", severity: "high", suggestion: "producto alimenticio natural" },
+  { pattern: "trata la", severity: "medium", suggestion: "acompaña el cuidado de" },
+  { pattern: "garantiza", severity: "medium", suggestion: "puede favorecer" },
   { pattern: "sana órganos", severity: "high", suggestion: "apoya una rutina saludable" },
   { pattern: "reemplaza medicamentos", severity: "high", suggestion: "no reemplaza tratamiento médico" },
 ];
+
 
 export function scanSensitiveClaims(text: string, rules: ClaimRule[] = DEFAULTS): ClaimHit[] {
   if (!text) return [];

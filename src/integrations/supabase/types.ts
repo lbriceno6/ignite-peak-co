@@ -4280,8 +4280,11 @@ export type Database = {
           body_html: string | null
           canonical: string | null
           category_name: string | null
+          content_report: Json | null
+          content_score: number | null
           created_at: string
           cta_image: string | null
+          editorial_status: string
           faqs: Json
           filter_field: string | null
           filter_value: string | null
@@ -4290,13 +4293,16 @@ export type Database = {
           hero_image: string | null
           hero_image_alt: string | null
           hero_image_generated_at: string | null
+          hero_image_model: string | null
           hero_image_prompt: string | null
           hero_image_source: string | null
           hero_image_status: string | null
+          humanized_at: string | null
           id: string
           intro: string | null
           is_published: boolean
           keyword: string | null
+          keyword_secondary: Json
           kind: string
           long_description: string | null
           meta_description: string | null
@@ -4305,11 +4311,16 @@ export type Database = {
           og_description: string | null
           og_image: string | null
           og_title: string | null
+          previous_version: Json | null
           product_ids: Json
           products_mode: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           schema_jsonld: Json | null
           search_volume: number | null
           sections: Json
+          show_review_info: boolean
           slug: string
           source: string
           status: string
@@ -4322,8 +4333,11 @@ export type Database = {
           body_html?: string | null
           canonical?: string | null
           category_name?: string | null
+          content_report?: Json | null
+          content_score?: number | null
           created_at?: string
           cta_image?: string | null
+          editorial_status?: string
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
@@ -4332,13 +4346,16 @@ export type Database = {
           hero_image?: string | null
           hero_image_alt?: string | null
           hero_image_generated_at?: string | null
+          hero_image_model?: string | null
           hero_image_prompt?: string | null
           hero_image_source?: string | null
           hero_image_status?: string | null
+          humanized_at?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
           keyword?: string | null
+          keyword_secondary?: Json
           kind: string
           long_description?: string | null
           meta_description?: string | null
@@ -4347,11 +4364,16 @@ export type Database = {
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          previous_version?: Json | null
           product_ids?: Json
           products_mode?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           schema_jsonld?: Json | null
           search_volume?: number | null
           sections?: Json
+          show_review_info?: boolean
           slug: string
           source?: string
           status?: string
@@ -4364,8 +4386,11 @@ export type Database = {
           body_html?: string | null
           canonical?: string | null
           category_name?: string | null
+          content_report?: Json | null
+          content_score?: number | null
           created_at?: string
           cta_image?: string | null
+          editorial_status?: string
           faqs?: Json
           filter_field?: string | null
           filter_value?: string | null
@@ -4374,13 +4399,16 @@ export type Database = {
           hero_image?: string | null
           hero_image_alt?: string | null
           hero_image_generated_at?: string | null
+          hero_image_model?: string | null
           hero_image_prompt?: string | null
           hero_image_source?: string | null
           hero_image_status?: string | null
+          humanized_at?: string | null
           id?: string
           intro?: string | null
           is_published?: boolean
           keyword?: string | null
+          keyword_secondary?: Json
           kind?: string
           long_description?: string | null
           meta_description?: string | null
@@ -4389,11 +4417,16 @@ export type Database = {
           og_description?: string | null
           og_image?: string | null
           og_title?: string | null
+          previous_version?: Json | null
           product_ids?: Json
           products_mode?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           schema_jsonld?: Json | null
           search_volume?: number | null
           sections?: Json
+          show_review_info?: boolean
           slug?: string
           source?: string
           status?: string

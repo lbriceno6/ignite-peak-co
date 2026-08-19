@@ -13,8 +13,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
 import LandingHeroImageCard from "@/components/admin/LandingHeroImageCard";
+import LandingKeywordsCard from "@/components/admin/LandingKeywordsCard";
+import LandingContentQualityCard from "@/components/admin/LandingContentQualityCard";
+import LandingHumanizeCard from "@/components/admin/LandingHumanizeCard";
+import LandingEditorialReviewCard, { editorialLabel, editorialVariant } from "@/components/admin/LandingEditorialReviewCard";
+import RegenerateSectionButton from "@/components/admin/RegenerateSectionButton";
+import { computeContentQuality } from "@/lib/contentQuality";
+
 
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
@@ -65,10 +73,30 @@ export default function AdminSeoLandingEditor() {
     [row],
   );
 
+  const secondaryKeywords: string[] = useMemo(
+    () => (Array.isArray(row?.keyword_secondary) ? row.keyword_secondary.map(String) : []),
+    [row],
+  );
+
+  const qualityInput = useMemo(
+    () => ({
+      title: row?.title, intro: row?.intro, bodyHtml: row?.body_html,
+      longDescription: row?.long_description, keyword: row?.keyword,
+      metaTitle: row?.meta_title, metaDescription: row?.meta_description,
+      faqs, nutrients: sections.nutrients, ingredients: sections.ingredients,
+      relatedTopics: sections.related_topics,
+      sectionsText: [sections.what_is?.content, sections.what_to_do, sections.nutrition, sections.professional_help].filter(Boolean) as string[],
+    }),
+    [row, faqs, sections],
+  );
+
+  const quality = useMemo(() => computeContentQuality(qualityInput), [qualityInput]);
+
   const save = async (extra: Record<string, any> = {}) => {
     setSaving(true);
     const payload = {
       title: row.title, slug: row.slug, kind: row.kind, keyword: row.keyword,
+      keyword_secondary: secondaryKeywords,
       category_name: row.category_name, hero_image: row.hero_image, hero_image_alt: row.hero_image_alt,
       hero_image_source: row.hero_image_source, hero_image_status: row.hero_image_status,
       hero_image_prompt: row.hero_image_prompt, hero_image_generated_at: row.hero_image_generated_at,
@@ -79,6 +107,12 @@ export default function AdminSeoLandingEditor() {
       intro: row.intro, body_html: row.body_html, long_description: row.long_description,
       filter_field: row.filter_field, filter_value: row.filter_value,
       products_mode: row.products_mode ?? "auto", product_ids: manualIds,
+      editorial_status: row.editorial_status ?? "unreviewed",
+      reviewed_by: row.reviewed_by ?? null, reviewed_at: row.reviewed_at ?? null,
+      review_notes: row.review_notes ?? null, show_review_info: !!row.show_review_info,
+      previous_version: row.previous_version ?? null, humanized_at: row.humanized_at ?? null,
+      content_score: quality.score,
+      content_report: { checks: quality.checks, generic_phrases: quality.genericPhrases, claims: quality.claims },
       sections, faqs,
       schema_jsonld: faqs.length
         ? {
@@ -98,20 +132,52 @@ export default function AdminSeoLandingEditor() {
 
   const togglePublish = async () => {
     const next = !row.is_published;
+    // Publicación con revisión humana: la IA asiste, no publica sola.
+    if (next) {
+      const blockers: string[] = [];
+      if ((row.editorial_status ?? "unreviewed") === "unreviewed") blockers.push("la landing aún no ha sido revisada por una persona");
+      if (quality.score < 70) blockers.push(`la calidad del contenido es ${quality.score}/100`);
+      if (quality.claims.length) blockers.push(`hay ${quality.claims.length} afirmación(es) de salud por revisar`);
+      if (blockers.length && !window.confirm(`Antes de publicar: ${blockers.join("; ")}.\n\n¿Publicar de todos modos?`)) return;
+    }
     await save({ is_published: next, status: next ? "published" : "draft" });
   };
+
 
   if (loading) return <div className="p-8 text-muted-foreground">Cargando…</div>;
   if (!row) return <div className="p-8">Landing no encontrada. <Link className="text-accent" to="/admin/ia-landings">Volver</Link></div>;
 
   const isHealth = row.kind === "problema";
 
+  const suggestRelatedTopics = async () => {
+    const { data, error } = await supabase.functions.invoke("ai-seo-landing-generate", {
+      body: { action: "suggest_related_topics", landing_id: id },
+    });
+    if (error || (data as any)?.error) { toast.error(error?.message ?? (data as any).error); return; }
+    const items = (data as any).suggestion?.related_topics ?? [];
+    if (!items.length) { toast.info("No hay otras landings publicadas para enlazar"); return; }
+    setList("related_topics", items);
+    toast.success("Temas relacionados sugeridos");
+  };
+
   const ListEditor = ({ title, k, withIcon }: { title: string; k: ListKey; withIcon?: boolean }) => (
     <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
+      <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
         <CardTitle className="text-base">{title}</CardTitle>
-        <Button size="sm" variant="outline" onClick={() => addItem(k)}><Plus size={14} /> Agregar</Button>
+        <div className="flex gap-2">
+          {k === "related_topics" && <Button size="sm" variant="outline" onClick={suggestRelatedTopics}>Sugerir con IA</Button>}
+          {(k === "nutrients" || k === "ingredients") && (
+            <RegenerateSectionButton
+              landingId={id}
+              section={k}
+              label="Regenerar"
+              onResult={(s) => Array.isArray(s[k]) && setList(k, s[k])}
+            />
+          )}
+          <Button size="sm" variant="outline" onClick={() => addItem(k)}><Plus size={14} /> Agregar</Button>
+        </div>
       </CardHeader>
+
       <CardContent className="space-y-3">
         {(sections[k] ?? []).length === 0 && <p className="text-sm text-muted-foreground">Sin elementos.</p>}
         {(sections[k] ?? []).map((it, i) => (
@@ -156,6 +222,9 @@ export default function AdminSeoLandingEditor() {
           <Button size="icon" variant="ghost" onClick={() => nav("/admin/ia-landings")}><ArrowLeft size={16} /></Button>
           <h1 className="font-display text-2xl">{row.title}</h1>
           <Badge variant={row.is_published ? "default" : "secondary"}>{row.is_published ? "Publicado" : "Borrador"}</Badge>
+          <Badge variant={editorialVariant(row.editorial_status)}>{editorialLabel(row.editorial_status)}</Badge>
+          <Badge variant="outline">Calidad {quality.score}/100</Badge>
+
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
@@ -170,10 +239,18 @@ export default function AdminSeoLandingEditor() {
         </div>
       </div>
 
+      <Tabs defaultValue="contenido">
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="contenido">Contenido</TabsTrigger>
+          <TabsTrigger value="seo">SEO y palabras clave</TabsTrigger>
+          <TabsTrigger value="revision">Calidad y revisión</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="contenido" className="space-y-6 pt-4">
       <Card>
         <CardHeader><CardTitle className="text-base">Información general</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div><Label>Palabra clave</Label><Input value={row.keyword ?? ""} onChange={(e) => set({ keyword: e.target.value })} /></div>
+          <div><Label>Palabra clave principal</Label><Input value={row.keyword ?? ""} onChange={(e) => set({ keyword: e.target.value })} /></div>
           <div>
             <Label>Tipo</Label>
             <Select value={row.kind} onValueChange={(v) => set({ kind: v })}>
@@ -190,18 +267,6 @@ export default function AdminSeoLandingEditor() {
       <LandingHeroImageCard row={row} set={set} />
 
 
-      <Card>
-        <CardHeader><CardTitle className="text-base">SEO</CardTitle></CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div><Label>SEO title</Label><Input value={row.meta_title ?? ""} onChange={(e) => set({ meta_title: e.target.value })} /></div>
-          <div><Label>Canonical</Label><Input value={row.canonical ?? ""} onChange={(e) => set({ canonical: e.target.value })} /></div>
-          <div className="sm:col-span-2"><Label>Meta description</Label><Textarea value={row.meta_description ?? ""} onChange={(e) => set({ meta_description: e.target.value })} /></div>
-          <div><Label>OG title</Label><Input value={row.og_title ?? ""} onChange={(e) => set({ og_title: e.target.value })} /></div>
-          <div><Label>OG image</Label><Input value={row.og_image ?? ""} onChange={(e) => set({ og_image: e.target.value })} /></div>
-          <div className="sm:col-span-2"><Label>OG description</Label><Textarea value={row.og_description ?? ""} onChange={(e) => set({ og_description: e.target.value })} /></div>
-          <div className="flex items-center gap-3"><Switch checked={!!row.noindex} onCheckedChange={(v) => set({ noindex: v })} /><Label>No indexar (noindex)</Label></div>
-        </CardContent>
-      </Card>
 
       <LandingSeoAiCard
         landingId={id!}
@@ -214,7 +279,13 @@ export default function AdminSeoLandingEditor() {
 
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Hero e introducción</CardTitle></CardHeader>
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+          <CardTitle className="text-base">Hero e introducción</CardTitle>
+          <div className="flex gap-2">
+            <RegenerateSectionButton landingId={id} section="hero" label="Regenerar hero" onResult={(s) => set({ ...(s.title ? { title: s.title } : {}), ...(s.intro ? { intro: s.intro } : {}) })} />
+            <RegenerateSectionButton landingId={id} section="body" label="Regenerar contenido" onResult={(s) => s.body_html && set({ body_html: s.body_html })} />
+          </div>
+        </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div><Label>Texto del CTA</Label><Input value={row.hero_cta_label ?? ""} placeholder="Ver productos relacionados" onChange={(e) => set({ hero_cta_label: e.target.value })} /></div>
           <div><Label>Enlace del CTA (opcional)</Label><Input value={row.hero_cta_href ?? ""} onChange={(e) => set({ hero_cta_href: e.target.value })} /></div>
@@ -222,6 +293,7 @@ export default function AdminSeoLandingEditor() {
           <div className="sm:col-span-2"><Label>Contenido principal (HTML)</Label><Textarea rows={8} value={row.body_html ?? ""} onChange={(e) => set({ body_html: e.target.value })} /></div>
         </CardContent>
       </Card>
+
 
       {isHealth && (
         <>
@@ -307,10 +379,14 @@ export default function AdminSeoLandingEditor() {
       <ListEditor title="Temas relacionados (otras landings de salud)" k="related_topics" />
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0">
+        <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
           <CardTitle className="text-base">Preguntas frecuentes</CardTitle>
-          <Button size="sm" variant="outline" onClick={() => setFaqs([...faqs, { q: "", a: "" }])}><Plus size={14} /> Agregar</Button>
+          <div className="flex gap-2">
+            <RegenerateSectionButton landingId={id} section="faq" label="Regenerar FAQ" onResult={(s) => Array.isArray(s.faqs) && s.faqs.length && setFaqs(s.faqs.filter((f: any) => f?.q && f?.a))} />
+            <Button size="sm" variant="outline" onClick={() => setFaqs([...faqs, { q: "", a: "" }])}><Plus size={14} /> Agregar</Button>
+          </div>
         </CardHeader>
+
         <CardContent className="space-y-3">
           {faqs.length === 0 && <p className="text-sm text-muted-foreground">Sin preguntas.</p>}
           {faqs.map((f, i) => (
@@ -338,9 +414,63 @@ export default function AdminSeoLandingEditor() {
       )}
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Texto de cierre</CardTitle></CardHeader>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base">Texto de cierre</CardTitle>
+          <RegenerateSectionButton landingId={id} section="closing" onResult={(s) => s.long_description && set({ long_description: s.long_description })} />
+        </CardHeader>
         <CardContent><Textarea rows={4} value={row.long_description ?? ""} onChange={(e) => set({ long_description: e.target.value })} /></CardContent>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="seo" className="space-y-6 pt-4">
+          <LandingKeywordsCard
+            landingId={id}
+            keyword={row.keyword ?? ""}
+            secondary={secondaryKeywords}
+            onChange={(patch) => set(patch)}
+          />
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">SEO técnico</CardTitle></CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <div><Label>SEO title</Label><Input value={row.meta_title ?? ""} onChange={(e) => set({ meta_title: e.target.value })} /></div>
+              <div>
+                <Label>Canonical</Label>
+                <Input value={row.canonical ?? ""} placeholder={landingPath(row.kind, row.slug)} onChange={(e) => set({ canonical: e.target.value })} />
+                <p className="mt-1 text-xs text-muted-foreground">Si lo dejas vacío se usa la URL de la propia landing.</p>
+              </div>
+              <div className="sm:col-span-2"><Label>Meta description</Label><Textarea value={row.meta_description ?? ""} onChange={(e) => set({ meta_description: e.target.value })} /></div>
+              <div><Label>OG title</Label><Input value={row.og_title ?? ""} placeholder={row.meta_title ?? row.title} onChange={(e) => set({ og_title: e.target.value })} /></div>
+              <div><Label>OG image</Label><Input value={row.og_image ?? ""} placeholder={row.hero_image ?? ""} onChange={(e) => set({ og_image: e.target.value })} /></div>
+              <div className="sm:col-span-2"><Label>OG description</Label><Textarea value={row.og_description ?? ""} placeholder={row.meta_description ?? ""} onChange={(e) => set({ og_description: e.target.value })} /></div>
+              <div className="flex items-center gap-3"><Switch checked={!!row.noindex} onCheckedChange={(v) => set({ noindex: v })} /><Label>No indexar (noindex)</Label></div>
+            </CardContent>
+          </Card>
+
+          <LandingSeoAiCard
+            landingId={id!}
+            row={row}
+            faqs={faqs}
+            onApply={(patch) => set(patch)}
+            onApplyFaqs={(f) => setFaqs(f)}
+          />
+        </TabsContent>
+
+        <TabsContent value="revision" className="space-y-6 pt-4">
+          <LandingContentQualityCard input={qualityInput} />
+          <LandingHumanizeCard
+            landingId={id!}
+            row={row}
+            sections={sections}
+            faqs={faqs}
+            onApply={(patch) => set(patch)}
+            onApplySections={(patch) => setSections((s) => ({ ...s, ...patch }))}
+            onApplyFaqs={(f) => setFaqs(f)}
+          />
+          <LandingEditorialReviewCard row={row} onChange={(patch) => set(patch)} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+

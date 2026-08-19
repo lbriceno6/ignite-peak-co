@@ -352,7 +352,15 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
 
       <div className="seo-landing container-x space-y-14 pb-12 pt-16 md:space-y-20 md:pt-20">
 
+        {landing?.show_review_info && (landing?.reviewed_by || landing?.reviewed_at) && (
+          <p className="text-sm text-muted-foreground">
+            {landing.reviewed_by ? `Contenido revisado por ${landing.reviewed_by}` : "Contenido revisado por nuestro equipo"}
+            {landing.reviewed_at ? ` · Última revisión: ${new Date(landing.reviewed_at).toLocaleDateString("es-PE", { day: "numeric", month: "long", year: "numeric" })}` : ""}
+          </p>
+        )}
+
         {isHealth && <InPageNav items={navItems} />}
+
 
         {/* Introducción / contenido general en 2 columnas */}
         {!isHealth && (editorial.blocks.length > 0 || editorial.highlight) && (
