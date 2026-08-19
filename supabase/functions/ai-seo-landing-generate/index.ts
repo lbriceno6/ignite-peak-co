@@ -297,8 +297,17 @@ ${isHealth ? healthShape : genericShape}`;
       status: "done", landing_id: upserted!.id, payload: parsed,
     }).eq("id", jobId);
 
+    // Imagen Hero con IA (solo si la landing no tiene una imagen manual asignada).
+    let heroImage: string | null = null;
+    if (body.generate_hero_image !== false) {
+      const { data: full } = await admin.from("seo_landing_pages").select("*").eq("id", upserted!.id).maybeSingle();
+      if (full && !(full.hero_image && String(full.hero_image).trim())) {
+        const res = await generateLandingHeroImage(admin, full, LOVABLE_API_KEY);
+        if (res.ok) heroImage = res.url;
+      }
+    }
 
-    return json({ ok: true, landing: upserted, job_id: jobId });
+    return json({ ok: true, landing: { ...upserted, hero_image: heroImage }, job_id: jobId });
   } catch (e: any) {
     return json({ error: String(e?.message ?? e) }, 500);
   }
