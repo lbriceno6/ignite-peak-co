@@ -68,7 +68,7 @@ export default function AdminSeoLandingEditor() {
     setSaving(true);
     const payload = {
       title: row.title, slug: row.slug, kind: row.kind, keyword: row.keyword,
-      category_name: row.category_name, hero_image: row.hero_image,
+      category_name: row.category_name, hero_image: row.hero_image, hero_image_alt: row.hero_image_alt,
       hero_cta_label: row.hero_cta_label, hero_cta_href: row.hero_cta_href,
       meta_title: row.meta_title, meta_description: row.meta_description,
       canonical: row.canonical, noindex: !!row.noindex,
