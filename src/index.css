@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -122,6 +122,56 @@
     color: transparent;
   }
 }
+
+/* ---- Tipografía editorial para Landings SEO (solo dentro de .seo-landing) ---- */
+.seo-landing {
+  --landing-body: 0 0% 22%;
+  font-size: 17px;
+  line-height: 1.7;
+  color: hsl(var(--landing-body));
+}
+.dark .seo-landing { --landing-body: 0 0% 85%; }
+
+.seo-landing h2,
+.seo-landing h3,
+.seo-landing h4 {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  color: hsl(var(--foreground));
+  text-wrap: balance;
+}
+
+.seo-landing h2 {
+  font-size: 1.75rem;      /* 28px mobile */
+  line-height: 1.18;
+  font-weight: 700;
+}
+.seo-landing h3 {
+  font-size: 1.25rem;      /* 20px mobile */
+  line-height: 1.3;
+  font-weight: 600;
+}
+.seo-landing p,
+.seo-landing li {
+  font-size: 1rem;         /* 16px mobile */
+  line-height: 1.7;
+}
+.seo-landing p { margin-bottom: 1em; }
+.seo-landing p:last-child { margin-bottom: 0; }
+.seo-landing .text-muted-foreground { color: hsl(var(--landing-body) / 0.85); }
+.seo-landing .prose { max-width: 68ch; }
+.seo-landing .prose p { font-size: 1.0625rem; line-height: 1.75; }
+
+@media (min-width: 768px) {
+  .seo-landing { font-size: 18px; }
+  .seo-landing h2 { font-size: 2.25rem; line-height: 1.12; }   /* 36px */
+  .seo-landing h3 { font-size: 1.4375rem; line-height: 1.28; } /* 23px */
+  .seo-landing p,
+  .seo-landing li { font-size: 1.0625rem; line-height: 1.7; }  /* 17px */
+  .seo-landing .prose p { font-size: 1.125rem; line-height: 1.75; }
+}
+
 
 @layer utilities {
   .bg-surface-dark { background-color: hsl(var(--surface-dark)); }

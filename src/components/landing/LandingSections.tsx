@@ -9,8 +9,9 @@ export const SectionShell = ({
   id, title, children, soft = false,
 }: { id?: string; title?: string; children: React.ReactNode; soft?: boolean }) => (
   <section id={id} className={soft ? "scroll-mt-24 rounded-xl bg-secondary/40 p-6 sm:p-8" : "scroll-mt-24"}>
-    {title && <h2 className="font-display text-2xl uppercase sm:text-3xl">{title}</h2>}
-    <div className={title ? "mt-4" : ""}>{children}</div>
+    {title && <h2 className="text-[1.75rem] font-bold leading-tight md:text-4xl">{title}</h2>}
+    <div className={title ? "mt-5" : ""}>{children}</div>
+
   </section>
 );
 
@@ -34,8 +35,8 @@ export const CausesGrid = ({ items }: { items: NamedItem[] }) => (
   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     {items.map((c, i) => (
       <div key={i} className="rounded-xl border border-border bg-card p-5">
-        <h3 className="font-medium">{itemLabel(c)}</h3>
-        {c.description && <p className="mt-2 text-sm text-muted-foreground">{c.description}</p>}
+        <h3 className="text-lg font-semibold">{itemLabel(c)}</h3>
+        {c.description && <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">{c.description}</p>}
       </div>
     ))}
   </div>
@@ -63,8 +64,8 @@ export const LinkCards = ({
       const href = hrefFor(n);
       return (
         <div key={i} className="flex flex-col rounded-xl border border-border bg-card p-5">
-          <h3 className="font-display text-lg uppercase">{itemLabel(n)}</h3>
-          {n.description && <p className="mt-2 flex-1 text-sm text-muted-foreground">{n.description}</p>}
+          <h3 className="text-lg font-semibold leading-snug">{itemLabel(n)}</h3>
+          {n.description && <p className="mt-2.5 flex-1 text-[15px] leading-relaxed text-muted-foreground">{n.description}</p>}
           {href && (
             <Link to={href} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline">
               {ctaLabel?.(n) ?? n.cta ?? "Ver más"} <ArrowRight size={14} />
@@ -98,7 +99,7 @@ export const InPageNav = ({ items }: { items: { id: string; label: string }[] })
 
 export const LuciaBlock = ({ onAsk }: { onAsk: () => void }) => (
   <section className="rounded-xl bg-secondary/60 p-6 text-center sm:p-10">
-    <h2 className="font-display text-2xl uppercase sm:text-3xl">¿No sabes cuál elegir?</h2>
+    <h2 className="text-[1.75rem] font-bold leading-tight md:text-4xl">¿No sabes cuál elegir?</h2>
     <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
       Cuéntale a Lucía qué estás buscando y te ayudará a encontrar productos de Nutribatidos según tus
       necesidades, preferencias e ingredientes.
@@ -111,7 +112,7 @@ export const LuciaBlock = ({ onAsk }: { onAsk: () => void }) => (
 
 export const ProfessionalHelp = ({ text }: { text?: string | null }) => (
   <section id="profesional" className="scroll-mt-24 rounded-xl border border-accent/30 bg-accent/5 p-6 sm:p-8">
-    <h2 className="flex items-center gap-2 font-display text-2xl uppercase">
+    <h2 className="flex items-center gap-2 text-[1.6rem] font-bold leading-tight md:text-[2rem]">
       <Info size={20} className="text-accent" /> ¿Cuándo consultar a un profesional de la salud?
     </h2>
     <div className="mt-4 max-w-3xl whitespace-pre-line text-muted-foreground">
