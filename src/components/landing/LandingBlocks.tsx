@@ -41,8 +41,8 @@ export const EditorialIntro = ({
   return (
     <section className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
       <aside className="h-fit rounded-2xl border border-border/60 bg-[hsl(38_60%_96%)] p-6 shadow-sm dark:bg-secondary/40 sm:p-8">
-        <h2 className="font-display text-xl uppercase sm:text-2xl">{highlightTitle}</h2>
-        {highlightText && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{highlightText}</p>}
+        <h2 className="text-2xl font-bold leading-tight sm:text-[1.75rem]">{highlightTitle}</h2>
+        {highlightText && <p className="mt-4 text-[16px] leading-[1.7] text-muted-foreground">{highlightText}</p>}
         {perks.length > 0 && (
           <ul className="mt-6 space-y-3">
             {perks.map((p, i) => (
@@ -61,8 +61,8 @@ export const EditorialIntro = ({
             <div className="flex items-start gap-3">
               <IconBubble i={i} />
               <div className="min-w-0">
-                <h3 className="font-display text-lg uppercase leading-snug">{b.title}</h3>
-                <div className="mt-2 text-sm text-muted-foreground [&_p]:text-sm">
+                <h3 className="text-xl font-semibold leading-snug md:text-[23px]">{b.title}</h3>
+                <div className="mt-3 text-[16px] leading-[1.7] text-muted-foreground [&_p]:text-[16px] [&_p]:leading-[1.7] md:[&_p]:text-[17px]">
                   <RichText html={b.content} />
                 </div>
               </div>
@@ -97,9 +97,9 @@ export const IconCards = ({
           className="flex flex-col rounded-2xl border border-border/60 bg-card p-4 shadow-sm transition-colors hover:border-accent/40"
         >
           <IconBubble i={i} size={compact ? 15 : 18} />
-          <h3 className="mt-3 text-sm font-semibold leading-snug">{itemLabel(n)}</h3>
+          <h3 className="mt-3 text-[17px] font-semibold leading-snug">{itemLabel(n)}</h3>
           {n.description && (
-            <p className={`mt-1.5 flex-1 text-xs leading-relaxed text-muted-foreground ${compact ? "line-clamp-3" : ""}`}>
+            <p className={`mt-2 flex-1 text-[15px] leading-[1.65] text-muted-foreground ${compact ? "line-clamp-3" : ""}`}>
               {n.description}
             </p>
           )}
@@ -130,8 +130,8 @@ export const TrustStrip = () => {
               <Icon size={18} />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold">{title}</p>
-              <p className="text-xs text-muted-foreground">{text}</p>
+              <p className="text-[16px] font-semibold">{title}</p>
+              <p className="text-[14px] text-muted-foreground">{text}</p>
             </div>
           </li>
         ))}
@@ -143,15 +143,15 @@ export const TrustStrip = () => {
 /** FAQ en acordeón, 2 columnas en desktop. */
 export const FaqAccordion = ({ faqs }: { faqs: { q: string; a: string }[] }) => (
   <section id="faq" className="scroll-mt-24">
-    <h2 className="font-display text-2xl uppercase sm:text-3xl">Preguntas frecuentes</h2>
+    <h2 className="text-[1.75rem] font-bold leading-tight md:text-4xl">Preguntas frecuentes</h2>
     <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
       {faqs.map((f, i) => (
         <details key={i} className="group rounded-2xl border border-border/60 bg-card p-4 shadow-sm">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-[17px] font-semibold leading-snug">
             {f.q}
             <ArrowRight size={14} className="shrink-0 text-accent transition-transform group-open:rotate-90" />
           </summary>
-          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+          <p className="mt-3 text-[16px] leading-[1.7] text-muted-foreground">{f.a}</p>
         </details>
       ))}
     </div>
@@ -181,8 +181,8 @@ export const FinalCta = ({
       <div className={image ? "" : "lg:col-span-2"}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
           <div>
-            <h2 className="font-display text-2xl uppercase sm:text-3xl">{title}</h2>
-            {text && <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">{text}</p>}
+            <h2 className="text-[1.75rem] font-bold leading-tight md:text-4xl">{title}</h2>
+            {text && <p className="mt-4 max-w-xl text-[16px] leading-[1.7] text-muted-foreground md:text-[17px]">{text}</p>}
             <div className="mt-6 flex flex-wrap gap-3">
               <Button asChild>
                 <a href={productsHref}>Ver productos</a>

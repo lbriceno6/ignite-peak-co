@@ -350,7 +350,7 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
         }
       />
 
-      <div className="container-x space-y-12 pb-10 pt-16 md:pt-20">
+      <div className="seo-landing container-x space-y-14 pb-12 pt-16 md:space-y-20 md:pt-20">
 
         {isHealth && <InPageNav items={navItems} />}
 
@@ -423,10 +423,10 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
         {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) — se oculta si no hay productos */}
         {(loading || recommended.length > 0) && (
           <section id="productos" className="scroll-mt-24">
-            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+            <p className="inline-flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide text-accent">
               <Sparkles size={12} /> Recomendado por IA
             </p>
-            <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
+            <h2 className="mt-1.5 text-[1.75rem] font-bold leading-tight md:text-4xl">Combínalo con esto</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               Productos seleccionados para acompañar tu bienestar diario.
             </p>
