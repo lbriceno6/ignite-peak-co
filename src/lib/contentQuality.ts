@@ -10,6 +10,7 @@ export type QualityResult = {
   genericPhrases: string[];
   repeatedSentences: string[];
   claims: string[];
+  keywordStats: { keyword: string; count: number; words: number; density: number; max: number; excess: number; high: boolean };
 };
 
 export const GENERIC_PHRASES = [
@@ -173,5 +174,6 @@ export function computeContentQuality(input: QualityInput): QualityResult {
     genericPhrases,
     repeatedSentences,
     claims,
+    keywordStats,
   };
 }
