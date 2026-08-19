@@ -9,8 +9,9 @@ export const SectionShell = ({
   id, title, children, soft = false,
 }: { id?: string; title?: string; children: React.ReactNode; soft?: boolean }) => (
   <section id={id} className={soft ? "scroll-mt-24 rounded-xl bg-secondary/40 p-6 sm:p-8" : "scroll-mt-24"}>
-    {title && <h2 className="font-display text-2xl uppercase sm:text-3xl">{title}</h2>}
-    <div className={title ? "mt-4" : ""}>{children}</div>
+    {title && <h2 className="text-[1.75rem] font-bold leading-tight md:text-4xl">{title}</h2>}
+    <div className={title ? "mt-5" : ""}>{children}</div>
+
   </section>
 );
 
