@@ -199,6 +199,9 @@ export default function AdminSeoLandingEditor() {
           <Button size="icon" variant="ghost" onClick={() => nav("/admin/ia-landings")}><ArrowLeft size={16} /></Button>
           <h1 className="font-display text-2xl">{row.title}</h1>
           <Badge variant={row.is_published ? "default" : "secondary"}>{row.is_published ? "Publicado" : "Borrador"}</Badge>
+          <Badge variant={editorialVariant(row.editorial_status)}>{editorialLabel(row.editorial_status)}</Badge>
+          <Badge variant="outline">Calidad {quality.score}/100</Badge>
+
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm">
