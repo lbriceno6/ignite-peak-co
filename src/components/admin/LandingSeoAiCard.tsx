@@ -109,19 +109,16 @@ export default function LandingSeoAiCard({ landingId, row, faqs, sectionsRelated
           <Progress value={score} />
         </div>
 
-        {issues.length > 0 && (
-          <ul className="space-y-1 text-sm">
-            {issues.map((i, x) => (
-              <li key={x} className="flex items-start gap-2 text-muted-foreground">
-                <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-500" />
-                <span>{i.message}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {issues.length === 0 && (
-          <p className="flex items-center gap-2 text-sm text-emerald-600"><Check size={14} /> Todo en orden.</p>
-        )}
+        <ul className="space-y-1 text-sm">
+          {checks.map((c) => (
+            <li key={c.key} className={`flex items-start gap-2 ${c.ok ? "text-muted-foreground" : "text-amber-700 dark:text-amber-500"}`}>
+              {c.ok
+                ? <Check size={14} className="mt-0.5 shrink-0 text-emerald-600" />
+                : <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-500" />}
+              <span>{c.message}</span>
+            </li>
+          ))}
+        </ul>
 
         {sug && (
           <div className="space-y-3 border-t border-border pt-4">
