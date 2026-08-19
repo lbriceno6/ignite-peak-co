@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, ArrowDown, ArrowUp, ExternalLink, Loader2, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { LANDING_KINDS, landingPath, normalizeSections, type LandingSections, type NamedItem } from "@/lib/seoLanding";
+import LandingSeoAiCard from "@/components/admin/LandingSeoAiCard";
+
 
 type ListKey = "causes" | "symptoms" | "nutrients" | "ingredients" | "related_topics";
 
