@@ -17,7 +17,6 @@ import { useFreeShippingBar } from "@/hooks/useFreeShippingBar";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useSubscriptionSettings } from "@/hooks/useSubscriptionSettings";
 import { cn } from "@/lib/utils";
-import { ProductReviews } from "@/components/ProductReviews";
 import { SeoFromMeta } from "@/components/SeoFromMeta";
 import { useSeoImageAlts } from "@/hooks/useSeoMeta";
 import { Helmet } from "react-helmet-async";
@@ -556,7 +555,6 @@ const ProductDetail = () => {
         </section>
       )}
 
-      <ProductReviews productId={dbp.id} />
       <div className="container-x pb-6">
         <ComboRecommendations
           location="product"
@@ -566,7 +564,6 @@ const ProductDetail = () => {
         />
       </div>
 
-      <ProductReviews productId={dbp.id} />
 
       <AiProductRelated
         productSlug={dbp.slug}
