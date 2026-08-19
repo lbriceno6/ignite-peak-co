@@ -395,36 +395,40 @@ export default function SeoLanding({ kind }: { kind: LandingKind }) {
           </SectionShell>
         )}
 
-        {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) */}
-        <section id="productos" className="scroll-mt-24">
-          <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
-            <Sparkles size={12} /> Recomendado por IA
-          </p>
-          <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
-          <div className="mt-4">
-            {loading ? (
-              <p className="text-muted-foreground">Cargando…</p>
-            ) : recommended.length === 0 ? (
-              <div className="rounded-lg border border-border p-10 text-center text-muted-foreground">
-                Sin productos para esta selección por ahora.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-                {recommended.map(({ product, reason }) => (
-                  <div key={product.id} className="flex flex-col gap-2">
-                    <ProductCard product={product as any} />
-                    {reason && (
-                      <p className="px-1 text-xs text-muted-foreground">
-                        <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
-                        {reason}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+        {/* PRODUCTOS RECOMENDADOS POR IA (máx. 4) — se oculta si no hay productos */}
+        {(loading || recommended.length > 0) && (
+          <section id="productos" className="scroll-mt-24">
+            <p className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+              <Sparkles size={12} /> Recomendado por IA
+            </p>
+            <h2 className="mt-1 font-display text-2xl uppercase sm:text-3xl">Combínalo con esto</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Productos seleccionados para acompañar tu bienestar diario.
+            </p>
+            <div className="mt-5">
+              {loading ? (
+                <p className="text-muted-foreground">Cargando…</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                  {recommended.map(({ product, reason }) => (
+                    <div key={product.id} className="flex flex-col gap-2">
+                      <ProductCard product={product as any} />
+                      {reason && (
+                        <p className="px-1 text-xs text-muted-foreground">
+                          <Sparkles size={10} className="mr-1 inline -translate-y-0.5 text-accent" />
+                          {reason}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {recommended.length > 0 && !loading && <TrustStrip />}
+
 
 
         {isHealth && <LuciaBlock onAsk={askLucia} />}
